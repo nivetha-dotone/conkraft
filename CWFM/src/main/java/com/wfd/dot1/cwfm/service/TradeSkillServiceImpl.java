@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.wfd.dot1.cwfm.dao.TradeSkillDao;
+import com.wfd.dot1.cwfm.dto.CertificationDTO;
 import com.wfd.dot1.cwfm.dto.GatePassTradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillListingDto;
@@ -33,7 +34,9 @@ public class TradeSkillServiceImpl implements TradeSkillService{
 	@Override
 	public void saveTradeSkill(GatePassTradeSkillDTO dto, String user) {
 	    dao.deleteByGatePass(dto.getGatePassId());
+	    dao.deleteCertification(dto.getGatePassId());
 	    dao.batchInsert(dto, user);
+	    dao.batchInsertCertification(dto, user);
 	}
 	@Override
 	public List<TradeSkillDTO> viewTradeSkill(String gatePassId) {
@@ -41,5 +44,13 @@ public class TradeSkillServiceImpl implements TradeSkillService{
 		return dao.viewTradeSkill(gatePassId);
 	}
 
-
+	@Override
+	public List<CertificationDTO> getCertification(String gatePassId){
+		return dao.getCertification(gatePassId);
+	}
+	@Override
+	public List<CmsGeneralMaster> getAllCert() {
+		// TODO Auto-generated method stub
+		return dao.getAllCert();
+	}
 }

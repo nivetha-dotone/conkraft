@@ -2,6 +2,7 @@ package com.wfd.dot1.cwfm.dao;
 
 import java.util.List;
 
+import com.wfd.dot1.cwfm.dto.CertificationDTO;
 import com.wfd.dot1.cwfm.dto.GatePassTradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillListingDto;
@@ -20,6 +21,14 @@ public interface TradeSkillDao {
 	void batchInsert(GatePassTradeSkillDTO dto, String user);
 
 	List<TradeSkillDTO> viewTradeSkill(String gatePassId);
+
+	void deleteCertification(String gatePassId);
+
+	void batchInsertCertification(GatePassTradeSkillDTO dto, String user);
+
+	List<CertificationDTO> getCertification(String gatePassId);
+
+	List<CmsGeneralMaster> getAllCert();
 
 	
 }

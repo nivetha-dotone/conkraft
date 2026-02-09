@@ -20,5 +20,12 @@ public class GatePassTradeSkillDTO {
 	}
 
     // getters & setters
+	 private List<CertificationDTO> certifications;
+	public List<CertificationDTO> getCertifications() {
+		return certifications;
+	}
+	public void setCertifications(List<CertificationDTO> certifications) {
+		this.certifications = certifications;
+	}
 }
 

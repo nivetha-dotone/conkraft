@@ -782,6 +782,63 @@ label {
 </tbody>
       
                 </table><br>
+                
+                <h5>Certification Details</h5>
+
+<table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
+    <thead >
+        <tr style=" border: 1px solid #ddd;">
+            <th><label class="custom-label"></th>
+            <th><label class="custom-label"></th>
+            <th><label class="custom-label">Certification</th>
+            <th><label class="custom-label">Proficiency</th>
+            <th><label class="custom-label">Grant Date</th>
+            <th><label class="custom-label">Expiration Date</th>
+        </tr>
+    </thead>
+
+    <tbody id="certBody">
+        <tr>
+            <td>
+                <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
+            </td>
+            <td>
+                <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
+            </td>
+
+            <td>
+                <select class="form-control certType" name="certType" id="certType">
+                    <option value="">Select Certification</option>
+                    <c:forEach var="c" items="${CertificationList}">
+                        <option value="${c.gmId}">
+                            ${c.gmName}
+                        </option>
+                    </c:forEach>
+                </select>
+            </td>
+
+            <td>
+                <select class="form-control certProType" name="certProType" id="certProType">
+                    <option value="">Select Proficiency</option>
+                    <c:forEach var="p" items="${PROLEVEL}">
+                        <option value="${p.gmId}">
+                            ${p.gmName}
+                        </option>
+                    </c:forEach>
+                </select>
+            </td>
+
+            <td>
+                <input type="date" class="form-control grantDate">
+            </td>
+
+            <td>
+                <input type="date" class="form-control expiryDate">
+            </td>
+        </tr>
+    </tbody>
+</table>
+                
              
                 
             </div>

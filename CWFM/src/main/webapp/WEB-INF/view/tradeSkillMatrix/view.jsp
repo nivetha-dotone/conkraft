@@ -757,7 +757,33 @@ label {
       
                 </table><br>
              
+                   <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
+                   
+        <thead>
+            <tr style=" border: 1px solid #ddd;">
+            
                 
+				<th style="text-align:center"><label class="custom-label"> <spring:message code="label.certification"/></th>
+				<th style="text-align:center"><label class="custom-label"> <spring:message code="label.proLevel"/></th>
+				<th style="text-align:center"><label class="custom-label"> <spring:message code="label.grantDate"/></th>
+				<th style="text-align:center"><label class="custom-label"> <spring:message code="label.expirationDate"/></th>
+				
+            </tr>
+        </thead>
+      <tbody id="certBody">
+    <c:forEach var="item" items="${Certification}">
+                    <tr style=" border: 1px solid #ddd;background-color: ${status.index % 2 == 0 ? '#f9f9f9' : '#ffffff'};">
+                      
+                    <td style="color:#2c2c2c;">${item.certificationId }</td>
+                    <td style="color:#2c2c2c;">${item.proficiencyId }</td>
+                    <td style="color:#2c2c2c;">${item.grantDate }</td>
+                     <td style="color:#2c2c2c;">${item.expiryDate }</td>
+                    </tr>
+                </c:forEach>
+       
+</tbody>
+      
+                </table>
             </div>
            
         </f:form>

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wfd.dot1.cwfm.dto.CertificationDTO;
 import com.wfd.dot1.cwfm.dto.GatePassTradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillDTO;
 import com.wfd.dot1.cwfm.dto.TradeSkillListingDto;
@@ -101,10 +103,12 @@ public class TradeSkillMatrixController {
 	        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 	        List<CmsGeneralMaster> tradeList  = service.getAllTradeSkillBasedOnPe(unitId);
 	        List<CmsGeneralMaster> proficiencyList  = service.getAllProLevel();
+	        List<CmsGeneralMaster> certList  = service.getAllCert();
 	        request.setAttribute("PROLEVEL", proficiencyList);
 	    	request.setAttribute("TRADE", tradeList);
 	    	request.setAttribute("unitId", unitId);
 	    	request.setAttribute("gatePassId", gatePassId);
+	    	request.setAttribute("CertificationList", certList);
 	        return "tradeSkillMatrix/tradeSkillMappingCreate";
 	    }
 	    
@@ -120,9 +124,21 @@ public class TradeSkillMatrixController {
 	                 mapper.readValue(jsonData, GatePassTradeSkillDTO.class);
 
 	         MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+	         try {
 	         service.saveTradeSkill(dto, String.valueOf(user.getUserId()));
 
 	         return ResponseEntity.ok("SUCCESS");
+	         }catch (DuplicateKeyException e) {
+
+	             // ✅ friendly message for UI
+	             return ResponseEntity
+	                     .status(409)
+	                     .body("DUPLICATE");
+
+	         } catch (Exception e) {
+	             e.printStackTrace();
+	             return ResponseEntity.status(500).body("ERROR");
+	         }
 
 	     } catch (Exception e) {
 	         e.printStackTrace();
@@ -134,6 +150,8 @@ public class TradeSkillMatrixController {
 	 public String viewTradeSkill(@PathVariable String gatePassId,
 			 HttpServletRequest request,HttpServletResponse response) {
 		 List<TradeSkillDTO> list =  service.viewTradeSkill(gatePassId);
+		  List<CertificationDTO>  cert= service.getCertification(gatePassId);
+		  request.setAttribute("Certification", cert);
 		 request.setAttribute("TradeSkillProList",list);
 		 request.setAttribute("gatePassId",gatePassId);
 		 return "tradeSkillMatrix/view";

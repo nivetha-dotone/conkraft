@@ -81,7 +81,19 @@ function searchGatePassIdBasedOnPE() {
 								       setTimeout(() => deleteRowTradeSkill(e.target), 0); // prevent recursion
 						        //deleteRowContNew(e.target);
 						    }
+							else if (e.target.matches('button.addRowCert')) {
+													        e.preventDefault();
+													        e.stopImmediatePropagation();
+													        setTimeout(() => addRowCertification(), 0); // prevent recursion
+													    } else if (e.target.matches('button.removeRowCert')) {
+															e.preventDefault();
+															       e.stopImmediatePropagation();
+															       setTimeout(() => deleteRowCertification(e.target), 0); // prevent recursion
+													        //deleteRowContNew(e.target);
+													    }
 						});
+
+						
 
 						function addRowTradeSkill() {
 						    const tbody = document.getElementById("tradeSkillBody");
@@ -136,6 +148,9 @@ function searchGatePassIdBasedOnPE() {
 						        alert("At least one row must be present.");
 						    }
 						}
+						
+						
+
 						function getSkillsBasedOnUnitAndTrade(selectElement) {
 
 						    const row = selectElement.closest("tr");
@@ -195,10 +210,11 @@ function searchGatePassIdBasedOnPE() {
 
 						    const jsonData = {
 						        gatePassId: $("#gatePassId").val().trim(),
-						        tradeSkills: []
+						        tradeSkills: [],
+						        certifications: []
 						    };
 
-						    // loop dynamic rows
+						    // ===== TRADE SKILL TABLE =====
 						    $("#tradeSkillBody tr").each(function () {
 
 						        const row = $(this);
@@ -216,32 +232,50 @@ function searchGatePassIdBasedOnPE() {
 						        }
 						    });
 
+						    // ===== CERTIFICATION TABLE =====
+						    $("#certBody tr").each(function () {
+
+						        const row = $(this);
+
+						        const cert = row.find(".certType").val();
+						        const prof = row.find(".certProType").val();
+						        const grant = row.find(".grantDate").val();
+						        const expiry = row.find(".expiryDate").val();
+
+						        if (cert && prof) {
+						            jsonData.certifications.push({
+						                certificationId: cert,
+						                proficiencyId: prof,
+						                grantDate: grant,
+						                expiryDate: expiry
+						            });
+						        }
+						    });
+
 						    data.append("jsonData", JSON.stringify(jsonData));
 
 						    console.log("Sending:", jsonData);
 
 						    const xhr = new XMLHttpRequest();
-						    xhr.open("POST",  "/CWFM/tradeSkillMatrix/saveTradeSkill", true);
+						    xhr.open("POST", "/CWFM/tradeSkillMatrix/saveTradeSkill", true);
 
 						    xhr.onload = function () {
-						        if (xhr.status === 200) {
-									sessionStorage.setItem("successMessage", "Gatepass saved successfully!");
-						            console.log("Saved TSP successfully!");
-									loadCommonList('/tradeSkillMatrix/list', 'Trade Skill Mapping');
-						        } else {
-						            console.log("Save failed");
-									sessionStorage.setItem("errorMessage", "Failed to save trade skill mapping!");
-						            console.error(xhr.responseText);
-						        }
-						    };
 
-						    xhr.onerror = function () {
-						        console.log("Error while saving");
-								sessionStorage.setItem("errorMessage", "Failed to save trade skill mapping!");
+						        if (xhr.status === 200) {
+						            alert("Saved successfully");
+						            loadCommonList('/tradeSkillMatrix/list',
+						                'Trade Skill Mapping');
+
+						        } else if (xhr.status === 409) {
+						            alert("Duplicate combination exists");
+						        } else {
+						            alert("Save failed");
+						        }
 						    };
 
 						    xhr.send(data);
 						}
+
 						
 							function redirectToTradeView() {
 						    var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
@@ -261,4 +295,49 @@ function searchGatePassIdBasedOnPE() {
 						    xhr.open("GET", "/CWFM/tradeSkillMatrix/viewTradeSkill/" + gatePassId, true);
 						    xhr.send();
 						}
+						function addRowCertification() {
+												    const tbody = document.getElementById("certBody");
 
+												    const row = document.createElement("tr");
+												    row.innerHTML = `
+												        <td><button type="button" class="btn btn-success addRowCert" style="color:blue;background-color:white;">+</button></td>
+												        <td><button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">−</button></td>
+												        <td></td>
+												        <td></td>
+												        <td><input type="date" class="form-control grantDate"></td>
+														<td><input type="date" class="form-control expiryDate"></td>
+												    `;
+
+												    const originalCertDropdown = document.querySelector('#certBody tr:first-child select.certType');
+												    if (originalCertDropdown) {
+												        const clonedCertDropdown = originalCertDropdown.cloneNode(true);
+												        clonedCertDropdown.classList.add("certType");
+												        clonedCertDropdown.name = "certType";
+														
+
+												        row.cells[2].appendChild(clonedCertDropdown);
+												    }
+													
+																				const originalCertProLevelDropdown = document.querySelector('#certBody tr:first-child select.certProType');
+																										    if (originalCertProLevelDropdown) {
+																										        const clonedCertProLevelDropdown = originalCertProLevelDropdown.cloneNode(true);
+																										        clonedCertProLevelDropdown.classList.add("certProType");
+																										        clonedCertProLevelDropdown.name = "certProType";
+																										        row.cells[3].appendChild(clonedCertProLevelDropdown);
+																										    }
+
+												    tbody.appendChild(row);
+												}
+
+												function deleteRowCertification(buttonElement) {
+												    const row = buttonElement.closest('tr');
+												    const tbody = document.getElementById("certBody");
+
+												    const dataRows = Array.from(tbody.querySelectorAll('tr')).filter(r => r.querySelector('button.removeRowCert'));
+													console.log(dataRows.length);
+												    if (dataRows.length > 1) {
+												        row.remove();
+												    } else {
+												        alert("At least one row must be present.");
+												    }
+												}
