@@ -53,4 +53,14 @@ public class TradeSkillServiceImpl implements TradeSkillService{
 		// TODO Auto-generated method stub
 		return dao.getAllCert();
 	}
+	@Override
+	public List<TradeSkillDTO> viewExistingTradeSkill(String gatePassId) {
+		// TODO Auto-generated method stub
+		return dao.viewExistingTradeSkill(gatePassId);
+	}
+	@Override
+	public List<CertificationDTO> viewExisitingCertification(String gatePassId) {
+		// TODO Auto-generated method stub
+		return dao.viewCertification(gatePassId);
+	}
 }

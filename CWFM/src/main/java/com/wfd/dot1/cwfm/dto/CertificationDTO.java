@@ -32,5 +32,20 @@ public class CertificationDTO {
 	}
 
     // getters / setters
+	private String certificationName;
+	private String proficiencyName;
+	public String getCertificationName() {
+		return certificationName;
+	}
+	public void setCertificationName(String certificationName) {
+		this.certificationName = certificationName;
+	}
+	public String getProficiencyName() {
+		return proficiencyName;
+	}
+	public void setProficiencyName(String proficiencyName) {
+		this.proficiencyName = proficiencyName;
+	}
+	
 }
 

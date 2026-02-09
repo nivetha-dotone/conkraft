@@ -24,4 +24,8 @@ public interface TradeSkillService {
 
 	List<CmsGeneralMaster> getAllCert();
 
+	List<TradeSkillDTO> viewExistingTradeSkill(String gatePassId);
+
+	List<CertificationDTO> viewExisitingCertification(String gatePassId);
+
 }

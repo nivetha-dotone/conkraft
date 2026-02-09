@@ -30,5 +30,9 @@ public interface TradeSkillDao {
 
 	List<CmsGeneralMaster> getAllCert();
 
+	List<TradeSkillDTO> viewExistingTradeSkill(String gatePassId);
+
+	List<CertificationDTO> viewCertification(String gatePassId);
+
 	
 }

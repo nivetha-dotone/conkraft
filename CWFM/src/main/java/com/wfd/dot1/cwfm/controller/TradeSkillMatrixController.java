@@ -101,6 +101,7 @@ public class TradeSkillMatrixController {
 		
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 	        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+	       
 	        List<CmsGeneralMaster> tradeList  = service.getAllTradeSkillBasedOnPe(unitId);
 	        List<CmsGeneralMaster> proficiencyList  = service.getAllProLevel();
 	        List<CmsGeneralMaster> certList  = service.getAllCert();
@@ -109,6 +110,13 @@ public class TradeSkillMatrixController {
 	    	request.setAttribute("unitId", unitId);
 	    	request.setAttribute("gatePassId", gatePassId);
 	    	request.setAttribute("CertificationList", certList);
+	    	
+
+	        // 👉 NEW — fetch existing mappings
+	        List<TradeSkillDTO> existingTradeSkills = service.viewExistingTradeSkill(gatePassId);
+	        List<CertificationDTO> existingCerts = service.viewExisitingCertification(gatePassId);
+	        request.setAttribute("existingTradeSkills", existingTradeSkills);
+	        request.setAttribute("existingCerts", existingCerts);
 	        return "tradeSkillMatrix/tradeSkillMappingCreate";
 	    }
 	    

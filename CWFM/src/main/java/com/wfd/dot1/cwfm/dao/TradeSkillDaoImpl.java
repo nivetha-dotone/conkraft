@@ -109,21 +109,43 @@ public class TradeSkillDaoImpl implements TradeSkillDao{
 	@Override
 	public void batchInsert(GatePassTradeSkillDTO dto, String user) {
 
-	    String sql = "INSERT INTO GatePassTradeSkillMapping " +
-	            "(GatePassId, TradeId, SkillId, ProficiencyId, UpdatedBy, UpdatedDate) " +
-	            "VALUES (?, ?, ?, ?, ?, GETDATE())";
+	    String sql = """
+	        MERGE GatePassTradeSkillMapping AS target
+	        USING (SELECT ? AS GatePassId,
+	                      ? AS TradeId,
+	                      ? AS SkillId,
+	                      ? AS ProficiencyId,
+	                      ? AS UpdatedBy) AS source
+	        ON target.GatePassId = source.GatePassId
+	           AND target.TradeId = source.TradeId
+	           AND target.SkillId = source.SkillId
+	           AND target.IsActive = 1
 
-	    jdbcTemplate.batchUpdate(sql, dto.getTradeSkills(), 
+	        WHEN MATCHED THEN
+	            UPDATE SET
+	                target.ProficiencyId = source.ProficiencyId,
+	                target.UpdatedBy = source.UpdatedBy,
+	                target.UpdatedDate = GETDATE()
+
+	        WHEN NOT MATCHED THEN
+	            INSERT (GatePassId, TradeId, SkillId, ProficiencyId, UpdatedBy, UpdatedDate, IsActive)
+	            VALUES (source.GatePassId, source.TradeId, source.SkillId,
+	                    source.ProficiencyId, source.UpdatedBy, GETDATE(), 1);
+	        """;
+
+	    jdbcTemplate.batchUpdate(sql,
+	        dto.getTradeSkills(),
 	        dto.getTradeSkills().size(),
-
 	        (ps, ts) -> {
 	            ps.setString(1, dto.getGatePassId());
 	            ps.setString(2, ts.getTradeId());
 	            ps.setString(3, ts.getSkillId());
 	            ps.setString(4, ts.getProficiencyId());
 	            ps.setString(5, user);
-	        });
+	        }
+	    );
 	}
+
 	
 	 public String getAllTradeSkillProLevelViewQuery() {
 		    return QueryFileWatcher.getQuery("GET_ALL_TRADE_SKILL_PRO_VIEW");
@@ -162,11 +184,35 @@ public class TradeSkillDaoImpl implements TradeSkillDao{
 	        GatePassTradeSkillDTO dto,
 	        String user) {
 
-	    String sql =
-	        "INSERT INTO GatePassCertificationMapping " +
-	        "(GatePassId, CertificationId, ProficiencyId, " +
-	        "GrantDate, ExpiryDate, UpdatedBy, UpdatedDate) " +
-	        "VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
+	    String sql = """
+	        MERGE GatePassCertificationMapping AS target
+	        USING (SELECT ? AS GatePassId,
+	                      ? AS CertificationId,
+	                      ? AS ProficiencyId,
+	                      ? AS GrantDate,
+	                      ? AS ExpiryDate,
+	                      ? AS UpdatedBy) AS source
+	        ON target.GatePassId = source.GatePassId
+	           AND target.CertificationId = source.CertificationId
+	           AND target.IsActive = 1
+
+	        WHEN MATCHED THEN
+	            UPDATE SET
+	                target.ProficiencyId = source.ProficiencyId,
+	                target.GrantDate = source.GrantDate,
+	                target.ExpiryDate = source.ExpiryDate,
+	                target.UpdatedBy = source.UpdatedBy,
+	                target.UpdatedDate = GETDATE()
+
+	        WHEN NOT MATCHED THEN
+	            INSERT (GatePassId, CertificationId, ProficiencyId,
+	                    GrantDate, ExpiryDate,
+	                    UpdatedBy, UpdatedDate, IsActive)
+	            VALUES (source.GatePassId, source.CertificationId,
+	                    source.ProficiencyId,
+	                    source.GrantDate, source.ExpiryDate,
+	                    source.UpdatedBy, GETDATE(), 1);
+	        """;
 
 	    jdbcTemplate.batchUpdate(
 	        sql,
@@ -232,7 +278,73 @@ public class TradeSkillDaoImpl implements TradeSkillDao{
 	}
 
 
+
+	@Override
+	public List<TradeSkillDTO> viewExistingTradeSkill(String gatePassId) {
+
+	    String sql =
+	        "SELECT " +
+	        " t.GMID AS TradeId, t.GMNAME AS TradeName, " +
+	        " s.GMID AS SkillId, s.GMNAME AS SkillName, " +
+	        " p.GMID AS ProficiencyId, p.GMNAME AS ProficiencyName " +
+	        "FROM GatePassTradeSkillMapping g " +
+	        "JOIN CMSGENERALMASTER t ON t.GMID = g.TradeId " +
+	        "JOIN CMSGENERALMASTER s ON s.GMID = g.SkillId " +
+	        "JOIN CMSGENERALMASTER p ON p.GMID = g.ProficiencyId " +
+	        "WHERE g.GatePassId = ? AND g.IsActive = 1";
+
+	    return jdbcTemplate.query(sql,
+	        new Object[]{gatePassId},
+	        (rs, rowNum) -> {
+
+	            TradeSkillDTO dto = new TradeSkillDTO();
+
+	            dto.setTradeId(rs.getString("TradeId"));
+	            dto.setTradeName(rs.getString("TradeName"));
+
+	            dto.setSkillId(rs.getString("SkillId"));
+	            dto.setSkillName(rs.getString("SkillName"));
+
+	            dto.setProficiencyId(rs.getString("ProficiencyId"));
+	            dto.setProficiencyName(rs.getString("ProficiencyName"));
+
+	            return dto;
+	        });
+	}
 	
+	@Override
+	public List<CertificationDTO> viewCertification(String gatePassId) {
+
+	    String sql =
+	        "SELECT " +
+	        " c.GMID AS CertificationId, c.GMNAME AS CertificationName, " +
+	        " p.GMID AS ProficiencyId, p.GMNAME AS ProficiencyName, " +
+	        " g.GrantDate, g.ExpiryDate " +
+	        "FROM GatePassCertificationMapping g " +
+	        "JOIN CMSGENERALMASTER c ON c.GMID = g.CertificationId " +
+	        "JOIN CMSGENERALMASTER p ON p.GMID = g.ProficiencyId " +
+	        "WHERE g.GatePassId = ? AND g.IsActive = 1";
+
+	    return jdbcTemplate.query(sql,
+	        new Object[]{gatePassId},
+	        (rs, rowNum) -> {
+
+	            CertificationDTO dto = new CertificationDTO();
+
+	            dto.setCertificationId(rs.getString("CertificationId"));
+	            dto.setCertificationName(rs.getString("CertificationName"));
+
+	            dto.setProficiencyId(rs.getString("ProficiencyId"));
+	            dto.setProficiencyName(rs.getString("ProficiencyName"));
+
+	            dto.setGrantDate(rs.getString("GrantDate"));
+	            dto.setExpiryDate(rs.getString("ExpiryDate"));
+
+	            return dto;
+	        });
+	}
+
+
 
 
 }

@@ -22,6 +22,28 @@ public class TradeSkillDTO {
 	public void setProficiencyId(String proficiencyId) {
 		this.proficiencyId = proficiencyId;
 	}
+	private String tradeName;
+	private String skillName;
+	private String proficiencyName;
+	public String getTradeName() {
+		return tradeName;
+	}
+	public void setTradeName(String tradeName) {
+		this.tradeName = tradeName;
+	}
+	public String getSkillName() {
+		return skillName;
+	}
+	public void setSkillName(String skillName) {
+		this.skillName = skillName;
+	}
+	public String getProficiencyName() {
+		return proficiencyName;
+	}
+	public void setProficiencyName(String proficiencyName) {
+		this.proficiencyName = proficiencyName;
+	}
+	
 
 }
 

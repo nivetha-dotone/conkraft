@@ -729,7 +729,8 @@ label {
             <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div>
               <div>
  <input type="hidden" value="${unitId}" id="unitId" name="unitId"/>
-  <input type="hidden" value="${gatePassId}" id="gatePassId" name="gatePassId"/>
+  <label class="custom-label"><spring:message code="label.gatePassId"/></label>
+   <input type="text" value="${gatePassId}" id="gatePassId" name="gatePassId" readonly/><br>
 	</div>
             <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
                    

@@ -729,61 +729,114 @@ label {
             <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div>
               <div>
  <input type="hidden" value="${unitId}" id="unitId" name="unitId"/>
-  <input type="hidden" value="${gatePassId}" id="gatePassId" name="gatePassId"/>
+ <label class="custom-label"><spring:message code="label.gatePassId"/></label> :   <input type="text" value="${gatePassId}" id="gatePassId" name="gatePassId" readonly/><br>
 	</div>
-            <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
-                   
-        <thead>
-            <tr style=" border: 1px solid #ddd;">
-            
-                <th><label class="custom-label"></th>
+    <table class="table table-bordered" cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">>
+<thead>
+  <tr style=" border: 1px solid #ddd;">
+ <th><label class="custom-label"></th>
                 <th><label class="custom-label"></th>
 				<th><label class="custom-label"> <spring:message code="label.tradeName"/></th>
 				<th><label class="custom-label"> <spring:message code="label.skillName"/></th>
 				<th><label class="custom-label"> <spring:message code="label.proLevel"/></th>
 				
             </tr>
-        </thead>
-      <tbody id="tradeSkillBody">
-    <tr>
+</tr>
+</thead>
+
+<tbody id="tradeSkillBody">
+
+<c:choose>
+
+<c:when test="${not empty existingTradeSkills}">
+
+<c:forEach var="ts" items="${existingTradeSkills}">
+<tr>
+
+ <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
+        <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">-</button></td>
+
+<td>
+<select class="form-control tradeType" name="tradeType" id="tradeTypeId"  onchange="getSkillsBasedOnUnitAndTrade(this);">
+<option value="">Select</option>
+<c:forEach var="t" items="${TRADE}">
+<option value="${t.gmId}"
+${t.gmId == ts.tradeId ? 'selected' : ''}>
+${t.gmName}
+</option>
+</c:forEach>
+</select>
+</td>
+
+<td>
+  <select class="form-control skillType" name="skillType" id="skillTypeId">
+<option value="${ts.skillId}" selected>
+${ts.skillName}
+</option>
+</select>
+</td>
+
+<td>
+<select class="form-control proType" name="proType" id="proTypeId">
+<option value="">Select</option>
+<c:forEach var="p" items="${PROLEVEL}">
+<option value="${p.gmId}"
+${p.gmId == ts.proficiencyId ? 'selected' : ''}>
+${p.gmName}
+</option>
+</c:forEach>
+</select>
+</td>
+
+</tr>
+</c:forEach>
+
+</c:when>
+
+<c:otherwise>
+
+<tr>
+
+
         <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
         <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">-</button></td>
        
-        <td>
-            <select class="form-control tradeType" name="tradeType" id="tradeTypeId"  onchange="getSkillsBasedOnUnitAndTrade(this);" >
-            
-                 <option value="">Please select Trade</option>
-                                <c:forEach var="doc" items="${TRADE}">
-                					<option value="${doc.gmId}">${doc.gmName}</option>
-            					</c:forEach>
-                                </select>
-        </td>
-        
-         <td>
-            <select class="form-control skillType" name="skillType" id="skillTypeId">
-            
-                 <option value="">Please select Skill</option>
-                                <c:forEach var="doc" items="${Skill}">
-                					<option value="${doc.gmId}">${doc.gmName}</option>
-            					</c:forEach>
-                                </select>
-        </td>
-        <td>
-            <select class="form-control proType" name="proType" id="proTypeId">
-            
-                 <option value="">Please select Proficiency Level</option>
-                                <c:forEach var="doc" items="${PROLEVEL}">
-                					<option value="${doc.gmId}">${doc.gmName}</option>
-            					</c:forEach>
-                                </select>
-        </td>
-       
-    </tr>
+<td>
+<select class="form-control tradeType" name="tradeType" id="tradeTypeId"  onchange="getSkillsBasedOnUnitAndTrade(this);" >
+<option value="">Select</option>
+<c:forEach var="t" items="${TRADE}">
+<option value="${t.gmId}">${t.gmName}</option>
+</c:forEach>
+</select>
+</td>
+
+<td>
+<select class="form-control skillType" name="skillType" id="skillTypeId">
+<option value="">Select</option>
+</select>
+</td>
+
+<td>
+ <select class="form-control proType" name="proType" id="proTypeId">
+<option value="">Select</option>
+<c:forEach var="p" items="${PROLEVEL}">
+<option value="${p.gmId}">${p.gmName}</option>
+</c:forEach>
+</select>
+</td>
+
+</tr>
+
+</c:otherwise>
+
+</c:choose>
+
 </tbody>
-      
-                </table><br>
-                
-                <h5>Certification Details</h5>
+</table>
+
+<hr>
+
+<h4>Certification Details</h4>
 
 <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
     <thead >
@@ -797,48 +850,106 @@ label {
         </tr>
     </thead>
 
-    <tbody id="certBody">
-        <tr>
-            <td>
+<tbody id="certBody">
+
+<c:choose>
+
+<c:when test="${not empty existingCerts}">
+
+<c:forEach var="c" items="${existingCerts}">
+<tr>
+
+ <td>
                 <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
             </td>
             <td>
                 <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
             </td>
 
-            <td>
-                <select class="form-control certType" name="certType" id="certType">
-                    <option value="">Select Certification</option>
-                    <c:forEach var="c" items="${CertificationList}">
-                        <option value="${c.gmId}">
-                            ${c.gmName}
-                        </option>
-                    </c:forEach>
-                </select>
-            </td>
+<td>
+<select class="form-control certType" name="certType" id="certType">>
+<option value="">Select</option>
+<c:forEach var="ct" items="${CertificationList}">
+<option value="${ct.gmId}"
+${ct.gmId == c.certificationId ? 'selected' : ''}>
+${ct.gmName}
+</option>
+</c:forEach>
+</select>
+</td>
 
-            <td>
-                <select class="form-control certProType" name="certProType" id="certProType">
-                    <option value="">Select Proficiency</option>
-                    <c:forEach var="p" items="${PROLEVEL}">
-                        <option value="${p.gmId}">
-                            ${p.gmName}
-                        </option>
-                    </c:forEach>
-                </select>
-            </td>
+<td>
+<select class="form-control certProType" name="certProType" id="certProType">
+<option value="">Select</option>
+<c:forEach var="p" items="${PROLEVEL}">
+<option value="${p.gmId}"
+${p.gmId == c.proficiencyId ? 'selected' : ''}>
+${p.gmName}
+</option>
+</c:forEach>
+</select>
+</td>
 
-            <td>
-                <input type="date" class="form-control grantDate">
-            </td>
+<td>
+<input type="date"
+class="form-control grantDate"
+value="${c.grantDate}">
+</td>
 
-            <td>
-                <input type="date" class="form-control expiryDate">
+<td>
+<input type="date"
+class="form-control expiryDate"
+value="${c.expiryDate}">
+</td>
+
+</tr>
+</c:forEach>
+
+</c:when>
+
+<c:otherwise>
+
+<tr>
+ <td>
+                <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
             </td>
-        </tr>
-    </tbody>
-</table>
-                
+            <td>
+                <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
+            </td>
+<td>
+<select class="form-control certType" name="certType" id="certType">
+<option value="">Select</option>
+<c:forEach var="ct" items="${CertificationList}">
+<option value="${ct.gmId}">${ct.gmName}</option>
+</c:forEach>
+</select>
+</td>
+
+<td>
+<select class="form-control certProType" name="certProType" id="certProType">
+<option value="">Select</option>
+<c:forEach var="p" items="${PROLEVEL}">
+<option value="${p.gmId}">${p.gmName}</option>
+</c:forEach>
+</select>
+</td>
+
+<td>
+<input type="date" class="form-control grantDate">
+</td>
+
+<td>
+<input type="date" class="form-control expiryDate">
+</td>
+
+</tr>
+
+</c:otherwise>
+
+</c:choose>
+
+</tbody>
+</table>        
              
                 
             </div>
