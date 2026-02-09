@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.RequesterDto;
 import com.wfd.dot1.cwfm.dto.RequestorListDTO;
 import com.wfd.dot1.cwfm.dto.UpdateRequestDTO;
+import com.wfd.dot1.cwfm.dto.workMenFaceDropDto;
 import com.wfd.dot1.cwfm.pojo.*;
-import com.wfd.dot1.cwfm.service.CommonService;
-import com.wfd.dot1.cwfm.service.PrincipalEmployerService;
-import com.wfd.dot1.cwfm.service.RequestorService;
-import com.wfd.dot1.cwfm.service.WorkmenService;
+import com.wfd.dot1.cwfm.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -45,6 +43,112 @@ public class Requestor {
     @Autowired
     private PrincipalEmployerService peService;
 
+    @Autowired
+    private FaceRegistrationRepository faceRegistrationRepository;
+    @GetMapping("/mobilePunchFace")
+    public String cwfmfacePunch(HttpServletRequest request, HttpServletResponse response) {
+
+        HttpSession session = request.getSession(false);
+        MasterUser user = (session != null)
+                ? (MasterUser) session.getAttribute("loginuser")
+                : null;
+
+        if (user == null) {
+            return "redirect:/login"; // or error page
+        }
+        Integer userId = user.getUserId();
+        List<workMenFaceDropDto> contractors=null;
+        System.out.println(userId);
+        if(userId!=null){
+            contractors=new ArrayList<>();
+            contractors = faceRegistrationRepository.getListWorkmen(userId);
+
+        }
+        request.setAttribute("contractors",contractors);
+
+        return "requesTor/mobilePunchFace";
+    }
+
+    @GetMapping("/mFaceRegistration")
+    public String cwfmfaceRegistration(HttpServletRequest request, HttpServletResponse response) {
+
+        HttpSession session = request.getSession(false);
+        MasterUser user = (session != null)
+                ? (MasterUser) session.getAttribute("loginuser")
+                : null;
+
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Integer userId = user.getUserId();
+        List<workMenFaceDropDto> contractors=null;
+        System.out.println(userId);
+        if(userId!=null){
+            contractors=new ArrayList<>();
+            contractors = faceRegistrationRepository.getListWorkmen(userId);
+
+        }
+        request.setAttribute("contractors",contractors);
+
+
+        return "requesTor/mobilePunchf";
+    }
+
+
+    @GetMapping("/getAllWorkmen")
+    public ResponseEntity<List<workMenFaceDropDto>> getAllWorkmenByID(@RequestParam("userId") Integer userId ,HttpServletRequest request,HttpServletResponse response)
+    {
+        try {
+            HttpSession session = request.getSession(false);
+            MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+//            Integer userId = user.getUserId();
+            List<workMenFaceDropDto> contractors=null;
+            System.out.println(userId);
+            if(userId!=null){
+                contractors=new ArrayList<>();
+                contractors = faceRegistrationRepository.getListWorkmen(userId);
+
+            }
+            request.setAttribute("contractors",contractors);
+
+
+            if(contractors.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+
+            return new ResponseEntity<>(contractors,HttpStatus.OK);
+        }catch(Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+// @GetMapping("/getAllWorkmen")
+//    public ResponseEntity<List<workMenFaceDropDto>> getAllWorkmenByID(HttpServletRequest request,HttpServletResponse response)
+//    {
+//        try {
+//            HttpSession session = request.getSession(false);
+//            MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+//            Integer userId = user.getUserId();
+//            List<workMenFaceDropDto> contractors=null;
+//            if(userId!=null){
+//                contractors=new ArrayList<>();
+//                 contractors = faceRegistrationRepository.getListWorkmen(userId);
+//
+//            }
+//            request.setAttribute("contractors",contractors);
+//
+//
+//            if(contractors.isEmpty()) {
+//                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//            }
+//
+//            return new ResponseEntity<>(contractors,HttpStatus.OK);
+//        }catch(Exception e) {
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
     @PostMapping(value = "/saveRequestor", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> approveRejectBill(@RequestPart("request") String dto, @RequestParam(value = "attachCV", required = false) MultipartFile attachCV, HttpServletRequest request, HttpServletResponse response) throws JsonProcessingException
     {
@@ -66,6 +170,7 @@ public class Requestor {
                     .body("Error saving data: " + e.getMessage());
         }
     }
+
 
 
 
@@ -91,9 +196,9 @@ public class Requestor {
 //            // Fetch departments for the first PE
 //            List<DeptMapping> departments = workmenService.getAllDepartmentsOnPE(firstPEId);
 //            request.setAttribute("departments", departments);
-//        } else {
-            request.setAttribute("contractors", new ArrayList<>());
-            request.setAttribute("departments", new ArrayList<>());
+//        } else
+        request.setAttribute("contractors", new ArrayList<>());
+        request.setAttribute("departments", new ArrayList<>());
 //        }
 
         List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMaster();
@@ -143,16 +248,16 @@ public class Requestor {
     public ResponseEntity<?> getPrincipleEmployerByID(HttpServletRequest request ) {
         try {
 
-        HttpSession session = request.getSession(false);
-        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
-        Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
-                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
-        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
-        request.setAttribute("PrincipalEmployer", peList);
+            HttpSession session = request.getSession(false);
+            MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+            Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+                    .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+            List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+            request.setAttribute("PrincipalEmployer", peList);
 
 
 
@@ -213,21 +318,24 @@ public class Requestor {
     }
 
 
+
+
+
     @GetMapping("/getRequestorList")
     public String getReqestorList(HttpServletRequest request, HttpServletResponse response, Model model){
-    try{
+        try{
 
-     HttpSession session = request.getSession(false);
-     MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-     String userAccount = user.getUserAccount();
+            HttpSession session = request.getSession(false);
+            MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+            String userAccount = user.getUserAccount();
 
-     List<RequestorListDTO> requestorList = service.getListOfRequestor(userAccount, request);
-     model.addAttribute("requestorList", requestorList);
-     return "requesTor/requestorList";
+            List<RequestorListDTO> requestorList = service.getListOfRequestor(userAccount, request);
+            model.addAttribute("requestorList", requestorList);
+            return "requesTor/requestorList";
 
-    } catch (Exception e) {
-        throw new RuntimeException(e);
-    }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -244,7 +352,7 @@ public class Requestor {
 
     @GetMapping("/getHRDOC/{attachId}")
     public ResponseEntity<Resource> getHRDOC(@PathVariable("attachId") String attachId,
-                                                HttpServletRequest request) throws MalformedURLException {
+                                             HttpServletRequest request) throws MalformedURLException {
         try{
 
             return service.callFileUrlHR(attachId, request);
@@ -322,13 +430,13 @@ public class Requestor {
             HttpSession session = request.getSession(false);
             MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
             String userAccount = user != null ? user.getUserAccount() : null;
-                if( userAccount!=null){
-                    List<RequestorListDTO> requestorListHR = service.getRequestorListHR(userAccount);
-                    request.setAttribute("requestorListHR", requestorListHR);
-                    return "requesTor/requestorHRList";
-                }else{
-                    return null;
-                }
+            if( userAccount!=null){
+                List<RequestorListDTO> requestorListHR = service.getRequestorListHR(userAccount);
+                request.setAttribute("requestorListHR", requestorListHR);
+                return "requesTor/requestorHRList";
+            }else{
+                return null;
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

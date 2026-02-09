@@ -1,17 +1,16 @@
 package com.wfd.dot1.cwfm.service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
+import com.wfd.dot1.cwfm.dto.*;
+import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
-import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
-import com.wfd.dot1.cwfm.pojo.GatePassMain;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 @Service
@@ -31,142 +30,237 @@ public class EmployeeMapper  {
 //Condition
 
             if(true){
-            EmployeeRequestDTO dto = new EmployeeRequestDTO();
+                EmployeeRequestDTO dto = new EmployeeRequestDTO();
 
-            // --- PersonInformation ---
-            EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
+                // --- PersonInformation ---
+                EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
 
-            // AccessAssignment mapping (example logic, adjust as per your rules)
-            EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
-            access.setAccessProfileName("Employee FAP");
-            access.setPreferenceProfileName("Employee");
-            access.setProfessionalPayCodeName("Empty Profile");
-            access.setProfessionalWorkRuleName("Empty Profile");
-            access.setShiftCodeName("Empty Profile");
-            personInfo.setAccessAssignment(access);
+                // AccessAssignment mapping (example logic, adjust as per your rules)
+                EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
+                access.setAccessProfileName("Employee FAP");
+                access.setPreferenceProfileName("Employee");
+                access.setProfessionalPayCodeName("Empty Profile");
+                access.setProfessionalWorkRuleName("Empty Profile");
+                access.setShiftCodeName("Empty Profile");
+                personInfo.setAccessAssignment(access);
 
-            // Email address (if mobile/email available)
-            EmployeeRequestDTO.EmailAddress email = new EmployeeRequestDTO.EmailAddress();
-            email.setAddress(""); // if you have email in GatePassMain add here
-            email.setContactTypeName("Work");
-            email.setHasEmailNotificationDelivery(false);
-            personInfo.setEmailAddresses(Arrays.asList(email));
+                // Email address (if mobile/email available)
+                EmployeeRequestDTO.EmailAddress email = new EmployeeRequestDTO.EmailAddress();
+                email.setAddress(""); // if you have email in GatePassMain add here
+                email.setContactTypeName("Work");
+                email.setHasEmailNotificationDelivery(false);
+                personInfo.setEmailAddresses(Arrays.asList(email));
 
-            // Employment status
-            EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-            empStatus.setEffectiveDate("2025-08-15");  // joining date
-            empStatus.setEmploymentStatusName("Active");
-            empStatus.setExpirationDate("3000-01-01");
-            personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
+                // Employment status
+                EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
+                empStatus.setEffectiveDate("2025-08-15");  // joining date
+                empStatus.setEmploymentStatusName("Active");
+                empStatus.setExpirationDate("3000-01-01");
+                personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
 
-            // Person details
-            EmployeeRequestDTO.Person person = new EmployeeRequestDTO.Person();
-            person.setBirthDate("2000-08-29");
-            person.setFirstName("ritesh");
-            person.setLastName("malhar");
-            person.setFullName("malhar, ritesh");
-            person.setHireDate("2025-08-15");
-            person.setPersonNumber(GatePassId);
-            person.setShortName("malharR");
-            personInfo.setPerson(person);
+                // Person details
+                EmployeeRequestDTO.Person person = new EmployeeRequestDTO.Person();
+                person.setBirthDate("2000-08-29");
+                person.setFirstName("ritesh");
+                person.setLastName("malhar");
+                person.setFullName("malhar, ritesh");
+                person.setHireDate("2025-08-15");
+                person.setPersonNumber(GatePassId);
+                person.setShortName("malharR");
+                personInfo.setPerson(person);
 
-            // Authentication types
-            EmployeeRequestDTO.PersonAuthenticationType auth = new EmployeeRequestDTO.PersonAuthenticationType();
-            auth.setActiveFlag(true);
-            auth.setAuthenticationTypeName("Basic");
-            personInfo.setPersonAuthenticationTypes(Arrays.asList(auth));
+                // Authentication types
+                EmployeeRequestDTO.PersonAuthenticationType auth = new EmployeeRequestDTO.PersonAuthenticationType();
+                auth.setActiveFlag(true);
+                auth.setAuthenticationTypeName("Basic");
+                personInfo.setPersonAuthenticationTypes(Arrays.asList(auth));
 
-            // License types
-            EmployeeRequestDTO.PersonLicenseType licenseEmployee = new EmployeeRequestDTO.PersonLicenseType();
-            licenseEmployee.setActiveFlag(true);
-            licenseEmployee.setLicenseTypeName("Employee");
+                // License types
+                EmployeeRequestDTO.PersonLicenseType licenseEmployee = new EmployeeRequestDTO.PersonLicenseType();
+                licenseEmployee.setActiveFlag(true);
+                licenseEmployee.setLicenseTypeName("Employee");
 
-            EmployeeRequestDTO.PersonLicenseType licenseAbsence = new EmployeeRequestDTO.PersonLicenseType();
-            licenseAbsence.setActiveFlag(true);
-            licenseAbsence.setLicenseTypeName("Absence");
+                EmployeeRequestDTO.PersonLicenseType licenseAbsence = new EmployeeRequestDTO.PersonLicenseType();
+                licenseAbsence.setActiveFlag(true);
+                licenseAbsence.setLicenseTypeName("Absence");
 
-            EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
-            licensehourlyTimekeeping.setActiveFlag(true);
-            licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-
-
-            EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
-            licenseScheduling.setActiveFlag(true);
-            licenseScheduling.setLicenseTypeName("Scheduling");
-
-            personInfo.setPersonLicenseTypes(Arrays.asList(
-                    licenseEmployee,
-                    licenseAbsence,
-                    licensehourlyTimekeeping,
-                    licenseScheduling
-            ));
+                EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
+                licensehourlyTimekeeping.setActiveFlag(true);
+                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
 
 
-            // User account status
-            EmployeeRequestDTO.UserAccountStatus userStatus = new EmployeeRequestDTO.UserAccountStatus();
-            userStatus.setEffectiveDate("2025-08-15");
-            userStatus.setExpirationDate("3000-01-01");
-            userStatus.setUserAccountStatusName("Active");
-            personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
+                EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
+                licenseScheduling.setActiveFlag(true);
+                licenseScheduling.setLicenseTypeName("Scheduling");
 
-            dto.setPersonInformation(personInfo);
+                personInfo.setPersonLicenseTypes(Arrays.asList(
+                        licenseEmployee,
+                        licenseAbsence,
+                        licensehourlyTimekeeping,
+                        licenseScheduling
+                ));
 
-            // --- JobAssignment ---
-            EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
 
-            EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
-            wage.setEffectiveDate("2025-08-15");
-            wage.setExpirationDate("3000-01-01");
-            // Example: convert monthly basic to hourly rate
+                // User account status
+                EmployeeRequestDTO.UserAccountStatus userStatus = new EmployeeRequestDTO.UserAccountStatus();
+                userStatus.setEffectiveDate("2025-08-15");
+                userStatus.setExpirationDate("3000-01-01");
+                userStatus.setUserAccountStatusName("Active");
+                personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
+
+                dto.setPersonInformation(personInfo);
+
+                // --- JobAssignment ---
+                EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
+
+                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
+                wage.setEffectiveDate("2025-08-15");
+                wage.setExpirationDate("3000-01-01");
+                // Example: convert monthly basic to hourly rate
 //            if (gatePass.getBasic() != null) {
 //                double hourlyRate = gatePass.getBasic().doubleValue() / 173; // approx monthly to hourly
 //                wage.setHourlyRate(hourlyRate);
 //            } else {
-            wage.setHourlyRate(20.15);
+                wage.setHourlyRate(20.15);
 //            }
-            job.setBaseWageRates(Arrays.asList(wage));
+                job.setBaseWageRates(Arrays.asList(wage));
 
-            EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
-            jobDetails.setPayRuleName("CW BAR MALE PR");
-            jobDetails.setSupervisorName("Bharthi"); // EIC → supervisor
-            jobDetails.setSupervisorPersonNumber("BR0001");  // hardcoded, replace with mapping
-            jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
-            job.setJobAssignmentDetails(jobDetails);
-            EmployeeRequestDTO.PrimaryLaborAccount labor = new EmployeeRequestDTO.PrimaryLaborAccount();
-            labor.setEffectiveDate("2025-08-15");
-            labor.setExpirationDate("3000-01-01");
-            labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
-            job.setPrimaryLaborAccounts(Arrays.asList(labor));
+                EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
+                jobDetails.setPayRuleName("CW BAR MALE PR");
+                jobDetails.setSupervisorName("Bharthi"); // EIC → supervisor
+                jobDetails.setSupervisorPersonNumber("BR0001");  // hardcoded, replace with mapping
+                jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
+                job.setJobAssignmentDetails(jobDetails);
+                EmployeeRequestDTO.PrimaryLaborAccount labor = new EmployeeRequestDTO.PrimaryLaborAccount();
+                labor.setEffectiveDate("2025-08-15");
+                labor.setExpirationDate("3000-01-01");
+                labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
+                job.setPrimaryLaborAccounts(Arrays.asList(labor));
 
-            dto.setJobAssignment(job);
+                dto.setJobAssignment(job);
 
-            // --- User ---
-            EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();
-            EmployeeRequestDTO.UserAccount userAcc = new EmployeeRequestDTO.UserAccount();
-            userAcc.setLogonProfileName("Default");
-            userAcc.setUserName("ritesh.malhar");
-            userAcc.setUserPassword("Kronos@123"); // default password, can be generated
-            user.setUserAccount(userAcc);
-            dto.setUser(user);
+                // --- User ---
+                EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();
+                EmployeeRequestDTO.UserAccount userAcc = new EmployeeRequestDTO.UserAccount();
+                userAcc.setLogonProfileName("Default");
+                userAcc.setUserName("ritesh.malhar");
+                userAcc.setUserPassword("Kronos@123"); // default password, can be generated
+                user.setUserAccount(userAcc);
+                dto.setUser(user);
 
-            String employee = wfdEmployeeService.createEmployee(dto);
+                String employee = wfdEmployeeService.createEmployee(dto);
 
 
 
-            if (employee != null) {
-                return employee;
-            } else {
-                return "issue into mapping method";
+                if (employee != null) {
+                    return employee;
+                } else {
+                    return "issue into mapping method";
+                }
+
+            }else{
+                return "not find or not working repo";
             }
-
-        }else{
-            return "not find or not working repo";
-        }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public String postSkillTowfd(Integer gmId){
+        try{
+            PostSkillWfd skills = gatePassToOnBoardService.createSkills(gmId);
+
+            if(skills!=null){
+
+                String skillsInWFD = wfdEmployeeService.createSkillsInWFD(skills);
+                return skillsInWFD;
+
+
+            }else{
+                return "Skill is not present";
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public String punchMatched(FaceLogFetchDto faceLogFetchDto){
+        try{
+
+
+            if(faceLogFetchDto!=null){
+
+                PunchRequestDTO punchRequestDTO =new PunchRequestDTO();
+
+                PunchRequestDTO.DoDTO doDTO=new PunchRequestDTO.DoDTO();
+
+                PunchRequestDTO.PunchesDTO punchesDTO= new PunchRequestDTO.PunchesDTO();
+
+                PunchRequestDTO.AddedPunchDTO addedPunchDTO= new PunchRequestDTO.AddedPunchDTO();
+                List<PunchRequestDTO.AddedPunchDTO> addedPunchDTOList = new ArrayList<>();
+
+                addedPunchDTO.setPunchDtm(faceLogFetchDto.getPunchDtm());
+
+
+                PunchRequestDTO.EmployeeDTO employeeDTO= new PunchRequestDTO.EmployeeDTO();
+                employeeDTO.setQualifier(faceLogFetchDto.getPersonNum());
+                addedPunchDTO.setEmployee(employeeDTO);
+
+
+                addedPunchDTOList.add(addedPunchDTO);
+
+
+                punchesDTO.setAdded(addedPunchDTOList);
+                doDTO.setPunches(punchesDTO);
+
+
+
+
+                PunchRequestDTO.WhereDTO whereDTO= new PunchRequestDTO.WhereDTO();
+                PunchRequestDTO.DateRangeDTO dateRangeDTO =
+                        new PunchRequestDTO.DateRangeDTO();
+
+                LocalDate punchDate = LocalDate.parse(
+                        faceLogFetchDto.getPunchDtm(),
+                        DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                );
+
+                String formattedDate = punchDate.toString(); // yyyy-MM-dd
+
+                dateRangeDTO.setStartDate(formattedDate);
+                dateRangeDTO.setEndDate(formattedDate);
+                whereDTO.setEmployee(employeeDTO);
+
+                whereDTO.setDateRange(dateRangeDTO);
+                punchRequestDTO.setDoObj(doDTO);
+                punchRequestDTO.setWhere(whereDTO);
+
+
+                String s = wfdEmployeeService.addEmployeePunchFace(punchRequestDTO);
+
+
+                return s;
+
+            }else
+            {
+                return  "Punch not get for WFD";
+            }
+
+
+
+
+
+
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public EmployeeRequestDTO gatePassEmpDto(String GatePassId ){
@@ -214,7 +308,7 @@ public class EmployeeMapper  {
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
                 person.setShortName(individualOnBoardDetailsByTrnId.getFirstName() + (individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().charAt(0) : ""));
                 personInfo.setPerson(person);
-                
+
                 //CustomData details
 //                ArrayList<>
 //***********************Additional information********************
@@ -420,14 +514,14 @@ public class EmployeeMapper  {
                 labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 labor.setExpirationDate("3000-01-01");
 //              labor.setOrganizationPath(individualOnBoardDetailsByTrnId.getCompany()+ "/" +individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/" +individualOnBoardDetailsByTrnId.getCategory());
-              //  labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
-                
-               String orgPath = individualOnBoardDetailsByTrnId.getLocation()+"/"+individualOnBoardDetailsByTrnId.getCompany()+"/"+
-            		   individualOnBoardDetailsByTrnId.getPlantLocation()+"/"+individualOnBoardDetailsByTrnId.getDepartment()+"/"+
-            		   individualOnBoardDetailsByTrnId.getSection()+"/"+individualOnBoardDetailsByTrnId.getSubSection()+"/"+
-            		   individualOnBoardDetailsByTrnId.getContractorCode()+"/Team Lead";
-               System.out.println("orgPath"+orgPath);
-               labor.setOrganizationPath(orgPath);
+                //  labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
+
+                String orgPath = individualOnBoardDetailsByTrnId.getLocation()+"/"+individualOnBoardDetailsByTrnId.getCompany()+"/"+
+                        individualOnBoardDetailsByTrnId.getPlantLocation()+"/"+individualOnBoardDetailsByTrnId.getDepartment()+"/"+
+                        individualOnBoardDetailsByTrnId.getSection()+"/"+individualOnBoardDetailsByTrnId.getSubSection()+"/"+
+                        individualOnBoardDetailsByTrnId.getContractorCode()+"/Team Lead";
+                System.out.println("orgPath"+orgPath);
+                labor.setOrganizationPath(orgPath);
                 job.setPrimaryLaborAccounts(Arrays.asList(labor));
                 dto.setJobAssignment(job);
                 // --- User ---
@@ -465,7 +559,7 @@ public class EmployeeMapper  {
         try {
             EmployeeRequestDTO employeeRequestDTO = gatePassEmpDto(GatePassId);
 
-           if(employeeRequestDTO!=null){
+            if(employeeRequestDTO!=null){
                 String employee = wfdEmployeeService.createEmployee(employeeRequestDTO);
 
 
@@ -808,7 +902,7 @@ public class EmployeeMapper  {
 
 
 
-           if(employeeRequestDTO!=null){
+            if(employeeRequestDTO!=null){
                 String employee = wfdEmployeeService.updateEmployee(employeeRequestDTO);
 
 
@@ -1099,7 +1193,7 @@ public class EmployeeMapper  {
 //                user.setUserAccount(userAcc);
 //                dto.setUser(user);
 //
-////                String employee = wfdEmployeeService.createEmployee(dto);
+    ////                String employee = wfdEmployeeService.createEmployee(dto);
 //
 //
 //                if (dto != null) {
@@ -1245,25 +1339,7 @@ public class EmployeeMapper  {
     }
 
 
-    public String postSkillTowfd(Integer gmId){
-        try{
-            PostSkillWfd skills = gatePassToOnBoardService.createSkills(gmId);
 
-            if(skills!=null){
-
-                String skillsInWFD = wfdEmployeeService.createSkillsInWFD(skills);
-                return skillsInWFD;
-
-
-            }else{
-                return "Skill is not present";
-            }
-
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 
 }

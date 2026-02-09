@@ -916,3 +916,174 @@ document.addEventListener("DOMContentLoaded", () => {
   formatAdditionalQualification()
   console.log("  Additional Qualification count initialized")
 })
+
+
+
+let capturedImageP = null;
+let contextPathP = "/CWFM";
+
+
+
+function openPunchTab() {
+    document.getElementById("principalEmployerContent").style.display = "block";
+    applyMobilePunchRestriction();
+}
+
+
+function isRealMobileDevice() {
+    return (
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+        'ontouchstart' in window &&
+        navigator.maxTouchPoints > 1
+    );
+}
+
+
+function applyMobilePunchRestriction() {
+
+    const punchBtn = document.getElementById("punchBtn");
+    const preview = document.getElementById("preview");
+
+    // If HTML not yet rendered, exit safely
+    if (!punchBtn || !preview) {
+        console.warn("Punch elements not found yet");
+        return;
+    }
+
+    if (!isRealMobileDevice()) {
+        punchBtn.style.display = "none";
+        preview.innerHTML =
+            "<div style='color:red;font-weight:bold;padding:10px'>" +
+            "Mobile Punch works only on a real mobile device." +
+            "</div>";
+    } else {
+        punchBtn.style.display = "inline-block";
+        preview.innerHTML = "";
+    }
+}
+
+// const loggedInUserId = "${sessionScope.loginuser.userId}";
+// console.log(loggedInUserId);
+
+
+
+function openMobileCamera() {
+    if (!isRealMobileDevice()) {
+        alert("This feature works only on real mobile devices.");
+        return;
+    }
+    document.getElementById("mobileCameraInput").click();
+}
+
+function handlePunchImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        capturedImageP = e.target.result;
+
+        document.getElementById("preview").innerHTML =
+            "<img src='" + capturedImageP + "' style='width:100%;border-radius:8px'/>";
+    };
+    reader.readAsDataURL(file);
+}
+
+function cancelPunch() {
+    window.history.back();
+}
+
+
+function saveRegistraction() {
+    const workmanId = document.getElementById("workmanId").value;
+    const fileInput = document.getElementById("mobileCameraInput");
+
+    if (!workmanId) {
+        document.getElementById("error-workman").style.display = "block";
+        return;
+    }
+
+    if (!fileInput.files.length) {
+        alert("Please capture photo before saving.");
+        return;
+    }
+    document.getElementById("loaderOverlay").style.display = "flex";
+
+    const formData = new FormData();
+    const registerFaceObj = {
+        userId: workmanId
+    };
+
+    const registerFaceString = JSON.stringify(registerFaceObj);
+
+    formData.append("registerFace", registerFaceString);
+    formData.append("imageFile", fileInput.files[0]);
+
+    const baseUrl = window.location.origin;
+
+    fetch(baseUrl + "/CWFM/faced/register", {
+        method: "POST",
+        body: formData
+    })
+        .then(async res => {
+            const text = await res.text();
+            document.getElementById("loaderOverlay").style.display = "none";
+
+            if (!res.ok) {
+                alert(text || "Server error occurred");
+                return;
+            }
+
+            alert(text);
+        })
+        .catch(() => {
+            alert("Unable to reach server");
+        });
+}
+
+
+               function savePunch() {
+                    const workmanId = document.getElementById("workmanId").value;
+                    const fileInput = document.getElementById("mobileCameraInput");
+
+                    if (!workmanId) {
+                        document.getElementById("error-workman").style.display = "block";
+                        return;
+                    }
+
+                    if (!fileInput.files.length) {
+                        alert("Please capture photo before saving.");
+                        return;
+                    }
+                    document.getElementById("loaderOverlay").style.display = "flex";
+
+                    const formData = new FormData();
+                    formData.append("userId", workmanId);      // must match API param
+                    formData.append("imageFile", fileInput.files[0]); // actual file
+
+                    const baseUrl = window.location.origin;   // auto gets http://IP:PORT
+
+                    fetch(baseUrl + "/CWFM/faced/save-image-auto", {
+                        method: "POST",
+                        body: formData
+                    })
+                        .then(async res => {
+                            const data = await res.json();
+                    document.getElementById("loaderOverlay").style.display = "none";
+
+                            if (!res.ok) {
+                                // Handles 500 / 400 errors
+                                alert(data.message || "Server error occurred");
+                                return;
+                            }
+
+                            if (data.success) {
+                                alert(data.message);
+                            } else {
+                                alert(data.message); // <-- YOUR MESSAGE WILL SHOW HERE
+                            }
+                        })
+                        .catch(err => {
+                            alert("Unable to reach server");
+                        });
+                }

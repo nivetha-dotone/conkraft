@@ -1,29 +1,29 @@
 package com.wfd.dot1.cwfm.service;
 
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
 import com.wfd.dot1.cwfm.dto.PostSkillWfd;
+import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
 import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+
+import java.io.DataInput;
 
 @Repository
 public class WfdEmployeeService {
 
 
-	 public String getCreateSkillsUrl() {
-	        return QueryFileWatcher.getQuery("getCreateSkillsUrl");
-	    }
+    public String getCreateSkillsUrl() {
+        return QueryFileWatcher.getQuery("getCreateSkillsUrl");
+    }
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final WfdAuthService wfdAuthService;
@@ -32,6 +32,38 @@ public class WfdEmployeeService {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.wfdAuthService = wfdAuthService;
+    }
+    public String createSkillsInWFD(PostSkillWfd dto){
+        try {
+            String jsonBody = objectMapper.writeValueAsString(dto);
+
+            String accessToken = wfdAuthService.getAccessToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+//          String url = "https://partnersand-041.cfn.mykronos.com/api/v1/scheduling/skills";
+            String url = getHostName()+getCreateSkillsUrl();
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url, HttpMethod.POST, entity, String.class
+            );
+            return dto.getName()+ " Saved Successfully";
+
+        }
+        catch (HttpClientErrorException.BadRequest e) {
+            return "already in the database";
+        }
+        catch (HttpClientErrorException e) {
+            return "Client error: " + e.getStatusCode();
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Error while creating skill", e);
+        }
     }
 
     public String getHostName() {
@@ -52,6 +84,61 @@ public class WfdEmployeeService {
     public String getUpateEmpWFD() {
         return QueryFileWatcher.getQuery("UpdateEmpWFD");
     }
+
+    public String getUpdatePUNCHEMPWFD() {
+        return QueryFileWatcher.getQuery("UpdatePUNCHEMPWFD");
+    }
+
+    public String addEmployeePunchFace(PunchRequestDTO dto) {
+
+        try {
+            // 1️⃣ Convert DTO → JSON
+            String jsonBody = objectMapper.writeValueAsString(dto);
+
+            // 2️⃣ Get access token
+            String accessToken = wfdAuthService.getAccessToken();
+
+            // 3️⃣ Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            // 4️⃣ API URL
+            String url = getHostName() + getUpdatePUNCHEMPWFD();
+
+            // 5️⃣ Call WFD API
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+
+            // 6️⃣ Handle SUCCESS
+            if (response.getStatusCode().is2xxSuccessful()) {
+
+//                // 👉 Optional: parse response if needed
+//                String responseBody = response.getBody();
+
+//                // 7️⃣ Update local DB / WFD sync table
+//                updatePunchStatusInDb(dto, responseBody);
+
+                return "and also in updated in WFD system";
+            }
+
+            // 8️⃣ Handle unexpected status
+            throw new RuntimeException(
+                    "WFD API failed with status: " + response.getStatusCode()
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating punch in WFD API", e);
+        }
+    }
+
+
 
     public String createEmployee(EmployeeRequestDTO dto){
         try {
@@ -208,38 +295,7 @@ public class WfdEmployeeService {
         }
     }
 
-    public String createSkillsInWFD(PostSkillWfd dto){
-        try {
-            String jsonBody = objectMapper.writeValueAsString(dto);
 
-            String accessToken = wfdAuthService.getAccessToken();
-           
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(accessToken);
-
-
-            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
-
-//          String url = "https://partnersand-041.cfn.mykronos.com/api/v1/scheduling/skills";
-            String url = getHostName()+getCreateSkillsUrl();
-
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.POST, entity, String.class
-            );
-            return dto.getName()+ " Saved Successfully";
-
-        }
-        catch (HttpClientErrorException.BadRequest e) {
-            return "already in the database";
-        }
-        catch (HttpClientErrorException e) {
-            return "Client error: " + e.getStatusCode();
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Error while creating skill", e);
-        }
-    }
 
 
 
