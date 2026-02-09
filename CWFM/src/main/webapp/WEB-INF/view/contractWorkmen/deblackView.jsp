@@ -970,7 +970,7 @@ textarea {
                  <td><input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.reasoning }" readonly>  </td>
     										
 			</tr>
-			<c:if test="${not empty GatePassObj.exitLetterDocName}">
+			<c:if test="${not empty GatePassObj.exitLetterDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.exitDocument"/></td>
                 		<td>
@@ -978,7 +978,7 @@ textarea {
                 		</td>
             		</tr>
       				</c:if>
-      				<c:if test="${not empty GatePassObj.FNFDocName}">
+      				<c:if test="${not empty GatePassObj.FNFDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.FNFDocument"/></td>
                 		<td>
@@ -986,7 +986,7 @@ textarea {
                 		</td>
             		</tr>
       				</c:if>
-      				<c:if test="${not empty GatePassObj.feedbackFormDocName}">
+      				<c:if test="${not empty GatePassObj.feedbackFormDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.feedbackFormDocument"/></td>
                 		<td>
@@ -994,7 +994,7 @@ textarea {
                 		</td>
             		</tr>
       				</c:if>
-      				<c:if test="${not empty GatePassObj.rateManagerDocName}">
+      				<c:if test="${not empty GatePassObj.rateManagerDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.rateManagerDocument"/></td>
                 		<td>
@@ -1002,7 +1002,7 @@ textarea {
                 		</td>
             		</tr>
       				</c:if>
-      				<c:if test="${not empty GatePassObj.LOCDocName}">
+      				<c:if test="${not empty GatePassObj.LOCDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.LOCDocument"/></td>
                 		<td>

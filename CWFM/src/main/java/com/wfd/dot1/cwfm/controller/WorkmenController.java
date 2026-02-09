@@ -1448,7 +1448,12 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("UBLK".equals(gmType)) {
     	    	gatePassMainObj.setReasoning(generalMaster.getGmName());
+    		}else if("BLK".equals(gmType)) {
+    			if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLOCK.getStatus())) {
+    				gatePassMainObj.setReasoning("");
+    			}
     		}
+    		
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -1641,6 +1646,10 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("DBL".equals(gmType)) {
     	    	gatePassMainObj.setReasoning(generalMaster.getGmName());
+    		}else if("BL".equals(gmType)) {
+    			if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLACKLIST.getStatus())) {
+    				gatePassMainObj.setReasoning("");
+    			}
     		}
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
