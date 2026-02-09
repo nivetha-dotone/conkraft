@@ -1,0 +1,142 @@
+#sidebar {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #E8E8E8;
+    background-image: none;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    border-right-color-ltr-source: physical;
+    border-right-color-rtl-source: physical;
+    border-right-color-value: #005F9B;
+    border-right-style-ltr-source: physical;
+    border-right-style-rtl-source: physical;
+    border-right-style-value: solid;
+    border-right-width-ltr-source: physical;
+    border-right-width-rtl-source: physical;
+    border-right-width-value: 1px;
+}
+.navbar-inner {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: linear-gradient(to bottom, #F71307 0%, #8c1711 100%);
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat-x;
+    background-size: auto auto;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+.navbar .nav > li > a {
+    color: #003444;
+    text-shadow: none;
+}
+.side-nav li a {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: linear-gradient(to bottom, #F71307 0%, #8c1711 100%);
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    color: #EEEEEE;
+}
+.side-nav li a {
+    border-bottom-color: #8c1711;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+.side-nav li a:hover {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #F8F8F8;
+    background-image: none;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    color: #333333;
+}
+.side-nav li ul li a {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #DAEAED;
+    background-image: none;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+}
+.side-nav li ul li a .sidenav-icon .sidenav-link-color {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #F71307;
+    background-image: none;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+}
+.side-nav li ul li a:hover .sidenav-icon .sidenav-link-color {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: #8c1711;
+    background-image: none;
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+}
+.accordion-header a {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: linear-gradient(to bottom, #F71307 0%, #8c1711 100%);
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset;
+    color: #FFFFFF;
+}
+.accordion-header a:hover {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: linear-gradient(to bottom, #F71307 0%, #74130e 100%);
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+}
+.cal caption {
+    background-attachment: scroll;
+    background-clip: border-box;
+    background-color: rgba(0, 0, 0, 0);
+    background-image: linear-gradient(to bottom, #666666 0%, #262626 100%);
+    background-origin: padding-box;
+    background-position: 0 0;
+    background-repeat: repeat;
+    background-size: auto auto;
+    border-bottom-color: #313131;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-top-color: #333333;
+    border-top-style: solid;
+    border-top-width: 1px;
+    box-shadow: 0 1px rgba(255, 255, 255, 0.04) inset;
+    color: #E2E2E2;
+    font-weight: bold;
+}
+.cal caption {
+    text-shadow: 0 -1px #000000;
+}
+.cal caption a {
+    color: #E2E2E2;
+}

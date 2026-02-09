@@ -1,0 +1,313 @@
+.sidenav {
+    width: 20%;
+    position: absolute;
+    top: 45px;
+    left: 0;
+    bottom: 0;
+    background-color: #005151;
+    overflow-x: hidden;
+    transition: width 0.5s;
+    padding-top: 60px;
+    z-index: 1;
+}
+
+.toggle-btn {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    cursor: pointer;
+    color:black;
+    background-color: #005151;
+    font-family: 'Arial', sans-serif;
+    font-size: 30px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    z-index: 1;
+    text-decoration: none;
+}
+.sidenav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidenav ul li {
+    padding: 10px;
+    transition: background-color 0.3s;
+    color:black; /* Text color */
+    font-size: 12px; /* Font size */
+    font-family: Arial, sans-serif; /* Font family */
+}
+
+.sidenav ul li:hover {
+    background-color: #003b3b;
+}
+.sidenav ul .dashboard-link,.sidenav ul .mainmenu-link,
+.sidenav ul .reports-link {
+    color:black; /* Text color */
+}
+.sidenav ul li a {
+    padding-left: 30px; /* Add left padding to create a gap */
+}
+.sidenav.close {
+    width: 78px;
+}
+
+.sidenav ul li:hover {
+    background-color: #003b3b;
+}
+
+/* .form-content {
+    margin-left: 20px;
+    width: 80%;
+    transition: margin-left 0.5s, width 0.5s;
+    margin-top: 20px;
+} */
+.form-content {
+    margin-left: 20%;
+    width: 80%;
+    transition: margin-left 0.5s, width 0.5s;
+    z-index: 1; /* Add this line */
+    margin-top: 20px;
+    margin-right: 20%;
+}
+ .menu-icon {
+            vertical-align: middle; /* Align the image vertically */
+            width: 20px; /* Adjust the width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 5px; /* Add some spacing between the image and text */
+            margin-left: 30px;
+            color:black;
+        }
+.users-icon {
+            vertical-align: middle; /* Align the image vertically */
+            width: 20px; /* Adjust the width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 5px; /* Add some spacing between the image and text */
+            margin-left: 30px;
+        }
+        .menu-text {
+            font-size: 15px; /* Adjust the font size as needed */
+            vertical-align: middle; /* Align the text vertically */
+                margin-left: 20px;
+        }
+         /* Submenu styling */
+        .sub-menu {
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        }
+        .sub-users{
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        } .sub-users li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 40px;
+        }
+         .sub-report {
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        }
+
+        .sub-menu li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 50px;
+        }
+        .sub-menu li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 30px;
+    font-size: 12px; 
+        }
+.highlighted {
+    border: 1px solid rgb(0, 81, 81); /* Blue border */
+    border-radius: 5px; /* Rounded border */
+}
+.sub-menu li:hover, .sub-menu li.highlighted {
+    background-color: rgb(221, 221, 221); /* Change the background color on hover or when highlighted */
+    /* Add any other styling for the highlighted state */
+}
+
+/* .mainmenu-link:hover {
+    Add styling for mouseover effect on mainmenu-link
+    background-color: rgba(0, 0, 255, 0.2); Change the background color to blue with some opacity
+}
+
+.header h2:hover {
+    Add styling for mouseover effect on h2 elements in header
+    background-color: rgba(0, 0, 255, 0.2); Change the background color to blue with some opacity
+}
+
+.users-link:hover {
+    Add styling for mouseover effect on users-link
+    background-color: rgba(0, 0, 255, 0.2); Change the background color to blue with some opacity
+}
+      */   .mainmenu-link.active .sub-menu {
+            display: block; /* Display the submenu when the main menu item is active */
+        }
+       /* #main-menu-item:hover {
+  background-color: rgb(221, 221, 221); Change the background color to RGB (221, 221, 221) on hover
+} */
+       /*  .sub-menu li a {
+    color:black; Set text color to white for submenu items
+    text-decoration: none; Remove underline
+} */
+ul li a {
+    text-decoration: none;
+}
+body {
+    margin: 0;
+    padding: 0;
+}
+.header {
+    background-color: rgb(0, 81, 81);
+    color: white;
+    padding: 10px;
+    font-family: Arial, sans-serif; /* Set the font family */
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold; /* Optionally set the font weight */
+    
+}
+.toggle-img {
+    display: inline-block;
+    width: 20px; /* Adjust image width as needed */
+    height: 20px; /* Adjust image height as needed */
+    vertical-align: middle; /* Align image vertically */
+}
+.toggle-text {
+    text-decoration: none; /* Remove underline */
+    margin-left: 10px;
+    padding-top: 15px; /* Adjust the padding-top value as needed */
+}
+.sidenav.close ul {
+    opacity: 0; /* Hide the list when sidebar is closed */
+    pointer-events: none; /* Disable pointer events for hidden list */
+}
+
+
+.sidebar-open {
+    width: 20%;
+}
+
+.sidebar-closed {
+    width: 0;
+}
+.sidebar .sub-menu {
+    /* Add this rule to hide the sub-menu */
+    display: none;
+}
+
+ body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Remove scroll bar */
+        }
+         .header {
+            background-color: rgb(0, 81, 81);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer; /* Add pointer cursor for clickable element */
+        }
+       /*  .header {
+            background-color: rgb(0, 81, 81);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        } */
+        .carousel-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap; /* Prevent images from stacking vertically */
+            margin-top: 0; 
+        }
+        .carousel-slide {
+            display: inline-block;
+            width: 100%;
+            white-space: nowrap; /* Prevent images from stacking vertically */
+        }
+        .carousel-slide img {
+            width: 100%;
+            height: 500px; /* Set a fixed height for all images */
+            object-fit: cover; /* Ensure images cover the specified dimensions */
+        }
+          .login-button {
+            padding: 7px 10px;
+            background-color: #005151;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-button:hover {
+            background-color: #005151; /* Change background color on hover */
+        } 
+       
+       /*  .header {
+            background-color: rgb(0, 81, 81);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif; 
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold; 
+        } */
+@media screen and (max-width: 400px) {
+    .sidebar {
+        width: 240px;
+    }
+    .sidebar.close {
+        width: 78px;
+    }
+    .sidebar .profile-details {
+        width: 240px;
+    }
+    .sidebar.close .profile-details {
+        background: none;
+    }
+    .sidebar.close .profile-details {
+        width: 78px;
+    }
+    .home-section {
+        left: 240px;
+        width: calc(100% - 240px);
+    }
+    .sidebar.close ~ .home-section {
+        left: 78px;
+        width: calc(100% - 78px);
+    }
+       
+}

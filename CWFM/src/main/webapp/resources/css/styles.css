@@ -1,0 +1,756 @@
+
+.sidebar {
+    position: fixed;
+    /* top: 60px; */ /* Adjust this value to match the height of your header */
+    left: 0; /* Start with the sidebar visible */
+    height: calc(100% - 60px); /* Adjust height to fill remaining space */
+    width: 200px; /* Fixed width for the sidebar */
+    background-color: #fff;
+    padding: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease; /* Use transform for smoother animation */
+    /* Ensure box-sizing includes padding and border */
+    box-sizing: border-box;
+    overflow-y: auto;
+    transition: width 0.3s ease; 
+     white-space: nowrap;
+    
+}
+.element-below-sidebar {
+    margin: 0;
+    padding: 0;
+}
+.toggle-btn {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    cursor: pointer;
+    color:black;
+    background-color: #005151;
+    font-family: 'Arial', sans-serif;
+    font-size: 30px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    z-index: 1;
+    text-decoration: none;
+    display: inline-block;
+}
+.sidenav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidenav ul li {
+    padding: 10px;
+    transition: background-color 0.3s;
+    color:black; /* Text color */
+    font-size: 12px; /* Font size */
+    font-family: Arial, sans-serif; /* Font family */
+}
+
+.sidenav ul li:hover {
+    background-color: #003b3b;
+}
+.sidenav ul .dashboard-link,.sidenav ul .mainmenu-link,
+.sidenav ul .reports-link {
+    color:black; /* Text color */
+}
+.sidenav ul li a {
+    padding-left: 30px; /* Add left padding to create a gap */
+}
+
+.sidenav.close {
+    width: 0;
+}
+.sidenav ul li:hover {
+    background-color: #003b3b;
+}
+
+
+
+
+ .menu-icon {
+            vertical-align: middle; /* Align the image vertically */
+            width: 20px; /* Adjust the width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 5px; /* Add some spacing between the image and text */
+            margin-left: 30px;
+            color:black;
+        }
+.users-icon {
+            vertical-align: middle; /* Align the image vertically */
+            width: 20px; /* Adjust the width as needed */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 5px; /* Add some spacing between the image and text */
+            margin-left: 30px;
+        }
+        .menu-text {
+            font-size: 15px; /* Adjust the font size as needed */
+            vertical-align: middle; /* Align the text vertically */
+                margin-left: 20px;
+                
+        }
+         /* Submenu styling */
+        .sub-menu {
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        }
+        .sub-users{
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        } .sub-users li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 40px;
+        }
+
+        .sub-menu li a {
+            color:black; 
+            text-decoration: none; 
+             margin-top: 10px; 
+    margin-left: 50px;
+        }
+        .sub-menu li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 30px;
+    font-size: 12px; 
+        }
+        
+        .sub-onboard {
+       		 
+            display: none; /* Hide the submenu by default */
+            list-style: none; /* Remove default list styling */
+            padding-left: 60px; /* Add some indentation to the submenu */
+            margin-top: 10px;
+            
+        }
+         .sub-onboard li a {
+            color:black; 
+            text-decoration: none; 
+             margin-top: 10px; 
+    margin-left: 50px;
+        }
+        .sub-onboard li a {
+            color:black; /* Set text color to white */
+            text-decoration: none; /* Remove underline */
+             margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 30px;
+    font-size: 12px; 
+        }
+        .sub-onboard li:hover, .sub-onboard li.highlighted {
+    background-color: rgb(221, 221, 221); /* Change the background color on hover or when highlighted */
+    /* Add any other styling for the highlighted state */
+}
+
+ .onboard-link .arrow-up {
+    display: none;
+     color:black;
+}
+
+.onboard-link .arrow-down {
+    display: inline-block;
+     color:black;
+}
+ .onboard-link .menu2-icon {
+        width: 15px;
+        height: 10px;
+        margin-left: 15px;
+         color:black;
+    }
+    
+.highlighted {
+    border: 1px solid rgb(0, 81, 81); /* Blue border */
+    border-radius: 5px; /* Rounded border */
+}
+.sub-menu li:hover, .sub-menu li.highlighted {
+    background-color: rgb(221, 221, 221); /* Change the background color on hover or when highlighted */
+    /* Add any other styling for the highlighted state */
+}
+
+ul li a {
+    text-decoration: none;
+}
+.header {
+    background-color: rgb(0, 81, 81);
+    color: white;
+    padding: 10px;
+    font-family: Arial, sans-serif; /* Set the font family */
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold; /* Optionally set the font weight */
+    
+}
+.toggle-img {
+    display: inline-block;
+    width: 20px; /* Adjust image width as needed */
+    height: 20px; /* Adjust image height as needed */
+    vertical-align: middle; /* Align image vertically */
+}
+.toggle-text {
+    text-decoration: none; /* Remove underline */
+    margin-left: 10px;
+    padding-top: 15px; /* Adjust the padding-top value as needed */
+}
+.sidenav.close ul {
+    opacity: 0; /* Hide the list when sidebar is closed */
+    pointer-events: none; /* Disable pointer events for hidden list */
+}
+
+
+.sidebar-open {
+    width: 20%;
+}
+
+.sidebar-closed {
+    width: 0;
+       transform: translateX(-200px); /* Move sidebar off-screen when closed */
+}
+
+.sidebar .sub-menu {
+    /* Add this rule to hide the sub-menu */
+    display: none;
+}
+
+ body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: auto; /* Remove scroll bar */
+        }
+         .header {
+            background-color: rgb(0, 81, 81);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer; /* Add pointer cursor for clickable element */
+        }
+        .carousel-container {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap; /* Prevent images from stacking vertically */
+            margin-top: 0; 
+        }
+        .carousel-slide {
+            display: inline-block;
+            width: 100%;
+            white-space: nowrap; /* Prevent images from stacking vertically */
+        }
+        .carousel-slide img {
+            width: 100%;
+            height: 500px; /* Set a fixed height for all images */
+            object-fit: cover; /* Ensure images cover the specified dimensions */
+        }
+          .login-button {
+            padding: 7px 10px;
+            background-color: #005151;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .login-button:hover {
+            background-color: #005151; /* Change background color on hover */
+        } 
+    
+ /* @media screen and (max-width: 400px) {
+    .sidebar {
+        width: 240px; 
+    }
+    .sidebar.closed {
+        width: 78px; 
+    }
+    .form-content {
+        margin-left: 240px; 
+        width: calc(100% - 240px); 
+    }
+    .form-content.close {
+        margin-left: 78px; 
+        width: calc(100% - 78px); 
+    }
+}  */
+
+ .mainmenu-link .menu-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+         color:black;
+    }
+  .users-link .menu-text {
+    color:black /* Your desired color */;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+     .mainmenu-link .menu2-icon {
+        width: 15px;
+        height: 10px;
+        margin-left: 15px;
+         color:black;
+    }
+    .reports-link .report-icon {
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+    }
+     .reports-link .report2-icon {
+        width: 15px;
+        height: 10px;
+        margin-left: 15px;
+         color:black;
+    }
+
+.report-link,
+.sub-report li a {
+    color: black; /* Set text color */
+    text-decoration: none; /* Remove underline */
+    margin-top: 10px; /* Apply top margin to report links */
+    margin-left: 10px; /* Apply left margin to report links */
+    font-size: 12px; /* Set font size for report links */
+    transition: background-color 0.3s, color 0.3s; /* Add transition for smoother effect */
+}
+
+.report-link:hover,
+.sub-report li a:hover {
+    background-color:  rgb(221, 221, 221); /* Change background color on hover */
+    color: white; /* Change text color on hover */
+}
+
+
+.sub-report li {
+    padding: 2px;
+    transition: background-color 0.3s, color 0.3s; /* Add transition for smoother effect */
+    color: black; /* Text color */
+    font-size: 12px; /* Font size */
+    font-family: Arial, sans-serif; /* Font family */
+    margin-top: 10px;
+}
+
+
+   /*  .mainmenu-link.active .menu-icon.arrow-down {
+        display: none; 
+    }
+
+    .mainmenu-link.active .menu-icon.arrow-up {
+        display: inline-block;
+    } */
+    .mainmenu-link .arrow-up {
+    display: none;
+     color:black;
+}
+
+.mainmenu-link .arrow-down {
+    display: inline-block;
+     color:black;
+}
+
+.reports-link .arrow-up {
+    display: none;
+     color:black;
+}
+
+.reports-link .arrow-down {
+    display: inline-block;
+     color:black;
+}
+ .reports-link .menu-text {
+        color: black; /* Your desired color */
+        width: 20px;
+        height: 20px;
+        margin-right: 5px;
+    }
+    .reports-link .menu2-icon {
+        width: 15px;
+        height: 10px;
+        margin-left: 15px;
+        color: black;
+    }
+.header {
+    background-color: rgb(0, 81, 81);
+    color: white;
+    padding: 10px;
+    font-family: Arial, sans-serif; /* Set the font family */
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold; /* Optionally set the font weight */
+    
+}
+  .users-link .arrow-up {
+    display: none;
+}
+
+.users-link .arrow-down {
+    display: inline-block;
+}
+.main-content {
+    margin-top: 60px;
+    padding: 20px;
+    overflow-y: auto;
+    transition: margin-left 0.3s ease; 
+}
+
+    /* Your CSS styles */
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: rgb(0, 81, 81);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+         /*    position: fixed;
+            width: auto;
+            z-index: 1000; */
+        }
+
+        .left-menu {
+            display: flex;
+        }
+
+        .left-menu a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .left-menu a img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .welcome-logout {
+            display: flex;
+            align-items: center;
+        }
+
+        .welcome {
+            margin-right: 10px;
+        }
+
+        .logout {
+            text-decoration: none;
+            color: white;
+        }
+
+    
+.sidebar.show {
+    left: 0;
+}
+.sidebar.closed {
+    width: 0; 
+}
+      .sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: black;
+        }
+
+       /*  .main-content {
+            margin-top: 60px;
+            padding: 20px;
+            overflow-y: auto;
+        } */
+ .main-content {
+    margin-top: 60px; /* Adjust top margin to accommodate header height */
+    height: calc(100% - 60px); /* Adjust height to fill remaining space */
+    padding: 20px;
+    transition: margin-left 0.3s ease; 
+    overflow-y: auto;
+}
+
+.form-content {
+    /* Adjust as needed when the sidebar is open */
+    transition: margin-left 0.3s ease; /* Transition margin only */
+    z-index: 1;
+    margin-top: 20px;
+    /* margin-right: 10px;  *//* Adjust to 0 when sidebar is closed */
+    /* overflow-y: auto; */
+    margin-left: 200px; /* Initial margin */
+     width: calc(100% - 200px);
+    
+}
+
+.form-content.close {
+    margin-left: 0; /* Adjust margin to fill the entire width when sidebar is closed */
+width: 100%;
+}
+.sub-menu {
+    display: none; /* Hide the submenu by default */
+    list-style: none; /* Remove default list styling */
+    padding-left: 60px; /* Add some indentation to the submenu */
+    margin-top: 10px;
+}
+
+.sub-menu li a {
+    color: black; /* Set text color to black */
+    text-decoration: none; /* Remove underline */
+    margin-top: 10px; /* Apply top margin to submenu links */
+    margin-left: 30px; /* Apply left margin to submenu links */
+    font-size: 12px; /* Set font size for submenu links */
+}
+
+.sub-report {
+    display: none; /* Hide the sub-report by default */
+    list-style: none; /* Remove default list styling */
+    padding-left: 60px; /* Add some indentation to the sub-report */
+    margin-top: 10px;
+    /*  display: inline-block; */
+}
+
+.sub-report li {
+    padding: 2px;
+    transition: background-color 0.3s, color 0.3s; /* Add transition for smoother effect */
+    color: black; /* Text color */
+    font-size: 12px; /* Font size */
+    font-family: Arial, sans-serif; /* Font family */
+    margin-top: 10px;
+}
+.sub-report .arrow-up {
+	display: none; /* Hide the down arrow for sub-reports */
+    color: black;
+}
+
+.sub-report .arrow-down {
+    display: inline-block; /* Display the up arrow for sub-reports */
+    color: black; /*/* Ensure the arrow color matches the text color */
+}
+  table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+         td {
+            /*  border: 1px solid black;  */
+            padding: 8px;
+            text-align: left;
+                    white-space: nowrap; /* Prevent text wrapping */
+        overflow: hidden; /* Hide overflow */
+        text-overflow: ellipsis; 
+        font-family: Arial, sans-serif; /* Apply the desired font family */
+    font-size: 12px; 
+        }
+        .table-container {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto; /* Enable horizontal scrollbar if necessary */
+    }
+    
+    
+
+    #minWageContent {
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        height: calc(100vh - 20px);
+    }
+
+    
+    .custom-label {
+    font-family: Arial, sans-serif; /* Replace 'Your-Desired-Font' with the actual font name */
+    text-align: left;
+    display: block;
+        font-size: 14px;
+    /* Add any other styling properties you need */
+}
+
+.custom-input-container {
+    padding-left: 10px;
+}
+
+.custom-input {
+    height: 40px; /* Adjust the height as needed */
+    font-family: Arial, sans-serif; /* Same font as the label */
+    /* Add any other styling properties you need */
+}
+
+.custom-input-checkbox {
+    height: 20px; /* Adjust the height as needed */
+    font-family: Arial, sans-serif; /* Same font as the label */
+    /* Add any other styling properties you need */
+}
+.required-field {
+    color: red; /* Change this to your desired color */
+    margin-right: 4px; /* Add space to the right of the * */
+}
+     
+        .toggle {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+} */
+/* Styles for the slider */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: left;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+}
+
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Styles for the sort indicator */
+.sort-indicator {
+    display: inline-block;
+    vertical-align: middle; /* Align vertically with text */
+    margin-left: 5px; /* Add space between text and indicator */
+}
+
+.sort-indicator::after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+}
+
+.sort-asc .sort-indicator::after {
+    border-bottom: 3px solid black; /* Upward-pointing triangle */
+}
+
+.sort-desc .sort-indicator::after {
+    border-top: 3px solid black; /* Downward-pointing triangle */
+}
+ .header-text {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    border: 1px solid black;
+    white-space: nowrap; /* Prevent text wrapping */
+    padding: 5px; 
+}
+    
+.error-message {
+    color: red;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+/* Principal employer */
+
+        .page-header {
+            background-color: #005151;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .header-buttons {
+            float: right;
+          /*   margin-top: -40px; */
+            margin-right: 10px;
+        }
+        
+         body {
+        overflow-x: auto;
+    }
+
+    
+   

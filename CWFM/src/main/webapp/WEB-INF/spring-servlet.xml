@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context.xsd
+           http://www.springframework.org/schema/mvc
+           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- Bean declaration and other configurations -->
+    <bean name="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/view/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+    <bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
+    <context:component-scan base-package="com.wfd.dot1.cwfm.config,com.wfd.dot1.cwfm.*" />
+
+    <!-- Property Placeholder -->
+    <!-- Externalized Queries Configuration -->
+    <context:property-placeholder location="file:/D:/wfd_cwfm/config/queries.properties"/>
+
+    <context:annotation-config/>
+    <mvc:annotation-driven />
+
+    <!-- JDBC DataSource configuration -->
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+    <property name="url" value="jdbc:sqlserver://localhost:1433;instanceName=SQLEXPRESS;databaseName=WFD_CWFM;encrypt=true;trustServerCertificate=true" />
+    <property name="username" value="sa" />
+    <property name="password" value="Admin" />
+</bean>
+
+<!-- JdbcTemplate -->
+<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <property name="dataSource" ref="dataSource" />
+</bean>
+
+<!-- REQUIRED TRANSACTION MANAGER -->
+<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource" />
+</bean>
+
+<!-- Enable @Transactional -->
+<tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+
+
+    <!-- Resources mapping -->
+    <mvc:resources mapping="/resources/**" location="/resources/" />
+
+    <bean id="messageSource"
+          class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+        <property name="basenames" value="file:/D:/wfd_cwfm/config/messages" />
+        <property name="fallbackToSystemLocale" value="true" />
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="cacheSeconds" value="10" />
+    </bean>
+
+    <!--  <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+         <property name="defaultLocale" value="en" />
+         <property name="cookieName" value="myAppLocaleCookie" />
+          <property name="cookieMaxAge" value="3600" />
+         <property name="cookieMaxAge" value="PT1H" />
+
+     </bean>  -->
+
+    <bean id="cookieMaxAgeLong" class="java.lang.Long">
+        <constructor-arg value="3600"/>  <!-- Example value in seconds -->
+    </bean>
+
+    <bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+        <property name="defaultLocale" value="en" />
+        <property name="cookieName" value="myAppLocaleCookie" />
+        <!-- <property name="cookieMaxAge" ref="cookieMaxAgeLong" /> -->
+    </bean>
+
+
+
+
+    <!-- <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        Set max upload size if needed
+        <property name="maxUploadSize" value="10000000"/> 10 MB
+    </bean> -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
+
+
+
+    <tx:annotation-driven />
+</beans>

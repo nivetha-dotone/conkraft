@@ -1,0 +1,42 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+  <filter>
+    <filter-name>authenticationFilter</filter-name>
+    <filter-class>com.wfd.dot1.cwfm.config.AuthenticationFilter</filter-class>
+  </filter>
+  
+  <!-- Filter Mappings -->
+  <filter-mapping>
+    <filter-name>authenticationFilter</filter-name>
+    <url-pattern>/user/*</url-pattern>
+  </filter-mapping>
+ 
+  <servlet>
+    <servlet-name>spring</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/spring-servlet.xml</param-value>
+    </init-param>
+    <!-- <load-on-startup>1</load-on-startup> -->
+    <multipart-config>
+        <location>D:/tmp</location>
+        <max-file-size>20971520</max-file-size> <!-- 20MB -->
+        <max-request-size>41943040</max-request-size> <!-- 40MB -->
+        <file-size-threshold>1048576</file-size-threshold> <!-- 1MB -->
+    </multipart-config>
+  </servlet>
+  
+ <servlet-mapping>
+ <servlet-name>spring</servlet-name>
+    <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    <session-config>
+    <session-timeout>30</session-timeout> <!-- Timeout in minutes -->
+</session-config>
+    
+</web-app>
