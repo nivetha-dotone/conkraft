@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -3127,5 +3130,74 @@ if (status.contains("Unique")) {
             return "failed";
         }
     }
+    
+    public String getSurePassOCRURL() {
+	    return QueryFileWatcher.getQuery("OCR_URL");
+	}
+    
+    public String getOCRToken() {
+	    return QueryFileWatcher.getQuery("OCR_TOKEN");
+	}
+    
+	
+    
+    @PostMapping(value = "/aadhaarOCRValidate", consumes = "multipart/form-data")
+    public ResponseEntity<?> validateAadhaar(
+            @RequestParam("file") MultipartFile file) {
+
+        try {
+
+            String surepassUrl = getSurePassOCRURL();
+            String token = getOCRToken();
+
+            RestTemplate restTemplate = new RestTemplate();
+
+            // Convert MultipartFile → Resource
+            ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            };
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("file", resource);
+
+            // ✅ Detect PDF and add flag
+            String fileName = file.getOriginalFilename();
+            String contentType = file.getContentType();
+
+            boolean isPdf =
+                    (fileName != null && fileName.toLowerCase().endsWith(".pdf")) ||
+                    (contentType != null && contentType.equalsIgnoreCase("application/pdf"));
+
+            if (isPdf) {
+                body.add("use_pdf", "TRUE");
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.set("Authorization", token);
+
+            HttpEntity<MultiValueMap<String, Object>> request =
+                    new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    surepassUrl,
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+
+            log.info("response of ocr: " + response.getBody());
+            return ResponseEntity.ok(response.getBody());
+
+        } catch (Exception e) {
+            log.error("Error on ocr validation: ", e);
+            return ResponseEntity.status(500)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
 
     }

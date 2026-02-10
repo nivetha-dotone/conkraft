@@ -4287,3 +4287,135 @@ function showLoader() {
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
 }
+
+
+
+function uploadAadhaarFile() {
+
+    showLoader();
+
+    const fileInput = document.getElementById("aadhaarFile");
+
+    if (!fileInput.files.length) {
+        hideLoader();
+        alert("Please select Aadhaar file");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/CWFM/contractworkmen/aadhaarOCRValidate", true);
+
+    xhr.onload = function () {
+
+        let response;
+        try {
+            response = JSON.parse(xhr.responseText);
+        } catch (e) {
+            hideLoader();
+            document.getElementById("otpError").innerText = "Invalid server response";
+            return;
+        }
+
+        if ((xhr.status === 200 || xhr.status === 422) && response.success) {
+
+            if (!response.data || !response.data.ocr_fields) {
+                hideLoader();
+                document.getElementById("otpError").innerText = "No OCR data found";
+                return;
+            }
+
+            // ✅ Read existing values (important merge fix)
+            let firstname = document.getElementById("firstName").value || "";
+            let lastname = document.getElementById("lastName").value || "";
+            let dob = document.getElementById("dateOfBirth").value || "";
+            let gender = document.getElementById("gender").value || "";
+            let fathername = document.getElementById("relationName").value || "";
+            let address = document.getElementById("address").value || "";
+            let aadharNumber = document.getElementById("aadharNumber").value || "";
+
+            // ✅ Loop OCR blocks (front/back/combined safe)
+            response.data.ocr_fields.forEach(ocr => {
+
+                const type = ocr.document_type;
+
+                // FRONT SIDE
+                if (type === "aadhaar_front_bottom") {
+
+                    const fullName = ocr.full_name?.value;
+                    if (fullName) {
+                        firstname = fullName.split(" ")[0] || firstname;
+                        lastname = fullName.split(" ").slice(1).join(" ") || lastname;
+                    }
+
+                    if (ocr.dob?.value) dob = ocr.dob.value;
+
+                    let g = ocr.gender?.value;
+                    if (g) gender = (g === "F") ? "12" : "11";
+                }
+
+                // BACK SIDE
+                if (type === "aadhaar_back") {
+
+                    if (ocr.care_of?.value)
+                        fathername = ocr.care_of.value;
+
+                    if (ocr.address?.value || ocr.zip?.value)
+                        address = (ocr.address?.value || "") + " " + (ocr.zip?.value || "");
+                }
+
+                // Aadhaar number (common)
+                if (ocr.aadhaar_number?.value)
+                    aadharNumber = ocr.aadhaar_number.value;
+            });
+
+            // ✅ Populate merged values
+            document.getElementById("aadharNumber").value = aadharNumber;
+            document.getElementById("firstName").value = firstname;
+            document.getElementById("lastName").value = lastname;
+            document.getElementById("dateOfBirth").value = dob;
+            document.getElementById("gender").value = gender;
+            document.getElementById("address").value = address;
+            document.getElementById("relationName").value = fathername;
+
+            // ✅ Lock fields
+            document.getElementById("aadharNumber").readOnly = true;
+            document.getElementById("firstName").readOnly = true;
+            document.getElementById("dateOfBirth").disabled = true;
+            document.getElementById("gender").disabled = true;
+            document.getElementById("address").readOnly = true;
+
+            
+
+            hideLoader();
+
+        } else {
+            hideLoader();
+            document.getElementById("otpError").innerText =
+                response.message || "Validation failed";
+            document.getElementById("otpMessage").innerText = "";
+        }
+    };
+
+    xhr.onerror = function () {
+        hideLoader();
+        document.getElementById("otpError").innerText = "Request failed.";
+        document.getElementById("otpMessage").innerText = "";
+    };
+
+    xhr.send(formData);
+}
+
+function showSelectedFileName() {
+    const fileInput = document.getElementById("aadhaarFile");
+    const label = document.getElementById("selectedFileName");
+
+    if (fileInput.files.length > 0) {
+        label.innerText = "Selected: " + fileInput.files[0].name;
+    } else {
+        label.innerText = "";
+    }
+}
+

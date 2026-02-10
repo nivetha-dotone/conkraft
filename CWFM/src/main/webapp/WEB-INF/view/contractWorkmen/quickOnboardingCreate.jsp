@@ -793,6 +793,16 @@ label {
      <button type="button" onclick="generateToken()" class="btn btn-default process-footer-button-cancel ng-binding">Validate</button>
      
      </td>
+    <td >
+
+     <input type="file" id="aadhaarFile" accept="image/*,.pdf"
+           onchange="showSelectedFileName()" /><span id="selectedFileName" style="margin-left:10px; color:#555;"></span>
+</td><td>
+    <button type="button" onclick="uploadAadhaarFile()" class="btn btn-default process-footer-button-cancel ng-binding">
+        Validate Aadhaar Through OCR
+    </button>
+
+</td>
     
     <!-- <td>
     	<input id="otp" name="otp" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" autocomplete="off" placeholder="Enter otp here" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
