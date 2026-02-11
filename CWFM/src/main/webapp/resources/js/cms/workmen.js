@@ -2503,7 +2503,7 @@ function previewImage(event, inputId, displayId) {
 										            if (Array.isArray(response) &&response.length > 0) {
 										                $.each(response, function(index, wo) {
 										                    var row = '<tr  >' +
-																	'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
+'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																	'<td  >' + wo.transactionId + '</td>' +
 										                              '<td  >' + wo.gatePassId + '</td>' +
 										                              '<td  >' + wo.firstName + ' '+wo.lastName +'</td>' +
@@ -4417,5 +4417,55 @@ function showSelectedFileName() {
     } else {
         label.innerText = "";
     }
+}
+function toggleAll(source) {
+    document.querySelectorAll(".bulk-check").forEach(cb => {
+        cb.checked = source.checked;
+    });
+}
+function bulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+        loadCommonList('/contractworkmen/blockListFilter', 'Block List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
 }
 

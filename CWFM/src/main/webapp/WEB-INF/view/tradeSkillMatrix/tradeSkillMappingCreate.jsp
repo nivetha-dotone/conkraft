@@ -935,7 +935,7 @@ value="${c.expiryDate}">
 </td>
 
 <td>
-<input type="date" class="form-control grantDate">
+<input type="date" class="form-control grantDate ">
 </td>
 
 <td>

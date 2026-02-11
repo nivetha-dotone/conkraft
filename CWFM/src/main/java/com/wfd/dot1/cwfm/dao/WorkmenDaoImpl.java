@@ -643,6 +643,7 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 				dto.setStatus("Draft");
 			}
 			dto.setOnboardingType(rs.getString("OnboardingType"));
+			dto.setGatePassTypeId(rs.getString("GatePassTypeId"));
 			listDto.add(dto);
 		}
 		log.info("Exiting from getGatePassListingForApprovers dao method "+listDto.size());
@@ -1975,6 +1976,7 @@ public List<GatePassListingDto> getGatePassActionListingForApprovers(String role
 			dto.setStatus("Draft");
 		}
 		dto.setOnboardingType(rs.getString("OnboardingType"));
+		dto.setGatePassTypeId(rs.getString("GatePassTypeId"));
 		listDto.add(dto);
 	}
 	log.info("Exiting from getGatePassListingForApprovers dao method "+listDto.size());

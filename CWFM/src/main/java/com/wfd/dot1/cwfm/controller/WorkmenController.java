@@ -925,6 +925,9 @@ public class WorkmenController {
    	public String blockListFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		List<PrincipalEmployer> listDto =new ArrayList<PrincipalEmployer>();
         CMSRoleRights rr =new CMSRoleRights();
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/blockListFilter");
@@ -3199,5 +3202,23 @@ if (status.contains("Unique")) {
         }
     }
 
+
+    @PostMapping("/bulkApproveGatePass")
+    public ResponseEntity<String> bulkApproveGatePass(
+            @RequestBody List<ApproveRejectGatePassDto> dtos) {
+
+        try {
+
+            for (ApproveRejectGatePassDto dto : dtos) {
+                workmenService.approveRejectGatePass(dto);
+            }
+
+            return ResponseEntity.ok("Bulk approval completed successfully");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Bulk approval failed: " + e.getMessage());
+        }
+    }
 
     }

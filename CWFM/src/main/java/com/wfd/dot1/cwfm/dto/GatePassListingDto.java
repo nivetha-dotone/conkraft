@@ -109,4 +109,11 @@ public String getOnboardingType() {
 public void setOnboardingType(String onboardingType) {
 	this.onboardingType = onboardingType;
 }
+private String gatePassTypeId;
+public String getGatePassTypeId() {
+	return gatePassTypeId;
+}
+public void setGatePassTypeId(String gatePassTypeId) {
+	this.gatePassTypeId = gatePassTypeId;
+}
 }
