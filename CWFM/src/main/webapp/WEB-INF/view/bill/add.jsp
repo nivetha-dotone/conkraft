@@ -454,12 +454,12 @@ label {
             <tr>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.billStartDate"/></label></th>
                 <td>
-                <input id="billStartDateId" name="billStartDate" style="width: 100%;height: 20px;  color: #495057;" type="date" size="30" maxlength="30" autocomplete="off" >
+                <input id="billStartDateId" name="billStartDate" class="pfapplydatetimepicker" style="width: 100%;height: 20px;  color: #495057;" type="text" size="30" maxlength="30" autocomplete="off" >
                 	<label id="error-billStartDate" style="color: red;display: none;">Bill start date is required</label>
                 </td>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.billEndDate"/></label></th>
                 <td>
-                <input id="billEndDateId" name="billEndDate" style="width: 100%;height: 20px; color: #495057;" type="date" size="30" maxlength="30" autocomplete="off" >
+                <input id="billEndDateId" name="billEndDate" class="pfapplydatetimepicker" style="width: 100%;height: 20px; color: #495057;" type="text" size="30" maxlength="30" autocomplete="off" >
                 	<label id="error-billEndDate" style="color: red;display: none;">Bill end date is required</label>
                
                 </td>
@@ -588,7 +588,7 @@ label {
                 <input type="text" name="licenseNumber_${item.id}" placeholder="Enter License Number" />
             </c:if> </td>
             	<td> <c:if test="${item.validUptoRequired}">
-                <input type="date"  name="validUpto_${item.id}"  />
+                <input type="text" class="compliancedatetimepicker" name="validUpto_${item.id}"  />
             </c:if> </td>
             </tr>
         </c:forEach>

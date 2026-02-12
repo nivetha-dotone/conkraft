@@ -59,7 +59,7 @@
  <script src="resources/js/cms/unitDeptMapping.js"></script>
 
   <script src="resources/js/cms/tradeSkill.js"></script>
- 
+ <script src="resources/js/cms/history.js"></script>
 
 
     <script>

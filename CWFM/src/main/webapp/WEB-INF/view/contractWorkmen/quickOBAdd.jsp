@@ -4,6 +4,7 @@
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="f"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -943,10 +944,10 @@ label {
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.mobileNumber }">
-                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off" inputmode="numeric"  pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
                 	</c:if>
                 	<c:if test="${not empty GatePassObj.mobileNumber }">
-                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" value="${GatePassObj.mobileNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" value="${GatePassObj.mobileNumber }" autocomplete="off" inputmode="numeric" pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
                 	</c:if>
                 	<div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.mobileNumberRegax"/></span>
@@ -1295,8 +1296,9 @@ label {
                          <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
 
                         	<td>
+                        	<c:set var="now" value="<%= new java.util.Date() %>" />
                         	<c:if test="${ empty GatePassObj.doj }">
-                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"  autocomplete="off"  >
+                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"  autocomplete="off"  value="<fmt:formatDate value='${now}' pattern='yyyy-MM-dd'/>" >
                         	</c:if>
     				
     						<c:if test="${ not empty GatePassObj.doj }">
@@ -1402,10 +1404,10 @@ label {
 			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accountNumber"/></label></th>
 				<td >
 				<c:if test="${ empty GatePassObj.accountNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="accountNumber" name="accountNumber"  autocomplete="off"  inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+				<input style="width: 100%;height: 20px;" type="text" size="30" id="accountNumber" name="accountNumber"  autocomplete="off"    />
 				</c:if>
 				<c:if test="${not  empty GatePassObj.accountNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="accountNumber" name="accountNumber"   value="${GatePassObj.accountNumber  }"  autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+				<input style="width: 100%;height: 20px;" type="text" size="30" id="accountNumber" name="accountNumber"   value="${GatePassObj.accountNumber  }"  autocomplete="off"   />
 				</c:if>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.accountNumberRegax"/></span>
@@ -1431,11 +1433,11 @@ label {
 			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.emergencyContactNumber"/></label></th>
 				<td>
 				<c:if test="${ empty GatePassObj.emergencyNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   autocomplete="off" inputmode="numeric" pattern="[6-9][0-9]{9}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
 				</c:if>
 				
 				<c:if test="${not empty GatePassObj.emergencyNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   value="${GatePassObj.emergencyNumber }"  autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')"/>
+					<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   value="${GatePassObj.emergencyNumber }"  autocomplete="off" inputmode="numeric" pattern="[6-9][0-9]{9}"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
 				</c:if>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.emergencyContactNumberRegax"/></span>
@@ -1454,7 +1456,7 @@ label {
                      
 		   <tr>
 				
-				<th><label class="custom-label"><spring:message code="label.workmenWageCategory"/></label></th>
+				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workmenWageCategory"/></label></th>
 				<td >
 					<select class="custom-select" id="wageCategory"    name="wageCategoryId"  >
 						<option value=""> Select Workmen Wage Category</option>
@@ -1468,7 +1470,7 @@ label {
 						<label id="error-wageCategory"style="color: red;display: none;">Workmen Wage Category is required</label>
 				</td>
 				
-				<th><label class="custom-label"><spring:message code="label.bonusPayout"/></label></th>
+				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.bonusPayout"/></label></th>
 				<td >
 					<select class="custom-select" id="bonusPayout"    name="bonusPayoutId"  >
 						<option value=""> Select Bonus Payout</option>
@@ -1483,7 +1485,7 @@ label {
 				</td>
 				</tr>
         <tr>
-				<th><label class="custom-label"><spring:message code="label.zone"/></label></th>
+				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.zone"/></label></th>
 				<td >
 					<select class="custom-select" id="zone"    name="zoneId"  >
 						<option value=""> Select Zone</option>
@@ -1494,7 +1496,7 @@ label {
 					<label id="error-zone"style="color: red;display: none;">Zone is required</label>
 				</td>
 		
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.basic"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.basic"/></label></th>
 			
 				<td><input style="width: 100%;height: 20px;" type="text" size="30" name="basic" id="basic" autocomplete="off"  value="${not empty GatePassObj.basic ? GatePassObj.basic : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
@@ -1504,14 +1506,14 @@ label {
 				</td>						
 			</tr>
         <tr>
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.da"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.da"/></label></th>
 				<td ><input style="width: 100%;height: 20px;" type="text" size="30" name="da" id="da" autocomplete="off"  value="${not empty GatePassObj.da ? GatePassObj.da : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.daRegax"/></span>
                                 </div>
 				<label id="error-da"style="color: red;display: none;">Enter valid DA</label>
 				</td>				
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.hra"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.hra"/></label></th>
 				<td ><input style="width: 100%;height: 20px;" type="text" size="30" name="hra"  id="hra" autocomplete="off" value="${not empty GatePassObj.hra ? GatePassObj.hra : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.hraRegax"/></span>
@@ -1521,7 +1523,7 @@ label {
 			
 			</tr>
          <tr>
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.washingAllowance"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.washingAllowance"/></label></th>
 				<td>
 				<input style="width: 100%;height: 20px;" type="text" size="30" name="washingAllowance" id="washingAllowance" autocomplete="off" value="${not empty GatePassObj.washingAllowance ? GatePassObj.washingAllowance : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
@@ -1529,7 +1531,7 @@ label {
                                 </div>
 				<label id="error-washingAllowance"style="color: red;display: none;">Enter valid Washing Allowance</label>
 				</td>				
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.otherAllowance"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.otherAllowance"/></label></th>
 				<td><input style="width: 100%;height: 20px;" type="text" size="30" name="otherAllowance" id="otherAllowance" autocomplete="off"  value="${not empty GatePassObj.otherAllowance ? GatePassObj.otherAllowance : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.otherAllowanceRegax"/></span>
@@ -1538,7 +1540,7 @@ label {
 				</td>				
 			</tr>
         <tr>
-			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.uniformAllowance"/></label></th>
+			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.uniformAllowance"/></label></th>
 				<td><input style="width: 100%;height: 20px;" type="text" size="30" name="uniformAllowance" id="uniformAllowance" autocomplete="off" value="${not empty GatePassObj.uniformAllowance ? GatePassObj.uniformAllowance : ''}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')"   onblur="formatToTwoDecimalPlaces(this)"/>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.uniformAllowanceRegax"/></span>

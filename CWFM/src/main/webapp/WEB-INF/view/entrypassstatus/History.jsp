@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workmen Onboarding List</title>
-    <script src="resources/js/cms/workmen.js"></script>
+    <script src="resources/js/cms/history.js"></script>
 
 
     <style>
@@ -193,16 +193,16 @@
    <label for="aadharNumber" style=" color: darkcyan;">AadharNumber:</label>
          
    <c:if test="${empty GatePassObj.aadhaarNumber }">
-    	<input id="aadharNumber" name="aadharNumber" style="width: 100%;height: 20px;" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')" size="30" maxlength="12" autocomplete="off">
+    	<input id="aadhaar" name="aadhaar" style="width: 100%;height: 20px;" type="text" placeholder="Enter Aadhaar" inputmode="numeric" pattern="[0-9]*" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')" size="30" maxlength="12" autocomplete="off">
     </c:if>
      <c:if test="${not empty GatePassObj.aadhaarNumber }">
-    	<input id="aadharNumber" name="aadharNumber" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" value="${GatePassObj.aadhaarNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+    	<input id="aadhaar" name="aadhaar" placeholder="Enter Aadhaar" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" value="${GatePassObj.aadhaarNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
     </c:if>
     	
 <input type="hidden" id="aadharNumber" name="aadharNumber">
 
 
-        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="searchGatePassHistory()">Search</button>
+        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="loadHistory()">Search</button>
  <!-- <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="redirectToWorkmenView()">View</button> -->
  <!-- Inline script placed immediately after dropdowns -->
 
@@ -215,7 +215,7 @@
          <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="redirectToWorkmenEdit()">Edit</button> 
      </c:if>
      <c:if test="${UserPermission.viewRights eq 1 }">
-        <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="redirectToWorkmenView()">View</button>
+        <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="redirectToHistoryView()">View</button>
 
      </c:if>
        <c:if test="${UserPermission.exportRights eq 1 }">
@@ -226,46 +226,40 @@
 </div>
 
      <form id="updateForm" action="/CWFM/workorders/update" method="POST" >
-     <div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
-    
      
-                         <div class="table-container">
-                        
-    <table id="workmenTable"  cellspacing="0" cellpadding="0" >
-        <thead>
- <tr >
-                    <td >
-                        <input type="checkbox" id="selectAllAadharWorkmenCheckbox" onchange="toggleSelectAllAadharWorkmen()" >
-                    </td> 
-                    <!-- Add more table headers for each column -->
-                    <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.transactionId"/><span id="sortIndicatorName" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                    <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.gatePassId"/><span id="sortIndicatorName" class="sort-indicator sort-asc">&#x25B2;</span></th>
-					<th class="header-text"  onclick="sortTable(2)"><spring:message code="label.FullName"/><span id="sortIndicatorAddress" class="sort-indicator sort-asc">&#x25B2;</span></th>
-					 <th class="header-text"  onclick="sortTable(3)"><spring:message code="label.lastName"/><span id="sortIndicatorManagerName" class="sort-indicator sort-asc">&#x25B2;</span></th> 
-					<%-- <th class="header-text"  onclick="sortTable(4)"><spring:message code="label.aadharNumber"/><span id="sortIndicatorManagerAddr" class="sort-indicator sort-asc">&#x25B2;</span></th> --%>
-					<th class="header-text"  onclick="sortTable(5)"><spring:message code="label.gatePassType"/><span id="sortIndicatorBusinessType" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                   <th class="header-text"  onclick="sortTable(6)"><spring:message code="label.status"/><span id="sortIndicatorMaxWorkmen" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                   <th class="header-text"  onclick="sortTable(7)"><spring:message code="label.unitName"/><span id="sortIndicatorMaxCntrWorkmen" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                   <%-- <th class="header-text"  onclick="sortTable(8)"><spring:message code="label.vendorCode"/><span id="sortIndicatorBocwApp" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                     <th class="header-text"  onclick="sortTable(9)"><spring:message code="label.approvedBy"/><span id="sortIndicatorIsmwApp" class="sort-indicator sort-asc">&#x25B2;</span></th> 
-                     <th class="header-text"  onclick="sortTable(9)"><spring:message code="label.pendingWith"/><span id="sortIndicatorCode" class="sort-indicator sort-asc">&#x25B2;</span></th> 
-                     <th class="header-text"  onclick="sortTable(9)"><spring:message code="label.gatePassType"/><span id="sortIndicatorCode" class="sort-indicator sort-asc">&#x25B2;</span></th> 
-                    <th class="header-text"  onclick="sortTable(10)"><spring:message code="label.status"/><span id="sortIndicatorOrganization" class="sort-indicator sort-asc">&#x25B2;</span></th> --%> 
-            </tr>
-        </thead>
-        <tbody>
-            
-        </tbody>
-    </table>
-    
-                        </form>
-                         </div>
-                          <c:if test="${principalEmployers.size() == 1 && Dept.size() == 1}">
-    <script>
-        setTimeout(function () {
-            searchGatePassBasedOnPE('regular');
-        }, 10); // Delay ensures DOM is rendered after innerHTML
-    </script>
-    </c:if>
+  <!--   <h3>Workman Summary</h3>
+<table id="summaryTable"></table>
+
+<h3>Current Employment</h3>
+<table id="currentTable"></table>
+
+<h3>Previous Employment</h3>
+<table id="previousTable"></table>
+
+<h3>Audit Trail</h3>
+<table id="auditTable"></table> -->
+     <h3>Workman Summary</h3>
+<div class="table-container">
+    <table id="summaryTable"></table>
+</div>
+
+<h3>Current Employment</h3>
+<div class="table-container">
+    <table id="currentTable"></table>
+</div>
+
+<h3>Previous Employment</h3>
+<div class="table-container">
+    <table id="previousTable"></table>
+</div>
+
+<h3>Audit Trail</h3>
+<div class="table-container">
+    <table id="auditTable"></table>
+</div>
+     
+                         
+                         
+    </form>
 </body>
 </html>

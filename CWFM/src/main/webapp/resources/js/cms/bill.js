@@ -211,6 +211,7 @@ function redirectToBillAdd() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             // Update the mainContent element with the fetched content
             document.getElementById("mainContent").innerHTML = xhr.responseText;
+            setDateRange();
         }
     };
     xhr.open("GET", "/CWFM/billVerification/createBill", true);
@@ -629,7 +630,7 @@ if (billStartDateStr === "") {
     startDate.setHours(0, 0, 0, 0);
 
     // must be strictly past date
-    if (startDate >= today) {
+    if (startDate > today) {
         $("#error-billStartDate")
             .text("Bill Start Date must be a past date")
             .show();

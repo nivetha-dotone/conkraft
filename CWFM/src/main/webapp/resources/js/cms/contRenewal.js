@@ -4,6 +4,7 @@ function redirectToContractorRenew() {
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
             document.getElementById("mainContent").innerHTML = xhr.responseText;
+            setDateRange();
         }
     };
     xhr.open("GET", "/CWFM/renewal/create", true);
@@ -106,7 +107,10 @@ document.addEventListener('click', function (e) {
     if (e.target.matches('button.addRowNew')) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        setTimeout(() => addRowContNew(), 0); // prevent recursion
+        setTimeout(() => {
+			addRowContNew();
+        setDateRange();
+        }, 0); // prevent recursion
     } else if (e.target.matches('button.removeRowNew')) {
 		e.preventDefault();
 		       e.stopImmediatePropagation();
@@ -126,8 +130,8 @@ function addRowContNew() {
         <td></td>
         <td><input type="text" class="form-control documentNumber" name="documentNumber" /></td>
         <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" /></td>
-        <td><input type="date" class="form-control validFrom" name="validFrom" min="${today}" /></td>
-        <td><input type="date" class="form-control validTo" name="validTo" min="${today}" /></td>
+        <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" min="${today}" /></td>
+        <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" min="${today}" /></td>
         <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf" /></td>
 		<td><input type="checkbox" class="form-control panIndia" name="panIndia" /></td>
 		<td><input type="checkbox" class="form-control subApplicable" name="subApplicable" /></td>

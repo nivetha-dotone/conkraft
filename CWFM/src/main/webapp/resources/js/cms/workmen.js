@@ -765,20 +765,22 @@ function validateOtherInformation(){
 	}
 	const ifscInput = $("#ifscCode").val().trim();
     const ifscCodeRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
-    if (!ifscCodeRegex.test(ifscInput)) {
-          $("#error-ifscCode").show();
-          isValid = false;
-    }else{
-		 $("#error-ifscCode").hide();
-	}
+    if (!(ifscCodeRegex.test(ifscInput) || ifscInput.toUpperCase() === "NEW JOINEE")) {
+    $("#error-ifscCode").show();
+    isValid = false;
+      } else {
+    $("#error-ifscCode").hide();
+     }
+
 	const accountInput = $("#accountNumber").val().trim();
     const accountNumberRegex = /^[0-9]{9,18}$/;
-    if (!accountNumberRegex.test(accountInput)) {
-          $("#error-accountNumber").show();
-          isValid = false;
-    }else{
-		$("#error-accountNumber").hide();
-	}
+	if (!(accountNumberRegex.test(accountInput) || accountInput.toUpperCase() === "NEW JOINEE")) {
+    $("#error-accountNumber").show();
+    isValid = false;
+    } else {
+    $("#error-accountNumber").hide();
+    }
+
 	const emergencyName = $("#emergencyName").val().trim();
 	const firstnameRegex = /^[A-Za-z\s]{2,}$/;
     if (!firstnameRegex.test(emergencyName)) {
@@ -802,22 +804,22 @@ function validateWages(){
 	let isValid = true;
     const wage = $("#wageCategory").val();
      if (wage === "") {
-       // $("#error-wageCategory").show();
-       // isValid = false;
+        $("#error-wageCategory").show();
+        isValid = false;
     }else{
 		$("#error-wageCategory").hide();
 	}
 	const bonus = $("#bonusPayout").val();
      if (bonus === "") {
-        //$("#error-bonusPayout").show();
-        //isValid = false;
+        $("#error-bonusPayout").show();
+        isValid = false;
     }else{
 		$("#error-bonusPayout").hide();
 	}
 	const zone = $("#zone").val();
      if (zone === "") {
-       // $("#error-zone").show();
-        //isValid = false;
+        $("#error-zone").show();
+        isValid = false;
     }else{
 		$("#error-zone").hide();
 	}
@@ -829,53 +831,76 @@ function validateWages(){
 	const other = $("#otherAllowance").val().trim();
 	const uniform = $("#uniformAllowance").val().trim();
 	if(basic === ""){
-		$("#basic").val("0.00"); 
+		//$("#basic").val("0.00"); 
+		$("#error-basic").show();
+		isValid = false;
 	//not mandatory	
-	}else 	if ( !allowanceRegex.test(basic) ) {
+	}
+	/*else 	if ( !allowanceRegex.test(basic) ) {
              $("#error-basic").show();
        		 isValid = false; 
 			  
-      }else{
+      }*/
+      else{
 		 $("#error-basic").hide();
 	  }
 	  if(da === ""){
-		$("#da").val("0.00"); 
-	  }else	  if ( !allowanceRegex.test(da) ) {
+		//$("#da").val("0.00"); 
+		$("#error-da").show();
+		isValid = false;
+	  }/*else	  if ( !allowanceRegex.test(da) ) {
              $("#error-da").show();
        		 isValid = false;    
-      }else{
+      }*/
+      else{
 		 $("#error-da").hide();
 	  }
 	  if(hra === ""){
-		$("#hra").val("0.00"); 
-	  }else	  if ( !allowanceRegex.test(hra) ) {
+		//$("#hra").val("0.00");
+		  $("#error-hra").show();
+		  isValid = false; 
+	  }
+	 /* else	  if ( !allowanceRegex.test(hra) ) {
              $("#error-hra").show();
        		 isValid = false;    
-      }else{
+      }*/
+      else{
 		 $("#error-hra").hide();
 	  }
 	  if(washing === ""){
-		$("#washingAllowance").val("0.00"); 
-	  }else	  if ( !allowanceRegex.test(washing) ) {
+		//$("#washingAllowance").val("0.00"); 
+		 $("#error-washingAllowance").show();
+		 isValid = false;
+	  }
+	  /*else	  if ( !allowanceRegex.test(washing) ) {
              $("#error-washingAllowance").show();
        		 isValid = false;    
-      }else{
+      }*/
+      else{
 		 $("#error-washingAllowance").hide();
 	  }
 	  if(other === ""){
-		$("#otherAllowance").val("0.00"); 
-		  	  }else	  if ( !allowanceRegex.test(other) ) {
+		//$("#otherAllowance").val("0.00"); 
+		 $("#error-otherAllowance").show();
+		 isValid = false;
+		  	  }
+		/*  	  else	  if ( !allowanceRegex.test(other) ) {
              $("#error-otherAllowance").show();
        		 isValid = false;    
-      }else{
+      }*/
+      else{
 		 $("#error-otherAllowance").hide();
 	  }
 	  if(uniform === ""){
-		$("#uniformAllowance").val("0.00"); 
-	  }else	  if ( !allowanceRegex.test(uniform) ) {
+		//$("#uniformAllowance").val("0.00"); 
+		 $("#error-uniformAllowance").show();
+		 isValid = false;
+	  }
+	/*  else	  if ( !allowanceRegex.test(uniform) ) {
              $("#error-uniformAllowance").show();
        		 isValid = false;    
-      }else{
+      }*/
+      else{
 		 $("#error-uniformAllowance").hide();
 	  }
 	  
@@ -1141,22 +1166,27 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 	if(type=== "project"){
 		if (!validateProjectEmploymentInformation()) {
 		        employmentValid = false;
+		         hideLoader();
 		    }
 	}else{
     if (!validateEmploymentInformation()) {
         employmentValid = false;
+         hideLoader();
     }
 	if (!validatePfForm11Requirement()) {
 	        documentValid = false;
+	         hideLoader();
 	    }
 	}
 	if(type=== "regular"){
         if (!validateOtherInformation()) {
             otherValid = false;
+             hideLoader();
         }
 
         if (!validateWages()) {
             wagesValid = false;
+             hideLoader();
         }
     }else{
 		otherValid = true;
@@ -1307,9 +1337,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
         };
 
         xhr.onerror = function () {
-			hideLoader();
+			//hideLoader();
             console.error("Request failed");
 			sessionStorage.setItem("errorMessage", "Failed to save Gatepass!");
+			 hideLoader();
         };
 
         xhr.send(data);
@@ -3460,6 +3491,40 @@ oneYearAgo.setFullYear(today.getFullYear() - 1);
     maxDate: today,
     yearRange: `${today.getFullYear() - 1}:${today.getFullYear()}`
 });
+$(".grantdatetimepicker").datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1900:+0",   // from 1900 to current year
+    maxDate: 0,              // ❌ cannot select future date
+    defaultDate: 0           // today selected by default
+});
+$(".expirydatetimepicker").datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "+0:+50",     // from current year to 50 years future
+    minDate: 1,               // ❌ cannot select today or past
+    defaultDate: +1           // tomorrow selected by default
+});
+$(".pfapplydatetimepicker").datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1900:+0",   // from 1900 to current year
+    maxDate: -1,              // ❌ cannot select future date
+    defaultDate: 0           // today selected by default
+});
+$(".compliancedatetimepicker").datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1900:+50",   // past 1900 to 50 years in future
+    minDate: null,            // allow past
+    maxDate: null,            // allow future
+    defaultDate: null
+});
+
 }
 
 function validatePfForm11Requirement() {

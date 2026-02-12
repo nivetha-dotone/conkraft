@@ -863,6 +863,7 @@ function validateRenewFormData() {
 		    xhr.onreadystatechange = function() {
 		        if (xhr.readyState == 4 && xhr.status == 200) {
 		            document.getElementById("mainContent").innerHTML = xhr.responseText;
+		            setDateRange();
 		        }
 		    };
 		    xhr.open("GET", "/CWFM/contractor/contReg" , true);
@@ -1031,6 +1032,7 @@ function validateRenewFormData() {
 document.addEventListener('click', function (e) {
     if (e.target.classList.contains('addRow')) {
         addRowCont();
+         setDateRange();   // ✅ IMPORTANT
     } else if (e.target.classList.contains('removeRow')) {
         deleteRowCont(e.target);
     }
@@ -1185,8 +1187,8 @@ document.addEventListener('click', function (e) {
 		        <td></td> <!-- placeholder for the cloned documentType select -->
 		        <td><input type="text" class="form-control documentNumber" name="documentNumber" /></td>
 		        <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" /></td>
-		        <td><input type="date" class="form-control validFrom" name="validFrom" min="${today}" /></td>
-		        <td><input type="date" class="form-control validTo" name="validTo" min="${today}" /></td>
+		        <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" min="${today}" /></td>
+		        <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" min="${today}" /></td>
 		        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf"/></td>
 		    `;
 

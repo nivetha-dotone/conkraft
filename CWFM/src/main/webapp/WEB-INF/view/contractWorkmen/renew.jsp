@@ -596,10 +596,10 @@ label {
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.mobileNumber }">
-                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off">
+                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off" inputmode="numeric"  pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
                 	</c:if>
                 	<c:if test="${not empty GatePassObj.mobileNumber }">
-                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" value="${GatePassObj.mobileNumber }" autocomplete="off">
+                		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" value="${GatePassObj.mobileNumber }" autocomplete="off" inputmode="numeric"  pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
                 	</c:if>
                 	<div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.mobileNumberRegax"/></span>
@@ -1080,11 +1080,11 @@ label {
 			<th><label class="custom-label"><span class="required-field"></span><spring:message code="label.emergencyContactNumber"/></label></th>
 				<td>
 				<c:if test="${ empty GatePassObj.emergencyNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   autocomplete="off" />
+				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   autocomplete="off" inputmode="numeric"  pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
 				</c:if>
 				
 				<c:if test="${not empty GatePassObj.emergencyNumber }">
-				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   value="${GatePassObj.emergencyNumber }"  autocomplete="off"/>
+				<input style="width: 100%;height: 20px;" type="text" size="30" id="emergencyNumber" name="emergencyNumber"    maxlength="10"   value="${GatePassObj.emergencyNumber }"  autocomplete="off" inputmode="numeric"  pattern="^[6-9][0-9]{9}$"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
 				</c:if>
 				<div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.emergencyContactNumberRegax"/></span>

@@ -11,9 +11,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="resources/css/cmsstyles.css"> 
-    <script src="resources/js/cms/tradeSkill.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/surepassio/surepass-digiboost-web-sdk@latest/index.min.js"></script>
+    <script src="resources/js/cms/principalEmployer.js"></script>
+    <script src="resources/js/cms/contractor.js"></script>
+    <script src="resources/js/cms/workorder.js"></script>
     <script src="resources/js/cms/workmen.js"></script>
+    <script src="resources/js/cms/report.js"></script>
+    <script src="resources/js/jquery.min.js"></script>
+    <script src="resources/js/cms/history.js"></script>
     <style>
   body {
     margin: 0;
@@ -134,7 +138,7 @@ table.ControlLayout td {
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
-            height: calc(100vh - 20px);
+            height: calc(100vh - 70px);
         } 
         th label {
             text-align: left;
@@ -271,28 +275,14 @@ label {
     color: #495057; /* Set the text color to a dark shade */
     font-family: Arial, sans-serif;
 }
-
-/* #preview {
-            width: 200px;
-            height: 200px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        } */
-        #preview img {
-            max-width: 100%;
-            max-height: 100%;
+textarea {
+            color: gray; /* Set text color to gray */
+            width: 300px; /* Optional width */
+            height: 150px; /* Optional height */
         }
-       .error-bold {
-    color: red;
-    font-weight: bold !important;
-}
 
 
-@media screen and (max-width: 768px) {
+        @media screen and (max-width: 768px) {
     table,
     tbody,
     tr,
@@ -558,7 +548,57 @@ label {
         font-size: 12px;
     }
     
+    
+   
 
+
+
+      .table-scroll-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .approval-table {
+        min-width: 750px;
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .approval-table {
+        display: table !important;
+    }
+
+    .approval-table thead {
+        display: table-header-group !important;
+    }
+
+    .approval-table tbody {
+        display: table-row-group !important;
+    }
+
+    .approval-table tr {
+        display: table-row !important;
+    }
+
+    .approval-table th,
+    .approval-table td {
+        display: table-cell !important;
+        padding: 8px 10px;
+        white-space: nowrap;
+        text-align: left;
+        vertical-align: middle;
+        border: 1px solid #ddd;
+        box-sizing: border-box;
+    }
+
+    .approval-table th {
+        background-color: #e6f0fa;
+        font-weight: bold;
+    }
+
+    
 }
    #loaderOverlay {
     position: fixed;
@@ -593,23 +633,21 @@ label {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}      
-.dupRow {
-    background-color: #ffb3b3 !important; /* light red */
-    border: 2px solid red;
-}
-
+}       
     </style>
      <%
-    MasterUser user = (MasterUser) session.getAttribute("loginuser");
-    String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
-%>
-
-	
+    	MasterUser user = (MasterUser) session.getAttribute("loginuser");
+     String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
+        String roleName = user != null ? user.getRoleName() : "";
+        String roleId = user!=null?user.getRoleId():"";
+        String contextPath =  request.getContextPath() ;
+		%>
+		<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> -->
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script>
  // Function to validate fields in the current active tab
- 
-
     function validateCurrentTab() {
         // Example of validation logic; customize based on your tab's fields
         let isValid = true;
@@ -682,17 +720,18 @@ label {
 
     document.addEventListener("DOMContentLoaded", function() {
         // Set the default tab
-        showTab('tab1');
-        initializeDatePicker();
+        showTabNew('tab1');
+        
     });
        
+
+    
+  
    
-  
-  
 
     </script>
 </head>
-<body >
+<body>
         <!-- <div >
             <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="submitGatePass()">Save</button>
              <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="submitForm()">Cancel</button>
@@ -701,16 +740,18 @@ label {
     <div id="principalEmployerContent">
        <div class="tabs-container">
         <div class="tabs">
-            <button class="active" data-target="tab1" onclick="showTab('tab1')">Trade Skill Mapping</button>
-          
+            <button class="active" data-target="tab1" onclick="showTabNew('tab1')">Workman Summary</button>
+            <button data-target="tab2" onclick="showTabNew('tab2')">Current Employment Information</button>
+            <!-- <button data-target="tab3" onclick="showTabNew('tab3')">Gatepass History</button>
+            <button data-target="tab6" onclick="showTabNew('tab6')">Previous Employment</button> -->
+            
         </div>
          <div class="action-buttons" >
-            <button id="saveButton"  type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="saveTradeSkillPro('${sessionScope.loginuser.userId}')">Save</button>
-            <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="goBackToTradeSkillList()">Cancel</button>
+            <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="goBackToonboardingList();">Cancel</button>
         </div> 
     </div>
 
-        <f:form id="addAadharOBForm" action="/CWFM/contractworkmen/addAadharOB" modelAttribute="workmenbyAadhar" method="post" autocomplete="off">
+        <f:form id="addAadharOBForm" action="/CWFM/contractworkmen/addAadharOB" modelAttribute="workmenbyAadhar" method="post">
             <div id="errorContainer">
                 <c:if test="${not empty errors}">
                     <p><span class="required-field">*</span> Indicates Required fields.</p>
@@ -719,393 +760,130 @@ label {
                     </div> 
                 </c:if>
             </div>
-               <div id="loaderOverlay" style="display:none;">
+            <div id="loaderOverlay" style="display:none;">
     <div class="loader"></div>
     <div class="loader-text">please wait...</div>
 </div>
-           <!--  <div id="tab1" class="tab-content active">
+            <div id="tab1" class="tab-content active">
+             
+            
+            <table cellspacing="0" cellpadding="0">
+            <tr><td>
     <table cellspacing="0" cellpadding="0">
         <tbody>
        
-        </tbody>
-    </table>
-   
-</div> -->
- <div id="tab2" class="tab-content active ">
-            <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div>
-              <div>
- <input type="hidden" value="${unitId}" id="unitId" name="unitId"/>
- <label class="custom-label"><spring:message code="label.gatePassId"/></label> :   <input type="text" value="${gatePassId}" id="gatePassId" name="gatePassId" readonly/><br>
-	</div>
-    <table class="table table-bordered" cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">>
-<thead>
-  <tr style=" border: 1px solid #ddd;">
- <th><label class="custom-label"></th>
-                <th><label class="custom-label"></th>
-				<th><label class="custom-label"> <spring:message code="label.tradeName"/></th>
-				<th><label class="custom-label"> <spring:message code="label.skillName"/></th>
-				<th><label class="custom-label"> <spring:message code="label.proLevel"/></th>
-				
+            <tr>
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.firstName"/></label></th>
+                <td>
+                	<input id="firstName" name="firstName" style="width: 100%;height: 20px;" type="text" value="${summary.firstName }" readonly>
+                </td>
+           
+            
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
+                <td>
+                	<input id="lastName" name="lastName" style="width: 100%;height: 20px;" type="text" value="${summary.lastName}" readonly>
+                </td>
+          
             </tr>
-</tr>
-</thead>
+            <tr>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.aadharNumber"/></label></th>
+    <td>
+    	<input id="aadharNumber" name="aadharNumber" style="width: 100%;height: 20px;" type="text" value="${summary.aadharNumber }" readonly>
+    </td>
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfBirth"/></label></th>
+               <td>
+    				<input id="dateOfBirth" name="dateOfBirth" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" value="${summary.dateOfBirth}" readonly >
+			</td>
+               
+            </tr>
+            <tr>
+                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.gender"/></label></th>
+                <td>
+                	<input id="gender" name="gender" style="width: 100%;height: 20px;" type="text" value="${summary.gender }" readonly>
+                     </td>
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
+                <td>
+                	<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" value="${summary.mobileNumber }" readonly>
+                </td>
+            </tr>
+            <tr>
+                <th>    	<label class="custom-label"><span class="required-field">*</span><spring:message code="label.cureentGatepassId"/></label></th>
+            	<td>
+            	<input id="cureentGatepassId" name="cureentGatepassId" style="width: 100%;height: 20px;" type="text" value="${summary.cureentGatepassId }" readonly>
+   
+            	</td>
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.currentStatus"/></label></th>
+                <td>
+                	<input id="currentStatus" name="currentStatus" style="width: 100%;height: 20px;" type="text" value="${summary.currentStatus }" readonly>
+                	 </td>
+            </tr>
+            <tr>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastUpdatedOn"/></label></th>				
+				<td ><input id="lastUpdatedOn" name="lastUpdatedOn" style="width: 100%;height: 20px;" type="text" value="${summary.lastUpdatedOn }" readonly></td>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastUpdatedBy"/></label></th>				
+				<td ><input id="lastUpdatedBy" name="lastUpdatedBy" style="width: 100%;height: 20px;" type="text" value="${summary.updatedBy }" readonly></td>
+            </tr>
+           
+           
+        </tbody>
+    </table></td>
+    <td></td>
+    </tr>
+    </table>
+</div>
 
-<tbody id="tradeSkillBody">
-
-<c:choose>
-
-<c:when test="${not empty existingTradeSkills}">
-
-<c:forEach var="ts" items="${existingTradeSkills}">
-<tr>
-
- <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
-        <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">-</button></td>
-
-<td>
-<select class="form-control tradeType" name="tradeType" id="tradeTypeId"  onchange="getSkillsBasedOnUnitAndTrade(this);">
-<option value="">Select</option>
-<c:forEach var="t" items="${TRADE}">
-<option value="${t.gmId}"
-${t.gmId == ts.tradeId ? 'selected' : ''}>
-${t.gmName}
-</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-  <select class="form-control skillType" name="skillType" id="skillTypeId">
-  <option value="">Select</option>
-<option value="${ts.skillId}" selected>
-${ts.skillName}
-</option>
-</select>
-</td>
-
-<td>
-<select class="form-control proType" name="proType" id="proTypeId">
-<option value="">Select</option>
-<c:forEach var="p" items="${PROLEVEL}">
-<option value="${p.gmId}"
-${p.gmId == ts.proficiencyId ? 'selected' : ''}>
-${p.gmName}
-</option>
-</c:forEach>
-</select>
-</td>
-
-</tr>
-</c:forEach>
-
-</c:when>
-
-<c:otherwise>
-
-<tr>
-
-
-        <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
-        <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">-</button></td>
-       
-<td>
-<select class="form-control tradeType" name="tradeType" id="tradeTypeId"  onchange="getSkillsBasedOnUnitAndTrade(this);" >
-<option value="">Select</option>
-<c:forEach var="t" items="${TRADE}">
-<option value="${t.gmId}">${t.gmName}</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-<select class="form-control skillType" name="skillType" id="skillTypeId">
-<option value="">Select</option>
-</select>
-</td>
-
-<td>
- <select class="form-control proType" name="proType" id="proTypeId">
-<option value="">Select</option>
-<c:forEach var="p" items="${PROLEVEL}">
-<option value="${p.gmId}">${p.gmName}</option>
-</c:forEach>
-</select>
-</td>
-
-</tr>
-
-</c:otherwise>
-
-</c:choose>
-
-</tbody>
-</table>
-
-<hr>
-
-<h4>Certification Details</h4>
-
-<table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
-    <thead >
-        <tr style=" border: 1px solid #ddd;">
-            <th><label class="custom-label"></th>
-            <th><label class="custom-label"></th>
-            <th><label class="custom-label">Certification</th>
-            <th><label class="custom-label">Proficiency</th>
-            <th><label class="custom-label">Grant Date</th>
-            <th><label class="custom-label">Expiration Date</th>
-        </tr>
-    </thead>
-
-<tbody id="certBody">
-
-<c:choose>
-
-<c:when test="${not empty existingCerts}">
-
-<c:forEach var="c" items="${existingCerts}">
-<tr>
-
- <td>
-                <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
-            </td>
-
-<td>
-<select class="form-control certType" name="certType" id="certType">>
-<option value="">Select</option>
-<c:forEach var="ct" items="${CertificationList}">
-<option value="${ct.gmId}"
-${ct.gmId == c.certificationId ? 'selected' : ''}>
-${ct.gmName}
-</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-<select class="form-control certProType" name="certProType" id="certProType">
-<option value="">Select</option>
-<c:forEach var="p" items="${PROLEVEL}">
-<option value="${p.gmId}"
-${p.gmId == c.proficiencyId ? 'selected' : ''}>
-${p.gmName}
-</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-<input type="text"  class="form-control grantDate grantdatetimepicker" value="${c.grantDate}">
-</td>
-
-<td>
-<input type="text"  class=" form-control expiryDate expirydatetimepicker" value="${c.expiryDate}">
-</td>
-
-</tr>
-</c:forEach>
-
-</c:when>
-
-<c:otherwise>
-
-<tr>
- <td>
-                <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
-            </td>
-<td>
-<select class="form-control certType" name="certType" id="certType">
-<option value="">Select</option>
-<c:forEach var="ct" items="${CertificationList}">
-<option value="${ct.gmId}">${ct.gmName}</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-<select class="form-control certProType" name="certProType" id="certProType">
-<option value="">Select</option>
-<c:forEach var="p" items="${PROLEVEL}">
-<option value="${p.gmId}">${p.gmName}</option>
-</c:forEach>
-</select>
-</td>
-
-<td>
-
-<input type="text"  class="grantDate grantdatetimepicker">
-
-</td>
-
-<td>
-<input  type="text"  class=" expiryDate expirydatetimepicker">
-</td>
-
-</tr>
-
-</c:otherwise>
-
-</c:choose>
-
-</tbody>
-</table>        
-             
-                
+            <div id="tab2" class="tab-content">
+                <table class="ControlLayout" cellspacing="0" cellpadding="0">
+                    <tbody>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.principalEmployer"/></label></th>
+                            <td><input id="principalEmployer" name="principalEmployer" style="width: 100%;height: 20px;" type="text" value="${employment.principalEmployer }" readonly></td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractor"/></label></th>
+                            <td><input id="contractor" name="contractor" style="width: 100%;height: 20px;" type="text" value="${employment.contractor }" readonly></td>
+                        </tr>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workorder"/></label></th>
+                            <td><input id="workorder" name="workorder" style="width: 100%;height: 20px;" type="text" value="${employment.workorder }" readonly> </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
+                            <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${employment.trade }" readonly> </td>
+                        </tr>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
+                            <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${employment.skill }" readonly></td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.department"/></label></th>
+                            <td><input id="department" name="department" style="width: 100%;height: 20px;" type="text" value="${employment.department }" readonly></td>
+                        </tr>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.area"/></label></th>
+                            <td><input id="subdepartment" name="subdepartment" style="width: 100%;height: 20px;" type="text" value="${employment.area }" readonly> </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
+                            <td>
+                            	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;" type="text" value="${employment.natureOfJob }" readonly>
+                            </td>
+                        </tr>
+                        <tr>
+                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accessArea"/></label></th>
+                            <td><input id="accessArea" name="accessArea" style="width: 100%;height: 20px;" type="text" value="${employment.accessArea }" readonly>  </td>
+                              <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
+                        	<td><input id="doj" name="doj" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" value="${employment.doj }" readonly>
+			               </td>
+                        </tr>
+                      
+                        <tr>
+                         
+			           <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfTermination"/></label></th>
+                        	<td><input id="dot" name="dot" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" value="${employment.dot }" readonly>
+			                </td>
+                        </tr>
+                         
+                    </tbody>
+                </table>
             </div>
            
         </f:form>
     </div>
+   
   
-
-
-<style>
-        p {
-            margin: 0
-        }
-        body {
-            min-height: 100vh;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(to bottom right, #ebf4ff, #c3dafe);
-            font-family: sans-serif;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 16px;
-            box-sizing: border-box;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .icon-circle {
-            width: 64px;
-            height: 64px;
-            background-color: #dbeafe; /* blue-100 */
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-        }
-
-        .svg-icon {
-            width: 32px;
-            height: 32px;
-            color: #2563eb; /* blue-600 */
-        }
-
-        .title {
-            text-align: center;
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #1f2937; /* gray-900 */
-        }
-
-        .description {
-            text-align: center;
-            color: #4b5563; /* gray-600 */
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
-        .info-list {
-            margin-top: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 1rem;
-        }
-
-        .info-item svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        .info-text {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #1f2937;
-        }
-
-        .info-subtext {
-            font-size: 0.75rem;
-            color: #4b5563;
-        }
-
-        .highlight-box {
-            background-color: #eff6ff;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .highlight-box p:first-child {
-            color: #1e40af;
-            font-weight: 500;
-            margin-bottom: 0.25rem;
-        }
-
-        .highlight-box p:last-child {
-            font-size: 0.75rem;
-            color: #2563eb;
-        }
-
-        .disclaimer {
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-align: center;
-            line-height: 1.4;
-            margin-top: 1rem;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.05);
-                opacity: 0.9;
-            }
-        }
-.modal {
-  position: fixed;
-  z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow:auto;
-  background-color: rgba(0,0,0,0.6);
-}
-.modal-content {
-  background:#fff;
-  margin: 10% auto;
-  padding: 20px;
-  border-radius: 8px;
-  width: 80%;
-  max-height: 80%;
-  overflow-y: auto;
-}
-</style>
-</div>
 </body>
  
 </html>

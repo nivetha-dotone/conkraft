@@ -294,7 +294,47 @@ label {
 	overflow-y: scroll; /* Adds a vertical scroll bar */
 	 overflow-x: auto; 
 }
-        
+       /*       #ui-datepicker-div,
+    #ui-datepicker-div table,
+    #ui-datepicker-div thead,
+    #ui-datepicker-div tbody,
+    #ui-datepicker-div tr,
+    #ui-datepicker-div th,
+    #ui-datepicker-div td {
+        /* display: table !important; */
+        width: auto !important;
+        max-width: none !important;
+    } */
+
+   /*  #ui-datepicker-div tr {
+        display: table-row !important;
+    } */
+
+   /*  #ui-datepicker-div th,
+    #ui-datepicker-div td {
+        display: table-cell !important;
+        padding: 4px !important;
+    } */
+
+    /* #ui-datepicker-div {
+        font-size: 12px;
+        z-index: 9999 !important;
+    } */   
+     .ui-datepicker table {
+    width: 100%;
+    font-size: .9em;
+    border-collapse: collapse;
+    margin: 0 0 .4em;
+    
+}	 
+.ui-datepicker .ui-datepicker-title select {
+    font-size: 1em;
+    margin: 1px 0;
+}
+.ui-datepicker .ui-datepicker-header {
+    position: relative;
+    padding: .2em 0;
+}
     </style>
    
 		 <%
@@ -491,12 +531,12 @@ label {
             <tr>
            	   <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractFrom"/></label></th>
                 <td>
-                	<input id="contractFromId" name="contractFrom" style="width: 100%;height: 20px; color: black;" type="date" size="30" maxlength="30" autocomplete="off">
+                	<input id="contractFromId" name="contractFrom" class="grantdatetimepicker" style="width: 100%;height: 20px; color: #495057;" type="text" size="30" maxlength="30" autocomplete="off">
                 	<label id="error-contractFrom" style="color: red;display: none;">Contract From is required</label>
                 </td>
                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractTo"/></label></th>
                 <td>
-                	<input id="contractToId" name="contractTo" style="width: 100%;height: 20px; color: black;" type="date" size="30" maxlength="30" autocomplete="off">
+                	<input id="contractToId" name="contractTo" class="expirydatetimepicker" style="width: 100%;height: 20px; color:  #495057;" type="text" size="30" maxlength="30" autocomplete="off">
                 	<label id="error-contractTo" style="color: red;display: none;">Contract To is required</label>
                 </td>
                
@@ -536,7 +576,7 @@ label {
 <tr>
 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfApplyDate"/></label></th>
                 <td>
-                	<input id="pfApplyDateId" name="pfApplyDate" style="width: 100%;height: 20px; color: black;" type="date" size="30" maxlength="30" autocomplete="off">
+                	<input id="pfApplyDateId" name="pfApplyDate"  class="pfapplydatetimepicker" style="width: 100%;height: 20px; color: black;" type="text" size="30" maxlength="30" autocomplete="off">
                 	<label id="error-pfApplyDate" style="color: red;display: none;">PF apply date is required</label>
                 </td>
                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfDoc"/></label></th>
@@ -590,8 +630,8 @@ label {
         </td>
         <td><input type="text" class="form-control documentNumber" name="documentNumber" autocomplete="off"/></td>
         <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" autocomplete="off"/></td>
-        <td><input type="date" class="form-control validFrom" name="validFrom" autocomplete="off"/></td>
-        <td><input type="date" class="form-control validTo" name="validTo" autocomplete="off"/></td>
+        <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" autocomplete="off"/></td>
+        <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" autocomplete="off"/></td>
         <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf" autocomplete="off"/></td>
         <td><input type="checkbox" class="form-control panIndia" name="panIndia" /></td>
          <td><input type="checkbox" class="form-control subApplicable" name="subApplicable" /></td>

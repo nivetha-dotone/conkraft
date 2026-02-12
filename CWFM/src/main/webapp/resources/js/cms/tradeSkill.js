@@ -82,10 +82,14 @@ function searchGatePassIdBasedOnPE() {
 						        //deleteRowContNew(e.target);
 						    }
 							else if (e.target.matches('button.addRowCert')) {
-													        e.preventDefault();
-													        e.stopImmediatePropagation();
-													        setTimeout(() => addRowCertification(), 0); // prevent recursion
-													    } else if (e.target.matches('button.removeRowCert')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        setTimeout(() => {
+            addRowCertification();
+            setDateRange();   // ✅ IMPORTANT
+        }, 0);
+    }else if (e.target.matches('button.removeRowCert')) {
 															e.preventDefault();
 															       e.stopImmediatePropagation();
 															       setTimeout(() => deleteRowCertification(e.target), 0); // prevent recursion
@@ -96,45 +100,57 @@ function searchGatePassIdBasedOnPE() {
 						
 
 						function addRowTradeSkill() {
-						    const tbody = document.getElementById("tradeSkillBody");
 
-						    const row = document.createElement("tr");
-						    row.innerHTML = `
-						        <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
-						        <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">−</button></td>
-						        <td></td>
-						        <td></td>
-						        <td></td>
-						    `;
+    const tbody = document.getElementById("tradeSkillBody");
 
-						    const originalTradeDropdown = document.querySelector('#tradeSkillBody tr:first-child select.tradeType');
-						    if (originalTradeDropdown) {
-						        const clonedTradeDropdown = originalTradeDropdown.cloneNode(true);
-						        clonedTradeDropdown.classList.add("tradeType");
-						        clonedTradeDropdown.name = "tradeType";
-								clonedTradeDropdown.onchange = function () {
-								    getSkillsBasedOnUnitAndTrade(this);
-								};
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td><button type="button" class="btn btn-success addRowTrade" style="color:blue;background-color:white;">+</button></td>
+        <td><button type="button" class="btn btn-danger removeRowTrade" style="color:blue;background-color:white;">−</button></td>
+        <td></td>
+        <td></td>
+        <td></td>
+    `;
 
-						        row.cells[2].appendChild(clonedTradeDropdown);
-						    }
-							const originalSkillDropdown = document.querySelector('#tradeSkillBody tr:first-child select.skillType');
-													    if (originalSkillDropdown) {
-													        const clonedSkillDropdown = originalSkillDropdown.cloneNode(true);
-													        clonedSkillDropdown.classList.add("skillType");
-													        clonedSkillDropdown.name = "skillType";
-													        row.cells[3].appendChild(clonedSkillDropdown);
-													    }
-														const originalProLevelDropdown = document.querySelector('#tradeSkillBody tr:first-child select.proType');
-																				    if (originalProLevelDropdown) {
-																				        const clonedProLevelDropdown = originalProLevelDropdown.cloneNode(true);
-																				        clonedProLevelDropdown.classList.add("proType");
-																				        clonedProLevelDropdown.name = "proType";
-																				        row.cells[4].appendChild(clonedProLevelDropdown);
-																				    }
+    // ===== TRADE DROPDOWN =====
+    const originalTrade = document.querySelector('#tradeSkillBody tr:first-child select.tradeType');
+    if (originalTrade) {
+        const tradeClone = originalTrade.cloneNode(true);
+        tradeClone.value = ""; // clear selected value
+        tradeClone.removeAttribute("id"); // avoid duplicate id
+        tradeClone.name = "tradeType";
 
-						    tbody.appendChild(row);
-						}
+        tradeClone.onchange = function () {
+            getSkillsBasedOnUnitAndTrade(this);
+        };
+
+        row.cells[2].appendChild(tradeClone);
+    }
+
+    // ===== SKILL DROPDOWN =====
+    const originalSkill = document.querySelector('#tradeSkillBody tr:first-child select.skillType');
+    if (originalSkill) {
+        const skillClone = originalSkill.cloneNode(true);
+        skillClone.value = ""; 
+        skillClone.removeAttribute("id");
+        skillClone.name = "skillType";
+
+        row.cells[3].appendChild(skillClone);
+    }
+
+    // ===== PROFICIENCY DROPDOWN =====
+    const originalProf = document.querySelector('#tradeSkillBody tr:first-child select.proType');
+    if (originalProf) {
+        const profClone = originalProf.cloneNode(true);
+        profClone.value = "";
+        profClone.removeAttribute("id");
+        profClone.name = "proType";
+
+        row.cells[4].appendChild(profClone);
+    }
+
+    tbody.appendChild(row);
+}
 
 						function deleteRowTradeSkill(buttonElement) {
 						    const row = buttonElement.closest('tr');
@@ -205,7 +221,19 @@ function searchGatePassIdBasedOnPE() {
 						}
 						
 						function saveTradeSkillPro() {
-
+                            
+							 if (!validateTradeSkill()) {
+                                  return;
+                              }
+                              if (!validateCertification()) {
+                                    return;
+                                 }
+                                 if (!validateTradeSkillDuplicates()) {
+									 return;
+									 }
+                                   if (!checkCertificationDuplicates()){
+	                                     return;
+                                          }                                
 						    const data = new FormData();
 
 						    const jsonData = {
@@ -296,38 +324,52 @@ function searchGatePassIdBasedOnPE() {
 						    xhr.send();
 						}
 						function addRowCertification() {
-												    const tbody = document.getElementById("certBody");
+    const tbody = document.getElementById("certBody");
 
-												    const row = document.createElement("tr");
-												    row.innerHTML = `
-												        <td><button type="button" class="btn btn-success addRowCert" style="color:blue;background-color:white;">+</button></td>
-												        <td><button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">−</button></td>
-												        <td></td>
-												        <td></td>
-												        <td><input type="date" class="form-control grantDate"></td>
-														<td><input type="date" class="form-control expiryDate"></td>
-												    `;
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td><button type="button" class="btn btn-success addRowCert" style="color:blue;background-color:white;">+</button></td>
+        <td><button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">−</button></td>
+        <td></td>
+        <td></td>
+        <td>
+            <input type="text"  class= "grantDate grantdatetimepicker">
+            <small class="text-danger error-grantDate" style="display:none;">Grant Date must be past</small>
+        </td>
+        <td>
+            <input type="text"  class="expiryDate expirydatetimepicker" >
+            <small class="text-danger error-expiryDate" style="display:none;">Expiry Date must be future</small>
+        </td>
+    `;
 
-												    const originalCertDropdown = document.querySelector('#certBody tr:first-child select.certType');
-												    if (originalCertDropdown) {
-												        const clonedCertDropdown = originalCertDropdown.cloneNode(true);
-												        clonedCertDropdown.classList.add("certType");
-												        clonedCertDropdown.name = "certType";
-														
+    // ===== CERTIFICATION DROPDOWN =====
+    const originalCert = document.querySelector('#certBody tr:first-child select.certType');
+    if (originalCert) {
+        const certClone = originalCert.cloneNode(true);
+        certClone.value = "";                 // clear selected value
+        certClone.selectedIndex = 0;          // force reset
+        certClone.removeAttribute("id");      // avoid duplicate id
+        certClone.name = "certType";
 
-												        row.cells[2].appendChild(clonedCertDropdown);
-												    }
-													
-																				const originalCertProLevelDropdown = document.querySelector('#certBody tr:first-child select.certProType');
-																										    if (originalCertProLevelDropdown) {
-																										        const clonedCertProLevelDropdown = originalCertProLevelDropdown.cloneNode(true);
-																										        clonedCertProLevelDropdown.classList.add("certProType");
-																										        clonedCertProLevelDropdown.name = "certProType";
-																										        row.cells[3].appendChild(clonedCertProLevelDropdown);
-																										    }
+        row.cells[2].appendChild(certClone);
+    }
 
-												    tbody.appendChild(row);
-												}
+    // ===== PROFICIENCY DROPDOWN =====
+    const originalPro = document.querySelector('#certBody tr:first-child select.certProType');
+    if (originalPro) {
+        const proClone = originalPro.cloneNode(true);
+        proClone.value = "";
+        proClone.selectedIndex = 0;
+        proClone.removeAttribute("id");
+        proClone.name = "certProType";
+
+        row.cells[3].appendChild(proClone);
+    }
+
+    tbody.appendChild(row);
+     //$(row).find(".grantdatetimepicker").datepicker(grantDateConfig);
+   // $(row).find(".expirydatetimepicker").datepicker(expiryDateConfig);
+}
 
 												function deleteRowCertification(buttonElement) {
 												    const row = buttonElement.closest('tr');
@@ -341,3 +383,252 @@ function searchGatePassIdBasedOnPE() {
 												        alert("At least one row must be present.");
 												    }
 												}
+       
+function validateTradeSkill() {
+
+    let hasValidRow = false;
+    let isValid = true;
+
+    // ❌ Remove all old error rows/messages first
+    $(".tradeErrorRow").remove();
+    $(".tradeError").remove();
+
+    $("#tradeSkillBody tr").each(function (index) {
+
+        const row = $(this);
+        const trade = row.find(".tradeType").val();
+        const skill = row.find(".skillType").val();
+        const prof  = row.find(".proType").val();
+
+        const rowNo = index + 1;
+
+        // If user entered something in row
+        if (trade || skill || prof) {
+
+            // If any field missing → show error
+            if (!trade || !skill || !prof) {
+                isValid = false;
+
+                // Show error BELOW this row (only once)
+                row.after(`
+                    <tr class="tradeErrorRow">
+                        <td colspan="5" style="color:red;">
+                            Row ${rowNo}: Trade, Skill & Proficiency required
+                        </td>
+                    </tr>
+                `);
+            }
+            else {
+                hasValidRow = true;
+            }
+        }
+    });
+
+    if (!isValid) {
+        return false;
+    }
+
+    if (!hasValidRow) {
+        alert("At least one Trade, Skill and Proficiency is required");
+        return false;
+    }
+
+    return true;
+}
+
+
+/*function validateCertification() {
+
+    let hasValidCertRow = false;
+    let today = new Date();
+    today.setHours(0, 0, 0, 0); // remove time
+
+    $("#certBody tr").each(function () {
+
+        const cert   = $(this).find(".certType").val();
+        const prof   = $(this).find(".certProType").val();
+        const grant  = $(this).find(".grantDate").val();
+        const expiry = $(this).find(".expiryDate").val();
+
+        if (cert && prof && grant && expiry) {
+
+            let grantDate  = new Date(grant);
+            let expiryDate = new Date(expiry);
+
+            // ❌ Grant date cannot be future
+            if (grantDate > today) {
+                alert("Grant Date cannot be future date");
+                hasValidCertRow = false;
+                return false; // break loop
+            }
+
+            // ❌ Expiry date must be future
+            if (expiryDate <= today) {
+                alert("Expiry Date must be future date");
+                hasValidCertRow = false;
+                return false;
+            }
+
+            // ❌ Expiry must be after Grant
+            if (expiryDate <= grantDate) {
+                alert("Expiry Date must be after Grant Date");
+                hasValidCertRow = false;
+                return false;
+            }
+
+            // ✅ Valid row found
+            hasValidCertRow = true;
+            return false; // break loop
+        }
+    });
+
+    if (!hasValidCertRow) {
+        alert("At least one Certification with Proficiency, Grant Date and Expiry Date is required");
+        return false;
+    }
+
+    return true;
+}
+
+*/
+function validateCertification() {
+
+    let hasValidRow = false;
+    let isValid = true;
+
+    // Remove old error rows/messages
+    $(".certErrorRow").remove();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    $("#certBody tr").each(function (index) {
+
+        const row = $(this);
+        const cert   = row.find(".certType").val();
+        const prof   = row.find(".certProType").val();
+        const grant  = row.find(".grantDate").val();
+        const expiry = row.find(".expiryDate").val();
+
+        const rowNo = index + 1;
+        let rowError = "";
+
+        // If user entered something in this row
+        if (cert || prof || grant || expiry) {
+
+            // Mandatory check
+            if (!cert || !prof || !grant || !expiry) {
+                rowError = "Certification, Proficiency, Grant Date & Expiry Date required";
+            }
+
+            // Grant Date Past Validation
+            if (grant) {
+                let grantDateObj = new Date(grant);
+                if (grantDateObj > today) {
+                    rowError = "Grant Date must be Past Date";
+                }
+            }
+
+            // Expiry Date Future Validation
+            if (expiry) {
+                let expiryDateObj = new Date(expiry);
+                if (expiryDateObj < today) {
+                    rowError = "Expiry Date must be Future Date";
+                }
+            }
+
+            // Show row error
+            if (rowError !== "") {
+                isValid = false;
+                row.after(`
+                    <tr class="certErrorRow">
+                        <td colspan="6" style="color:red;">
+                            Row ${rowNo}: ${rowError}
+                        </td>
+                    </tr>
+                `);
+            } else {
+                hasValidRow = true;
+            }
+        }
+    });
+
+    if (!isValid) return false;
+
+    if (!hasValidRow) {
+        alert("At least one Certification row is required");
+        return false;
+    }
+
+    return true;
+}
+function validateTradeSkillDuplicates() {
+
+    let isValid = true;
+    let map = {};
+    
+    // remove previous highlights
+    $("#tradeSkillBody tr").removeClass("dupRow");
+
+    $("#tradeSkillBody tr").each(function (index) {
+
+        const row = $(this);
+        row.removeClass("dupRow"); 
+        const trade = row.find(".tradeType").val();
+        const skill = row.find(".skillType").val();
+        const prof  = row.find(".proType").val();
+
+        if (trade && skill && prof) {
+
+            const key = trade + "_" + skill + "_" + prof;
+
+            if (map[key]) {
+                // duplicate found
+                row.addClass("dupRow");
+                map[key].addClass("dupRow");
+                isValid = false;
+            } else {
+                map[key] = row;
+            }
+        }
+    });
+
+    if (!isValid) {
+        alert("Duplicate Trade + Skill + Proficiency not allowed");
+    }
+
+    return isValid;
+}
+function checkCertificationDuplicates() {
+
+    let gatePassId = $("#gatePassId").val().trim();
+    let certMap = {};
+    let hasDuplicate = false;
+
+    $("#certBody tr").each(function () {
+
+        const row = $(this);
+        const cert = row.find(".certType").val();
+
+        row.removeClass("dupRow");
+
+        if (cert) {
+            let key = gatePassId + "_" + cert;
+
+            if (certMap[key]) {
+                row.addClass("dupRow");
+                certMap[key].addClass("dupRow");
+                hasDuplicate = true;
+            } else {
+                certMap[key] = row;
+            }
+        }
+    });
+
+    if (hasDuplicate) {
+        alert("Duplicate Certification for same GatePass is not allowed");
+    }
+
+    return !hasDuplicate; // ✅ true = OK to save, false = stop save
+}
+
