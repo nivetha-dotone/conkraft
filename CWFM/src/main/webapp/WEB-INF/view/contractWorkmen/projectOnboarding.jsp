@@ -1505,13 +1505,13 @@ label {
 					</tr><tr>	
                 		<td>
                 		 	<label for="aadharFile"><span class="required-field">*</span><spring:message code="label.uploadAadharCard"/></label>
-       					 	<input type="file" id="aadharFile" name="aadharFile" accept="application/pdf" onchange="displayFileName1('aadharFile', 'aadharFileName')">
+       					 	<input type="file" id="aadharFile" name="aadharFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('aadharFile', 'aadharFileName')">
        					 	  <span id="aadharFileName" style="margin-left: 10px;color:black;"></span> 
         					<div id="aadharError"></div> <!-- Error message for Aadhar file -->
                 		</td>
                 		<td>
                 		 	<label for="appointmentFile"><span class="required-field">*</span><spring:message code="label.uploadappointmentCard"/></label>
-       					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
+       					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
        					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;"></span> 
         					<div id="appointmentError"></div> <!-- Error message for Aadhar file -->
                 		</td>
@@ -1519,7 +1519,7 @@ label {
                 		<tr>
                 		<td>
                 			<label for="policeFile"><span class="required-field">*</span><spring:message code="label.uploadPoliceVerificationReport"/></label> 
-                			<input type="file"	id="policeFile" name="policeFile" accept="application/pdf" onchange="displayFileName1('policeFile', 'policeFileName')">
+                			<input type="file"	id="policeFile" name="policeFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('policeFile', 'policeFileName')">
                 			  <span id="policeFileName" style="margin-left: 10px;color:black;"></span> 
 							<div id="policeError"></div> <!-- Error message for Police file -->
 						</td>

@@ -1420,7 +1420,7 @@ function additionalDocUpload() {
             <select name="documentType" onchange="updateDocTypeDropdowns()" style="margin-right: 10px;color:black;">
                 ${optionsHtml}
             </select>
-            <input type="file" accept="application/pdf" style="margin-right: 10px;" onchange="displayFileName(this, '${fileNameId}')">
+            <input type="file" accept="application/pdf,image/jpeg,image/png" style="margin-right: 10px;" onchange="displayFileName(this, '${fileNameId}')">
             <span id="${fileNameId}" style="margin-right: 10px;color:black;"></span>
             <button type="button" onclick="removeDocument(${divIndex})" style="color:black;">Remove</button>
         </div>

@@ -936,19 +936,19 @@ textarea {
 			<tr>
 			       <td>
                 			<label for="exitFile"><spring:message code="label.uploadExitLetterReport"/></label> 
-                			<input type="file"	id="exitFile" name="exitFile" accept="application/pdf" onchange="displayFileName1('exitFile', 'exitFileName')">
+                			<input type="file"	id="exitFile" name="exitFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('exitFile', 'exitFileName')">
                 			  <span id="exitFileName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>	
 			           <td>
                 			<label for="FNFFile"><spring:message code="label.uploadFNFReport"/></label> 
-                			<input type="file"	id="FNFFile" name="FNFFile" accept="application/pdf" onchange="displayFileName1('FNFFile', 'FNFFileName')">
+                			<input type="file"	id="FNFFile" name="FNFFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('FNFFile', 'FNFFileName')">
                 			  <span id="FNFFileName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>
 						<td>
                 			<label for="feedbackFormFile"><spring:message code="label.uploadFeedbackFormReport"/></label> 
-                			<input type="file"	id="feedbackFormFile" name="feedbackFormFile" accept="application/pdf" onchange="displayFileName1('feedbackFormFile', 'feedbackFormFileName')">
+                			<input type="file"	id="feedbackFormFile" name="feedbackFormFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('feedbackFormFile', 'feedbackFormFileName')">
                 			  <span id="feedbackFormFileName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>
@@ -956,13 +956,13 @@ textarea {
 			<tr>
 			           <td>
                 			<label for="rateManagerFile"><spring:message code="label.uploadRateManagerReport"/></label> 
-                			<input type="file"	id="rateManagerFile" name="rateManagerFile" accept="application/pdf" onchange="displayFileName1('rateManagerFile', 'rateManagerFileName')">
+                			<input type="file"	id="rateManagerFile" name="rateManagerFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('rateManagerFile', 'rateManagerFileName')">
                 			  <span id="rateManagerFileName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>
 						<td>
                 			<label for="LOCFile"><spring:message code="label.uploadLOCReport"/></label> 
-                			<input type="file"	id="LOCFile" name="LOCFile" accept="application/pdf" onchange="displayFileName1('LOCFile', 'LOCFileName')">
+                			<input type="file"	id="LOCFile" name="LOCFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('LOCFile', 'LOCFileName')">
                 			  <span id="LOCFileName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>

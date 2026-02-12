@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -393,13 +394,15 @@ public class WorkmenController {
 
             // Save Aadhar PDF
             if (!aadharFile.isEmpty()) {
-                String aadharFilePath = directoryPath + "aadhar.pdf";
+            	  String ext = getExtension(aadharFile);
+                String aadharFilePath = directoryPath + "aadhar"+ext;
                 saveFile(aadharFile, aadharFilePath);
             }
 
             // Save Police Verification PDF
             if (!policeFile.isEmpty()) {
-                String policeFilePath = directoryPath + "police.pdf";
+            	String ext = getExtension(policeFile);
+                String policeFilePath = directoryPath + "police"+ext;
                 saveFile(policeFile, policeFilePath);
             }
             
@@ -410,7 +413,8 @@ public class WorkmenController {
             }
             //Save appointment PDF
             if (!appointmentFile.isEmpty()) {
-                String appointmentFilePath = directoryPath + "appointment.pdf";
+            	String ext = getExtension(appointmentFile);
+                String appointmentFilePath = directoryPath + "appointment"+ext;
                 saveFile(appointmentFile, appointmentFilePath);
             }
 
@@ -430,6 +434,14 @@ public class WorkmenController {
         Files.write(filePath, bytes);
     }
     
+    private String getExtension(MultipartFile file) {
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName != null && originalFileName.contains(".")) {
+            return originalFileName.substring(originalFileName.lastIndexOf("."));
+        }
+        return "";
+    }
+
     @PostMapping("/saveGatePass")
     @ResponseBody
     public ResponseEntity<String> saveGatePass(
@@ -697,42 +709,50 @@ public class WorkmenController {
     @GetMapping("/viewFile/{encodedData}")
     public void viewFile(@PathVariable("encodedData") String encodedData, HttpServletResponse response) {
         try {
-            // 🔐 Decode Base64 encoded JSON
-            String decodedJson = new String(Base64.getUrlDecoder().decode(encodedData), StandardCharsets.UTF_8);
+            String decodedJson = new String(Base64.getDecoder().decode(encodedData), StandardCharsets.UTF_8);
 
-            // Parse decoded JSON to extract parameters
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> data = mapper.readValue(decodedJson, new TypeReference<>() {});
             String transactionId = data.get("transactionId");
             String userId = data.get("userId");
-            String docType = data.get("docType");
+            String docType = data.get("docType"); // can be docType OR filename
 
-            // Determine file path
-            String filePath;
-            if (docType.equals("aadhar") || docType.equals("police") || docType.equals("bank") || docType.equals("appointment")||
-                docType.equals("training") || docType.equals("other") || docType.equals("id2") ||
-                docType.equals("medical") || docType.equals("education") || docType.equals("form11")
-                || docType.equals("exitletter")|| docType.equals("fnf")|| docType.equals("feedback")
-                || docType.equals("ratemanager")|| docType.equals("loc")) {
-                filePath = ROOT_DIRECTORY + userId + "/" + transactionId + "/" + docType + ".pdf";
-            } else {
-                filePath = ROOT_DIRECTORY + userId + "/" + transactionId + "/" + docType;
-            }
+            String folderPath = ROOT_DIRECTORY + userId + "/" + transactionId + "/";
+            File folder = new File(folderPath);
 
-            File file = new File(filePath);
-            if (!file.exists()) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found");
+            if (!folder.exists()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Folder not found");
                 return;
             }
 
-            // Detect file type
+            File file = null;
+
+            // ✅ CASE 1: If docType contains extension → it's profile pic filename
+            if (docType.contains(".")) {
+                file = new File(folderPath + docType);
+            }
+            else {
+                // ✅ CASE 2: Normal documents → find by docType.*
+                for (File f : folder.listFiles()) {
+                    if (f.getName().toLowerCase().startsWith(docType.toLowerCase() + ".")) {
+                        file = f;
+                        break;
+                    }
+                }
+            }
+
+            if (file == null || !file.exists()) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found: " + docType);
+                return;
+            }
+
+            // Detect content type
             String contentType = Files.probeContentType(file.toPath());
             if (contentType == null) contentType = "application/octet-stream";
 
             response.setContentType(contentType);
             response.setHeader("Content-Disposition", "inline; filename=\"" + file.getName() + "\"");
 
-            // Stream file content
             Files.copy(file.toPath(), response.getOutputStream());
             response.getOutputStream().flush();
 
@@ -764,10 +784,18 @@ public class WorkmenController {
     		for (int i = 0; i < additionalFiles.size(); i++) {
     			MultipartFile file = additionalFiles.get(i);
     			String docType = documentTypes.get(i);
+    			 docType = docType.toLowerCase();
+    			 String originalFileName = file.getOriginalFilename();
 
-    			// Create a filename based on the document type
-    			String fileName = docType + ".pdf"; // or any other format you prefer
-    			String filePath = directoryPath + fileName;
+                 // ✅ Extract extension (.pdf, .jpg, .png)
+                 String extension = "";
+                 if (originalFileName != null && originalFileName.contains(".")) {
+                     extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                 }
+
+                 // ✅ Create new file name
+                 String fileName = docType + extension;
+                 String filePath = directoryPath + fileName;
 
     			// Save the file
     			if (!file.isEmpty()) {
@@ -3098,31 +3126,36 @@ if (status.contains("Unique")) {
 
             // Save Exit Letter
             if (exitFile != null && !exitFile.isEmpty()) {
-                String exitFilePath = directoryPath + "exitletter.pdf";
+            	String ext = getExtension(exitFile);
+                String exitFilePath = directoryPath + "exitletter"+ext;
                 saveFile(exitFile, exitFilePath);
             }
 
             // Save FNF
             if (fnfFile != null && !fnfFile.isEmpty()) {
-                String fnfFilePath = directoryPath + "fnf.pdf";
+            	String ext = getExtension(fnfFile);
+                String fnfFilePath = directoryPath + "fnf"+ext;
                 saveFile(fnfFile, fnfFilePath);
             }
 
             // Save Feedback
             if (feedbackFile != null && !feedbackFile.isEmpty()) {
-                String feedbackFilePath = directoryPath + "feedback.pdf";
+            	String ext = getExtension(feedbackFile);
+                String feedbackFilePath = directoryPath + "feedback"+ext;
                 saveFile(feedbackFile, feedbackFilePath);
             }
 
             // Save Rate Manager
             if (rateManagerFile != null && !rateManagerFile.isEmpty()) {
-                String rateManagerFilePath = directoryPath + "ratemanager.pdf";
+            	String ext = getExtension(rateManagerFile);
+                String rateManagerFilePath = directoryPath + "ratemanager"+ext;
                 saveFile(rateManagerFile, rateManagerFilePath);
             }
 
             // Save LOC
             if (locFile != null && !locFile.isEmpty()) {
-                String locFilePath = directoryPath + "loc.pdf";
+            	String ext = getExtension(locFile);
+                String locFilePath = directoryPath + "loc"+ext;
                 saveFile(locFile, locFilePath);
             }
 
