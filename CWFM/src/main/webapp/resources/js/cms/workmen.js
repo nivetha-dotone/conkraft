@@ -980,7 +980,7 @@ function validateFiles(aadharFile, policeFile, profilePc,appointmentFile) {
         $("#appointmentError").text("Appointment Letter is required").addClass("error-bold");
         valid = false;
     } else if (appointmentFile.size > 5 * 1024 * 1024) {
-        $("#appointmentError").text("Police file must be less than 5MB").addClass("error-bold");
+        $("#appointmentError").text("Appointment file must be less than 5MB").addClass("error-bold");
         valid = false;
     } else {
         $("#appointmentError").text("");
@@ -1155,10 +1155,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 	var appointmentFile = $("#appointmentFile").prop("files")[0];
 
     // Validate the files (optional)
-    if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+    /*if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
         documentValid = false; // Stop the upload if validation fails
         hideLoader();
-    }
+    }*/
 
     if (!validateBasicData()) {
         basicValid = false;
@@ -1167,7 +1167,13 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 		if (!validateProjectEmploymentInformation()) {
 		        employmentValid = false;
 		         hideLoader();
+		         return;
 		    }
+		    if (!validateProjectFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+             documentValid = false; // Stop the upload if validation fails
+        hideLoader();
+        return;
+    }
 	}else{
     if (!validateEmploymentInformation()) {
         employmentValid = false;
@@ -1177,6 +1183,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 	        documentValid = false;
 	         hideLoader();
 	    }
+	    if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+        documentValid = false; // Stop the upload if validation fails
+        hideLoader();
+    }
 	}
 	if(type=== "regular"){
         if (!validateOtherInformation()) {
@@ -1188,6 +1198,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
             wagesValid = false;
              hideLoader();
         }
+        
     }else{
 		otherValid = true;
 		wagesValid = true;
@@ -1292,7 +1303,12 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
         if (aadharFile) data.append("aadharFile", aadharFile);
         if (policeFile) data.append("policeFile", policeFile);
 		if(profilePic) data.append("profilePic",profilePic);
-		if(appointmentFile) data.append("appointmentFile",appointmentFile);
+       if (appointmentFile) {
+    data.append("appointmentFile", appointmentFile);
+} else {
+    data.append("appointmentFile", new Blob([], { type: "application/octet-stream" }), "empty.txt");
+}
+
 
     	const additionalFields = document.querySelectorAll('.document-field');
         additionalFields.forEach((field) => {
@@ -3075,18 +3091,25 @@ function renewGatePass(userId) {
 
     if (!validateBasicData()) {
         basicValid = false;
+        hideLoader();
     }
 
     if (!validateEmploymentInformation()) {
         employmentValid = false;
+        hideLoader();
     }
-
+    if (!validatePfForm11Requirement()) {
+	        documentValid = false;
+	         hideLoader();
+	    }
     if (!validateOtherInformation()) {
         otherValid = false;
+        hideLoader();
     }
 
     if (!validateWages()) {
         wagesValid = false;
+        hideLoader();
     }
 
     console.log("basicValid: " + basicValid);
@@ -3210,9 +3233,9 @@ for (const [key, value] of data.entries()) {
         };
 
         xhr.onerror = function () {
-			hideLoader();
             console.error("Request failed");
 			sessionStorage.setItem("errorMessage", "Failed to raise Gatepass renew request!");
+			hideLoader();
         };
 
         // Send the FormData object
@@ -4533,4 +4556,75 @@ function bulkApprove(status) {
         console.error(err);
     });
 }
+function validateProjectFiles(aadharFile, policeFile, profilePc,appointmentFile) {
+    let valid = true;
 
+    // Aadhar File - Mandatory & Size check
+    if (!aadharFile) {
+        $("#aadharError").text("Aadhar file is required").addClass("error-bold");
+        valid = false;
+    } else if (aadharFile.size > 5 * 1024 * 1024) {
+        $("#aadharError").text("Aadhar file must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#aadharError").text("");
+    }
+
+    // Police Verification File - Mandatory & Size check
+    if (!policeFile) {
+        $("#policeError").text("Police verification file is required").addClass("error-bold");
+        valid = false;
+    } else if (policeFile.size > 5 * 1024 * 1024) {
+        $("#policeError").text("Police file must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#policeError").text("");
+    }
+// ✅ Appointment File - OPTIONAL (only size validation)
+   if (appointmentFile) {
+        if (appointmentFile.size > 5 * 1024 * 1024) {
+            $("#appointmentError").text("Appointment must be less than 5MB").addClass("error-bold");
+            valid = false;
+        } else {
+            $("#appointmentError").text("");
+        }
+    } else {
+        $("#appointmentError").text(""); // clear error if not uploaded
+    }
+    
+// Police Verification Date - Mandatory  check
+const policeVerificationDate = $("#policeVerificationDate").val().trim();
+    if (policeVerificationDate === "") {
+        $("#error-policeVerificationDate").show();
+        valid = false;
+    }else {
+        $("#error-policeVerificationDate").hide("");
+    }
+    
+    // Profile Photo - Mandatory & Size check
+    if (!profilePc) {
+        $("#profilePcError").text("Profile photo is required").addClass("error-bold");
+        valid = false;
+    } else if (profilePc.size > 5 * 1024 * 1024) {
+        $("#profilePcError").text("Photo/Image must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#profilePcError").text("");
+    }
+
+	const comments = $("#comments").val().trim();
+		    if (comments === "") {
+		        $("#error-comments").show();
+		        valid = false;
+		    }else{
+				 $("#error-comments").hide();
+			}
+			// Accept Checkbox validation
+			    if (!$("#acceptCheck").is(":checked")) {
+			        $("#acceptError").show();
+			        valid = false;
+			    } else {
+			        $("#acceptError").hide();
+			    }		
+    return valid;
+}

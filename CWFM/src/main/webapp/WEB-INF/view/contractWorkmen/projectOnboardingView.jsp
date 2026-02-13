@@ -765,12 +765,12 @@ textarea {
                    <a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','aadhar')">Download Aadhar</a>
                 </td>
             		</tr>
-            		<tr>
+            		<%-- <tr>
                 		<td style="color:black"><spring:message code="label.appointmentDocument"/></td>
                 <td>
                    <a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','appointment')">Download Appointment Document</a>
                 </td>
-            		</tr>
+            		</tr> --%>
             		<tr>
                 		<td style="color:black"><spring:message code="label.policeVerificationDocument"/></td>
                 <td>
@@ -782,6 +782,14 @@ textarea {
             value="${GatePassObj.policeVerificationDate }" readonly>
 			</td>
             		</tr>
+            		<c:if test="${not empty GatePassObj.appointmentDocName}">
+            		<tr>
+                		<td style="color:black"><spring:message code="label.appointmentDocument"/></td>
+                		<td>
+                    	<a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','appointment')">Download Appointment Document</a>
+                		</td>
+            		</tr>
+      				</c:if>
             		<c:if test="${not empty GatePassObj.bankDocName}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.bankDocument"/></td>

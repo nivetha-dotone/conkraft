@@ -971,9 +971,17 @@ textarea {
                      
 		  
         <tr>
-				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.reasonOfOffboarding"/></label></th>
-                 <td><input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.reasoning }" readonly>  </td>
-    										
+				<%-- <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.reasonOfOffboarding"/></label></th>
+                 <td><input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.reasoning }" readonly>  </td> --%>
+    				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.reasonOfOffboarding"/></label></th>
+                <c:if test="${ GatePassObj.gatePassAction eq '9'}"> <td>
+                 <input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.reasoning }" readonly> 
+                 </td>
+                 </c:if>
+                 
+                 <c:if test="${ GatePassObj.gatePassAction ne '9'}"><td>
+                 <input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="" readonly> </td>
+                 </c:if>						
 			</tr>
 		<c:if test="${not empty GatePassObj.exitLetterDocName}">
             		<tr>
