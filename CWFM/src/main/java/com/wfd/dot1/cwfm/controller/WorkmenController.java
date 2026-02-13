@@ -82,7 +82,7 @@ import jakarta.servlet.http.HttpSession;
 public class WorkmenController {
 
 	private static final Logger log = LoggerFactory.getLogger(WorkmenController.class.getName());
-	
+	//commit trial
 	@Autowired
 	WorkmenService workmenService;
 	
