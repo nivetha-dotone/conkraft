@@ -220,5 +220,11 @@ public interface WorkmenDao {
 	public boolean  updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile exitFile,
 			MultipartFile fnfFile, MultipartFile feedbackFile, MultipartFile rateManagerFile, MultipartFile locFile);
 
+	public boolean updateCmsPersonCustDataEffectiveTillonDeblackUnblock(long personId, String dot);
+
+
+
+	boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId, String dot);
+
 
 }

@@ -597,7 +597,13 @@ public class GatePassMain {
 		this.gatePassType = gatePassType;
 	}
 	
-	
+private String woId;
+public String getWoId() {
+	return woId;
+}
+public void setWoId(String woId) {
+	this.woId = woId;
+}	
 	
 	}
 	

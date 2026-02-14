@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -1911,6 +1912,7 @@ public GatePassMain getIndividualContractWorkmenDetailsByGatePassId(String gateP
 		dto.setFeedbackFormDocName(rs.getString("FeedbackFormDocName"));
 		dto.setRateManagerDocName(rs.getString("RateManagerDocName"));
 		dto.setLOCDocName(rs.getString("LOCDocName"));
+		dto.setWoId(rs.getString("woId"));
 	}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+gatePassId);
 	return dto;
@@ -2801,6 +2803,9 @@ public String getMaxRefID() {
 public String updateEffectiveTill() {
 	return QueryFileWatcher.getQuery("UPDATE_EFFECTIVE_TILL_CUSTOM_DATA");
 }
+public String updateEffectiveTillDeblackUnblock() {
+	return QueryFileWatcher.getQuery("UPDATE_EFFECTIVE_TILL_ON_DEBLOCK_UNBLOCK_CUSTOM_DATA");
+}
 @Override
 public boolean updateCmsPersonCustDataEffectiveTill(long personId) {
 
@@ -3629,6 +3634,90 @@ public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto,Multipar
         return false;
     }
 }
+@Override
+public boolean updateCmsPersonCustDataEffectiveTillonDeblackUnblock(long personId,String dot){
+
+    // 1. Get CSTMDEFID for Status
+	String defSql = getCustomDefID();
+    //String defSql = "SELECT CSTMDEFID FROM CMSPERSONCUSTOMDATADEFINITION "
+    //              + "WHERE ISACTIVE = 1 AND CSTMDEFNAME = 'Status'";
+
+    Integer defId = jdbcTemplate.queryForObject(defSql, Integer.class);
+
+    if (defId == null) {
+        return false; // No definition → nothing to update
+    }
+
+    // 2. Get latest REFID
+    String refSql = getMaxRefID();
+   // String refSql = "SELECT MAX(REFID) FROM CMSPERSONCUSTOMDATA "
+   //               + "WHERE CSTMDEFID = ? AND EMPLOYEEID = ?";
+
+    Long refId = jdbcTemplate.queryForObject(refSql, Long.class, defId, personId);
+
+    if (refId == null || refId == 0) {
+        return false; // No record → nothing to update
+    }
+
+    // 3. Update EFFECTIVETILL
+    String updateSql = updateEffectiveTillDeblackUnblock();
+
+        return jdbcTemplate.update(updateSql, dot, dot, refId) > 0;
+}
+@Override
+public boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId,String dot) {
+
+    // Convert dot to LocalDate
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    LocalDate dotDate = LocalDate.parse(dot, formatter);
+    LocalDate today = LocalDate.now();
+
+    // Decide dates
+    LocalDate activeValidTo;
+    LocalDate inactiveValidFrom;
+
+    if (dotDate.isBefore(today)) {
+        activeValidTo = today;
+        inactiveValidFrom = today.plusDays(1);
+    } else {
+        activeValidTo = dotDate;
+        inactiveValidFrom = dotDate.plusDays(1);
+    }
+
+    boolean updated = false;
+
+    // ================= UPDATE ACTIVE RECORD =================
+    if (activeId != null) {
+
+        String sqlActive =
+            "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ? WHERE PERSONSTATUSMMID = ?";
+
+        int count1 = jdbcTemplate.update(
+                sqlActive,
+                java.sql.Date.valueOf(activeValidTo),
+                activeId
+        );
+        updated = updated || count1 > 0;
+    }
+
+    // ================= UPDATE INACTIVE RECORD =================
+    if (inactiveId != null) {
+
+        String sqlInactive =
+            "UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+
+        int count2 = jdbcTemplate.update(
+                sqlInactive,
+                java.sql.Date.valueOf(inactiveValidFrom),
+                inactiveId
+        );
+        updated = updated || count2 > 0;
+    }
+
+    return updated;
+}
+
+
 
 
 }

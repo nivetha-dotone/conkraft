@@ -365,7 +365,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 	                dto.getStatus(),
 	                GatePassType.CREATE.getStatus()
 	        );
-
+             String dot=this.getDOT(gpm);
+             boolean actionDone = this.gatePassActionPersonInsertOnDeblackUnblock(gpm, dto.getGatePassType(), dot);
+             if (!actionDone) {
+ 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
+ 	        }
 	        if (!updated) {
 	            throw new RuntimeException("Failed to update GatePass on UNBLOCK/DEBLACKLIST.");
 	        }
@@ -542,6 +546,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 				result = workmenDao.gatePassAction(dto);
 				if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus()) || dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())) {
 					 workmenDao.updateGatePassMainStatusAndType(dto.getGatePassId(),dto.getGatePassStatus(),GatePassType.CREATE.getStatus());
+					 gatePassMain.setWorkorder(gatePassMain.getWoId());
+					 String dot=this.getDOT(gatePassMain);
+		             boolean actionDone = this.gatePassActionPersonInsertOnDeblackUnblock(gatePassMain, dto.getGatePassType(), dot);
+		             if (!actionDone) {
+		 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
+		 	        }
 				//rollback status and type to create
 				}else {
 					String gatePassId=dto.getGatePassId();
@@ -671,6 +681,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    String dot = null;
 	    int dotTypeId = gatePassMain.getDotType();
 
+	    if(dotTypeId == 0) {
+	    	
+	    	 dotTypeId = workmenDao.getDOTTYpe(gatePassMain.getUnitId());
+	    }
 	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	    // ---------------- Retirement handling ----------------
@@ -1346,6 +1360,38 @@ public class WorkmenServiceImpl implements WorkmenService{
 		return workmenDao.updateGatePassMainWithReasoningTab(dto,exitFile,fnfFile,feedbackFile,rateManagerFile,locFile);
 		
 	}
-	
+	@Transactional(rollbackFor = Exception.class)
+	public boolean gatePassActionPersonInsertOnDeblackUnblock(GatePassMain gpm, String gatePassType,String dot) {
+
+	    long personId = getPersonIdFromCmsPerson(gpm.getGatePassId());
+	    if (personId <= 0) return false;
+
+	    // Step 1: Close existing CUSTDATA rows
+	    if (!logAndCheck("CUSTDATA_UPDATE",
+	            workmenDao.updateCmsPersonCustDataEffectiveTillonDeblackUnblock(personId,dot)))
+	        return false;
+
+	    // Step 2: Insert new CUSTDATA row
+	    if (!logAndCheck("CUSTDATA_INSERT",
+	            insertCustData(gpm.getCreatedBy(), personId, gatePassType,gpm.getReasoning())))
+	        return false;
+
+	    // Step 3: Update StatusMM only if active
+	    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+
+	        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+
+	        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+
+	            boolean statusUpdated =
+	                    workmenDao.updatePersonStatusOnDeblockUnblock(ids.getActiveId(), ids.getInactiveId(),dot);
+
+	            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
+	                return false;
+	        }
+	    }
+
+	    return true;
+	}
 	}
 
