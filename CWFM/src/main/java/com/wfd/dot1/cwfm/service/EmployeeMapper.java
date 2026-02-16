@@ -1,16 +1,8 @@
 
 package com.wfd.dot1.cwfm.service;
 
-import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.FaceLogFetchDto;
-import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
-import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
-import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
-import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
-import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.*;
+import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -252,17 +244,18 @@ public class EmployeeMapper {
     }
 
 
-//    public String updateEmpstatusTrorAc(String gmId) {
-//        try {
-//            PersonSkillAssignmentDTO personSkillAssignmentDTO = this.gatePassToOnBoardService.updateEmpStatusTr(gmId);
-//
-//
-//            String s = this.wfdEmployeeService.AssignSkillsProInWFD(personSkillAssignmentDTO, gmId);
-//            return s;
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    public String updateEmpstatusTrorAc(String gmId, EmployeeStatusType empStatus) {
+
+        ActiveEmpStatusDto dto =
+                gatePassToOnBoardService.updateEmpStatusTr(gmId, empStatus);
+
+        if (dto == null) {
+            return "Employment status not updated";
+        }
+
+        return wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
+    }
+
 
     public String punchMatched(FaceLogFetchDto faceLogFetchDto) {
         try {

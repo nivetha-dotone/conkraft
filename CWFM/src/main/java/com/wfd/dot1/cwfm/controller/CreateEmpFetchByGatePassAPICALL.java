@@ -4,6 +4,7 @@ package com.wfd.dot1.cwfm.controller;
 
 import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
 import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
+import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,19 +148,29 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
-//    @PostMapping({"/updatedEmpStatus/{gatepassId}"})
-//    public ResponseEntity<?> updateEmpStatusTerOrAct(@PathVariable String gatepassId) {
-//        try {
-//            String individualOnBoardDetailsByTrnId = this.employeeMapper.updateEmpstatusTrorAc(gatepassId);
-//            if (individualOnBoardDetailsByTrnId != null && individualOnBoardDetailsByTrnId.equals("already in the WFD")) {
-//                return new ResponseEntity("already in the WFD", HttpStatus.BAD_REQUEST);
-//            } else {
-//                return individualOnBoardDetailsByTrnId != null ? new ResponseEntity(individualOnBoardDetailsByTrnId, HttpStatus.OK) : new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    @PostMapping("/updatedEmpStatus/{gatepassId}/{empStatus}")
+    public ResponseEntity<String> updateEmpStatusTerOrAct(
+            @PathVariable String gatepassId,
+            @PathVariable EmployeeStatusType empStatus) {
+
+        try {
+            String response = employeeMapper.updateEmpstatusTrorAc(gatepassId, empStatus);
+
+            if ("already in the WFD".equalsIgnoreCase(response)) {
+                return ResponseEntity.badRequest()
+                        .body("Not updated Employment status in WFD");
+            }
+
+            return response != null
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.internalServerError().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Error: " + e.getMessage());
+        }
+    }
+
 
 
 

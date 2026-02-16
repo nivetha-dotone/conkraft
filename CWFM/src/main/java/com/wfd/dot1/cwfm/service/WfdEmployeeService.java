@@ -3,13 +3,7 @@ package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
-import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
-import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +41,9 @@ public class WfdEmployeeService {
 
     public String getCreateCertificateUrl() {
         return QueryFileWatcher.getQuery("getCreateCertifcUrl");
+    }
+    public String getupdateEmpStatusTRACURL() {
+        return QueryFileWatcher.getQuery("getupdateempstatusUrl");
     }
 
     public String getfindCertifUrl() {
@@ -205,6 +202,41 @@ public class WfdEmployeeService {
         }
     }
 
+    public String updateEmpStatusTarminate(ActiveEmpStatusDto dto,
+                                           String gpId) {
+
+        try {
+            String jsonBody = objectMapper.writeValueAsString(dto);
+            String accessToken = wfdAuthService.getAccessToken();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            Integer personKey = getPersonKey(accessToken, gpId);
+
+            String url = getHostName() +
+                    getupdateEmpStatusTRACURL() +
+                    personKey;
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            ResponseEntity<String> response =
+                    restTemplate.exchange(url,
+                            HttpMethod.PUT,
+                            entity,
+                            String.class);
+
+            return response.getBody();
+
+        } catch (HttpStatusCodeException e) {
+            return e.getResponseBodyAsString();
+
+        } catch (Exception e) {
+            return "Error while updating employment status: " + e.getMessage();
+        }
+    }
+
     public String getHostName() {
         return QueryFileWatcher.getQuery("HostName");
     }
@@ -249,6 +281,7 @@ public class WfdEmployeeService {
             throw new RuntimeException("Error updating punch in WFD API", e);
         }
     }
+
 
     public String createEmployee(EmployeeRequestDTO dto) {
         try {
@@ -329,4 +362,5 @@ public class WfdEmployeeService {
             return "Error assigning skill: " + e.getMessage();
         }
     }
-}
+
+    }
