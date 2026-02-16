@@ -3716,8 +3716,113 @@ public boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId
 
     return updated;
 }
+public String updateRenewEffectiveTill() {
+    return QueryFileWatcher.getQuery("UPDATE_RENEW_EFFECTIVETILL");
+}
 
+@Override
+public boolean updateCmsPersonCustDataRenewEffectiveTill(long personId,String dot) {
 
+    // 1. Get CSTMDEFID for Status
+	String defSql = getCustomDefID();
+    //String defSql = "SELECT CSTMDEFID FROM CMSPERSONCUSTOMDATADEFINITION "
+    //              + "WHERE ISACTIVE = 1 AND CSTMDEFNAME = 'Status'";
+
+    Integer defId = jdbcTemplate.queryForObject(defSql, Integer.class);
+
+    if (defId == null) {
+        return false; // No definition → nothing to update
+    }
+
+    // 2. Get latest REFID
+    String refSql = getMaxRefID();
+   // String refSql = "SELECT MAX(REFID) FROM CMSPERSONCUSTOMDATA "
+   //               + "WHERE CSTMDEFID = ? AND EMPLOYEEID = ?";
+
+    Long refId = jdbcTemplate.queryForObject(refSql, Long.class, defId, personId);
+
+    if (refId == null || refId == 0) {
+        return false; // No record → nothing to update
+    }
+
+    // 3. Update EFFECTIVETILL
+    String updateSql = updateRenewEffectiveTill();
+    //String updateSql = "UPDATE CMSPERSONCUSTOMDATA SET EFFECTIVETILL = CONVERT(date, ?) WHERE REFID = ?";
+
+    return jdbcTemplate.update(updateSql,dot, refId) > 0;
+}
+@Override
+public boolean insertIntoCustDataRenew(String updatedBy,long personId,String gatePassStatus) {
+	String defSqlGatePass  = getCustomDefIDforGPtype();
+
+	Integer gatePassDefId  = jdbcTemplate.queryForObject(defSqlGatePass, Integer.class);
+	
+	if (gatePassDefId == null ) {
+        log.error("Custom definition IDs not found");
+        return false;
+    }
+	
+	boolean result = false;
+	String sql = insertIntoCustData();
+
+	 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,updatedBy);
+   try {
+   if (count1 > 0 ) {
+   	result=true;
+   }else {
+       log.warn("Failed to create GatePass action for GatePassId: " );
+   }
+   }catch (Exception e) {
+       log.error("Error creating GatePass action for GatePassId: " , e);
+       return false;
+   }
+   return result;
+}
+public String updateValidtodot() {
+    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_TO_RENEW");
+}
+
+public String updateValidfromdotnextday() {
+    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_FROM_RENEW");
+}
+@Override
+public boolean updatePersonStatusValidityRenew(Long activeId, Long inactiveId, String dot) {
+
+    boolean updated = false;
+
+    // Convert dot to LocalDate
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    LocalDate dotDate = LocalDate.parse(dot, formatter);
+    LocalDate nextDay = dotDate.plusDays(1);
+
+    // ================= UPDATE ACTIVE VALIDTO = dot =================
+    if (activeId != null) {
+        String sqlActive = updateValidtodot(); 
+        // Must be: UPDATE CMSPERSONSTATUSMM SET VALIDTO = ? WHERE PERSONSTATUSMMID = ?
+
+        int count1 = jdbcTemplate.update(
+                sqlActive,
+                java.sql.Date.valueOf(dotDate),
+                activeId
+        );
+        updated = updated || count1 > 0;
+    }
+
+    // ================= UPDATE INACTIVE VALIDFROM = dot + 1 =================
+    if (inactiveId != null) {
+        String sqlInactive = updateValidfromdotnextday();
+        // Must be: UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?
+
+        int count2 = jdbcTemplate.update(
+                sqlInactive,
+                java.sql.Date.valueOf(nextDay),
+                inactiveId
+        );
+        updated = updated || count2 > 0;
+    }
+
+    return updated;
+}
 
 
 }

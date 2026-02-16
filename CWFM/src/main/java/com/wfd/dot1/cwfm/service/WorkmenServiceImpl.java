@@ -430,6 +430,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 	        return result;
 	    } if (dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
 	    	try {
+	    		 String dot=this.getDOT(gpm);
+	    		boolean actionDone = this.gatePassActionPersonInsertRenew(gpm, dto.getGatePassType(), dot);
+	             if (!actionDone) {
+	 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
+	 	        }
 	        	String wfdIntegration = this.getWFDIntegration();
 	        	if("yes".equalsIgnoreCase(wfdIntegration)) {
 	        		api.updateOnBoardingDetails(dto.getTransactionId());
@@ -815,6 +820,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				dto.setComments(gatePassMain.getComments());
 				dto.setUpdatedBy(gatePassMain.getUserId());
 				workmenDao.saveGatePassStatusLog(dto);
+				boolean actionDone = this.gatePassActionPersonInsertRenew(gatePassMain, dto.getGatePassType(), dot);
+	             if (!actionDone) {
+	 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
+	 	        }
 				if (dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
 					try {
 			        	String wfdIntegration = this.getWFDIntegration();
@@ -1392,6 +1401,50 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    }
 
 	    return true;
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public boolean gatePassActionPersonInsertRenew(GatePassMain gpm, String gatePassType,String dot) {
+
+	    long personId = getPersonIdFromCmsPerson(gpm.getGatePassId());
+	    if (personId <= 0) return false;
+
+	    // Step 1: Close existing CUSTDATA rows
+	    if (!logAndCheck("CUSTDATA_UPDATE",
+	            workmenDao.updateCmsPersonCustDataRenewEffectiveTill(personId,dot)))
+	        return false;
+
+	    // Step 2: Insert new CUSTDATA row
+	    if (!logAndCheck("CUSTDATA_INSERT",
+	            insertCustDataRenew(gpm.getCreatedBy(), personId, gatePassType)))
+	        return false;
+
+	    // Step 3: Update StatusMM only if active
+	    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+
+	        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+
+	        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+
+	            boolean statusUpdated =
+	                    workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
+
+	            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
+	                return false;
+	        }
+	    }
+
+	    return true;
+	}
+	private boolean insertCustDataRenew(String createdBy, long personId, String gatePassType) {
+
+	    GatePassType type = GatePassType.fromStatus(gatePassType);
+	    if (type == null) {
+	        log.info("Unknown GatePassType: " + gatePassType);
+	        return false;
+	    }
+
+	    return workmenDao.insertIntoCustDataRenew(createdBy, personId, type.getStatus());
 	}
 	}
 

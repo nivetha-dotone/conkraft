@@ -226,5 +226,11 @@ public interface WorkmenDao {
 
 	boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId, String dot);
 
+	public boolean updateCmsPersonCustDataRenewEffectiveTill(long personId, String dot);
+
+	boolean insertIntoCustDataRenew(String updatedBy, long personId, String gatePassStatus);
+
+	public boolean updatePersonStatusValidityRenew(Long activeId, Long inactiveId, String dot);
+
 
 }
