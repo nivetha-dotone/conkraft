@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -29,6 +30,26 @@ public class GatePassToOnBoardService {
 
     public String getGTByTrnsId() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY");
+    }
+
+    public String getQuerytoFetchListNOTPOST() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOST");
+    }
+
+    public String getQueryInsertSuccessEnty() {
+        return QueryFileWatcher.getQuery("getWFDLogOK");
+    }
+
+    public String getQueryUpdateWFDLogOK() {
+        return QueryFileWatcher.getQuery("getupdateWFDLogOK");
+    }
+
+    public String getQueryInsertNotSuccess() {
+        return QueryFileWatcher.getQuery("getWFDLognotOK");
+    }
+
+    public String getQueryUpdateWFDNotSuccess() {
+        return QueryFileWatcher.getQuery("getupdateWFDLognotOK");
     }
 
     public String getSKILLSByTrnsId() {
@@ -105,6 +126,93 @@ public class GatePassToOnBoardService {
             throw new RuntimeException(e);
         }
     }
+
+
+
+    public void saveSuccessTrace(Long gpTransactionId,
+                                 Long personId,
+                                 Integer statusNumber,
+                                 Boolean postFlag) {
+
+        String sql = getQueryInsertSuccessEnty();
+
+        jdbcTemplate.update(sql,
+                gpTransactionId,
+                personId,
+                statusNumber
+                );
+    }
+
+
+    public void updateSuccessTrace(Long gpTransactionId,
+                                   Long personId,
+                                   Integer statusNumber,
+                                   Boolean flag) {
+//UPDATE WFDOnbinTrace SET PersonId = ?, StatusNumber = ?, Postflag = 1, ErrorResponse = NULL, UpdatedDate = SYSDATETIME() WHERE GPTranscationId = ?;
+
+        String sql = getQueryUpdateWFDLogOK();
+
+        jdbcTemplate.update(sql,
+                personId,
+                statusNumber,
+
+                gpTransactionId);
+    }
+
+    public void updateErrorTrace(Long gpTransactionId,
+                                 Integer statusNumber,
+                                 String errorResponse) {
+
+        String sql = getQueryUpdateWFDNotSuccess();
+
+        jdbcTemplate.update(sql,
+                statusNumber,
+                errorResponse,
+                gpTransactionId);
+    }
+
+
+
+
+    public void saveErrorTrace(Long gpTransactionId,
+                               Integer statusNumber,
+                               String errorResponse) {
+
+        String sql = getQueryInsertNotSuccess();
+
+        jdbcTemplate.update(sql,
+                gpTransactionId,
+                statusNumber,
+                errorResponse,
+                false);
+    }
+
+
+
+
+    public List<String> getListOfTrReScheduleOnb( ){
+        try{
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<String> dtoTrList = new LinkedList<>();
+            String queryGetOnBdByTranId  = getQuerytoFetchListNOTPOST();
+            log.info("query to get onboardDetails "+ queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+            while(sqlRowSet.next()){
+                String trId = sqlRowSet.getString("GPTranscationId");
+                dtoTrList.add(trId);
+            }
+
+
+
+            log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
 
     public PostSkillWfd createCertifi(Integer id) {
         try {

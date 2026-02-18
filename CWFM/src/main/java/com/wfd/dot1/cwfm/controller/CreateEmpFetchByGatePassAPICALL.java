@@ -10,12 +10,15 @@ import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping({"/WFDjson"})
@@ -27,6 +30,7 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     public CreateEmpFetchByGatePassAPICALL() {
     }
+
 
     @PostMapping({"/CreateEmpByGatePIdStatisCall/{gatePassId}"})
     public ResponseEntity<?> createEmpGateStatic(@PathVariable String gatePassId) {
@@ -58,13 +62,96 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
-    @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
-    public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
-        try {
-            String gatePassEmpDtoDynamic = this.employeeMapper.gatePassEmpDtoDynamic(trnId);
-            return gatePassEmpDtoDynamic != null ? new ResponseEntity(gatePassEmpDtoDynamic, HttpStatus.OK) : new ResponseEntity(HttpStatus.NOT_FOUND);
+//    @Scheduled(cron = "0 */15 * * * *")
+    @GetMapping("/schedularUpdate")
+    public void  addOnBoardingSchedular(){
+        try{
+
+            employeeMapper.gatePassEmpDtoSchedular();
+
         } catch (Exception e) {
-            throw new RuntimeException(e);
+
+        }
+    }
+
+
+    @PostMapping("/addByTrnsIdToUKG/{trnId}")
+    public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
+
+        Long gpTransactionId = null;
+
+        try {
+
+            gpTransactionId = Long.parseLong(trnId);
+
+            String result = employeeMapper.gatePassEmpDtoDynamic(trnId);
+
+            if (result == null) {
+
+                passToOnBoardService.saveErrorTrace(
+                        gpTransactionId,
+                        404,
+                        "Transaction Id Not Found"
+                );
+
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Transaction Id Not Found");
+            }
+
+            if (result.matches("\\d+")) {
+
+                Long personKey = Long.parseLong(result);
+
+                passToOnBoardService.saveSuccessTrace(
+                        gpTransactionId,
+                        personKey,
+                        200,
+                        true
+                );
+
+                return ResponseEntity.ok(result);
+            }
+
+            if (result.startsWith("STATUS:")) {
+
+                String[] parts = result.split("\n", 2);
+
+                int statusCode = Integer.parseInt(
+                        parts[0].replace("STATUS:", "").trim()
+                );
+
+                String body = parts.length > 1 ? parts[1] : "";
+
+                passToOnBoardService.saveErrorTrace(
+                        gpTransactionId,
+                        statusCode,
+                        body
+                );
+
+                return ResponseEntity.status(statusCode).body(body);
+            }
+
+            passToOnBoardService.saveErrorTrace(
+                    gpTransactionId,
+                    500,
+                    result
+            );
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(result);
+
+        } catch (Exception e) {
+
+            if (gpTransactionId != null) {
+                passToOnBoardService.saveErrorTrace(
+                        gpTransactionId,
+                        500,
+                        e.getMessage()
+                );
+            }
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal Server Error: " + e.getMessage());
         }
     }
 
@@ -147,6 +234,7 @@ public class CreateEmpFetchByGatePassAPICALL {
             throw new RuntimeException(e);
         }
     }
+
 
     @PostMapping("/updatedEmpStatus/{gatepassId}/{empStatus}")
     public ResponseEntity<String> updateEmpStatusTerOrAct(

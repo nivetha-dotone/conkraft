@@ -284,22 +284,34 @@ public class WfdEmployeeService {
 
 
     public String createEmployee(EmployeeRequestDTO dto) {
+
         try {
-            String jsonBody = this.objectMapper.writeValueAsString(dto);
-            String accessToken = this.wfdAuthService.getAccessToken();
+            String jsonBody = objectMapper.writeValueAsString(dto);
+            String accessToken = wfdAuthService.getAccessToken();
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
-            String var10000 = this.getHostName();
-            String url = var10000 + this.getCreateEmpWFD();
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
-            return response.getStatusCode().is2xxSuccessful() ? "Employee successfully Inserted in WFD" : "Unexpected response from WFD";
-        } catch (HttpClientErrorException e) {
-            String errorBody = e.getResponseBodyAsString();
-            return e.getStatusCode() == HttpStatus.BAD_REQUEST && errorBody.contains("The ID already exists within the system") ? "The ID already exists within the system" : errorBody;
-        } catch (Exception e) {
-            return "Error creating employee in WFD API: " + e.getMessage();
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            String url = getHostName() + getCreateEmpWFD();
+
+            ResponseEntity<String> response =
+                    restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+            return "STATUS:" + response.getStatusCodeValue() +
+                    "\nBODY:" + response.getBody();
+
+        }
+
+        catch (HttpClientErrorException | HttpServerErrorException e) {
+            return "STATUS:" + e.getStatusCode().value() +
+                    "\nBODY:" + e.getResponseBodyAsString();
+        }
+
+        catch (Exception e) {
+            return "STATUS:500\nBODY:Error creating employee in WFD API: " + e.getMessage();
         }
     }
 

@@ -1,6 +1,8 @@
 
 package com.wfd.dot1.cwfm.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
@@ -8,8 +10,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +25,10 @@ public class EmployeeMapper {
     @Autowired
     private GatePassToOnBoardService gatePassToOnBoardService;
 
-    public EmployeeMapper() {
+    private final ObjectMapper objectMapper;
+
+    public EmployeeMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
     }
 
     public String gatePassEmpDtoStatic(String GatePassId) {
@@ -145,6 +154,344 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
+
+    @Scheduled(cron = "0 */15 * * * *")
+    public void gatePassEmpDtoSchedular() {
+
+        try {
+
+            List<String> listOfTrReScheduleOnb =
+                    gatePassToOnBoardService.getListOfTrReScheduleOnb();
+
+            if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
+                return;
+            }
+
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+
+                String result = gatePassEmpDtoDynamic(gpTransactionId);
+
+                if (result == null) {
+
+                    gatePassToOnBoardService.updateErrorTrace(
+                            Long.valueOf(gpTransactionId),
+                            404,
+                            "Transaction Id Not Found"
+                    );
+
+                } else if (result.matches("\\d+")) {
+
+                    Long personKey = Long.parseLong(result);
+
+                    gatePassToOnBoardService.updateSuccessTrace(
+                            Long.valueOf(gpTransactionId),
+                            personKey,
+                            200,
+                            true
+                    );
+
+                } else if (result.startsWith("STATUS:")) {
+
+                    String[] parts = result.split("\n", 2);
+
+                    int statusCode = Integer.parseInt(
+                            parts[0].replace("STATUS:", "").trim()
+                    );
+
+                    String body = parts.length > 1 ? parts[1] : "";
+
+                    gatePassToOnBoardService.updateErrorTrace(
+                            Long.valueOf(gpTransactionId),
+                            statusCode,
+                            body
+                    );
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace(); // never keep catch empty
+        }
+    }
+
+
+
+//    public List<EmployeeRequestDTO> gatePassEmpSchedular(){
+//        try {
+//            List<GatePassToOnBoard> individualOnBoardDetailsByTrnIdP = gatePassToOnBoardService.getIndividualOnBoardDetailsSchedular();
+//            List<EmployeeRequestDTO> dtoList = new LinkedList<>();
+//
+//
+//            for(GatePassToOnBoard individualOnBoardDetailsByTrnId: individualOnBoardDetailsByTrnIdP ){
+//
+//
+//                EmployeeRequestDTO dto = new EmployeeRequestDTO();
+//
+//                EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
+//                EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
+//                access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
+//                access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
+//                access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
+//                access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());
+//                access.setShiftCodeName(individualOnBoardDetailsByTrnId.getShiftCodeName());
+//                personInfo.setAccessAssignment(access);
+//
+//                EmployeeRequestDTO.EmailAddress email = new EmployeeRequestDTO.EmailAddress();
+//                email.setAddress(individualOnBoardDetailsByTrnId.getAddressEmail());
+//                email.setContactTypeName(individualOnBoardDetailsByTrnId.getContactTypeName());
+//                email.setHasEmailNotificationDelivery(false);
+//                personInfo.setEmailAddresses(Arrays.asList(email));
+//
+//                EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
+//                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());  // joining date
+//                empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
+//                empStatus.setExpirationDate("3000-01-01");
+//                personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
+//
+//                EmployeeRequestDTO.Person person = new EmployeeRequestDTO.Person();
+//                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
+//                person.setFirstName(individualOnBoardDetailsByTrnId.getFirstName());
+//                person.setLastName(individualOnBoardDetailsByTrnId.getLastName());
+//                person.setFullName(individualOnBoardDetailsByTrnId.getLastName()+ ", " + individualOnBoardDetailsByTrnId.getFirstName());
+//                person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
+//                person.setShortName(individualOnBoardDetailsByTrnId.getFirstName() + (individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().charAt(0) : ""));
+//                personInfo.setPerson(person);
+//
+//                ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList<>();
+//
+//                if(individualOnBoardDetailsByTrnId.getGender()!=null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO gender = new EmployeeRequestDTO.CustomDataDTO();
+//                    gender.setCustomDataTypeName("Gender");
+//                    gender.setText(individualOnBoardDetailsByTrnId.getGender());
+//                    addCustomeList.add(gender);
+//                }  if ((individualOnBoardDetailsByTrnId.getAadharNumber()!=null && !individualOnBoardDetailsByTrnId.getAadharNumber().isEmpty()))
+//                {
+//                    EmployeeRequestDTO.CustomDataDTO aadharNumber = new EmployeeRequestDTO.CustomDataDTO();
+//                    aadharNumber.setCustomDataTypeName("Aadhar Number");
+//                    aadharNumber.setText(individualOnBoardDetailsByTrnId.getAadharNumber());
+//                    addCustomeList.add(aadharNumber);
+//
+//                } if ((individualOnBoardDetailsByTrnId.getAadharName()!=null && !individualOnBoardDetailsByTrnId.getAadharName().isEmpty())){
+//                    EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
+//                    aadharName.setCustomDataTypeName("Name as Per Aadhar");
+//                    aadharName.setText(individualOnBoardDetailsByTrnId.getAadharName());
+//                    addCustomeList.add(aadharName);
+//
+//                } if(individualOnBoardDetailsByTrnId.getRelativeName()!=null && !individualOnBoardDetailsByTrnId.getRelativeName().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO relativeName = new EmployeeRequestDTO.CustomDataDTO();
+//                    relativeName.setCustomDataTypeName("Father or Husband Name");
+//                    relativeName.setText(individualOnBoardDetailsByTrnId.getRelativeName());
+//                    addCustomeList.add(relativeName);
+//
+//                } if(individualOnBoardDetailsByTrnId.getAddress()!=null && !individualOnBoardDetailsByTrnId.getAddress().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentAddress = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentAddress.setCustomDataTypeName("Permanent Address");
+//                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getRelativeName());
+//                    addCustomeList.add(permanentAddress);
+//
+//                } if(individualOnBoardDetailsByTrnId.getPermanentDistrict()!=null && !individualOnBoardDetailsByTrnId.getPermanentDistrict().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent District");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentDistrict());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getPermanentState()!=null && !individualOnBoardDetailsByTrnId.getPermanentState().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent State");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentState());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getPermanentPincode()!=null && !individualOnBoardDetailsByTrnId.getPermanentPincode().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent Pin code");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentPincode());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getIdMark()!=null && !individualOnBoardDetailsByTrnId.getIdMark().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("ID Mark");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                }if(individualOnBoardDetailsByTrnId.getUanNumber()!=null && !individualOnBoardDetailsByTrnId.getUanNumber().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("UAN Number");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getUanNumber());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getMaritalStatus()!=null && !individualOnBoardDetailsByTrnId.getMaritalStatus().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Marital Status");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getMaritalStatus());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getTechnical()!=null && !individualOnBoardDetailsByTrnId.getTechnical().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Technical Qualification");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getTechnical());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getAcademic()!=null && !individualOnBoardDetailsByTrnId.getAcademic().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Academic Qualification");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAcademic());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getShoeSize()!=null && !individualOnBoardDetailsByTrnId.getShoeSize().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Shoe Size");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getShoeSize());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getBloodGroup()!=null && !individualOnBoardDetailsByTrnId.getBloodGroup().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Blood Group");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBloodGroup());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getWorkmenType()!=null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Workmen Type");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getNatureOfJob()!=null && !individualOnBoardDetailsByTrnId.getNatureOfJob().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Nature Of Job");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getNatureOfJob());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getPanNumber()!=null && !individualOnBoardDetailsByTrnId.getPanNumber().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("PAN Number");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPanNumber());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getPfNumber()!=null && !individualOnBoardDetailsByTrnId.getPfNumber().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("PF Number");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPfNumber());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getAccountNumber()!=null && !individualOnBoardDetailsByTrnId.getAccountNumber().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Account Number");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccountNumber());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getBankName()!=null && !individualOnBoardDetailsByTrnId.getBankName().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Bank Name");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBankName());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                } if(individualOnBoardDetailsByTrnId.getIfscCode()!=null && !individualOnBoardDetailsByTrnId.getIfscCode().isEmpty()){
+//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("IFSC Code");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIfscCode());
+//                    addCustomeList.add(permanentDistrict);
+//
+//                }
+//                personInfo.setCustomDataList(addCustomeList);
+//
+//                // Authentication types
+//                EmployeeRequestDTO.PersonAuthenticationType auth = new EmployeeRequestDTO.PersonAuthenticationType();
+//                auth.setActiveFlag(true);
+//                auth.setAuthenticationTypeName("Basic");
+//                personInfo.setPersonAuthenticationTypes(Arrays.asList(auth));
+//
+//                // License types
+//                EmployeeRequestDTO.PersonLicenseType licenseEmployee = new EmployeeRequestDTO.PersonLicenseType();
+//                licenseEmployee.setActiveFlag(true);
+//                licenseEmployee.setLicenseTypeName("Employee");
+//
+//                EmployeeRequestDTO.PersonLicenseType licenseAbsence = new EmployeeRequestDTO.PersonLicenseType();
+//                licenseAbsence.setActiveFlag(true);
+//                licenseAbsence.setLicenseTypeName("Absence");
+//
+//                EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
+//                licensehourlyTimekeeping.setActiveFlag(true);
+//                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+//
+//
+//                EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
+//                licenseScheduling.setActiveFlag(true);
+//                licenseScheduling.setLicenseTypeName("Scheduling");
+//
+//                personInfo.setPersonLicenseTypes(Arrays.asList(
+//                        licenseEmployee,
+//                        licenseAbsence,
+//                        licensehourlyTimekeeping,
+//                        licenseScheduling
+//                ));
+//
+//
+//                // User account status
+//                EmployeeRequestDTO.UserAccountStatus userStatus = new EmployeeRequestDTO.UserAccountStatus();
+//                userStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                userStatus.setExpirationDate("3000-01-01");
+//                userStatus.setUserAccountStatusName(individualOnBoardDetailsByTrnId.getUserAccountStatus());
+//                personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
+//
+//                dto.setPersonInformation(personInfo);
+//
+//                // --- JobAssignment ---
+//                EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
+//
+//                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
+//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                wage.setExpirationDate("3000-01-01");
+//                // Example: convert monthly basic to hourly rate
+////            if (gatePass.getBasic() != null) {
+////                double hourlyRate = gatePass.getBasic().doubleValue() / 173; // approx monthly to hourly
+////                wage.setHourlyRate(hourlyRate);
+////            } else {
+//                wage.setHourlyRate(20.15);
+////            }
+//                job.setBaseWageRates(Arrays.asList(wage));
+//                EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
+//                jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
+//                jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName()); // EIC → supervisor
+//                jobDetails.setSupervisorPersonNumber(individualOnBoardDetailsByTrnId.getSupervisorPersonNumber());  // hardcoded, replace with mapping
+//                jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
+//                job.setJobAssignmentDetails(jobDetails);
+//                EmployeeRequestDTO.PrimaryLaborAccount labor = new EmployeeRequestDTO.PrimaryLaborAccount();
+//                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                labor.setExpirationDate("3000-01-01");
+////              labor.setOrganizationPath(individualOnBoardDetailsByTrnId.getCompany()+ "/" +individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/" +individualOnBoardDetailsByTrnId.getCategory());
+////                labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
+//
+//                String orgPath = individualOnBoardDetailsByTrnId.getLocation()+"/"+individualOnBoardDetailsByTrnId.getCompany()+"/"+
+//                        individualOnBoardDetailsByTrnId.getPlantLocation()+"/"+individualOnBoardDetailsByTrnId.getDepartment()+"/"+
+//                        individualOnBoardDetailsByTrnId.getSection()+"/"+individualOnBoardDetailsByTrnId.getSubSection()+"/"+
+//                        individualOnBoardDetailsByTrnId.getContractorCode()+"/Team Lead";
+//                System.out.println("orgPath"+orgPath);
+//                labor.setOrganizationPath(orgPath);
+//                job.setPrimaryLaborAccounts(Arrays.asList(labor));
+//                dto.setJobAssignment(job);
+//                // --- User ---
+//                EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();
+//                EmployeeRequestDTO.UserAccount userAcc = new EmployeeRequestDTO.UserAccount();
+//                userAcc.setLogonProfileName(individualOnBoardDetailsByTrnId.getLogonProfileName());
+//                userAcc.setUserName(individualOnBoardDetailsByTrnId.getUserAccountName());
+//                userAcc.setUserPassword(individualOnBoardDetailsByTrnId.getUserPassword()); // default password, can be generated
+//                user.setUserAccount(userAcc);
+//                dto.setUser(user);
+//
+////                String employee = wfdEmployeeService.createEmployee(dto);
+//
+//                dtoList.add(dto);
+//
+//            }
+//            return dtoList;
+//
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//
+//    }
+
 
     public String postCertificTowfd(Integer gmId) {
         try {
@@ -542,49 +889,104 @@ public class EmployeeMapper {
         }
     }
 
-    public String gatePassEmpDtoDynamic(String GatePassId) {
+    public String gatePassEmpDtoDynamic(String gatePassId) {
+
         try {
-            EmployeeRequestDTO employeeRequestDTO = this.gatePassEmpDto(GatePassId);
+
+            EmployeeRequestDTO employeeRequestDTO = gatePassEmpDto(gatePassId);
+
             if (employeeRequestDTO == null) {
-                return "Transaction Id Not Found";
-            } else {
-                String employeeResponse = this.wfdEmployeeService.createEmployee(employeeRequestDTO);
-                if (!"Employee successfully Inserted in WFD".equals(employeeResponse) && !"The ID already exists within the system".equals(employeeResponse)) {
-                    return "Employee creation failed: " + employeeResponse;
-                } else {
-                    SkillProLevelDateDTO skillData = this.getSkillPRoLevelDate(GatePassId);
-                    String skillName = skillData.getSkill();
-                    String profName = skillData.getProficiencyLevel();
-                    if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
-                        PostSkillWfd postSkill = new PostSkillWfd();
-                        postSkill.setName(skillName);
-                        String createSkillResponse = this.wfdEmployeeService.createSkillsInWFD(postSkill);
-                        if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
-                            return "Skill creation failed: " + createSkillResponse;
-                        }
-                    }
+                return "STATUS:400\nTransaction Id Not Found";
+            }
 
-                    if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
-                        ProficiencyDTO profDto = new ProficiencyDTO();
-                        profDto.setId(329);
-                        profDto.setActive(true);
-                        profDto.setProficiencyLevelNumeric(329);
-                        profDto.setVersion(0);
-                        profDto.setName(profName);
-                        String createProfResponse = this.wfdEmployeeService.createProfInWFD(profDto);
-                        if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
-                            return "Proficiency creation failed: " + createProfResponse;
-                        }
-                    }
+            String employeeResponse =
+                    wfdEmployeeService.createEmployee(employeeRequestDTO);
 
-                    String skillAssignResponse = this.wfdEmployeeService.addPersonSkill(skillData.getPersonNumber(), skillName, profName, skillData.getEffectiveDate());
-                    return employeeResponse + "\n--------------------------------------------------\n" + skillAssignResponse;
+            String[] parts = employeeResponse.split("\nBODY:", 2);
+
+            if (parts.length < 2) {
+                return "STATUS:500\nInvalid response format";
+            }
+
+            int statusCode = Integer.parseInt(
+                    parts[0].replace("STATUS:", "").trim()
+            );
+
+            String body = parts[1];
+
+            if (statusCode != 200) {
+                return "STATUS:" + statusCode + "\n" + body;
+            }
+
+            JsonNode rootNode = objectMapper.readTree(body);
+            JsonNode personKeyNode =
+                    rootNode.path("personIdentity").path("personKey");
+
+            if (personKeyNode.isMissingNode() || personKeyNode.isNull()) {
+                return "STATUS:400\n" + body;
+            }
+
+            Long personKey = personKeyNode.asLong();
+
+            // ---------------- SKILL FLOW ----------------
+
+            SkillProLevelDateDTO skillData =
+                    getSkillPRoLevelDate(gatePassId);
+
+            if (skillData == null) {
+                return "STATUS:400\nSkill data not found";
+            }
+
+            String skillName = skillData.getSkill();
+            String profName = skillData.getProficiencyLevel();
+
+            // Create skill if not exists
+            if (!wfdEmployeeService.verifySkillsInWFD(skillName)) {
+
+                PostSkillWfd postSkill = new PostSkillWfd();
+                postSkill.setName(skillName);
+
+                wfdEmployeeService.createSkillsInWFD(postSkill);
+
+                if (!wfdEmployeeService.verifySkillsInWFD(skillName)) {
+                    return "STATUS:400\nSkill creation failed";
                 }
             }
+
+            // Create proficiency if not exists
+            if (!wfdEmployeeService.verifyProfInWFD(profName)) {
+
+                ProficiencyDTO profDto = new ProficiencyDTO();
+                profDto.setId(329);
+                profDto.setActive(true);
+                profDto.setProficiencyLevelNumeric(329);
+                profDto.setVersion(0);
+                profDto.setName(profName);
+
+                wfdEmployeeService.createProfInWFD(profDto);
+
+                if (!wfdEmployeeService.verifyProfInWFD(profName)) {
+                    return "STATUS:400\nProficiency creation failed";
+                }
+            }
+
+            // Assign skill (no response returned)
+            wfdEmployeeService.addPersonSkill(
+                    skillData.getPersonNumber(),
+                    skillName,
+                    profName,
+                    skillData.getEffectiveDate()
+            );
+
+            return personKey.toString();
+
         } catch (Exception e) {
-            return "Error in process: " + e.getMessage();
+
+            return "STATUS:500\n" + e.getMessage();
         }
     }
+
+
 
     public SkillProLevelDateDTO getSkillPRoLevelDate(String trndID) {
         try {
@@ -855,7 +1257,7 @@ public class EmployeeMapper {
                     return "Issue in Json or API";
                 }
             } else {
-                return "Not fount transcation Id";
+                return "Not fount transcation Id";	
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
