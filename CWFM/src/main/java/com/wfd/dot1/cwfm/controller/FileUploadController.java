@@ -370,6 +370,15 @@ public class FileUploadController {
             fields.add(Map.of("name", "SubDepartment", "type", "Text", "example", "Tester"));
             
             templateInfo.put("fields", fields);
+        }else if("Data-Bulk Cancel".equals(templateType)){
+        	templateInfo.put("title", "Data - Bulk Cancel Event");
+            templateInfo.put("description", "Imports Bulk Cancel events.");
+
+            List<Map<String, String>> fields = new ArrayList<>();
+            fields.add(Map.of("name", "Gatepass Number", "type", "Text", "example", "GP700001"));
+            fields.add(Map.of("name", "Reason of Cancel", "type", "Text", "example", "Resign"));
+            
+            templateInfo.put("fields", fields);
         }
         else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -410,7 +419,7 @@ public class FileUploadController {
  			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
  			String createdBy = String.valueOf(user.getUserId()); 
  			
-            Map<String, Object> result = fileUploadService.processTemplateFile(file, templateType,createdBy);
+            Map<String, Object> result = fileUploadService.processTemplateFile(file, templateType,createdBy,user.getUserAccount());
             Map<String, Object> data = (Map<String, Object>) result.get("data");
             
                       System.out.println(data);

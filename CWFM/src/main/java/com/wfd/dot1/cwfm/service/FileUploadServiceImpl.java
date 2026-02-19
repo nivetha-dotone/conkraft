@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ import com.wfd.dot1.cwfm.dao.FileUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenBulkUploadDao;
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
+import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -46,6 +48,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
 
@@ -58,6 +61,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 
     @Autowired
 	DepartmentMappingDao deptMapDao;
+    
+    @Autowired
+	CommonService commonService;
     
 	@Autowired
     private WorkmenBulkUploadDao workmenUploadDao;
@@ -83,7 +89,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 	 */
 
     @Override
-    public Map<String, Object> processTemplateFile(MultipartFile file, String templateType,String createdBy) throws Exception {
+    public Map<String, Object> processTemplateFile(MultipartFile file, String templateType,String createdBy,String userAccount) throws Exception {
         BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()));
         String headerLine = reader.readLine();
 
@@ -157,6 +163,12 @@ public class FileUploadServiceImpl implements FileUploadService {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processworkmenbulkuploaddraft(reader);
+                break;
+            case "Data-Bulk Cancel":
+                if (!headerLine.equalsIgnoreCase("Gatepass Number,Bulk Cancel Reason")) {
+                    throw new Exception("File can not upload due to incorrect format.");
+                }
+                savedData = processBulkCancel(reader, userAccount,createdBy);
                 break;
             default:
                 throw new Exception("Unsupported template type: " + templateType);
@@ -1038,7 +1050,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
                 successData.add(map);
             }  catch (Exception e) {
-                errorData.add(Map.of("row", rowNum, "error", "Exception while processing row: " + e.getMessage()));
+                errorData.add(Map.of("row", rowNum, "error", "" + e.getMessage()));
             }
         }
         this.InsertContractorOrgLevelEntry(ContListForOrgEntry);
@@ -1933,5 +1945,138 @@ public class FileUploadServiceImpl implements FileUploadService {
 	    log.info(label + " : " + (success ? "SUCCESS" : "FAILED"));
 	    return success;
 	}
-	
+	private Map<String, Object> processBulkCancel(BufferedReader reader,String userAccount,String createdBy) throws IOException {
+   	 List<Map<String, Object>> successData = new ArrayList<>();
+        List<Map<String, Object>> errorData = new ArrayList<>();
+
+        String line;
+        int rowNum = 0;
+        String[] fieldNames = {"gatepassNumber", "cancelReason"};
+               
+        Set<String> mandatoryFields = Set.of("gatepassNumber", "cancelReason");
+
+            while ((line = reader.readLine()) != null) {
+                rowNum++;
+                line = line.replaceAll("[\\x00-\\x1F\\x7F]", "");
+
+                if (line.trim().isEmpty()) continue;
+
+                String[] rawFields = line.split(",", -1);
+                String[] fields = new String[rawFields.length];
+                for (int i = 0; i < rawFields.length; i++) {
+                    fields[i] = rawFields[i].trim().replaceAll("\"", "");
+                }
+
+                Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+                if (fields.length < 2) {
+                    errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
+                    continue;
+                }
+
+                // Check mandatory fields
+                for (int i = 0; i < fieldNames.length; i++) {
+                    if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
+                        fieldErrors.put(fieldNames[i], "is mandatory");
+                    }
+                }
+                String cancelReason = fields[1];
+                
+                boolean gatepassNumber = fileUploadDao.gatepassNumberExists(fields[0]);
+                if (!gatepassNumber) {
+               	 fieldErrors.put("gatepassNumber" ,"Gatepass Number is not Found");
+               	 
+                }
+                
+                Integer cancelReasonId = fileUploadDao.getGeneralMasterId(cancelReason);
+                if (cancelReasonId == null || cancelReasonId == 0) {
+               	 fieldErrors.put("cancelReason" ,"Cancel of Reason is not Found"); 
+                }
+                
+//                List<String> gpm = fileUploadDao.getContractorDetailsForCancel(fields[0]);
+//
+//                if (gpm == null) {
+//                    fieldErrors.put("gatepassNumber", "Gatepass Details not Found");
+//                }
+//
+//                // Gatepass Org Details
+//                String gpUnitId = gpm.get(0);
+//                String gpContId = gpm.get(1);
+//                String gpDeptId = gpm.get(2);
+//                
+//                List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(userAccount);
+//            	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+//            			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+//            	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+//           	List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
+//           	List<PersonOrgLevel> contractor = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+//           	
+//           	Set<String> userPEIds = peList.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+//           	Set<String> userDeptIds = departments.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+//           	Set<String> userContIds = contractor.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+//
+//           	boolean hasPEAccess   = userPEIds.contains(gpUnitId);
+//           	boolean hasDeptAccess = userDeptIds.contains(gpDeptId);
+//           	boolean hasContAccess = userContIds.contains(gpContId);
+//
+//           	if (!hasPEAccess &&! hasDeptAccess && !hasContAccess) {
+//                fieldErrors.put("access", "Logged-in user does not have access to cancel gatepass");
+//               }
+
+                if (!fieldErrors.isEmpty()) {
+                    errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+                    continue;
+                }
+                try {
+                	 List<String> gpm = fileUploadDao.getContractorDetailsForCancel(fields[0]);
+                	 if (gpm == null) {
+                		 throw new IllegalArgumentException("gatepassNumber" +   "Gatepass Details not Found");
+                        // fieldErrors.put("gatepassNumber", "Gatepass Details not Found");
+                     }
+                	 String gpUnitId = gpm.get(0);
+                     String gpContId = gpm.get(1);
+                     String gpDeptId = gpm.get(2);
+                     
+                     List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(userAccount);
+                 	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+                 			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+                 	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+                	List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
+                	List<PersonOrgLevel> contractor = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+                	
+                	Set<String> userPEIds = peList.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+                	Set<String> userDeptIds = departments.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+                	Set<String> userContIds = contractor.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+                	boolean hasPEAccess   = userPEIds.contains(gpUnitId);
+                	boolean hasDeptAccess = userDeptIds.contains(gpDeptId);
+                	boolean hasContAccess = userContIds.contains(gpContId);
+                	
+                	if (!hasPEAccess &&! hasDeptAccess && !hasContAccess) {
+                		 throw new IllegalArgumentException("Logged-in user does not have access to cancel gatepass");
+                       }
+
+                 BulkCancel bc = new BulkCancel();
+               	 bc.setGatepassNumber(fields[0]);
+               	 bc.setCancelReason(String.valueOf(cancelReasonId));
+               	 
+                 fileUploadDao.updateGatepass(bc,createdBy);
+
+           // Map each POJO to a simple map for JSON-friendly structure
+           Map<String, Object> map = new HashMap<>();
+           map.put("gatepassNumber", bc.getGatepassNumber());
+           map.put("cancelReason",cancelReason);
+           
+           successData.add(map);
+
+                } catch (Exception e) {
+                    errorData.add(Map.of("row", rowNum, "error", "" + e.getMessage()));
+                }
+            }
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("successData", successData);
+            result.put("errorData", errorData);
+            return result;
+   }
    }

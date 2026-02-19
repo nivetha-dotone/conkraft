@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
+import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -165,4 +166,10 @@ public interface FileUploadDao {
 	boolean workorderExists(String workOrder, String contractorCode, String plantCode, String item, String lines, String lineNumber);
 
 	void updateWorkorderToStaging(KTCWorkorderStaging staging);
+	
+	boolean gatepassNumberExists(String gatepassNumber);
+
+	List<String> getContractorDetailsForCancel(String gatepassNumber);
+
+	void updateGatepass(BulkCancel bc, String createdBy);
 }

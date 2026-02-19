@@ -285,7 +285,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
             case "data-department area":
                 headers = ["Plant Code", "Department", "Sub Department"];
                 break;
-
+            case "data-bulk cancel":
+                headers = ["Gatepass Number","Bulk Cancel Reason"];
+                break;
             default:
                 alert("Template configuration not found for: " + selectedText);
                 return;
@@ -436,12 +438,14 @@ function uploadTemplateFile() {
 
     if (!templateType) {
         alert("Please select a template.");
+        hideLoader();
         return;
     }
 
     // allow: file OR edited table OR manual table
     if (!originalFile && !tableEdited && !hasTableData) {
         alert("Please upload a file OR edit the table before uploading.");
+        hideLoader();
         return;
     }
 
@@ -487,6 +491,7 @@ function uploadTemplateFile() {
         }
         closeFileSidebar();
          renderErrors([], null);
+         hideLoader();
     })
     .catch(err => {
 		 hideLoader(); 
@@ -546,6 +551,10 @@ const tableBody = document.getElementById("tableBody");
         else if (templateType === "Data-Department Area") {
             headers = ["Plant Code","Department","Sub Department"];
             fieldMap = ["plantCode","department","subDepartment"];
+        }
+         else if (templateType === "Data-Bulk Cancel") {
+            headers = ["Gatepass Number","Bulk Cancel Reason"];
+            fieldMap = ["gatepassNumber","cancelReason"];
         }
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
@@ -859,7 +868,10 @@ function getHeadersByTemplate(selectedText) {
 
         case "data-department area":
             return ["Plant Code", "Department", "Sub Department"];
-
+            
+        case  "data-bulk cancel":
+            return  ["Gatepass Number","Bulk Cancel Reason"];
+            
         default:
             return [];
     }

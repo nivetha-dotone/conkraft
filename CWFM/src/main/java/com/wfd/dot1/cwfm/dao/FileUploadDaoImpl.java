@@ -29,6 +29,10 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
+import com.wfd.dot1.cwfm.dto.PersonStatusIds;
+import com.wfd.dot1.cwfm.enums.GatePassStatus;
+import com.wfd.dot1.cwfm.enums.GatePassType;
+import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -38,6 +42,7 @@ import com.wfd.dot1.cwfm.pojo.CmsGeneralMaster;
 import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.ContractorWorkorderTYP;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
+import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.MimumWageMasterTemplate;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
@@ -48,6 +53,10 @@ import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 @Repository
 public class FileUploadDaoImpl implements FileUploadDao {
 	private static final Logger log = LoggerFactory.getLogger(FileUploadDaoImpl.class);
+	
+	@Autowired
+	WorkmenDao workmenDao;
+	
 	@Autowired
     private JdbcTemplate jdbcTemplate;
 	
@@ -503,6 +512,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "Plant Code,Trade,Skill";
             case "Data-Department Area":
             	return "Plant Code,Department,Sub Department";
+            case "Data-Bulk Cancel":
+            	return "Gatepass Number,Bulk Cancel Reason";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1603,9 +1614,123 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        w.getPlantcode()
 		    );
 		}
+		
+		@Override
+		public boolean gatepassNumberExists(String gatepassNumber) {
+			String sql="select count(*) from GATEPASSMAIN where GatePassId=?";
+			  Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gatepassNumber);
+			    return count != null && count > 0;
+			}
+		
+		@Override
+		public List<String> getContractorDetailsForCancel(String gatepassNumber) {
+		    String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID FROM GATEPASSMAIN WHERE GATEPASSID = ?";
 
+		    try {
+		        return jdbcTemplate.queryForObject(sql, new Object[]{gatepassNumber}, (rs, rowNum) -> {
+		            List<String> list = new ArrayList<>();
+		            list.add(rs.getString("UNITID"));
+		            list.add(rs.getString("CONTRACTORID"));
+		            list.add(rs.getString("DEPARTMENTID"));
+		            return list;
+		        });
+		    } catch (EmptyResultDataAccessException e) {
+		        return null;
+		    }
+		}
 
+		
+		@Override
+		public void updateGatepass(BulkCancel bc,String createdBy) {
+
+		    String sql = "UPDATE GATEPASSMAIN SET Reasoning = ?, GatePassTypeId = ?, GatePassStatus = ?,UpdatedBy=? WHERE GatePassId = ?";
+
+		    jdbcTemplate.update(sql,bc.getCancelReason(),GatePassType.BULKCANCEL.getStatus() ,GatePassStatus.APPROVED.getStatus(),createdBy,bc.getGatepassNumber());
+		    insertBulkCancelGatepassTransactionMapping(bc,createdBy);
+		}
+
+		public void insertBulkCancelGatepassTransactionMapping(BulkCancel bc,String createdBy) {
+			String transactionId= workmenDao.getNextTransactionId();
+		    String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
+		    jdbcTemplate.update(sql,transactionId, bc.getGatepassNumber(),GatePassType.BULKCANCEL.getStatus() );
+		    gatePassActionPersonInsertBulkCancel(bc, createdBy);
+		}
+		
+		public boolean gatePassActionPersonInsertBulkCancel(BulkCancel bc,String createdBy) {
+
+		    long personId = workmenDao.getPersonIdFromCmsPerson(bc.getGatepassNumber());
+		    if (personId <= 0) return false;
+
+		    // Step 1: Close existing CUSTDATA rows
+		    if (!logAndCheck("CUSTDATA_UPDATE",
+		            this.updateCmsPersonCustDataEffectiveTill(personId)))
+		        return false;
+
+		    // Step 2: Insert new CUSTDATA row
+		    boolean custInserted = workmenDao.insertIntoCustData(createdBy,personId,GatePassType.BULKCANCEL.getStatus(),bc.getCancelReason());
+
+		    if (!logAndCheck("CUSTDATA_INSERT", custInserted)) {
+		        return false;
+		    }
+
+		    // Step 3: Update StatusMM only if active
+		    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+
+		        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+
+		        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+
+		            boolean statusUpdated =
+		                    workmenDao.updatePersonStatusValidity(ids.getActiveId(), ids.getInactiveId());
+
+		            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
+		                return false;
+		        }
+		    }
+
+		    return true;
+		}
+		public String getCustomDefID() {
+			return QueryFileWatcher.getQuery("GET_CUSTOM_DEFID_CMSPERSONCUSTOMDATADEFINITION");
+		}
+		public String getMaxRefID() {
+			return QueryFileWatcher.getQuery("GET_MAX_REFID_CMSPERSONCUSTOMDATA");
+		}
+		public boolean updateCmsPersonCustDataEffectiveTill(long personId) {
+
+		    // 1. Get CSTMDEFID for Status
+			String defSql = getCustomDefID();
+
+		    Integer defId = jdbcTemplate.queryForObject(defSql, Integer.class);
+
+		    if (defId == null) {
+		        return false; // No definition → nothing to update
+		    }
+
+		    // 2. Get latest REFID
+		    String refSql = getMaxRefID();
+
+		    Long refId = jdbcTemplate.queryForObject(refSql, Long.class, defId, personId);
+
+		    if (refId == null || refId == 0) {
+		        return false; // No record → nothing to update
+		    }
+
+		    // 3. Update EFFECTIVETILL
+		    //String updateSql = updateEffectiveTill();
+		    String updateSql = "UPDATE CMSPERSONCUSTOMDATA "
+		                     + "SET EFFECTIVETILL = CONVERT(date, GETDATE()) "
+		                     + "WHERE REFID = ?";
+
+		    return jdbcTemplate.update(updateSql, refId) > 0;
+		}
+		
+		private boolean logAndCheck(String label, boolean success) {
+		    log.info(label + " : " + (success ? "SUCCESS" : "FAILED"));
+		    return success;
+		}
 	}
+
 
 
 
