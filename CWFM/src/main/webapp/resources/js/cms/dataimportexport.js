@@ -288,6 +288,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
             case "data-bulk cancel":
                 headers = ["Gatepass Number","Bulk Cancel Reason"];
                 break;
+            case "data-bulk renew":
+                headers = ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"];
+                break;
             default:
                 alert("Template configuration not found for: " + selectedText);
                 return;
@@ -555,6 +558,10 @@ const tableBody = document.getElementById("tableBody");
          else if (templateType === "Data-Bulk Cancel") {
             headers = ["Gatepass Number","Bulk Cancel Reason"];
             fieldMap = ["gatepassNumber","cancelReason"];
+        }
+        else if (templateType === "Data-Bulk Renew") {
+            headers = ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"];
+            fieldMap = ["gatepassNumber","workorderNumber","wcNumber","llNumber"];
         }
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
@@ -871,7 +878,8 @@ function getHeadersByTemplate(selectedText) {
             
         case  "data-bulk cancel":
             return  ["Gatepass Number","Bulk Cancel Reason"];
-            
+         case  "data-bulk renew":
+            return  ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"]; 
         default:
             return [];
     }

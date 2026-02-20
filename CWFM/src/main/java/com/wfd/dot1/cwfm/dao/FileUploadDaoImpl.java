@@ -12,7 +12,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -30,9 +32,11 @@ import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.dto.PersonStatusIds;
+import com.wfd.dot1.cwfm.enums.DotType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
+import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -514,6 +518,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "Plant Code,Department,Sub Department";
             case "Data-Bulk Cancel":
             	return "Gatepass Number,Bulk Cancel Reason";
+            case "Data-Bulk Renew":
+            	return "Gatepass Number,WorkOrder Number,WC/ESIC Number,LL Number";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1614,17 +1620,24 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        w.getPlantcode()
 		    );
 		}
-		
+		public String gatepassNumberExists() {
+			return QueryFileWatcher.getQuery("GATEPASSID_EXISTS");
+		}
+		public String getContractorDetailsForCancel() {
+			return QueryFileWatcher.getQuery("CONTRACTOR_DETAILS_FOR_BULK_CANCEL");
+		}
 		@Override
 		public boolean gatepassNumberExists(String gatepassNumber) {
-			String sql="select count(*) from GATEPASSMAIN where GatePassId=?";
+			//String sql="select count(*) from GATEPASSMAIN where GatePassId=?";
+			String sql=gatepassNumberExists();
 			  Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gatepassNumber);
 			    return count != null && count > 0;
 			}
 		
 		@Override
 		public List<String> getContractorDetailsForCancel(String gatepassNumber) {
-		    String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID FROM GATEPASSMAIN WHERE GATEPASSID = ?";
+			String sql =getContractorDetailsForCancel();
+			//String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID FROM GATEPASSMAIN WHERE GATEPASSID = ?";
 
 		    try {
 		        return jdbcTemplate.queryForObject(sql, new Object[]{gatepassNumber}, (rs, rowNum) -> {
@@ -1638,12 +1651,16 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        return null;
 		    }
 		}
-
-		
+		public String updateGatepass() {
+			return QueryFileWatcher.getQuery("UPDATE_GATEPASS_BULK_CANCEL");
+		}
+		public String insertBulkCancelGatepassTransactionMapping() {
+			return QueryFileWatcher.getQuery("INSERT_GATEPASS_TRANSACTIONMAPPING_BULK_CANCEL");
+		}
 		@Override
 		public void updateGatepass(BulkCancel bc,String createdBy) {
-
-		    String sql = "UPDATE GATEPASSMAIN SET Reasoning = ?, GatePassTypeId = ?, GatePassStatus = ?,UpdatedBy=? WHERE GatePassId = ?";
+			String sql =updateGatepass();
+		    //String sql = "UPDATE GATEPASSMAIN SET Reasoning = ?, GatePassTypeId = ?, GatePassStatus = ?,UpdatedBy=?,UpdatedDate=GETDATE() WHERE GatePassId = ?";
 
 		    jdbcTemplate.update(sql,bc.getCancelReason(),GatePassType.BULKCANCEL.getStatus() ,GatePassStatus.APPROVED.getStatus(),createdBy,bc.getGatepassNumber());
 		    insertBulkCancelGatepassTransactionMapping(bc,createdBy);
@@ -1651,7 +1668,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 		public void insertBulkCancelGatepassTransactionMapping(BulkCancel bc,String createdBy) {
 			String transactionId= workmenDao.getNextTransactionId();
-		    String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
+			String sql =insertBulkCancelGatepassTransactionMapping();
+			//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
 		    jdbcTemplate.update(sql,transactionId, bc.getGatepassNumber(),GatePassType.BULKCANCEL.getStatus() );
 		    gatePassActionPersonInsertBulkCancel(bc, createdBy);
 		}
@@ -1696,6 +1714,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		public String getMaxRefID() {
 			return QueryFileWatcher.getQuery("GET_MAX_REFID_CMSPERSONCUSTOMDATA");
 		}
+		public String updateEffectiveTillToday() {
+			return QueryFileWatcher.getQuery("UPDATE_EFFECTIVETILL_TODAY");
+		}
 		public boolean updateCmsPersonCustDataEffectiveTill(long personId) {
 
 		    // 1. Get CSTMDEFID for Status
@@ -1717,10 +1738,10 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    }
 
 		    // 3. Update EFFECTIVETILL
-		    //String updateSql = updateEffectiveTill();
-		    String updateSql = "UPDATE CMSPERSONCUSTOMDATA "
-		                     + "SET EFFECTIVETILL = CONVERT(date, GETDATE()) "
-		                     + "WHERE REFID = ?";
+		    String updateSql = updateEffectiveTillToday();
+//		    String updateSql = "UPDATE CMSPERSONCUSTOMDATA "
+//		                     + "SET EFFECTIVETILL = CONVERT(date, GETDATE()) "
+//		                     + "WHERE REFID = ?";
 
 		    return jdbcTemplate.update(updateSql, refId) > 0;
 		}
@@ -1729,6 +1750,98 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    log.info(label + " : " + (success ? "SUCCESS" : "FAILED"));
 		    return success;
 		}
+		public String WorkorderExists() {
+			return QueryFileWatcher.getQuery("WORKORDER_EXISTS_IN_CMSWORKORDER");
+		}
+		public String WCESICExists() {
+			return QueryFileWatcher.getQuery("WCESIC_EXISTS_IN_CMSWORKORDERLLWC");
+		}
+		public String LLExists() {
+			return QueryFileWatcher.getQuery("LL_EXISTS_IN_CMSWORKORDERLLWC");
+		}
+		public String updateGatepassBulkRenew() {
+			return QueryFileWatcher.getQuery("UPDATE_BULK_RENEW_IN_GATEPASS");
+		}
+		public String insertBulkRenewGatepassTransactionMapping() {
+			return QueryFileWatcher.getQuery("INSERT_BULK_RENEW_IN_GATEPASSTRNSACTIONMAPPING");
+		}
+		//String sql = WorkorderExists();
+		@Override
+		public Map<String, Object> workorderExists(String workorderNumber, String gpContId) {
+
+		    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? AND CONTRACTORID=?";
+
+		    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, gpContId);
+
+		    return list.isEmpty() ? null : list.get(0);
+		}
+		
+		 @Override
+		 public Integer WCESICExists(String workorderNumber, String wcNumber){
+			 String sql = WCESICExists();
+			    //String sequel = "select WOLLID from CMSWORKORDER_LLWC where WONUMBER=? and LICENSE_NUMBER=? and LICENSE_TYPE in ('ESIC','WC')";
+			    List<Integer> result = jdbcTemplate.query(sql, new Object[]{workorderNumber,wcNumber},
+			        (rs, rowNum) -> rs.getInt("WOLLID"));
+			    return result.isEmpty() ? null : result.get(0);
+			}
+		 @Override
+		 public Integer LLExists(String workorderNumber, String llNumber){
+			 String sql = LLExists();
+			   // String sql = "select WOLLID from CMSWORKORDER_LLWC where WONUMBER=? and LICENSE_NUMBER=? and LICENSE_TYPE ='LL'";
+			    List<Integer> result = jdbcTemplate.query(sql, new Object[]{workorderNumber,llNumber},
+			        (rs, rowNum) -> rs.getInt("WOLLID"));
+			    return result.isEmpty() ? null : result.get(0);
+			}
+		 @Override
+			public void updateGatepassBulkRenew(GatePassMain gm, String createdBy,String dot){
+			 String sql = updateGatepassBulkRenew();
+			    //String sql = "UPDATE GATEPASSMAIN SET WorkorderId=?,WcEsicNo=?,LLNo=?,GatePassTypeId=?,GatePassStatus=?,DOT=?,UpdatedBy=?,UpdatedDate=GETDATE() WHERE GatePassId=?";
+
+			    jdbcTemplate.update(sql,gm.getWorkorder(),gm.getWcEsicNo(),gm.getLlNo(),GatePassType.BULKRENEW.getStatus() ,GatePassStatus.APPROVED.getStatus(),dot,createdBy,gm.getGatePassId());
+			    insertBulkRenewGatepassTransactionMapping(gm,createdBy,dot);
+		 }
+		 
+		 public void insertBulkRenewGatepassTransactionMapping(GatePassMain gm,String createdBy,String dot) {
+				String transactionId= workmenDao.getNextTransactionId();
+				 String sql = insertBulkRenewGatepassTransactionMapping();
+				//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
+			    jdbcTemplate.update(sql,transactionId, gm.getGatePassId(),GatePassType.BULKRENEW.getStatus() );
+			    gatePassActionPersonInsertRenew(gm,GatePassType.BULKRENEW.getStatus(),createdBy,dot);
+			}
+		 
+		 public boolean gatePassActionPersonInsertRenew(GatePassMain gpm, String gatePassType,String createdBy,String dot) {
+
+			    long personId = workmenDao.getPersonIdFromCmsPerson(gpm.getGatePassId());
+			    if (personId <= 0) return false;
+
+			    // Step 1: Close existing CUSTDATA rows
+			    if (!logAndCheck("CUSTDATA_UPDATE",
+			            workmenDao.updateCmsPersonCustDataRenewEffectiveTill(personId,dot)))
+			        return false;
+
+			    // Step 2: Insert new CUSTDATA row
+			    if (!logAndCheck("CUSTDATA_INSERT",
+			    		workmenDao.insertIntoCustDataRenew(createdBy, personId, gatePassType)))
+			        return false;
+
+			    // Step 3: Update StatusMM only if active
+			    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+
+			        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+
+			        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+
+			            boolean statusUpdated =
+			                    workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
+
+			            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
+			                return false;
+			        }
+			    }
+
+			    return true;
+			}
+
 	}
 
 

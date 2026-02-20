@@ -3,9 +3,11 @@ package com.wfd.dot1.cwfm.dao;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
+import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -15,6 +17,7 @@ import com.wfd.dot1.cwfm.pojo.CmsGeneralMaster;
 import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.ContractorWorkorderTYP;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
+import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.MimumWageMasterTemplate;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
@@ -172,4 +175,17 @@ public interface FileUploadDao {
 	List<String> getContractorDetailsForCancel(String gatepassNumber);
 
 	void updateGatepass(BulkCancel bc, String createdBy);
+
+
+
+	//Integer WorkorderExists(String workorderNumber, String gpContId);
+
+	Integer WCESICExists(String workorderNumber, String wcNumber);
+
+	Integer LLExists(String workorderNumber, String llNumber);
+
+	void updateGatepassBulkRenew(GatePassMain gm, String createdBy, String dot);
+
+	Map<String, Object> workorderExists(String workorderNumber, String gpContId);
+
 }

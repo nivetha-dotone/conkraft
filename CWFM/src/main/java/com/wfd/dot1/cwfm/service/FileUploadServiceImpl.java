@@ -12,7 +12,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,9 +38,13 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wfd.dot1.cwfm.dao.DepartmentMappingDao;
 import com.wfd.dot1.cwfm.dao.FileUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenBulkUploadDao;
+import com.wfd.dot1.cwfm.dao.WorkmenDao;
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
+import com.wfd.dot1.cwfm.enums.DotType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
+import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
+import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
@@ -67,6 +73,10 @@ public class FileUploadServiceImpl implements FileUploadService {
     
 	@Autowired
     private WorkmenBulkUploadDao workmenUploadDao;
+	
+	@Autowired
+	WorkmenDao workmenDao;
+	
     @Override
     public void uploadFiles(List<MultipartFile> files) {
         for (MultipartFile file : files) {
@@ -169,6 +179,12 @@ public class FileUploadServiceImpl implements FileUploadService {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processBulkCancel(reader, userAccount,createdBy);
+                break;
+            case "Data-Bulk Renew":
+                if (!headerLine.equalsIgnoreCase("Gatepass Number,WorkOrder Number,WC/ESIC Number,LL Number")) {
+                    throw new Exception("File can not upload due to incorrect format.");
+                }
+                savedData = processBulkRenew(reader, userAccount,createdBy);
                 break;
             default:
                 throw new Exception("Unsupported template type: " + templateType);
@@ -1993,35 +2009,6 @@ public class FileUploadServiceImpl implements FileUploadService {
                	 fieldErrors.put("cancelReason" ,"Cancel of Reason is not Found"); 
                 }
                 
-//                List<String> gpm = fileUploadDao.getContractorDetailsForCancel(fields[0]);
-//
-//                if (gpm == null) {
-//                    fieldErrors.put("gatepassNumber", "Gatepass Details not Found");
-//                }
-//
-//                // Gatepass Org Details
-//                String gpUnitId = gpm.get(0);
-//                String gpContId = gpm.get(1);
-//                String gpDeptId = gpm.get(2);
-//                
-//                List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(userAccount);
-//            	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
-//            			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
-//            	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
-//           	List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
-//           	List<PersonOrgLevel> contractor = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
-//           	
-//           	Set<String> userPEIds = peList.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
-//           	Set<String> userDeptIds = departments.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
-//           	Set<String> userContIds = contractor.stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
-//
-//           	boolean hasPEAccess   = userPEIds.contains(gpUnitId);
-//           	boolean hasDeptAccess = userDeptIds.contains(gpDeptId);
-//           	boolean hasContAccess = userContIds.contains(gpContId);
-//
-//           	if (!hasPEAccess &&! hasDeptAccess && !hasContAccess) {
-//                fieldErrors.put("access", "Logged-in user does not have access to cancel gatepass");
-//               }
 
                 if (!fieldErrors.isEmpty()) {
                     errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
@@ -2079,4 +2066,365 @@ public class FileUploadServiceImpl implements FileUploadService {
             result.put("errorData", errorData);
             return result;
    }
+	private Map<String, Object> processBulkRenew(BufferedReader reader, String userAccount, String createdBy) throws IOException {
+
+	    List<Map<String, Object>> successData = new ArrayList<>();
+	    List<Map<String, Object>> errorData = new ArrayList<>();
+
+	    String line;
+	    int rowNum = 0;
+
+	    String[] fieldNames = {"gatepassNumber", "workorderNumber", "wcNumber", "llNumber"};
+	    Set<String> mandatoryFields = Set.of("gatepassNumber", "workorderNumber", "wcNumber");
+
+	    while ((line = reader.readLine()) != null) {
+	        rowNum++;
+	        line = line.replaceAll("[\\x00-\\x1F\\x7F]", "");
+	        if (line.trim().isEmpty()) continue;
+
+	        String[] rawFields = line.split(",", -1);
+	        String[] fields = new String[rawFields.length];
+	        for (int i = 0; i < rawFields.length; i++) {
+	            fields[i] = rawFields[i].trim().replaceAll("\"", "");
+	        }
+
+	        Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+	        // ================= Field Count Check =================
+	        if (fields.length < 4) {
+	            errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
+	            continue;
+	        }
+
+	        String gatepassNumber = fields[0];
+	        String workorderNumber = fields[1];
+	        String wcNumber = fields[2];
+	        String llNumber = fields[3];
+
+	        // ================= 1️ Mandatory Fields Check =================
+	        for (int i = 0; i < fieldNames.length; i++) {
+	            if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
+	                fieldErrors.put(fieldNames[i], "is mandatory");
+	            }
+	        }
+
+	        if (!fieldErrors.isEmpty()) {
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        // ================= 2️ Gatepass Validation =================
+	        boolean gatepassExists = fileUploadDao.gatepassNumberExists(gatepassNumber);
+	        if (!gatepassExists) {
+	            fieldErrors.put("gatepassNumber", "Gatepass Number not Found");
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        // ================= Fetch Gatepass Details =================
+	        List<String> gpm = fileUploadDao.getContractorDetailsForCancel(gatepassNumber);
+	        if (gpm == null) {
+	            fieldErrors.put("gatepassNumber", "Gatepass Details not Found");
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        String gpUnitId = gpm.get(0);
+	        String gpContId = gpm.get(1);
+	        String gpDeptId = gpm.get(2);
+
+	        // ================= 3️ Workorder Mapping Check =================
+//	        Integer woid = fileUploadDao.WorkorderExists(workorderNumber, gpContId);
+//	        if (woid == null) {
+//	            fieldErrors.put("workorderNumber", "Workorder Number not Mapped to Contractor");
+//	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+//	            continue;
+//	        }
+	        Map<String, Object> woData = fileUploadDao.workorderExists(workorderNumber, gpContId);
+
+	        if (woData == null) {
+	            fieldErrors.put("workorderNumber", "Workorder Number not Mapped to Contractor");
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        Integer woid = ((Number) woData.get("WORKORDERID")).intValue();
+	        Date validDt = (Date) woData.get("VALIDDT");
+	        
+	        if (validDt == null || !validDt.after(new Date())) {
+	            fieldErrors.put("workorderNumber", "Workorder Expiry Date must be in future");
+	        }
+	        // ================= 4️ WC / LL Mapping Check =================
+	        Integer wcesicid = null;
+	        if (wcNumber != null && !wcNumber.isBlank()) {
+	            wcesicid = fileUploadDao.WCESICExists(workorderNumber, wcNumber);
+	            if (wcesicid == null) {
+	                fieldErrors.put("wcNumber", "WC/ESIC Number not Mapped to Workorder");
+	            }
+	        }
+
+	        Integer llid = null;
+	        if (llNumber != null && !llNumber.isBlank()) {
+	            llid = fileUploadDao.LLExists(workorderNumber, llNumber);
+	            if (llid == null) {
+	                fieldErrors.put("llNumber", "LL Number not Mapped to Workorder");
+	            }
+	        }
+
+	        if (!fieldErrors.isEmpty()) {
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        // ================= 5️ Logged-in User Access Check =================
+	        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(userAccount);
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+	                orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        Set<String> userPEIds = groupedByLevelDef.getOrDefault("Principal Employer", List.of())
+	                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+	        Set<String> userDeptIds = groupedByLevelDef.getOrDefault("Dept", List.of())
+	                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+	        Set<String> userContIds = groupedByLevelDef.getOrDefault("Contractor", List.of())
+	                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+	        if (!userPEIds.contains(gpUnitId) && !userDeptIds.contains(gpDeptId) && !userContIds.contains(gpContId)) {
+	            fieldErrors.put("access", "Logged-in user does not have access to renew gatepass");
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        // ================= Build GatePass Object =================
+	        GatePassMain gm = new GatePassMain();
+	        gm.setGatePassId(gatepassNumber);
+	        gm.setWorkorder(String.valueOf(woid));
+	        gm.setWcEsicNo(String.valueOf(wcesicid));
+	        gm.setLlNo(llid != null ? String.valueOf(llid) : "");
+
+	        String dot = this.getDOT(gm, gpUnitId);
+
+	        // ================= 6️ License Validation =================
+	        Map<String, String> licenseErrors = this.workmenCountCheck(gm, gpUnitId, gpContId);
+
+	        if (!licenseErrors.isEmpty()) {
+	            for (Map.Entry<String, String> entry : licenseErrors.entrySet()) {
+	                fieldErrors.put(entry.getKey(), "GatePass " + gatepassNumber + " : " + entry.getValue());
+	            }
+	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+	            continue;
+	        }
+
+	        // ================= 7️ Update Gatepass =================
+	        fileUploadDao.updateGatepassBulkRenew(gm, createdBy, dot);
+
+	        // Success Map
+	        Map<String, Object> map = new HashMap<>();
+	        map.put("gatepassNumber", gatepassNumber);
+	        map.put("workorderNumber", workorderNumber);
+	        map.put("wcNumber", wcNumber);
+	        map.put("llNumber", llNumber);
+
+	        successData.add(map);
+	    }
+
+	    Map<String, Object> result = new HashMap<>();
+	    result.put("successData", successData);
+	    result.put("errorData", errorData);
+	    return result;
+	}
+	public Map<String, String> workmenCountCheck(GatePassMain gatePassMain,String gpUnitId,String gpContId) {
+		Map<String, String> errors = new LinkedHashMap<>();
+		int activeCount = workmenDao.getActiveWorkmenCount(gpUnitId, gpContId, GatePassStatus.APPROVED.getStatus(), GatePassType.CREATE.getStatus());
+		int llDeployedCount = workmenDao.getLLDeploymentCountByUnitId(gpUnitId);
+		if(activeCount < llDeployedCount) {
+			return errors;
+		}else {
+			return licenseExistsAndCount(gatePassMain,gpUnitId,gpContId, activeCount);
+			
+		}
+	}
+	public Map<String, String> licenseExistsAndCount(GatePassMain gatePassMain,String gpUnitId,String gpContId, int activeCount) {
+
+	    Map<String, String> errors = new LinkedHashMap<>();
+
+	    String unit =gpUnitId ;
+	    String contractor = gpContId;
+	    String workorder = gatePassMain.getWorkorder();
+
+	    // ---------- Fetch Results ----------
+	    Map<String, Object> llResult =
+	            workmenDao.licenseExistsAndCount(unit, contractor, workorder, "LL", gatePassMain.getLlNo());
+
+	    Map<String, Object> wcResult =
+	            workmenDao.licenseExistsAndCount(unit, contractor, workorder, "WC", gatePassMain.getWcEsicNo());
+
+	    Map<String, Object> esicResult = null;
+	    boolean hasEsic =
+	            gatePassMain.getEsicNumber() != null &&
+	            !gatePassMain.getEsicNumber().trim().isEmpty() &&
+	            !"NULL".equalsIgnoreCase(gatePassMain.getEsicNumber().trim());
+
+
+	    if (hasEsic) {
+	        esicResult =
+	                workmenDao.licenseExistsAndCount(unit, contractor, workorder, "ESIC", gatePassMain.getWcEsicNo());
+	    }
+
+	    // ---------- Extract LL ----------
+	    boolean llExists = (Boolean) llResult.get("exists");
+	    int llCount = (Integer) llResult.get("count");
+	    Date llExpiry = (Date) llResult.get("expiryDate");
+
+	    // ---------- Extract WC ----------
+	    boolean wcExists = (Boolean) wcResult.get("exists");
+	    int wcCount = (Integer) wcResult.get("count");
+	    Date wcExpiry = (Date) wcResult.get("expiryDate");
+
+	    // ---------- Extract ESIC ----------
+	    boolean esicExists = false;
+	    int esicCount = 0;
+	    Date esicExpiry = null;
+
+	    if (hasEsic && esicResult != null) {
+	        esicExists = (Boolean) esicResult.get("exists");
+	        esicCount = (Integer) esicResult.get("count");
+	        esicExpiry = (Date) esicResult.get("expiryDate");
+	    }
+
+	    Date today = new Date();
+
+	    // ---------- LL Mandatory ----------
+	    boolean llMandatory =
+	            llExists &&
+	            (
+	                (llExpiry != null && llExpiry.before(today)) ||
+	                (llExpiry != null && !llExpiry.before(today) && llCount == 0)
+	            );
+
+	    // ---------- WC / ESIC Mandatory (either one is enough) ----------
+	    boolean wcInvalid =
+	            !wcExists ||
+	            (wcExpiry != null && wcExpiry.before(today)) ||
+	            (wcExpiry != null && !wcExpiry.before(today) && wcCount == 0);
+
+	    boolean esicInvalid = hasEsic &&
+	            (
+	                !esicExists ||
+	                (esicExpiry != null && esicExpiry.before(today)) ||
+	                (esicExpiry != null && !esicExpiry.before(today) && esicCount == 0)
+	            );
+
+	    boolean wcEsicMandatory = wcInvalid && esicInvalid;
+
+	    // ================= Mandatory Validation =================
+	    if (llMandatory || wcEsicMandatory) {
+	    	 if (llMandatory && wcEsicMandatory) {
+	        errors.put("llNumber", "LL and WC/ESIC are mandatory");
+	    }if (llMandatory) {
+	    	 errors.put("llNumber", "LL is mandatory");
+	    }
+	    errors.put("wcNumber", "WC/ESIC is mandatory");
+	    }
+
+	    if (!wcExists && !esicExists) {
+	        errors.put("wcNumber", "WC/ESIC is mandatory");
+	    }
+	    if (llExists && llExpiry != null && llExpiry.before(today)) {
+	        errors.put("llExpiryDate", "LL should have Future Dates");
+	    }
+	    if (wcExists && wcExpiry != null && wcExpiry.before(today)) {
+	        errors.put("wcExpiryDate", "WC should have Future Dates");
+	    }
+
+	    if (hasEsic && esicExists && esicExpiry != null && esicExpiry.before(today)) {
+	        errors.put("esicExpiryDate", "ESIC should have Future Dates");
+	    }
+
+	    // ================= Capacity Validation =================
+
+	    if (llExists && activeCount >= llCount) {
+	        errors.put("llNumber", "LL capacity exceeded");
+	    }
+
+	    if (wcExists && activeCount >= wcCount) {
+	        errors.put("wcNumber", "WC capacity exceeded");
+	    }
+
+	    if (hasEsic && esicExists && activeCount >= esicCount) {
+	        errors.put("esicNumber", "ESIC capacity exceeded");
+	    }
+
+	    return errors;
+	}
+	 private String getDOT(GatePassMain gatePassMain,String gpUnitId) {
+
+		    String dot = null;
+		    int dotTypeId = gatePassMain.getDotType();
+
+		    if(dotTypeId == 0) {
+		    	
+		    	 dotTypeId = workmenDao.getDOTTYpe(gpUnitId);
+		    }
+		    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		    // ---------------- Retirement handling ----------------
+		    if (dotTypeId == DotType.RETIRE.getStatus()) {
+		        int retirementAge = 60;
+		        LocalDate dob = LocalDate.parse(gatePassMain.getDateOfBirth(), formatter);
+		        return dob.plusYears(retirementAge).format(formatter);
+		    }
+
+		    // ---------------- Fetch validity dates ----------------
+		    Map<String, LocalDate> validityDates =
+		            workmenDao.getValidityDates(
+		                    gatePassMain.getWorkorder(),
+		                    gatePassMain.getWcEsicNo(),
+		                    gatePassMain.getLlNo()   // may be null
+		            );
+
+		    LocalDate woDate = validityDates.get("WO");
+		    LocalDate wcDate = validityDates.get("WC");
+		    LocalDate llDate = validityDates.get("LL"); // may be null
+
+		    // ---------------- DOT calculation ----------------
+		    if (dotTypeId == DotType.LLWCWO.getStatus()) {
+
+		        dot = getEarliestDate(Arrays.asList(woDate, wcDate, llDate), formatter);
+
+		    } else if (dotTypeId == DotType.LLWC.getStatus()) {
+
+		        dot = getEarliestDate(Arrays.asList(wcDate, llDate), formatter);
+
+		    } else if (dotTypeId == DotType.LLWO.getStatus()) {
+
+		        dot = getEarliestDate(Arrays.asList(woDate, llDate), formatter);
+
+		    } else if (dotTypeId == DotType.WCWO.getStatus()) {
+
+		        dot = getEarliestDate(Arrays.asList(woDate, wcDate), formatter);
+
+		    } else if (dotTypeId == DotType.LL.getStatus()) {
+
+		        dot = getEarliestDate(Collections.singletonList(llDate), formatter);
+
+		    } else if (dotTypeId == DotType.WC.getStatus()) {
+
+		        dot = getEarliestDate(Collections.singletonList(wcDate), formatter);
+
+		    } else if (dotTypeId == DotType.WO.getStatus()) {
+
+		        dot = getEarliestDate(Collections.singletonList(woDate), formatter);
+		    }
+
+		    return dot;
+		}
+	 private String getEarliestDate(List<LocalDate> dates, DateTimeFormatter formatter) {
+		    return dates.stream()
+		            .filter(Objects::nonNull)   // 🔑 LL null? silently ignored
+		            .min(LocalDate::compareTo)
+		            .map(d -> d.format(formatter))
+		            .orElse("No valid date available");
+		}
    }

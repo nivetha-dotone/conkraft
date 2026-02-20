@@ -338,7 +338,7 @@ public class FileUploadController {
             fields.add(Map.of("name", "UNIT CODE", "type", "Text", "example", "2024-04-09"));
             fields.add(Map.of("name", "Organization name", "type", "Text", "example", "Adani Wilmar Limited"));
             fields.add(Map.of("name", "EIC Number", "type", "Text", "example", "Master Leo"));
-            fields.add(Map.of("name", "EC number", "type", "Number", "example", "0"));
+            fields.add(Map.of("name", "EC number", "type", "Text", "example", "4810/407050783/00/000"));
             fields.add(Map.of("name", "UAN Number", "type", "Number", "example", "803367170921"));
             fields.add(Map.of("name", "Emergency Contact Person", "type", "Text", "example", "Laxmi"));
             fields.add(Map.of("name", "Is eligible for PF", "type", "Text", "example", "Yes"));
@@ -378,6 +378,16 @@ public class FileUploadController {
             fields.add(Map.of("name", "Gatepass Number", "type", "Text", "example", "GP700001"));
             fields.add(Map.of("name", "Reason of Cancel", "type", "Text", "example", "Resign"));
             
+            templateInfo.put("fields", fields);
+        }else if("Data-Bulk Renew".equals(templateType)){
+        	templateInfo.put("title", "Data - Bulk Renew Event");
+            templateInfo.put("description", "Imports Bulk Renew events.");
+
+            List<Map<String, String>> fields = new ArrayList<>();
+            fields.add(Map.of("name", "Gatepass Number", "type", "Text", "example", "GP700001"));
+            fields.add(Map.of("name", "Workorder Number", "type", "Number", "example", "461265"));
+            fields.add(Map.of("name", "WC/ESIC Number", "type", "Text", "example", "4810/407050783/00/000"));
+            fields.add(Map.of("name", "LL Number", "type", "Number", "example", "89034774"));
             templateInfo.put("fields", fields);
         }
         else {
