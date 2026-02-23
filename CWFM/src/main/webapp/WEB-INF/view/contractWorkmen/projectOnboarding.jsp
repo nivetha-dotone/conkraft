@@ -1447,6 +1447,8 @@ label {
             </div>
 
             <div id="tab5" class="tab-content">
+            <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;">
+</div>
              <div id="licenseError" style="display:none;
             background:#f8d7da;
             color:#842029;

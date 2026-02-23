@@ -414,9 +414,9 @@ function validateCurrentTab() {
 // Function to show the selected tab
 function showTab(tabId) {
     // Check if current tab fields are valid before switching tabs
-    if (!validateCurrentTab()) {
+    /* if (!validateCurrentTab()) {
      return; // Prevent tab switch if validation fails
-    }
+    } */
 
     // Hide all tab contents
     var tabContents = document.querySelectorAll('.tab-content');

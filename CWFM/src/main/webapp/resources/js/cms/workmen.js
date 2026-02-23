@@ -1018,7 +1018,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 			        valid = false;
 			    } else {
 			        $("#acceptError").hide();
-			    }		
+			    }
+			    if (valid) {
+    $("#docTabGlobalError").hide();
+}		
     return valid;
 }
 
@@ -1167,12 +1170,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 		if (!validateProjectEmploymentInformation()) {
 		        employmentValid = false;
 		         hideLoader();
-		         return;
 		    }
 		    if (!validateProjectFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
              documentValid = false; // Stop the upload if validation fails
         hideLoader();
-        return;
     }
 	}else{
     if (!validateEmploymentInformation()) {
@@ -1216,6 +1217,35 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     console.log("wagesValid: " + wagesValid);
     console.log("documentValid: " + documentValid);
 
+//TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
+
+    if (!basicValid) errorTabs.push("Basic");
+    if (!employmentValid) errorTabs.push("Employment");
+    if (type === "regular" && !otherValid) errorTabs.push("Other");
+    if (type === "regular" && !wagesValid) errorTabs.push("Wages");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        // Optional: Jump to first error tab
+        /*
+        let firstTab = errorTabs[0];
+        if (firstTab === "Basic") $("#basicTab").click();
+        else if (firstTab === "Employment") $("#employmentTab").click();
+        else if (firstTab === "Other") $("#otherTab").click();
+        else if (firstTab === "Wages") $("#wagesTab").click();
+        */
+
+        hideLoader();
+        return;
+    }
     // ✅ Utility function for Capital Case
     function toCapitalCase(str) {
         return str
@@ -4625,6 +4655,9 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 			        valid = false;
 			    } else {
 			        $("#acceptError").hide();
-			    }		
+			    }	
+			    if (valid) {
+    $("#docTabGlobalError").hide();
+}			
     return valid;
 }
