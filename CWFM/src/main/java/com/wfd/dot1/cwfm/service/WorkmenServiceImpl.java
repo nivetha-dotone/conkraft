@@ -39,6 +39,7 @@ import com.wfd.dot1.cwfm.dto.GatePassListingDto;
 import com.wfd.dot1.cwfm.dto.GatePassStatusLogDto;
 import com.wfd.dot1.cwfm.dto.PersonStatusIds;
 import com.wfd.dot1.cwfm.enums.DotType;
+import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.WorkFlowType;
@@ -121,6 +122,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public String getWFDIntegration() {
 		return QueryFileWatcher.getQuery("WFD_INTEGRATION");
 	}
+	
+	
 	@Override
 	public String saveGatePass(GatePassMain gatePassMain) {
 		String transactionId =null;
@@ -370,6 +373,7 @@ public class WorkmenServiceImpl implements WorkmenService{
              if (!actionDone) {
  	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
  	        }
+
 	        if (!updated) {
 	            throw new RuntimeException("Failed to update GatePass on UNBLOCK/DEBLACKLIST.");
 	        }
@@ -451,6 +455,25 @@ public class WorkmenServiceImpl implements WorkmenService{
 	        throw new RuntimeException("Failed to update GatePass status on final approval.");
 	    }
 
+	    try {
+			 String wfdIntegration = this.getWFDIntegration();
+			 if("yes".equalsIgnoreCase(wfdIntegration)) {
+				if(dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus())) {
+					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.BLACKLIST);
+				}else if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus())){
+					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.DEBLACKLIST);
+				}else if(dto.getGatePassType().equals(GatePassType.BLOCK.getStatus())){
+					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.BLOCK);
+				}else if(dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())){
+					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.UNBLOCK);
+				}else if(dto.getGatePassType().equals(GatePassType.CANCEL.getStatus())){
+					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.CANCEL);
+				}
+	    		
+
+			 }}catch(Exception e) {
+				 log.info(e.getMessage());return result;
+			 }
 	    return result;
 	}
 	@Transactional
@@ -563,6 +586,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 					
 					
 				 workmenDao.updateGatePassMainStatus(gatePassId,dto.getGatePassStatus());
+				 
+				 
 				}
 				 if(null!=result) {
 						GatePassStatusLogDto statusLog = new GatePassStatusLogDto();
@@ -586,6 +611,27 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 				        
 				    }
+				//make api call to ukg
+				 try {
+				 String wfdIntegration = this.getWFDIntegration();
+				 if("yes".equalsIgnoreCase(wfdIntegration)) {
+					if(dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus())) {
+						api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.BLACKLIST);
+					}else if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus())){
+						api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.DEBLACKLIST);
+					}else if(dto.getGatePassType().equals(GatePassType.BLOCK.getStatus())){
+						api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.BLOCK);
+					}else if(dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())){
+						api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.UNBLOCK);
+					}else if(dto.getGatePassType().equals(GatePassType.CANCEL.getStatus())){
+						api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.CANCEL);
+					}
+ 		    		
+ 	
+				 }}catch(Exception e) {
+					 log.info(e.getMessage());
+				 }
+				 
 			}else {
 					dto.setGatePassStatus(GatePassStatus.APPROVALPENDING.getStatus());
 				 result = workmenDao.gatePassAction(dto);

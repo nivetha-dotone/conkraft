@@ -1,6 +1,7 @@
 package com.wfd.dot1.cwfm.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.security.core.userdetails.User;
 
@@ -82,5 +83,5 @@ public interface  CommonDao {
 					void deleteOrgLevel(List<Long> orgLevelDefIds);
 					List<OrgLevel> getAllOrgLevels();
 					List<CmsGeneralMaster> getImportOptionsByRole(String roleId);
-					String getGMID(Long gmtypeId, String gmName);
+					Map<String,String> getGMID(Long gmtypeId, String gmName);
 }

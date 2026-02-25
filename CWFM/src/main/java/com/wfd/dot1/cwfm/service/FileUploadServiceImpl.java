@@ -35,12 +35,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
 import com.wfd.dot1.cwfm.dao.DepartmentMappingDao;
 import com.wfd.dot1.cwfm.dao.FileUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenBulkUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenDao;
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.enums.DotType;
+import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
@@ -57,6 +59,7 @@ import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 @Service
 public class FileUploadServiceImpl implements FileUploadService {
@@ -76,6 +79,8 @@ public class FileUploadServiceImpl implements FileUploadService {
 	
 	@Autowired
 	WorkmenDao workmenDao;
+	 @Autowired
+		CreateEmpFetchByGatePassAPICALL api;
 	
     @Override
     public void uploadFiles(List<MultipartFile> files) {
@@ -198,6 +203,13 @@ public class FileUploadServiceImpl implements FileUploadService {
         return result;
     }
 
+    public String getWFDIntegration() {
+		return QueryFileWatcher.getQuery("TRADE_SKILL_WFD_INTEGRATION");
+	}
+    
+    public String getWFDIntegrationForBULKCancel() {
+		return QueryFileWatcher.getQuery("WFD_INTEGRATION");
+	}
     private Map<String, Object> processTradeSkillUnitMapping(BufferedReader reader) throws IOException {
         List<Map<String, Object>> successData = new ArrayList<>();
         List<Map<String, Object>> errorData = new ArrayList<>();
@@ -275,6 +287,11 @@ public class FileUploadServiceImpl implements FileUploadService {
                 Integer skillId = fileUploadDao.getGeneralMasterId("Skill", skill);
                 if (skillId == null || skillId == 0) {
                     skillId = fileUploadDao.insertGeneralMaster("Skill", skill);
+                    //make api call to wfd
+                    String wfdIntegration = this.getWFDIntegration();
+                	if("yes".equalsIgnoreCase(wfdIntegration)) {
+                		api.postSkills(skillId);
+                	}
                 }
 
                 // Check if mapping exists
@@ -2055,7 +2072,8 @@ public class FileUploadServiceImpl implements FileUploadService {
            map.put("cancelReason",cancelReason);
            
            successData.add(map);
-
+           //make api call to UKG
+           api.updateEmpStatusTerOrAct(bc.getGatepassNumber(),EmployeeStatusType.CANCEL);
                 } catch (Exception e) {
                     errorData.add(Map.of("row", rowNum, "error", "" + e.getMessage()));
                 }

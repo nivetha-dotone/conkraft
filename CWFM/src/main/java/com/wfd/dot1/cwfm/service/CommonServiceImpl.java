@@ -2,13 +2,13 @@ package com.wfd.dot1.cwfm.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
 import com.wfd.dot1.cwfm.dao.CommonDao;
@@ -233,9 +233,36 @@ public class CommonServiceImpl implements CommonService {
 		try {
         	String wfdIntegration = this.getWFDIntegration();
         	if("yes".equalsIgnoreCase(wfdIntegration)) {
-        		String tradeSkillType = commonDAO.getGMID(generalMasterDTO.getGmTypeId(), generalMasterDTO.getGmName());
-        		if(null!=tradeSkillType) {
-        			api.postSkills(Integer.parseInt(tradeSkillType));
+        		Map<String, String> tradeSkillType = commonDAO.getGMID(generalMasterDTO.getGmTypeId(),generalMasterDTO.getGmName());
+
+        		if (tradeSkillType != null && !tradeSkillType.isEmpty()) {
+
+        		    for (Map.Entry<String, String> entry : tradeSkillType.entrySet()) {
+
+        		        String key = entry.getKey();        // GMID
+        		        String value = entry.getValue();    // Type (skill / proficiency / certificate)
+
+        		        if (value != null) {
+
+        		            switch (value.toLowerCase()) {
+
+        		                case "SKILL":
+        		                    api.postSkills(Integer.parseInt(key));
+        		                    break;
+
+        		                case "PROFICIENCY":
+        		                    api.postProfLevels(Integer.parseInt(key));
+        		                    break;
+
+        		                case "CERTIFICATION":
+        		                    api.postCertific(Integer.parseInt(key));
+        		                    break;
+
+        		                default:
+        		                    System.out.println("Unknown type: " + value);
+        		            }
+        		        }
+        		    }
         		}
         	}
         	}catch(Exception e) {

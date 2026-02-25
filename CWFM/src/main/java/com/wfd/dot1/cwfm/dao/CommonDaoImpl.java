@@ -1,8 +1,8 @@
 package com.wfd.dot1.cwfm.dao;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -31,16 +30,12 @@ import com.wfd.dot1.cwfm.pojo.CMSGMType;
 import com.wfd.dot1.cwfm.pojo.CMSRoleRights;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
 import com.wfd.dot1.cwfm.pojo.CmsGeneralMaster;
-import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.pojo.OrgLevel;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
-import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.State;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 //import com.wfd.dot1.cwfm.service.CMSPRINCIPALEMPLOYERService;
 import com.wfd.dot1.cwfm.service.CommonService;
-import com.wfd.dot1.cwfm.util.QueryFileWatcher;
-//import com.wfd.dot1.cwfm.service.ContractorService;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 @Repository
@@ -222,7 +217,9 @@ public class CommonDaoImpl implements CommonDao {
 	 public String getImportOptionsByRole() {
 		 return QueryFileWatcher.getQuery("GET_IMPORT_OPTIONS_BY_ROLE");
 	 }
-	
+	 public String getGMSkill() {
+		 return QueryFileWatcher.getQuery("GM_SKILL");
+	 }
 	@Autowired
 	  private CommonService commonService;
 
@@ -871,15 +868,14 @@ public class CommonDaoImpl implements CommonDao {
 		    });
 }
 		@Override
-		public String getGMID(Long gmtypeId,String gmName) {
-			String result=null;
-			String query ="SELECT gm.GMID FROM CmsGeneralMaster gm "
-					+ " INNER JOIN CMSGMType gmt ON gm.gmTypeId = gmt.gmTypeId "
-					+ " WHERE gmt.gmType in('SKILL','TRADE') and gm.GMTYPEID=? and gm.ISACTIVE=1 and gm.GMNAME=?  ";
+		public Map<String,String> getGMID(Long gmtypeId,String gmName) {
+			Map<String,String> result=new HashMap<>();
+			String query =getGMSkill();
 			 SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gmtypeId,gmName);
 			 while(rs.next()) {
-				result =String.valueOf( rs.getInt("GMID"));
+				result.put(String.valueOf( rs.getInt("GMID")), rs.getString("gmType"));
 				}
 			 return result;
 		}
+		
 }
