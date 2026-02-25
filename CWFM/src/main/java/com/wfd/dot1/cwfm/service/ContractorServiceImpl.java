@@ -278,6 +278,7 @@ public class ContractorServiceImpl implements ContractorService{
 						reg.setStatus(GatePassStatus.APPROVED.getStatus());
 						
 						System.out.println("AUTO approver detected → inserting work order into CMSWORKORDER_LLWC");
+						contrDao.saveCmsContractor(reg);
 						if(contrDao.contractorExistsForPeContractor(String.valueOf(renewal.getContractorId()),renewal.getUnitId())) {
 							contrDao. updateContractorPemm(reg);
 			        	   }else {
@@ -420,6 +421,7 @@ public class ContractorServiceImpl implements ContractorService{
 		        		   contrDao. saveContractorPemm(gpm);
 		        	}
 	                //contrDao.saveContractorPemm(gpm);
+	            	contrDao.saveCmsContractor(gpm);
 	                contrDao.saveContractorWC(policy,gpm);
 	                System.out.println("✅ Renewal data inserted successfully into CMSCONTRPEMM for contractor: " + gpm.getContractorId());
 	            } catch (Exception e) {

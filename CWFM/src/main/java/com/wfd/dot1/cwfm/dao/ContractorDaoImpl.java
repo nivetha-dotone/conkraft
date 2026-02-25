@@ -390,6 +390,7 @@ public class ContractorDaoImpl implements ContractorDao{
 
            status  = jdbcTemplate.update(query, parameters);
            if (status > 0 && "Create".equalsIgnoreCase(contreg.getRequestType())) {
+        	   saveCmsContractor(contreg);
         boolean	  contExists= this.contractorExistsForPeContractor(contreg.getContractorId(),contreg.getUnitId());
         	   if(contExists) {
         		   updateContractorPemm(contreg);
@@ -405,7 +406,18 @@ public class ContractorDaoImpl implements ContractorDao{
         }
     return null;
 	}
-	
+	@Override
+	public void saveCmsContractor(ContractorRegistration contreg) {
+
+	    String sql ="update CMSCONTRACTOR set EMAILADDRESS=?,mobilenumber=? where CODE=?";
+
+	    try {
+	        jdbcTemplate.update(sql,contreg.getEmail(),contreg.getMobile(),contreg.getVendorCode());
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 	
 	public void saveContractorPemm(ContractorRegistration contreg) {
 		String sql = saveContractorPemm();

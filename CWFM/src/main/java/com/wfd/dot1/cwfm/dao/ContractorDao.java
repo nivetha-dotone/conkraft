@@ -118,6 +118,8 @@ public interface ContractorDao {
 
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId);
 
+	public void saveCmsContractor(ContractorRegistration reg);
+
 	   
 	}
 
