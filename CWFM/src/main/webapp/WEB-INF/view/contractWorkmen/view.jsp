@@ -818,14 +818,14 @@ textarea {
                 </td>
            
             
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.lastName"/></label></th>
                 <td>
                 	<input id="lastName" name="lastName" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.lastName}" readonly>
                 </td>
           
             </tr>
             <tr>
-            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.fatherHusbandName"/></label></th>
+            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.fatherHusbandName"/></label></th>
                 <td>
                 	<input id="relationName" name="relationName" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.relationName }" readonly>
                 </td>
@@ -840,7 +840,7 @@ textarea {
                 <td>
                 	<input id="gender" name="gender" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.gender }" readonly>
                      </td>
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.idMark"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<input id="idMark" name="idMark" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.idMark }" readonly>
                 </td>
@@ -894,12 +894,6 @@ textarea {
                         <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workorder"/></label></th>
                             <td><input id="workorder" name="workorder" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.workorder }" readonly> </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
-                            <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.trade }" readonly> </td>
-                        </tr>
-                        <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
-                            <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.department"/></label></th>
                             <td><input id="department" name="department" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.department }" readonly></td>
                         </tr>
@@ -910,63 +904,46 @@ textarea {
                             <td><input id="eic" name="eic" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.eic }" readonly></td>
                         </tr>
                         <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
-                            <td>
-                            	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.natureOfJob }" readonly>
-                            </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
+                            <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.trade }" readonly> </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
+                            <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
+                        </tr>
+                        <tr>
+                            <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
+                            <td style="display:none;"><input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;" type="hidden" value="${GatePassObj.natureOfJob }" readonly></td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.wcPolicyesicRegNumber"/></label></th>
                             <td><input id="wcEsicNo" name="wcEsicNo" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.wcEsicNo }" readonly> </td>
                        		<th><label class="custom-label"><spring:message code="label.labourLicenseNumber"/></label></th>
                             <td><input id="llNo" name="llNo" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.llNo }" readonly> </td>
-                      
                         </tr>
                         <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.hazardeousArea"/></label></th>
                             <td><input id="hazardousArea" name="hazardousArea" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.hazardousArea }" readonly></td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accessArea"/></label></th>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.accessArea"/></label></th>
                             <td><input id="accessArea" name="accessArea" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.accessArea }" readonly>  </td>
                         </tr>
                         <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.uanNumber"/></label></th>
-                            <td>
-                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.uanNumber }" readonly>
-                            </td>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.pfNumber"/></label></th>
+                            <td><input id="pfNumber" name="pfNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.pfNumber }" readonly></td>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.uanNumber"/></label></th>
+                            <td><input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.uanNumber }" readonly></td>
+                        </tr>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
+                            <td><input id="doj" name="doj" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" value="${GatePassObj.doj }" readonly></td>
+			                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfTermination"/></label></th>
+                            <td><input id="dot" name="dot" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" value="${GatePassObj.dot }" readonly></td>
+                        </tr>
+                         <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.healthCheckUpDate"/></label></th>
-                            <td>
-                            	<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.healthCheckDate }" readonly>
-                            	</td>
-                        </tr>
-                        <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfNumber"/></label></th>
-                            <td>
-                            	<input id="pfNumber" name="pfNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.pfNumber }" readonly>
-                            </td>
-                            <th><label class="custom-label"><spring:message code="label.esicNumber"/></label></th>
-                            <td>
-                            	<input id="esicNumber" name="esicNumber"  style="width: 100%;height: 20px;" type="text" value="${GatePassObj.esicNumber }" readonly>
-                            	</td>
-                        </tr>
-                        <tr>
-                         <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
-                        	<td>
-    				<input id="doj" name="doj" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" 
-     value="${GatePassObj.doj }" readonly>
-			</td>
-			
-			 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfTermination"/></label></th>
-                        	<td>
-    				<input id="dot" name="dot" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" 
-     value="${GatePassObj.dot }" readonly>
-			</td>
+                            <td><input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.healthCheckDate }" readonly></td>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.esicNumber"/></label></th>
+                            <td><input id="esicNumber" name="esicNumber"  style="width: 100%;height: 20px;" type="text" value="${GatePassObj.esicNumber }" readonly></td>
                         </tr>
                          <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfApplicable"/></label></th>
-                            
-                            <td>
-        <input type="checkbox" id="pfApplicable" name="pfApplicable"
-               <c:if test="${GatePassObj.pfApplicable eq 'Yes'}">checked</c:if>
-               disabled />
-    </td>
+                            <td><input type="checkbox" id="pfApplicable" name="pfApplicable" <c:if test="${GatePassObj.pfApplicable eq 'Yes'}">checked</c:if> disabled /></td>
                         </tr>
                     </tbody>
                 </table>

@@ -771,7 +771,7 @@ label {
                 </td>
            
             
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.lastName"/></label></th>
                 <td>
                  <c:if test="${empty GatePassObj.lastName }">
                  	<input id="lastName" name="lastName" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -791,7 +791,7 @@ label {
             </tr>
             <tr>
 
-            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.fatherHusbandName"/></label></th>
+            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.fatherHusbandName"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.relationName }">
                 		<input id="relationName" name="relationName" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -832,7 +832,7 @@ label {
                     <label id="error-gender" style="color: red;display: none;">Gender is required</label>
                 </td>
 
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.idMark"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.idMark }">
                 		<input id="idMark" name="idMark" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -973,34 +973,6 @@ label {
                                 </select>
                                 <label id="error-workorder" style="color: red;display: none;">Workorder is required</label>
                             </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
-                            <td><select class="custom-select" id="trade" name="tradeId" onchange="getSkills()" >
-                                <option value="">Please select Trade</option>
-								<c:forEach var="pe" items="${Trades}">
-								
-                					<option value="${pe.tradeId}"
-									<c:if test="${Trades.size() == 1}">selected</c:if>>
-									${pe.tradeName}</option>
-            					</c:forEach>
-								
-								</select>
-                                <label id="error-trade"style="color: red;display: none;">Trade is required</label>
-                                </td>
-                        </tr>
-                        <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
-                            <td><select class="custom-select" id="skill" name="skillId" >
-                                	<option value="">Please select Skill</option>
-									
-                                	 <c:forEach var="s" items="${Skills}">
-									 
-                						<option value="${s.skillId}"	<c:if test="${Skills.size() == 1}">selected</c:if>>
-										${s.skill}</option>
-            						</c:forEach>
-            						
-                                </select>
-                                <label id="error-skill" style="color: red;display: none;">Skill is required</label>
-                            </td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.department"/></label></th>
                             <td><select class="custom-select" id="department" name="departmentId" onchange="getAreabyDept(); getEic();">
                                 <option value="">Please select Department</option>
@@ -1040,6 +1012,34 @@ label {
         						</select>
                                 <label id="error-eic"style="color: red;display: none;">EIC is required</label>
                                 </td>
+                        </tr>
+                        <tr>
+                        <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
+                            <td><select class="custom-select" id="trade" name="tradeId" onchange="getSkills()" >
+                                <option value="">Please select Trade</option>
+								<c:forEach var="pe" items="${Trades}">
+								
+                					<option value="${pe.tradeId}"
+									<c:if test="${Trades.size() == 1}">selected</c:if>>
+									${pe.tradeName}</option>
+            					</c:forEach>
+								
+								</select>
+                                <label id="error-trade"style="color: red;display: none;">Trade is required</label>
+                                </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
+                            <td><select class="custom-select" id="skill" name="skillId" >
+                                	<option value="">Please select Skill</option>
+									
+                                	 <c:forEach var="s" items="${Skills}">
+									 
+                						<option value="${s.skillId}"	<c:if test="${Skills.size() == 1}">selected</c:if>>
+										${s.skill}</option>
+            						</c:forEach>
+            						
+                                </select>
+                                <label id="error-skill" style="color: red;display: none;">Skill is required</label>
+                            </td>
                         </tr>
                         <%-- <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
@@ -1512,7 +1512,7 @@ label {
         					<div id="aadharError"></div> <!-- Error message for Aadhar file -->
                 		</td>
                 		<td>
-                		 	<label for="appointmentFile"><span class="required-field">*</span><spring:message code="label.uploadappointmentCard"/></label>
+                		 	<label for="appointmentFile"><span class="required-field"></span><spring:message code="label.uploadappointmentCard"/></label>
        					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
        					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;"></span> 
         					<div id="appointmentError"></div> <!-- Error message for Aadhar file -->

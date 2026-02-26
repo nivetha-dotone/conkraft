@@ -419,14 +419,14 @@ function initializeDatePicker() {
     } else {
     $("#error-firstName").hide(); 
     }
-    const lastName = $("#lastName").val().trim();
+    /*const lastName = $("#lastName").val().trim();
     const lastnameRegex = /^[A-Za-z\s]{1,}$/;
     if (!lastnameRegex.test(lastName)) {
         $("#error-lastName").show();
         isValid = false;
     }else{
 		 $("#error-lastName").hide();
-	}
+	}*/
 	/*if (firstName.toLowerCase() === lastName.toLowerCase()) {
     $("#error-equalNames").show();
     isValid = false;
@@ -447,22 +447,22 @@ function initializeDatePicker() {
     }else{
 		$("#error-gender").hide();
 	}
-    const relationName = $("#relationName").val().trim();
+   /* const relationName = $("#relationName").val().trim();
     const relationnameRegex = /^[A-Za-z\s]{2,}$/;  // Only alphabetic characters, at least 2 letters
     if (!relationnameRegex.test(relationName)) {
     $("#error-relationName").show(); // Show error if invalid
     isValid = false;
     } else {
     $("#error-relationName").hide(); // Hide error if valid
-    }
-    const idMark = $("#idMark").val().trim();
+    }*/
+   /* const idMark = $("#idMark").val().trim();
     const idmarkRegex=/^[A-Za-z\s]+$/;
     if (!idmarkRegex.test(idMark)) {
         $("#error-idMark").show();
         isValid = false;
     }else{
 		 $("#error-idMark").hide();
-	}
+	}*/
 	
 	const mobileInput = $("#mobileNumber").val().trim();
 	const mobileNumberRegex = /^[6-9]\d{9}$/;
@@ -567,14 +567,14 @@ function validateEmploymentInformation(){
 		$("#error-eic").hide();
 	}
 	if(type ==="regular" || type === "quick"){
-	 const noj = $("#natureOfJob").val().trim();
+	 /*const noj = $("#natureOfJob").val().trim();
 	const nojRegex = /^(?=.*[A-Za-z]{2,})[A-Za-z\s]+$/;
     if (!nojRegex.test(noj)) {
         $("#error-natureOfJob").show();
         isValid = false;
     }else{
 		 $("#error-natureOfJob").hide();
-	}
+	}*/
 	const wc = $("#wc").val();
      if (wc === "") {
         $("#error-wc").show();
@@ -596,27 +596,34 @@ function validateEmploymentInformation(){
     }else{
 		$("#error-hazardous").hide();
 	}
-	const aa = $("#accessArea").val();
+	/*const aa = $("#accessArea").val();
      if (aa === "") {
         $("#error-accessArea").show();
         isValid = false;
     }else{
 		$("#error-accessArea").hide();
-	}
+	}*/
 	let uanCheckPassed = false;
 	
 	 const uan = $("#uanNumber").val().trim();
 	 
 	 const aadharNumber = $("#aadharNumber").val().trim();
 	 const uanRegex = /^\d{12}$/;
+   if (uan === "") {
+        $("#error-uanNumber").hide();
+        uanCheckPassed = true;
+    }else {
+    // ✅ Validate format
     if (!uanRegex.test(uan)) {
-        $("#error-uanNumber").show();
+        $("#error-uanNumber").text("Please enter valid 12 digit UAN").show();
         isValid = false;
-    }else if (uan === "000000000000") {
-		    // UAN is 12 zeros, skip duplicate check
-		    $("#error-uanNumber").hide();
-		    uanCheckPassed = true;
-		}else{
+        uanCheckPassed = false;
+    }
+    // ✅ Allow 000000000000 without duplicate check
+    else if (uan === "000000000000") {
+        $("#error-uanNumber").hide();
+        uanCheckPassed = true;
+    }else{
 	  // Check in backend if Aadhar exists
 		         $.ajax({
 		             url: "/CWFM/contractworkmen/checkUanExists",
@@ -639,7 +646,7 @@ function validateEmploymentInformation(){
 		             }
 		         });
 		     }       
-
+}
 	const healthCheckDate = $("#healthCheckDate").val().trim();
     if (healthCheckDate === "") {
         $("#error-healthCheckDate").show();
@@ -650,10 +657,10 @@ function validateEmploymentInformation(){
 	let pfNumberCheckPassed = false;
 	const pfNumber = $("#pfNumber").val().trim();
 	const cleanedPf = pfNumber.trim().replace(/\s+/g, '').toLowerCase();
-	if (!cleanedPf ) {
-	    $("#error-pfNumber").show();
-	    isValid = false;
-	} 
+	if (cleanedPf === "") {
+    $("#error-pfNumber").hide();
+    pfNumberCheckPassed = true;
+   }
 	else if (cleanedPf === "newjoinee") {
 	    // Special case → skip validation, do NOT show error
 	    $("#error-pfNumber").hide();
@@ -711,7 +718,7 @@ function validateEmploymentInformation(){
 	if (licenceType === "ESIC") {
 showEsic();
     if ( esicNumber === "") {
-        $("#error-esicNumber").text("ESIC Number is required").show();
+        $("#error-esicNumber").show();
         isValid = false;
     } else {
         $("#error-esicNumber").hide(); // ✅ hides properly
@@ -1146,6 +1153,10 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 
 	function submitGatePass(userId,type) {
 		showLoader();
+		// ✅ Clear all previous errors first
+    $("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    
     let basicValid = true;
     let employmentValid = true;
     let otherValid = true;
@@ -3519,7 +3530,7 @@ function setDateRange() {
         changeMonth: true,      // Allow changing month via dropdown
         changeYear: true,       // Allow changing year via dropdown
         yearRange: "0:+100", 
-        minDate: 0 ,
+        minDate: -15,
 		maxDate: +15             // Prevent selecting future dates
     });
     const sixMonthsAgo = new Date();

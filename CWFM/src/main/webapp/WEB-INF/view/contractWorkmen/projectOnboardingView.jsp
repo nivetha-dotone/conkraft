@@ -492,14 +492,14 @@ textarea {
                 </td>
            
             
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.lastName"/></label></th>
                 <td>
                 	<input id="lastName" name="lastName" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.lastName}">
                 </td>
           
             </tr>
             <tr>
-             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.fatherHusbandName"/></label></th>
+             <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.fatherHusbandName"/></label></th>
                 <td>
                 	<input id="relationName" name="relationName" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.relationName }" readonly>
                 </td>
@@ -514,7 +514,7 @@ textarea {
                 <td>
                 	<input id="gender" name="gender" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.gender }" readonly>
                      </td>
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.idMark"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<input id="idMark" name="idMark" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.idMark }" readonly>
                 </td>
@@ -566,12 +566,6 @@ textarea {
                         <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workorder"/></label></th>
                             <td><input id="workorder" name="workorder" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.workorder }" readonly> </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
-                            <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.trade }" readonly> </td>
-                        </tr>
-                        <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
-                            <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.department"/></label></th>
                             <td><input id="department" name="department" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.department }" readonly></td>
                         </tr>
@@ -580,6 +574,12 @@ textarea {
                             <td><input id="subdepartment" name="subdepartment" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.subdepartment }" readonly> </td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.engineeringInCharge"/></label></th>
                             <td><input id="eic" name="eic" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.eic }" readonly></td>
+                        </tr>
+                        <tr>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
+                            <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.trade }" readonly> </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
+                            <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
                         </tr>
                        <%--  <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>

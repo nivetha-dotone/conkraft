@@ -867,7 +867,7 @@ label {
                 </td>
            
             
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.lastName"/></label></th>
                 <td>
                  <c:if test="${empty GatePassObj.lastName }">
                  	<input id="lastName" name="lastName" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -886,7 +886,7 @@ label {
            <label  id="error-equalNames" style="display:none;">First name cannot be the same as last name.</label>
             </tr> -->
             <tr>
-            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.fatherHusbandName"/></label></th>
+            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.fatherHusbandName"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.relationName }">
                 		<input id="relationName" name="relationName" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -926,7 +926,7 @@ label {
 				</select>
                     <label id="error-gender" style="color: red;display: none;">Gender is required</label>
                 </td>
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.idMark"/></label></th>
+                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.idMark }">
                 		<input id="idMark" name="idMark" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -1064,34 +1064,6 @@ label {
                                 </select>
                                 <label id="error-workorder" style="color: red;display: none;">Workorder is required</label>
                             </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
-                            <td><select class="custom-select" id="trade" name="tradeId" onchange="getSkills()" >
-                                <option value="">Please select Trade</option>
-								<c:forEach var="pe" items="${Trades}">
-								
-                					<option value="${pe.tradeId}"
-									${GatePassObj.trade eq pe.tradeId ? 'selected="selected"' : ''}>
-									${pe.tradeName}</option>
-            					</c:forEach>
-								
-								</select>
-                                <label id="error-trade"style="color: red;display: none;">Trade is required</label>
-                                </td>
-                        </tr>
-                        <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
-                            <td><select class="custom-select" id="skill" name="skillId" >
-                                	<option value="">Please select Skill</option>
-									
-                                	 <c:forEach var="s" items="${Skills}">
-									 
-                						<option value="${s.skillId}"	${GatePassObj.skill eq s.skillId ? 'selected="selected"' : ''}>
-										${s.skill}</option>
-            						</c:forEach>
-            						
-                                </select>
-                                <label id="error-skill" style="color: red;display: none;">Skill is required</label>
-                            </td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.department"/></label></th>
                             <td><select class="custom-select" id="department" name="departmentId" onchange="getAreabyDept(); getEic();">
                                 <option value="">Please select Department</option>
@@ -1135,32 +1107,56 @@ label {
                                 </td>
                         </tr>
                         <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
-                            <td>
-                            	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off" value="${not empty GatePassObj.natureOfJob ? GatePassObj.natureOfJob : ''}">
-                            	<div style="text-align: right;">
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.trade"/></label></th>
+                            <td><select class="custom-select" id="trade" name="tradeId" onchange="getSkills()" >
+                                <option value="">Please select Trade</option>
+								<c:forEach var="pe" items="${Trades}">
+								
+                					<option value="${pe.tradeId}"
+									${GatePassObj.trade eq pe.tradeId ? 'selected="selected"' : ''}>
+									${pe.tradeName}</option>
+            					</c:forEach>
+								
+								</select>
+                                <label id="error-trade"style="color: red;display: none;">Trade is required</label>
+                                </td>
+                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
+                            <td><select class="custom-select" id="skill" name="skillId" >
+                                	<option value="">Please select Skill</option>
+									
+                                	 <c:forEach var="s" items="${Skills}">
+									 
+                						<option value="${s.skillId}"	${GatePassObj.skill eq s.skillId ? 'selected="selected"' : ''}>
+										${s.skill}</option>
+            						</c:forEach>
+            						
+                                </select>
+                                <label id="error-skill" style="color: red;display: none;">Skill is required</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
+                            <td style="display:none;">
+                            	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;text-transform: capitalize;" type="hidden" size="30" maxlength="30" autocomplete="off" value=" ">
+                            	<div style="text-align: right;display:none;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.natureOfJobRegax"/></span>
                                 </div>
                             	  <label id="error-natureOfJob"style="color: red;display: none;">Please enter a valid Nature of Job</label>
                             </td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.wcPolicyesicRegNumber"/></label></th>
                             <td><select class="custom-select" id="wc" name="wcId" onchange="onWcChange(this)">
-    <option value="">Please select WC Policy / ESIC Reg Number</option>
-
-    <c:forEach var="pe" items="${Wcs}">
-        <c:if test="${pe.licenceType eq 'WC' || pe.licenceType eq 'ESIC'}">
-           
-                <option value="${pe.wcId}"
-                 data-code="${pe.licenceType}"
-                ${GatePassObj.wcEsicNo eq pe.wcCode ? 'selected="selected"' : ''}>
-                ${pe.wcCode}
-            </option>
-        </c:if>
-    </c:forEach>
-</select>
-                            
-                                <label id="error-wc"style="color: red;display: none;">WC Policy/ESIC Reg Number is required</label>
-                                </td>
+                                  <option value="">Please select WC Policy / ESIC Reg Number</option>
+                                      <c:forEach var="pe" items="${Wcs}">
+                                           <c:if test="${pe.licenceType eq 'WC' || pe.licenceType eq 'ESIC'}">
+                                             <option value="${pe.wcId}" data-code="${pe.licenceType}"
+                                                ${GatePassObj.wcEsicNo eq pe.wcCode ? 'selected="selected"' : ''}>
+                                                  ${pe.wcCode}
+                                             </option>
+                                           </c:if>
+                                      </c:forEach>
+                                </select>
+                                 <label id="error-wc"style="color: red;display: none;">WC Policy/ESIC Reg Number is required</label>
+                             </td>
                                  <th><label class="custom-label"><spring:message code="label.labourLicenseNumber"/></label></th>
                             <td><select class="custom-select" id="ll" name="llId" >
                                 <option value="">Please select Labor License Number</option>
@@ -1184,7 +1180,7 @@ label {
                                 </select>
                                  <label id="error-hazardous"style="color: red;display: none;">Hazardous Area is required</label>
                                 </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accessArea"/></label></th>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.accessArea"/></label></th>
                             <td>  
                             <select class="custom-select"  id="accessArea" name="accessArea" >
        								 <option value="">Please select Access Area</option>
@@ -1199,43 +1195,7 @@ label {
     						</td>
                         </tr>
                         <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.uanNumber"/></label></th>
-                            <td>
-                            <c:if test="${empty GatePassObj.uanNumber }">
-                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                            </c:if>
-                            
-                            <c:if test="${not empty GatePassObj.uanNumber }">
-                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" value="${GatePassObj.uanNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                            </c:if>
-                            <div style="text-align: right;">
-                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.uanNumberRegax"/></span>
-                                </div>
-                            		<label id="error-uanNumber"style="color: red;display: none;">Please enter a valid UAN Number</label>
-                            </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.healthCheckUpDate"/></label></th>
-                            <td>
-                            	<c:if test="${ empty GatePassObj.healthCheckDate }">
-                            		<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat2" 
-       style="width: 100%; height: 20px;" type="text" size="30" maxlength="30" 
-       autocomplete="off" readonly>
-
-                            	</c:if>
-                            	<c:if test="${ not empty GatePassObj.healthCheckDate }">
-                            		<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat2" style="width: 100%;height: 20px;" type="text" size="30" maxlength="30" value="${GatePassObj.healthCheckDate }" autocomplete="off" >
-                            
-                            	</c:if>
-                            	<div style="text-align: right;">
-                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.healthCheckUpDateRegax"/></span>
-                                </div>
-                            		<label id="error-healthCheckDate"style="color: red;display: none;">Please enter a valid Health Check Up Date</label>
-                            	</td>
-                        </tr>
-                       <tr>
-
-                        
-
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfNumber"/></label></th>
+                        <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.pfNumber"/></label></th>
                             <td>
                             <c:if test="${empty GatePassObj.pfNumber }">
                             	<input id="pfNumber" name="pfNumber" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -1249,6 +1209,52 @@ label {
                                 </div>
                             		<label id="error-pfNumber"style="color: red;display: none;">Please enter a valid PF Number</label>
                             </td>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.uanNumber"/></label></th>
+                            <td>
+                            <c:if test="${empty GatePassObj.uanNumber }">
+                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </c:if>
+                            
+                            <c:if test="${not empty GatePassObj.uanNumber }">
+                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" value="${GatePassObj.uanNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </c:if>
+                            <div style="text-align: right;">
+                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.uanNumberRegax"/></span>
+                                </div>
+                            		<label id="error-uanNumber"style="color: red;display: none;">Please enter a valid UAN Number</label>
+                            </td>
+                        </tr>
+                       <tr>
+                        <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
+
+                        	<td>
+                        	<c:set var="now" value="<%= new java.util.Date() %>" />
+                        	<c:if test="${ empty GatePassObj.doj }">
+                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"  autocomplete="off"  value="<fmt:formatDate value='${now}' pattern='yyyy-MM-dd'/>" >
+                        	</c:if>
+    				
+    						<c:if test="${ not empty GatePassObj.doj }">
+                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"    value="${ GatePassObj.doj}" autocomplete="off">
+                        	</c:if>
+                        	<div style="text-align: right;">
+                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.dateOfJoiningRegax"/></span>
+                                </div>
+					     <label id="error-doj" style="color: red;display: none;">Please enter a valid Date Of Joining</label>
+			        </td>
+                        
+                         <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.healthCheckUpDate"/></label></th>
+                            <td>
+                            	<c:if test="${ empty GatePassObj.healthCheckDate }">
+                            		<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat2" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30" autocomplete="off" readonly>
+                            	</c:if>
+                            	<c:if test="${ not empty GatePassObj.healthCheckDate }">
+                            		<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat2" style="width: 100%;height: 20px;" type="text" size="30" maxlength="30" value="${GatePassObj.healthCheckDate }" autocomplete="off" >
+                            	</c:if>
+                            	<div style="text-align: right;">
+                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.healthCheckUpDateRegax"/></span>
+                                </div>
+                            		<label id="error-healthCheckDate"style="color: red;display: none;">Please enter a valid Health Check Up Date</label>
+                            	</td>
                            <%--  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.esicNumber"/></label></th>
                             <td>
                             	<c:if test="${ empty GatePassObj.esicNumber }">
@@ -1264,64 +1270,28 @@ label {
                                 </div>
                             		<label id="error-esicNumber"style="color: red;display: none;">Please enter a valid ESIC Number</label>
                             	</td> --%>
-                            	<th>
-   <label class="custom-label">
-    <span id="esicRequiredStar" class="required-field" style="display:none">*</span>
-    <spring:message code="label.esicNumber"/>
-</label>
-
-
-</th>
-
-<td>
-    <div id="esicNumberSection" style="display:none;">
-    <input id="esicNumber"
-           name="esicNumber"
-           type="text"
-           maxlength="10"
-           autocomplete="off"
-           inputmode="numeric"
-           pattern="[0-9]*"
-           oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-
-    <label id="error-esicNumber" style="color:red;display:none;">
-        Please enter a valid ESIC Number
-    </label>
-</div>
-
-</td>
                             	
                         </tr>
-                        <tr>
-                         <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
-
-                        	<td>
-                        	<c:set var="now" value="<%= new java.util.Date() %>" />
-                        	<c:if test="${ empty GatePassObj.doj }">
-                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"  autocomplete="off"  value="<fmt:formatDate value='${now}' pattern='yyyy-MM-dd'/>" >
-                        	</c:if>
-    				
-    						<c:if test="${ not empty GatePassObj.doj }">
-                        		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"    value="${ GatePassObj.doj}" autocomplete="off">
-                        	</c:if>
-                        	<div style="text-align: right;">
-                                    <span style="color: #666; font-size: 11px;"><spring:message code="label.dateOfJoiningRegax"/></span>
-                                </div>
-					  <label id="error-doj" style="color: red;display: none;">Please enter a valid Date Of Joining</label>
-			        </td>
+                 <tr>
 			        <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfApplicable"/></label></th>
                       <td><input type="checkbox" id="pfApplicable" name="pfApplicable"
-    <c:if test="${GatePassObj.pfApplicable eq 'Yes'}">checked</c:if>
-    onclick="validatePfForm11Requirement()" />
+                             <c:if test="${GatePassObj.pfApplicable eq 'Yes'}">checked</c:if> onclick="validatePfForm11Requirement()" />
 
                      <!--  <label for="pfApplicable">Yes</label> -->
                       <!-- <label id="error-pfApplicable"style="color: red;display: none;">Please check pfApplicable</label> -->
                      </td>
-                  </tr>
-                        
-                    </tbody>
-                </table>
-            </div>
+                        <th><label class="custom-label"><span id="esicRequiredStar" class="required-field" style="display:none">*</span><spring:message code="label.esicNumber"/></label></th>
+                              <td>
+                                <div id="esicNumberSection" style="display:none;">
+                                  <input id="esicNumber" name="esicNumber" type="text" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                     <!-- <label id="error-esicNumber" style="color:red;display:none;">Please enter a valid ESIC Number</label> -->
+                                </div>
+                                   <label id="error-esicNumber" style="color:red;display:none;">Please enter a valid ESIC Number</label>
+                               </td>
+                </tr>
+           </tbody>
+          </table>
+       </div>
 
             <div id="tab3" class="tab-content">
               <table class="ControlLayout" cellspacing="0" cellpadding="0">
