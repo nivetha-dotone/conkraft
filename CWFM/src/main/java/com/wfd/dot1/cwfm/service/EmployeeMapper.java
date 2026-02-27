@@ -6,12 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
+
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +29,21 @@ public class EmployeeMapper {
     @Autowired
     private GatePassToOnBoardService gatePassToOnBoardService;
 
+    @Autowired
+    private EmailService emailService;
+
     private final ObjectMapper objectMapper;
+    private static final Logger log = LoggerFactory.getLogger(GatePassToOnBoardService.class.getName());
+
 
     public EmployeeMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
+
+    public String getRegardsEmail() {
+        return QueryFileWatcher.getQuery("getRegards");
+    }
+
 
     public String gatePassEmpDtoStatic(String GatePassId) {
         try {
@@ -1351,4 +1365,178 @@ public class EmployeeMapper {
         dto.setUser(user);
         return dto;
     }
+
+
+    @Scheduled(cron = "0 0 10 * * ?")
+    public void setupWorkorderMail() {
+     try{
+         log.info("Email Service Start");
+        List<WorkOrderDTOMail> expiringWorkOrders = gatePassToOnBoardService.getExpiringWorkOrders();
+         String regardsEmail = getRegardsEmail();
+         Map<Long, List<WorkOrderDTOMail>> grouped = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
+        for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+            List<WorkOrderDTOMail> value = entry.getValue();
+            String bodyMail = buildHtmlTable(value,regardsEmail);
+            Set<String> mailSends = new HashSet<>();
+            for (WorkOrderDTOMail order : value) {
+                if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                    mailSends.add(order.getConEmail());
+                }
+
+            }
+            if (!mailSends.isEmpty()) {
+                String subject = "Workorder Expiry Notification " + LocalDate.now();
+                emailService.sendHtmlMail(mailSends, subject, bodyMail);
+            }
+        }
+         Map<String, List<WorkOrderDTOMail>> groupedHr = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+        for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty: groupedHr.entrySet()){
+            List<WorkOrderDTOMail> value = hrMailEnty.getValue();
+            String bodyMail = buildHtmlTable(value, regardsEmail);
+            Set<String> hrMailByunitName = gatePassToOnBoardService.getHrMailByunitName(hrMailEnty.getKey());
+            if(!hrMailByunitName.isEmpty() && hrMailByunitName!=null){
+                String subject = "Workorder Expiry Notification " + LocalDate.now();
+                emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+            }
+        }
+
+
+
+     } catch (Exception e) {
+         throw new RuntimeException(e);
+     }
+    }
+
+
+
+    public String buildHtmlTable(List<WorkOrderDTOMail> list, String regards) {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<html><body>");
+        html.append("<h3>Work Orders Expiring Within 1 Month</h3>");
+        html.append("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse;'>");
+
+        html.append("<tr style='background-color:#f2f2f2;'>")
+                .append("<th>Contractor ID</th>")
+                .append("<th>Contractor Code</th>")
+                .append("<th>Principal Employer</th>")
+                .append("<th>Contractor</th>")
+                .append("<th>Work Order ID</th>")
+                .append("<th>SAP Work Order</th>")
+                .append("<th>Valid Till</th>")
+                .append("</tr>");
+
+        for (WorkOrderDTOMail dto : list) {
+
+            html.append("<tr>")
+                    .append("<td>").append(dto.getContractorId()).append("</td>")
+                    .append("<td>").append(dto.getCode()).append("</td>")
+                    .append("<td>").append(dto.getUnitName()).append("</td>")
+                    .append("<td>").append(dto.getContractor()).append("</td>")
+                    .append("<td>").append(dto.getWorkOrderId()).append("</td>")
+                    .append("<td>").append(dto.getSapWorkOrderNum()).append("</td>")
+                    .append("<td>").append(dto.getValidDt()).append("</td>")
+                    .append("</tr>");
+        }
+
+        html.append("</table>");
+        html.append("<br><br>Regards,<br>");
+        html.append(regards);
+
+        return html.toString();
+    }
+
+
+
+    @Scheduled(cron = "0 0 10 * * ?")
+   public void setupLaborLMail() {
+     try{
+         log.info("Email Service Start");
+
+        List<WorkOrderDTOMail> expiringWorkOrders = gatePassToOnBoardService.getExpiringLL();
+         String regardsEmail = getRegardsEmail();
+        Map<Long, List<WorkOrderDTOMail>> grouped = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
+
+        for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+            List<WorkOrderDTOMail> value = entry.getValue();
+            String bodyMail = buildHtmlTableLL(value,regardsEmail);
+            Set<String> mailSends = new HashSet<>();
+            for (WorkOrderDTOMail order : value) {
+                if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                    mailSends.add(order.getConEmail());
+                }
+
+            }
+            if (!mailSends.isEmpty()) {
+                String subject = "Labor License Expiry Notification " + LocalDate.now();
+                emailService.sendHtmlMail(mailSends, subject, bodyMail);
+            }
+        }
+
+         Map<String, List<WorkOrderDTOMail>> groupedHr = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+         for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty: groupedHr.entrySet()){
+             List<WorkOrderDTOMail> value = hrMailEnty.getValue();
+             String bodyMail = buildHtmlTableLL(value,regardsEmail);
+             Set<String> hrMailByunitName = gatePassToOnBoardService.getHrMailByunitName(hrMailEnty.getKey());
+             if(!hrMailByunitName.isEmpty() && hrMailByunitName!=null){
+                 String subject = "Labor License Expiry Notification " + LocalDate.now();
+                 emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+             }
+         }
+
+     } catch (Exception e) {
+         throw new RuntimeException(e);
+     }
+    }
+
+
+
+    public String buildHtmlTableLL(List<WorkOrderDTOMail> list , String regards) {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<html><body>");
+        html.append("<h3>Labor License Expiring Within 1 Month</h3>");
+        html.append("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse;'>");
+
+        html.append("<tr style='background-color:#f2f2f2;'>")
+                .append("<th>Contractor ID</th>")
+                .append("<th>Contractor Code</th>")
+                .append("<th>Principal Employer</th>")
+                .append("<th>Contractor</th>")
+                .append("<th>WorkOrder Number</th>")
+                .append("<th>License Number</th>")
+                .append("<th>Valid Till</th>")
+                .append("</tr>");
+
+        for (WorkOrderDTOMail dto : list) {
+
+            html.append("<tr>")
+                    .append("<td>").append(dto.getContractorId()).append("</td>")
+                    .append("<td>").append(dto.getCode()).append("</td>")
+                    .append("<td>").append(dto.getUnitName()).append("</td>")
+                    .append("<td>").append(dto.getContractor()).append("</td>")
+                    .append("<td>").append(dto.getWorkOrderId()).append("</td>")
+                    .append("<td>").append(dto.getSapWorkOrderNum()).append("</td>")
+                    .append("<td>").append(dto.getValidDt()).append("</td>")
+                    .append("</tr>");
+        }
+
+        html.append("</table>");
+        html.append("<br><br>Regards,<br>");
+        html.append(regards);
+        html.append("</body></html>");
+
+        return html.toString();
+    }
+
+
+
+
+
+
+
+
+
 }

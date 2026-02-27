@@ -7,10 +7,7 @@ import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,36 +28,37 @@ public class GatePassToOnBoardService {
     public String getGTByTrnsId() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY");
     }
-
     public String getQuerytoFetchListNOTPOST() {
         return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOST");
     }
-
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
     }
-
     public String getQueryUpdateWFDLogOK() {
         return QueryFileWatcher.getQuery("getupdateWFDLogOK");
     }
-
     public String getQueryInsertNotSuccess() {
         return QueryFileWatcher.getQuery("getWFDLognotOK");
     }
-
     public String getQueryUpdateWFDNotSuccess() {
         return QueryFileWatcher.getQuery("getupdateWFDLognotOK");
     }
-
     public String getSKILLSByTrnsId() {
         return QueryFileWatcher.getQuery("GET_SKILL_DETAILS_BY_TRANSACTIONID_QUERY");
     }
-
     public String getSKILSPROBygpId() {
         return QueryFileWatcher.getQuery("GET_SKILLS_PRO");
     }
+    public String getQueryMailerDiscuss() {
+        return QueryFileWatcher.getQuery("getMailerDiscuss");
+    }
 
-
+    public String getQueryMailerDiscussLL() {
+        return QueryFileWatcher.getQuery("getMailerDiscussLL");
+    }
+    public String getQueryHrEmailByUnitName() {
+        return QueryFileWatcher.getQuery("getHrMailByunitName");
+    }
     public String getQueryOfBlacklist() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfBlacklist");
     }
@@ -254,7 +252,8 @@ public class GatePassToOnBoardService {
                 assignment.setExpirationDate(expiryDate.format(formatter));
                 assignmentList.add(assignment);
             }
-
+            
+            
             if (assignmentList.isEmpty()) {
                 return null;
             } else {
@@ -542,4 +541,89 @@ public class GatePassToOnBoardService {
             throw new RuntimeException(e);
         }
     }
+
+
+    public List<WorkOrderDTOMail> getExpiringWorkOrders() {
+       try{
+
+        log.info("Work Order Expriry record fetch");
+        String sql = getQueryMailerDiscuss();
+
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            WorkOrderDTOMail dto = new WorkOrderDTOMail();
+
+            dto.setContractorId(rs.getLong("CONTRACTORID"));
+            dto.setCode(rs.getString("CODE"));
+            dto.setUnitCode(rs.getString("unitcode"));
+            dto.setUnitName(rs.getString("UnitName"));
+            dto.setContractor(rs.getString("Contractor"));
+            dto.setConEmail(rs.getString("ContractorMail"));
+            dto.setWorkOrderId(rs.getLong("WORKORDERID"));
+            dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
+            dto.setValidDt(rs.getString("VALIDDT"));
+
+            return dto;
+        });
+
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+    }
+
+
+
+     public Set<String> getHrMailByunitName(String unitName) {
+       try{
+
+        log.info("Work Order Expriry record fetch");
+        String sql = getQueryHrEmailByUnitName();
+
+           SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql, unitName);
+           Set<String> mailSends = new HashSet<>();
+           while(rs.next()){
+
+               String string = rs.getString("EmailId");
+               mailSends.add(string);
+
+
+           }
+           return mailSends;
+
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+    }
+
+
+     public List<WorkOrderDTOMail> getExpiringLL() {
+       try{
+
+        log.info("Work Order Expriry record fetch");
+        String sql = getQueryMailerDiscussLL();
+
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            WorkOrderDTOMail dto = new WorkOrderDTOMail();
+
+            dto.setContractorId(rs.getLong("CONTRACTORID"));
+            dto.setCode(rs.getString("CODE"));
+            dto.setUnitCode(rs.getString("unitcode"));
+            dto.setUnitName(rs.getString("UnitName"));
+            dto.setContractor(rs.getString("Contractor"));
+            dto.setConEmail(rs.getString("ContractorMail"));
+            dto.setWorkOrderId(rs.getLong("WONUMBER"));
+            dto.setSapWorkOrderNum(rs.getString("LICENSE_NUMBER"));
+            dto.setValidDt(rs.getString("WC_TO_DTM"));
+
+            return dto;
+        });
+
+       } catch (Exception e) {
+           throw new RuntimeException(e);
+       }
+    }
+
+
+
 }

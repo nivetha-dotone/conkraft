@@ -259,7 +259,33 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+    @GetMapping("/checkWorkOrderExMAil")
+    public ResponseEntity<String> workorderMail() {
 
+        try {
+            employeeMapper.setupWorkorderMail();
+            return ResponseEntity.ok("Workorder expiry emails triggered successfully.");
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while sending workorder expiry emails: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/checkLLExMAil")
+    public ResponseEntity<String> lLMail() {
+
+        try {
+            employeeMapper.setupLaborLMail();
+            return ResponseEntity.ok("LL expiry emails triggered successfully.");
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while sending LL expiry emails: " + e.getMessage());
+        }
+    }
 
 
 
