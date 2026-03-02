@@ -10,6 +10,21 @@ public class ActionAuditDto {
 	    private String fromDate;
 	    private String toDate;
 	    private String source;
+	    private String lastApprover;
+	    private String nextApprover;
+	    
+		public String getLastApprover() {
+			return lastApprover;
+		}
+		public void setLastApprover(String lastApprover) {
+			this.lastApprover = lastApprover;
+		}
+		public String getNextApprover() {
+			return nextApprover;
+		}
+		public void setNextApprover(String nextApprover) {
+			this.nextApprover = nextApprover;
+		}
 		public String getAadharNumber() {
 			return aadharNumber;
 		}

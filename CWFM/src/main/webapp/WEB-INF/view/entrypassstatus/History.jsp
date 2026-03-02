@@ -180,7 +180,58 @@
         padding: 4px; /* Reduced padding for the table header */
         box-sizing: border-box; /* Include padding and border in element's total width and height */
     }
-   
+    .custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    margin-bottom: 25px;
+}
+
+/* Header */
+.custom-table thead th {
+    background-color: #DDF3FF;   /* light blue like first image */
+    color: #333;
+    font-weight: 600;
+    padding: 10px;
+    border: 1px solid #b7c7d1;
+    text-align: left;
+}
+
+/* Body cells */
+.custom-table tbody td {
+    padding: 15px 10px;
+    border: 1px solid #d6d6d6;
+        font-size: 85%;
+    font-weight: 700;
+    /* background-color: #f4f4f4; */
+}
+ 
+/* Rounded corners */
+.custom-table thead th:first-child {
+    border-top-left-radius: 6px;
+}
+
+.custom-table thead th:last-child {
+    border-top-right-radius: 6px;
+}
+
+ /* Hover effect */
+/* .custom-table tbody tr:hover td {
+    background-color: #e0eaf0;
+}  */
+
+/* No data style */
+.no-data {
+    text-align: center;
+    padding: 15px;
+    font-weight: 600;
+    color: #666;
+}
+.table-body-style td {
+    font-size: 85%;
+    font-weight: 700;
+}
 </style>
 </head>
 <body>
@@ -238,24 +289,24 @@
 
 <h3>Audit Trail</h3>
 <table id="auditTable"></table> -->
-     <h3>Workman Summary</h3>
+<h3 Style="color: darkcyan;margin-left: 5px;">Workman Summary</h3>
 <div class="table-container">
-    <table id="summaryTable"></table>
+    <table id="summaryTable" class="custom-table"></table>
+</div>
+<br>
+<h3 Style="color: darkcyan;margin-left: 5px;">Current Employment</h3>
+<div class="table-container">
+    <table id="currentTable" class="custom-table"></table>
 </div>
 
-<h3>Current Employment</h3>
+<h3 Style="color: darkcyan;margin-left: 5px;">Previous Employment</h3>
 <div class="table-container">
-    <table id="currentTable"></table>
+    <table id="previousTable" class="custom-table"></table>
 </div>
 
-<h3>Previous Employment</h3>
+<h3 Style="color: darkcyan;margin-left: 5px;">Audit Trail</h3>
 <div class="table-container">
-    <table id="previousTable"></table>
-</div>
-
-<h3>Audit Trail</h3>
-<div class="table-container">
-    <table id="auditTable"></table>
+    <table id="auditTable" class="custom-table"></table>
 </div>
      
                          

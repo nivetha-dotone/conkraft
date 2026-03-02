@@ -102,6 +102,8 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         p.setAccessAreaId(rs.getString("AccessAreaId"));
                         p.setDoj(rs.getString("DOJ"));
                         p.setDot(rs.getString("DOT"));
+                        p.setLastApprover(rs.getString("LastApprovers"));
+                        p.setNextApprover(rs.getString("NextApprovers"));
                         prevList.add(p);
                     }
                 }
@@ -118,6 +120,8 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         a.setFromDate(rs.getString("FromDate"));
                         a.setToDate(rs.getString("ToDate"));
                         a.setSource(rs.getString("Source"));
+                        a.setLastApprover(rs.getString("LastApprovers"));
+                        a.setNextApprover(rs.getString("NextApprovers"));
                         auditList.add(a);
                     }
                 }

@@ -73,9 +73,7 @@ function loadHistory() {
     })
     .catch(err => console.error("Error:", err));
 }
-
-
-function fillTable(tableId, rows) {
+/*function fillTable(tableId, rows) {
 
     let table = document.getElementById(tableId);
     table.innerHTML = "";
@@ -84,23 +82,130 @@ function fillTable(tableId, rows) {
         table.innerHTML = "<tr><td>No data</td></tr>";
         return;
     }
+    // 🔹 Columns to hide
+    const hiddenColumns = ["source"];
 
-    // header
+    // 🔹 Custom Header Mapping
+    const headerMap = {
+        aadharNumber: "Aadhaar Number",
+        firstName: "First Name",
+        lastName: "Last Name",
+        dob: "Date of Birth",
+        gender: "Gender",
+        mobileNumber: "Mobile Number",
+        gatePassId: "GatePassID",
+        gatePassStatus: "GatePass Status",
+        updatedBy: "Updated By",
+        updatedDate: "Updated Date",
+
+        principalEmployer: "Principal Employer",
+        contractor: "Contractor Name",
+        workorder: "WorkOrder",
+        trade: "Trade",
+        skill: "Skill",
+        department: "Department",
+        area: "Area",
+        natureOfJob: "Nature of Job",
+        accessAreaId: "Access Area",
+        doj: "Date of Joining",
+        dot: "Date of Termination",
+
+        gatePassType: "GatePass Type",
+        status: "Status",
+        actionType: "Action Type",
+        remarks: "Reason of Offboarding",
+        actionDate: "Action Date",
+        fromDate: "From Date",
+        toDate: "To Date"
+    };
+
+    // 🔹 Get visible columns (exclude hidden ones)
+    const columns = Object.keys(rows[0]).filter(col => !hiddenColumns.includes(col));
+
+     // 🔹 Header row
     let header = "<tr>";
-    Object.keys(rows[0]).forEach(col => {
-        header += "<th>" + col + "</th>";
+    columns.forEach(col => {
+        let displayName = headerMap[col] || formatHeader(col);
+        header += "<th>" + displayName + "</th>";
     });
     header += "</tr>";
-
     table.innerHTML += header;
 
-    // rows
+    // 🔹 Data rows
     rows.forEach(row => {
         let tr = "<tr>";
-        Object.values(row).forEach(val => {
-            tr += "<td>" + (val ?? "") + "</td>";
+        columns.forEach(col => {
+            tr += "<td>" + (row[col] ?? "") + "</td>";
         });
         tr += "</tr>";
         table.innerHTML += tr;
     });
+}*/
+function fillTable(tableId, rows) {
+
+    let table = document.getElementById(tableId);
+    table.innerHTML = "";
+
+    if (!rows || rows.length === 0) {
+        table.innerHTML = "<tbody><tr><td class='no-data'>No data available</td></tr></tbody>";
+        return;
+    }
+
+    const hiddenColumns = ["source"];
+
+    const headerMap = {
+        aadharNumber: "Aadhaar Number",
+        firstName: "First Name",
+        lastName: "Last Name",
+        dob: "Date of Birth",
+        gender: "Gender",
+        mobileNumber: "Mobile Number",
+        gatePassId: "GatePass ID",
+        gatePassStatus: "GatePass Status",
+        updatedBy: "Updated By",
+        updatedDate: "Updated Date",
+        principalEmployer: "Principal Employer",
+        contractor: "Contractor Name",
+        workorder: "WorkOrder",
+        trade: "Trade",
+        skill: "Skill",
+        department: "Department",
+        area: "Area",
+        natureOfJob: "Nature of Job",
+        accessAreaId: "Access Area",
+        doj: "Date of Joining",
+        dot: "Date of Termination",
+        gatePassType: "GatePass Type",
+        status: "Status",
+        actionType: "Action Type",
+        remarks: "Reason of Offboarding",
+        actionDate: "Action Date",
+        fromDate: "From Date",
+        toDate: "To Date",
+        lastApprover:"Last Approver",
+        nextApprover:"Next Approver"
+    };
+
+    const columns = Object.keys(rows[0]).filter(col => !hiddenColumns.includes(col));
+
+    // Create THEAD
+    let thead = "<thead><tr>";
+    columns.forEach(col => {
+        let displayName = headerMap[col] || col;
+        thead += "<th>" + displayName + "</th>";
+    });
+    thead += "</tr></thead>";
+
+    // Create TBODY
+    let tbody = "<tbody class='table-body-style'>";
+    rows.forEach(row => {
+        tbody += "<tr>";
+        columns.forEach(col => {
+            tbody += "<td>" + (row[col] ?? "") + "</td>";
+        });
+        tbody += "</tr>";
+    });
+    tbody += "</tbody>";
+
+    table.innerHTML = thead + tbody;
 }
