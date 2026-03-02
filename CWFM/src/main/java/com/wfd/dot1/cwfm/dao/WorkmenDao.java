@@ -78,7 +78,7 @@ public interface WorkmenDao {
 
 	public void saveGatePassStatusLog(GatePassStatusLogDto dto);
 
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction);
 
 	public List<MasterUser> getApproversForGatePassAction(String createdBy,String gatepassAction);
 

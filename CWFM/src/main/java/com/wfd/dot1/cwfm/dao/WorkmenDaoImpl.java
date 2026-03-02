@@ -129,6 +129,9 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	 public String getGatePassActionListingDetailsQuery() {
 		 return QueryFileWatcher.getQuery("GET_ALL_GATE_PASS_ACTION_FOR_CREATOR");
 	 }
+	 public String getCancelActionListingDetailsQuery() {
+		 return QueryFileWatcher.getQuery("GET_ALL_CANCEL_ACTION_FOR_CREATOR");
+	 }
 	 public String getAllEicManagerQuery() {
 		 return QueryFileWatcher.getQuery("GET_ALL_EIC");
 	 }
@@ -1005,14 +1008,22 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 	}
 
 	@Override
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction) {
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction) {
 		log.info("Entering into getGatePassListingDetails dao method ");
 		List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
-		String query = getGatePassActionListingDetailsQuery();
+		String query = null;
 		log.info("Query to getGatePassListingDetails "+query);
-		//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,deptId,unitId,previousGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+		SqlRowSet rs =null;
 
-		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,previousGatePassAction,renewGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+		if(gatePassTypeId.equals(GatePassType.CANCEL.getStatus())) {
+			query = getCancelActionListingDetailsQuery();
+			String bulkcancel = GatePassType.BULKCANCEL.getStatus();
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,bulkcancel,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId,bulkcancel);
+		}else {
+			query=getGatePassActionListingDetailsQuery();
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+		}
+		
 		while(rs.next()) {
 			GatePassListingDto dto = new GatePassListingDto();
 			dto.setTransactionId(rs.getString("TransactionId"));

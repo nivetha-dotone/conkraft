@@ -983,7 +983,7 @@ public class WorkmenController {
 			
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLOCK.getStatus());
@@ -1079,7 +1079,7 @@ public class WorkmenController {
 			
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLACKLIST.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLACKLIST.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLACKLIST.getStatus());
@@ -1169,7 +1169,7 @@ public class WorkmenController {
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CANCEL.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CANCEL.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.CANCEL.getStatus());
@@ -1216,7 +1216,7 @@ public class WorkmenController {
 			
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.LOSTORDAMAGE.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.LOSTORDAMAGE.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.LOSTORDAMAGE.getStatus());

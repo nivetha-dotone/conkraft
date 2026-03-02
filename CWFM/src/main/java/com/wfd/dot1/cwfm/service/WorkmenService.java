@@ -58,7 +58,7 @@ public interface WorkmenService {
 
 	public String gatePassAction(GatePassActionDto dto);
 	
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String previousGatePassAction,String renewGatePassAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction);
 
 	public List<GatePassListingDto> getWorkmenDetailBasedOnId(String gatePassId);
 

@@ -798,8 +798,9 @@ label {
 
      <input type="file" id="aadhaarFile" accept="image/*,.pdf"
            onchange="showSelectedFileName()" /><span id="selectedFileName" style="margin-left:10px; color:#555;"></span>
-</td><td>
-    <button type="button" onclick="uploadAadhaarFile()" class="btn btn-default process-footer-button-cancel ng-binding">
+	<br>
+    <button type="button" onclick="uploadAadhaarFile()" class="btn btn-default process-footer-button-cancel"
+            style="display:inline-block; margin-left:8px;">
         Validate Aadhaar Through OCR
     </button>
 

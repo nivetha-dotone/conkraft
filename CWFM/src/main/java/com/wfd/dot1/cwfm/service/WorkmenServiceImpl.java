@@ -711,8 +711,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		return result;
 	}
 	@Override
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction) {
-		return workmenDao.getGatePassActionListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction) {
+		return workmenDao.getGatePassActionListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction,bulkRenewAction);
 	}
 	@Override
 	public List<GatePassListingDto> getWorkmenDetailBasedOnId(String gatePassId) {
