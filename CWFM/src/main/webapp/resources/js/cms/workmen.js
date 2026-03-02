@@ -4051,13 +4051,13 @@ if(valid){
 									  document.getElementById("address").value =  address;
 									  document.getElementById("relationName").value =  fathername;
 									  
-									  document.getElementById("aadharNumber").readOnly = true;
-									  document.getElementById("firstName").readOnly = true;
+									  document.getElementById("aadharNumber").readOnly = false;
+									  document.getElementById("firstName").readOnly = false;
 									         
-											 document.getElementById("dateOfBirth").disabled = true;
+											 document.getElementById("dateOfBirth").disabled = false;
 
-									         document.getElementById("gender").disabled = true;   // if it's a <select>
-									         document.getElementById("address").readOnly = true;
+									         document.getElementById("gender").disabled = false;   // if it's a <select>
+									         document.getElementById("address").readOnly = false;
 									        
 											 document.querySelector('button[onclick="generateToken()"]').disabled = true;
 								}
@@ -4425,6 +4425,7 @@ function uploadAadhaarFile() {
 
     const fileInput = document.getElementById("aadhaarFile");
 
+	
     if (!fileInput.files.length) {
         hideLoader();
         alert("Please select Aadhaar file");
@@ -4510,11 +4511,11 @@ function uploadAadhaarFile() {
             document.getElementById("relationName").value = fathername;
 
             // ✅ Lock fields
-            document.getElementById("aadharNumber").readOnly = true;
-            document.getElementById("firstName").readOnly = true;
-            document.getElementById("dateOfBirth").disabled = true;
-            document.getElementById("gender").disabled = true;
-            document.getElementById("address").readOnly = true;
+            document.getElementById("aadharNumber").readOnly = false;
+            document.getElementById("firstName").readOnly = false;
+            document.getElementById("dateOfBirth").disabled = false;
+            document.getElementById("gender").disabled = false;
+            document.getElementById("address").readOnly = false;
 
             
 

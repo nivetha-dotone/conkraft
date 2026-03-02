@@ -2315,7 +2315,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
 	    // ---------- LL Mandatory ----------
 	    boolean llMandatory =
-	            llExists &&
+	            !llExists ||
 	            (
 	                (llExpiry != null && llExpiry.before(today)) ||
 	                (llExpiry != null && !llExpiry.before(today) && llCount == 0)

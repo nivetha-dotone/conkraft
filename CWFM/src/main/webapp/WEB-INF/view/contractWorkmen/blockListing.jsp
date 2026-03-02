@@ -257,9 +257,9 @@
         Bulk Approve
     </button>
 
-    <button type="submit" onclick="bulkApprove(5)" class="btn btn-danger process-footer-button-cancel ng-binding">
+   <!--  <button type="submit" onclick="bulkApprove(5)" class="btn btn-danger process-footer-button-cancel ng-binding">
         Bulk Reject
-    </button>
+    </button> -->
 
      </c:if>
        <c:if test="${UserPermission.exportRights eq 1 }">
