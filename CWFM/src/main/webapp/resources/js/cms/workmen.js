@@ -2241,7 +2241,7 @@ const data = {
 	gatePassType : gatePassType,
 };
 	  const xhr = new XMLHttpRequest();
-xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true); // Replace with your actual controller URL
+xhr.open("POST", "/CWFM/contractworkmen/lostDamagegatePassAction", true); // Replace with your actual controller URL
 xhr.setRequestHeader("Content-Type", "application/json"); // Set content type for JSON
 xhr.onload = function() {
 	hideLoader();
@@ -2541,7 +2541,7 @@ function previewImage(event, inputId, displayId) {
 					            if (Array.isArray(response) &&response.length > 0) {
 					                $.each(response, function(index, wo) {
 					                    var row = '<tr  >' +
-												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.transactionId + '"></td>'+
+												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.transactionId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 												'<td  >' + wo.transactionId + '</td>' +
 												 '<td  >' + wo.gatePassId + '</td>' +
 					                              '<td  >' + wo.firstName+' ' +wo.lastName + '</td>' +
@@ -2641,7 +2641,7 @@ function previewImage(event, inputId, displayId) {
 										            if (Array.isArray(response) && response.length > 0) {
 										                $.each(response, function(index, wo) {
 										                    var row = '<tr>' +
-										                        '<td><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>' +
+										                       '<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 										                        '<td>' + wo.transactionId + '</td>' +
 										                        '<td>' + wo.gatePassId + '</td>' +
 										                        '<td>' + wo.firstName + ' ' + wo.lastName + '</td>' +
@@ -2687,7 +2687,7 @@ function previewImage(event, inputId, displayId) {
 										        if (Array.isArray(response) &&response.length > 0) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
-																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
+																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																											'<td  >' + wo.transactionId + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName + ' '+ wo.lastName +'</td>' +
@@ -2733,7 +2733,7 @@ function previewImage(event, inputId, displayId) {
 										        if (Array.isArray(response) &&response.length > 0) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
-																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
+																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																											'<td  >' + wo.transactionId + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName + ' '  + wo.lastName + '</td>' +
@@ -2778,7 +2778,7 @@ function previewImage(event, inputId, displayId) {
 										        if (Array.isArray(response) &&response.length > 0) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
-																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
+																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																											'<td  >' + wo.transactionId + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName + ' '+ wo.lastName +'</td>' +
@@ -3061,7 +3061,7 @@ function previewImage(event, inputId, displayId) {
 											        if (Array.isArray(response) &&response.length > 0) {
 											            $.each(response, function(index, wo) {
 											                var row = '<tr  >' +
-																							'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
+																							'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																							'<td  >' + wo.transactionId + '</td>' +
 																							 '<td  >' + wo.gatePassId + '</td>' +
 											                          '<td  >' + wo.firstName + ' ' + wo.lastName +'</td>' +
@@ -3114,6 +3114,11 @@ function redirectToWorkmenRenewEdit() {
 }
 function renewGatePass(userId) {
 	showLoader();
+	
+	// ✅ Clear all previous errors first
+    $("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    
     let basicValid = true;
     let employmentValid = true;
     let otherValid = true;
@@ -3158,6 +3163,28 @@ function renewGatePass(userId) {
     console.log("otherValid: " + otherValid);
     console.log("wagesValid: " + wagesValid);
     console.log("documentValid: " + documentValid);
+    
+    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
+
+    if (!basicValid) errorTabs.push("Basic");
+    if (!employmentValid) errorTabs.push("Employment");
+    if (!otherValid) errorTabs.push("Other");
+    if (!wagesValid) errorTabs.push("Wages");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        hideLoader();
+        return;
+    }
+    
  const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
     if (basicValid && employmentValid && otherValid && wagesValid && documentValid) {
         const data = new FormData();
@@ -4672,4 +4699,283 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     $("#docTabGlobalError").hide();
 }			
     return valid;
+}
+function blackListBulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+         loadCommonList('/contractworkmen/blackListFilter', 'Black List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function cancelBulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+         loadCommonList('/contractworkmen/cancelFilter', 'Cancel List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function unblockBulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+         loadCommonList('/contractworkmen/unblockListFilter', 'Unblock List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function deblackListBulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+         loadCommonList('/contractworkmen/deblackListFilter', 'Deblack List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function renewBulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+          loadCommonList('/contractworkmen/renewFilter', 'Renew List');
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function createBulkApprove(status,type) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+	const commentsVal = ($("#approvercomments").val() || "").trim();
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.text())
+    .then(msg => {
+        hideLoader();
+        sessionStorage.setItem("successMessage", msg);
+        if(type=== "regular"){
+                    loadCommonList('/contractworkmen/list', 'On-Boarding List');
+                    //hideLoader();
+                }else if(type=== "quick"){
+                    loadCommonList('/contractworkmen/quickOnboardingList', 'Quick Onboarding List');
+                   // hideLoader();
+                }else{
+					loadCommonList('/contractworkmen/projectOnboardingList', 'Project Gatepass List');
+					//hideLoader();
+				}
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
 }

@@ -537,7 +537,9 @@ public class WorkmenController {
 	public String getAllPrincipalEmployer(HttpServletRequest request, HttpServletResponse response) {
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
 		
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -812,51 +814,51 @@ public class WorkmenController {
     }
     
     
-//    @PostMapping("/gatePassAction")
-//    public ResponseEntity<String> gatePassAction(@RequestBody GatePassActionDto dto,HttpServletRequest request,HttpServletResponse response) {
-//    	String result=null; 
-//    	try {
-//             ObjectMapper objectMapper = new ObjectMapper();
-//             String gatePassActionDto = objectMapper.writeValueAsString(dto);
-//             log.info("Received gatePassActionDto JSON: {}", gatePassActionDto);
-//         } catch (Exception e) {
-//             log.error("Error converting gatePassActionDto to JSON", e);
-//         }
-//         try {
-//        	 result = workmenService.gatePassAction(dto);
-//         	if(null!=result) {
-//         		
-//         		if(dto.getGatePassType().equals(GatePassType.CREATE.getStatus())) {
-//            		result="contractWorkmen/view";
-//            	}else if(dto.getGatePassType().equals(GatePassType.CANCEL.getStatus()))
-//            	{
-//            		result="contractWorkmen/cancelView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.BLOCK.getStatus()))
-//            	{
-//            		result="contractWorkmen/blockView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus()))
-//            	{
-//            		result="contractWorkmen/unblockView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus()))
-//            	{
-//            		result="contractWorkmen/blackView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus()))
-//            	{
-//            		result="contractWorkmen/deblackView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.LOSTORDAMAGE.getStatus()))
-//            	{
-//            		result="contractWorkmen/lostView";
-//            	}else if(dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
-//            		result="contractWorkmen/renewView";
-//            	}
-//         		return new ResponseEntity<>(result,HttpStatus.OK);
-//         	}
-//         	return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//         } catch (Exception e) {
-//             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                                  .body("Error saving data: " + e.getMessage());
-//         } 
-//    }
+    @PostMapping("/lostDamagegatePassAction")
+    public ResponseEntity<String> gatePassAction(@RequestBody GatePassActionDto dto,HttpServletRequest request,HttpServletResponse response) {
+    	String result=null; 
+    	try {
+             ObjectMapper objectMapper = new ObjectMapper();
+             String gatePassActionDto = objectMapper.writeValueAsString(dto);
+             log.info("Received gatePassActionDto JSON: {}", gatePassActionDto);
+         } catch (Exception e) {
+             log.error("Error converting gatePassActionDto to JSON", e);
+         }
+         try {
+        	 result = workmenService.gatePassAction(dto);
+         	if(null!=result) {
+         		
+         		if(dto.getGatePassType().equals(GatePassType.CREATE.getStatus())) {
+            		result="contractWorkmen/view";
+            	}else if(dto.getGatePassType().equals(GatePassType.CANCEL.getStatus()))
+            	{
+            		result="contractWorkmen/cancelView";
+            	}else if(dto.getGatePassType().equals(GatePassType.BLOCK.getStatus()))
+            	{
+            		result="contractWorkmen/blockView";
+            	}else if(dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus()))
+            	{
+            		result="contractWorkmen/unblockView";
+            	}else if(dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus()))
+            	{
+            		result="contractWorkmen/blackView";
+            	}else if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus()))
+            	{
+            		result="contractWorkmen/deblackView";
+            	}else if(dto.getGatePassType().equals(GatePassType.LOSTORDAMAGE.getStatus()))
+            	{
+            		result="contractWorkmen/lostView";
+            	}else if(dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
+            		result="contractWorkmen/renewView";
+            	}
+         		return new ResponseEntity<>(result,HttpStatus.OK);
+         	}
+         	return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+         } catch (Exception e) {
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                  .body("Error saving data: " + e.getMessage());
+         } 
+    }
     @PostMapping("/gatePassAction")
     public ResponseEntity<String> gatePassAction(
             @RequestParam("jsonData") String jsonData,
@@ -981,6 +983,7 @@ public class WorkmenController {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 			
+			
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
@@ -1002,6 +1005,9 @@ public class WorkmenController {
    	public String unblockListFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		List<PrincipalEmployer> listDto =new ArrayList<PrincipalEmployer>();
         CMSRoleRights rr =new CMSRoleRights();
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/unblockListFilter");
@@ -1053,6 +1059,9 @@ public class WorkmenController {
    	public String blackListFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		List<PrincipalEmployer> listDto =new ArrayList<PrincipalEmployer>();
         CMSRoleRights rr =new CMSRoleRights();
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/blackListFilter");
@@ -1099,6 +1108,9 @@ public class WorkmenController {
    	public String deblackListFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		List<PrincipalEmployer> listDtos =new ArrayList<PrincipalEmployer>();
         CMSRoleRights rr =new CMSRoleRights();
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/deblackListFilter");
@@ -1144,6 +1156,9 @@ public class WorkmenController {
    	public String cancelFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		List<PrincipalEmployer> listDtos =new ArrayList<PrincipalEmployer>();
         CMSRoleRights rr =new CMSRoleRights();
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/cancelFilter");
@@ -2009,7 +2024,9 @@ public class WorkmenController {
    	public String renewFilter(HttpServletRequest request, HttpServletResponse response) {
    		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
    		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-   	
+   		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
    		
    		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
        	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -2447,7 +2464,9 @@ public class WorkmenController {
     public String quickOnboardingList(HttpServletRequest request, HttpServletResponse response) {
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
 		
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -3038,7 +3057,9 @@ if (status.contains("Unique")) {
     public String projectOnboardingList(HttpServletRequest request, HttpServletResponse response) {
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
 		
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()

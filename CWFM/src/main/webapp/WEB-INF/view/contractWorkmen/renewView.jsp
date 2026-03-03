@@ -616,9 +616,9 @@ textarea {
                             <td><input id="accessArea" name="accessArea" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.accessArea }" readonly>  </td>
                         </tr>
                         <tr>
-                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfNumber"/></label></th>
+                             <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.pfNumber"/></label></th>
                             <td><input id="pfNumber" name="pfNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.pfNumber }" readonly></td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.uanNumber"/></label></th>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.uanNumber"/></label></th>
                             <td><input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.uanNumber }" readonly></td>
                         </tr>
                         <tr>

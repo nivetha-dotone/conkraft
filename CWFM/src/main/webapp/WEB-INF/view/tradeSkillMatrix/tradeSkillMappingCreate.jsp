@@ -867,7 +867,7 @@ ${p.gmName}
 <tr>
 
  <td>
-                <button type="button" class="btn btn-danger addRowCert" style="color:blue;background-color:white;">+</button>
+                <button type="button" class="btn btn-success addRowCert" style="color:blue;background-color:white;">+</button>
             </td>
             <td>
                 <button type="button" class="btn btn-danger removeRowCert" style="color:blue;background-color:white;">-</button>
@@ -938,9 +938,7 @@ ${p.gmName}
 </td>
 
 <td>
-
 <input type="text"  class="grantDate grantdatetimepicker">
-
 </td>
 
 <td>

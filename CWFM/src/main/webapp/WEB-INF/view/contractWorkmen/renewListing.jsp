@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="f"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ page import="com.wfd.dot1.cwfm.pojo.MasterUser" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -180,8 +181,47 @@
         padding: 4px; /* Reduced padding for the table header */
         box-sizing: border-box; /* Include padding and border in element's total width and height */
     }
-   
+    #loaderOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ddd;
+    border-top: 6px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loader-text {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
+<%
+    	MasterUser user = (MasterUser) session.getAttribute("loginuser");
+     String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
+        String roleName = user != null ? user.getRoleName() : "";
+        String roleId = user!=null?user.getRoleId():"";
+		%>
 </head>
 <body>
 <div class="page-header">
@@ -216,17 +256,33 @@
         <c:if test="${UserPermission.exportRights eq 1 }">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportCSVFormat()">Export</button>
    </c:if>
+    <% if (user != null && !"Contractor".equals(roleName)) { %>
+     <button type="submit" onclick="renewBulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
+        Bulk Approve
+    </button>
+    <% } %>
     </div>
 </div>
 
+     <%-- <form id="updateForm" action="/CWFM/workorders/update" method="POST" >
+     <div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
+                         <div class="table-container"> --%>
+                          <div id="loaderOverlay" style="display:none;">
+    <div class="loader"></div>
+    <div class="loader-text">please wait...</div>
+</div>
      <form id="updateForm" action="/CWFM/workorders/update" method="POST" >
      <div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
                          <div class="table-container">
+                         <input type="hidden" id="userId" value="${userId}">
+<input type="hidden" id="roleName" value="${roleName}">
+<input type="hidden" id="roleId" value="${roleId}">
+ <input type="hidden" id="approvercomments" value=""> 
     <table id="workmenTable"  cellspacing="0" cellpadding="0" >
         <thead>
 <tr >
                     <td >
-                        <input type="checkbox" id="selectAllAadharWorkmenCheckbox" onchange="toggleSelectAllAadharWorkmen()" >
+                        <input type="checkbox" id="selectAllBlockCheckbox" onchange="toggleAll(this)" >
                     </td> 
                     <!-- Add more table headers for each column -->
                     <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.transactionId"/><span id="sortIndicatorName" class="sort-indicator sort-asc"></span></th>
@@ -248,16 +304,15 @@
         <tbody>
             <c:forEach items="${GatePassListingDto}" var="wo" >
             <tr>
-            <td  ><input type="checkbox" name="selectedWOs" value="${wo.transactionId}"></td>
+             <td  ><input type="checkbox" name="selectedWOs" value="${wo.gatePassId}" class="bulk-check"
+       data-transaction="${wo.transactionId}"
+       data-gatepass="${wo.gatePassId}"
+       data-type="${wo.gatePassType}"></td>
 												<td  > ${ wo.transactionId } </td> 
 												 <td  > ${ wo.gatePassId } </td> 
 					                              <td  > ${ wo.firstName } ${ wo.lastName}  </td> 
-												 
-												  
-												  
 												  <td  >${  wo.aadhaarNumber}  </td> 	
 												  <td  > ${ wo.contractorName}  </td> 	
-												 
 												  <td  >${ wo.unitName } </td> 	
 												  <td  >${  wo.gatePassType } </td> 
 												  <td  >${  wo.onboardingType}  </td> 

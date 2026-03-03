@@ -221,17 +221,21 @@ function searchGatePassIdBasedOnPE() {
 						}
 						
 						function saveTradeSkillPro() {
-                            
+                            showLoader();
 							 if (!validateTradeSkill()) {
+								 hideLoader();
                                   return;
                               }
                               if (!validateCertification()) {
+								  hideLoader();
                                     return;
                                  }
                                  if (!validateTradeSkillDuplicates()) {
+									 hideLoader();
 									 return;
 									 }
                                    if (!checkCertificationDuplicates()){
+									   hideLoader();
 	                                     return;
                                           }                                
 						    const data = new FormData();
@@ -288,16 +292,19 @@ function searchGatePassIdBasedOnPE() {
 						    xhr.open("POST", "/CWFM/tradeSkillMatrix/saveTradeSkill", true);
 
 						    xhr.onload = function () {
-
+                                    hideLoader();
 						        if (xhr.status === 200) {
-						            alert("Saved successfully");
-						            loadCommonList('/tradeSkillMatrix/list',
-						                'Trade Skill Mapping');
+						            //alert("Saved successfully");
+						            sessionStorage.setItem("successMessage", "Trade Skill Mapping saved successfully!");
+						            loadCommonList('/tradeSkillMatrix/list','Trade Skill Mapping');
 
 						        } else if (xhr.status === 409) {
+									hideLoader();
 						            alert("Duplicate combination exists");
 						        } else {
-						            alert("Save failed");
+									hideLoader();
+									sessionStorage.setItem("errorMessage", "Failed to save Mapping!");
+						            //alert("Save failed");
 						        }
 						    };
 
@@ -631,4 +638,10 @@ function checkCertificationDuplicates() {
 
     return !hasDuplicate; // ✅ true = OK to save, false = stop save
 }
+function showLoader() {
+    document.getElementById("loaderOverlay").style.display = "flex";
+}
 
+function hideLoader() {
+    document.getElementById("loaderOverlay").style.display = "none";
+}

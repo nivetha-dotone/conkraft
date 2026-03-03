@@ -810,7 +810,7 @@ label {
                                  </select>
                                   <label id="error-hazardous"style="color: red;display: none;">Hazardous Area is required</label>
                               </td>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accessArea"/></label></th>
+                            <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.accessArea"/></label></th>
                                <td><select class="custom-select"  id="accessArea" name="accessArea" >
        								 <option value="">Please select Access Area</option>
         							    <c:forEach var="option" items="${AccessArea}">
@@ -839,11 +839,11 @@ label {
                             <th><label class="custom-label"><spring:message code="label.uanNumber"/></label></th>
                               <td>
                                 <c:if test="${empty GatePassObj.uanNumber }">
-                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
+                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="12" maxlength="12" autocomplete="off">
                                 </c:if>
                             
                                <c:if test="${not empty GatePassObj.uanNumber }">
-                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" value="${GatePassObj.uanNumber }" autocomplete="off">
+                            	<input id="uanNumber" name="uanNumber" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="12" maxlength="12" value="${GatePassObj.uanNumber }" autocomplete="off">
                                </c:if>
                                  <div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.uanNumberRegax"/></span>
@@ -852,7 +852,7 @@ label {
                             </td>
                         </tr>
                         <tr>
-                         <th><label class="custom-label"><spring:message code="label.dateOfJoining"/></label></th>
+                         <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
                         	<td>
                         	<c:if test="${ empty GatePassObj.doj }">
                         		<input id="doj" name="doj" class="datetimepickerformat1" style="width: 100%; height: 20px;" type="text" size="30" maxlength="30"  autocomplete="off"  >
@@ -866,7 +866,7 @@ label {
                              </div>
 					       <label id="error-doj" style="color: red;display: none;">Please enter a valid Date Of Joining</label>
 			           </td>
-			         <th><label class="custom-label"><spring:message code="label.healthCheckUpDate"/></label></th>
+			         <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.healthCheckUpDate"/></label></th>
                             <td>
                             	<c:if test="${ empty GatePassObj.healthCheckDate }">
                             		<input id="healthCheckDate" name="healthCheckDate" class="datetimepickerformat" style="width: 100%;height: 20px;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -1160,6 +1160,15 @@ label {
             </div>
 
               <div id="tab5" class="tab-content">
+              <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;">
+</div>
+ <div id="licenseError" style="display:none;
+            background:#f8d7da;
+            color:#842029;
+            padding:10px;
+            border-radius:6px;
+            border:1px solid #f5c2c7;
+            margin-bottom:10px;"></div>
             <table class="ControlLayout" cellspacing="0" cellpadding="0">
                     <tbody>
                    <tr>

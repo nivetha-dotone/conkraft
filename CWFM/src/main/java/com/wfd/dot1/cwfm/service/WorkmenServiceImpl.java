@@ -1083,12 +1083,13 @@ public class WorkmenServiceImpl implements WorkmenService{
 		person.setEmergencyName(gpm.getEmergencyName());
 		person.setEmergencyNumber(gpm.getEmergencyNumber());
 		person.setMobileNumber(gpm.getMobileNumber());
-		person.setAccessLevel(Integer.parseInt(gpm.getAccessArea()));
+		//person.setAccessLevel(Integer.parseInt(gpm.getAccessArea()));
+		person.setAccessLevel(gpm.getAccessArea() != null && !gpm.getAccessArea().trim().isEmpty()? Integer.parseInt(gpm.getAccessArea()): 0);
 		person.setEsicNumber(gpm.getEsicNumber());
-		person.setUanNumber(gpm.getUanNumber());
+		person.setUanNumber(gpm.getUanNumber()!=null?gpm.getUanNumber():" ");
 		person.setIsPfEligible(gpm.getPfApplicable().equals("Yes")?1:0);
-		person.setIdMark(gpm.getIdMark());
-		person.setPanNumber(gpm.getPfNumber());
+		person.setIdMark(gpm.getIdMark()!=null?gpm.getIdMark():" ");
+		person.setPanNumber(gpm.getPfNumber()!=null?gpm.getPfNumber():" ");
 		person.setAadharNumber(gpm.getAadhaarNumber());
 		person.setUpdatedBy(gpm.getCreatedBy());
 		

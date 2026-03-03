@@ -597,7 +597,62 @@ label {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
-}      
+}  
+.ocr-box {
+    display: inline-block;      /* Prevents column stretching */
+    max-width: 380px;           /* Keeps box controlled */
+    padding: 10px;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+    background-color: #f7f7f7;
+    box-sizing: border-box;
+}
+
+.file-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.file-row input[type="file"] {
+    flex-shrink: 0;            /* Prevent shrinking */
+}
+
+/* Style your custom filename */
+.file-name {
+    margin-left: 10px;
+    max-width: 220px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
+    color: #555;
+}
+
+.ocr-btn {
+    margin-top: 8px;
+    white-space: nowrap;
+}
+/* Hide default filename text but keep button */
+.custom-file-input {
+    width: 120px;          /* show only button area */
+    overflow: hidden;
+}
+
+/* For Chrome, Edge, Safari */
+.custom-file-input::-webkit-file-upload-button {
+    cursor: pointer;
+}
+
+/* For modern browsers */
+.custom-file-input::file-selector-button {
+    cursor: pointer;
+}
+.file-row input[type="file"] {
+    flex-shrink: 0;
+     overflow: hidden;
+}    
     </style>
      <%
     MasterUser user = (MasterUser) session.getAttribute("loginuser");
@@ -794,7 +849,7 @@ label {
      <button type="button" onclick="generateToken()" class="btn btn-default process-footer-button-cancel ng-binding">Validate</button>
      
      </td>
-    <td >
+    <!-- <td >
 
      <input type="file" id="aadhaarFile" accept="image/*,.pdf"
            onchange="showSelectedFileName()" /><span id="selectedFileName" style="margin-left:10px; color:#555;"></span>
@@ -804,8 +859,21 @@ label {
         Validate Aadhaar Through OCR
     </button>
 
+</td> -->
+    <td>
+    <div class="ocr-box">
+
+        <div class="file-row">
+            <input type="file" id="aadhaarFile" accept="image/*,.pdf" style="color:black;" onchange="showSelectedFileName()" />
+
+        </div>
+
+        <button type="button" onclick="uploadAadhaarFile()" class="btn btn-default process-footer-button-cancel ocr-btn">
+            Validate Aadhaar Through OCR
+        </button>
+
+    </div>
 </td>
-    
     <!-- <td>
     	<input id="otp" name="otp" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" autocomplete="off" placeholder="Enter otp here" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
     </td>

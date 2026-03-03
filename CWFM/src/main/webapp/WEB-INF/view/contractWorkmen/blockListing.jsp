@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="f"%>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ page import="com.wfd.dot1.cwfm.pojo.MasterUser" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -218,6 +219,12 @@
     100% { transform: rotate(360deg); }
 }      
 </style>
+<%
+    	MasterUser user = (MasterUser) session.getAttribute("loginuser");
+     String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
+        String roleName = user != null ? user.getRoleName() : "";
+        String roleId = user!=null?user.getRoleId():"";
+		%>
 </head>
 <body>
 <div class="page-header">
@@ -253,9 +260,9 @@
         
         
         
-        <button type="submit" onclick="bulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
+     <!--    <button type="submit" onclick="bulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
         Bulk Approve
-    </button>
+    </button> -->
 
    <!--  <button type="submit" onclick="bulkApprove(5)" class="btn btn-danger process-footer-button-cancel ng-binding">
         Bulk Reject
@@ -265,6 +272,11 @@
        <c:if test="${UserPermission.exportRights eq 1 }">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportCSVFormat()">Export</button>
     	</c:if>
+    	<% if (user != null && !"Contractor".equals(roleName)) { %>
+      <button type="submit" onclick="bulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
+        Bulk Approve
+    </button>
+    <% } %>
     </div>
 </div>
  <div id="loaderOverlay" style="display:none;">
@@ -282,7 +294,7 @@
         <thead>
 <tr>
                     <td >
-                        <input type="checkbox" id="selectAllBlockCheckbox" onclick="toggleAll(this)"">
+                        <input type="checkbox" id="selectAllBlockCheckbox" onclick="toggleAll(this)">
                     </td> 
                     <!-- Add more table headers for each column -->
                     <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.transactionId"/><span id="sortIndicatorName" class="sort-indicator sort-asc"></span></th>

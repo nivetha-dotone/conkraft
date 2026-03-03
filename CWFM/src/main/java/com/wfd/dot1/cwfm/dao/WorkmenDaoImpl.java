@@ -2625,7 +2625,7 @@ private String mapGatePassValue(String field, GatePassMain gp) {
         case "PoliceVerificationDate":
             return gp.getPoliceVerificationDate();
 
-        case "HealthCheckupDate":
+        case "HealthCheckDate":
             return gp.getHealthCheckDate();
 
         case "UnitId":
