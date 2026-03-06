@@ -1748,6 +1748,7 @@ showLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass block request!");
+            hideLoader();
         }
     };
 

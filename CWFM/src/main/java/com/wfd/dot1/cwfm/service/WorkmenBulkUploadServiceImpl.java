@@ -206,9 +206,10 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 		    	        LocalDate doj = LocalDate.parse(record.getDoj()); // Expected format: yyyy-MM-dd
 		    	        LocalDate today = LocalDate.now();
 		    	        LocalDate todayPlus15 = today.plusDays(15);
-
-		    	        if (doj.isBefore(today) || doj.isAfter(todayPlus15)) {
-		    	            fieldErrors.put("doj", "DOJ must be within the next 15 days from today");
+		    	        LocalDate pastPlus15 = today.minusDays(15);
+		    	       
+		    	        if (doj.isBefore(pastPlus15) || doj.isAfter(todayPlus15)) {
+		    	            fieldErrors.put("doj", "DOJ must be within the future 15 days or past 15 days from today");
 		    	        }
 		    	    } catch (DateTimeParseException e) {
 		    	        fieldErrors.put("doj", "Invalid date format (expected yyyy-MM-dd)");

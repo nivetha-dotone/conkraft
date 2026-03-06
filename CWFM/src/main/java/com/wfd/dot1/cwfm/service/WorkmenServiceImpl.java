@@ -280,7 +280,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 	@Transactional
 	public String approveRejectGatePass(ApproveRejectGatePassDto dto) {
 		
-		if((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.RENEW.getStatus()) ) 
+		if((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.RENEW.getStatus())
+				|| dto.getGatePassType().equals(GatePassType.BULKRENEW.getStatus()) ) 
 				&& dto.getStatus().equals(GatePassStatus.APPROVED.getStatus())) {
 			 GatePassMain gatePassMain = workmenDao.getActiveCountDetails(dto.getTransactionId());
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
@@ -564,6 +565,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 			if((gatePassMain.getGatePassAction().equals(GatePassType.CREATE.getStatus()) && gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()))
 					||(gatePassMain.getGatePassAction().equals(GatePassType.RENEW.getStatus()) && gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()))
+					||(gatePassMain.getGatePassAction().equals(GatePassType.BULKRENEW.getStatus()) && gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()))
 					||dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus()) || dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus())
 					) {
 				

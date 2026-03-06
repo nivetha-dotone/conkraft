@@ -425,7 +425,7 @@ textarea {
             <button data-target="tab5" onclick="showTabNew('tab5')">Documents</button>
         </div>
          <div class="action-buttons" >
-         <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2') && mode eq 'add' }">
+         <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15') && mode eq 'add' }">
             <% if (user != null && "Contractor".equals(roleName)) { %>
              <button id="actionButton"  type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="submitLostOrDamage('${sessionScope.loginuser.userId}','8')">Lost or Damage GatePass</button> 
            <% } %>

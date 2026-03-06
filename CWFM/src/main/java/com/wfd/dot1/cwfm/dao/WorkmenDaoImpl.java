@@ -554,7 +554,14 @@ public class WorkmenDaoImpl implements WorkmenDao{
 				dto.setGatePassType("Lost/Damage");
 			}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
 				dto.setGatePassType("Project Gatepass");
+			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+				dto.setGatePassType("Bulk Cancel");
+			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+				dto.setGatePassType("Bulk Renew");
+			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
+				dto.setGatePassType("Renew");
 			}
+			
 			String status =rs.getString("GatePassStatus");
 			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 				dto.setStatus("Approval Pending");
@@ -635,7 +642,14 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 				dto.setGatePassType("Lost/Damage");
 			}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
 				dto.setGatePassType("Project Gatepass");
+			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+				dto.setGatePassType("Bulk Cancel");
+			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+				dto.setGatePassType("Bulk Renew");
+			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
+				dto.setGatePassType("Renew");
 			}
+			
 			String status =rs.getString("GatePassStatus");
 			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 				dto.setStatus("Approval Pending");
@@ -1054,7 +1068,12 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 				dto.setGatePassType("Lost/Damage");
 			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
 				dto.setGatePassType("Renew");
+			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+				dto.setGatePassType("Bulk Cancel");
+			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+				dto.setGatePassType("Bulk Renew");
 			}
+			
 			String status =rs.getString("GatePassStatus");
 			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 				dto.setStatus("Approval Pending");
@@ -1781,10 +1800,14 @@ public List<GatePassListingDto> getRenewListingDetails(String userId,String gate
 			dto.setGatePassType("Cancel");
 		}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
 			dto.setGatePassType("Lost/Damage");
-		}
-		else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
+		}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
 			dto.setGatePassType("Renew");
+		}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+			dto.setGatePassType("Bulk Cancel");
+		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+			dto.setGatePassType("Bulk Renew");
 		}
+		
 		String status =rs.getString("GatePassStatus");
 		if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 			dto.setStatus("Approval Pending");
@@ -1977,7 +2000,12 @@ public List<GatePassListingDto> getGatePassActionListingForApprovers(String role
 			dto.setGatePassType("Lost/Damage");
 		}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
 			dto.setGatePassType("Renew");
+		}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+			dto.setGatePassType("Bulk Cancel");
+		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+			dto.setGatePassType("Bulk Renew");
 		}
+		
 		String status =rs.getString("GatePassStatus");
 		if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 			dto.setStatus("Approval Pending");
@@ -3358,7 +3386,12 @@ public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String u
 			dto.setGatePassType("Lost/Damage");
 		}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
 			dto.setGatePassType("Renew");
+		}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+			dto.setGatePassType("Bulk Cancel");
+		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+			dto.setGatePassType("Bulk Renew");
 		}
+		
 		String status =rs.getString("GatePassStatus");
 		if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
 			dto.setStatus("Approval Pending");

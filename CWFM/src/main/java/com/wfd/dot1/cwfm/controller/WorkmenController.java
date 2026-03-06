@@ -815,7 +815,7 @@ public class WorkmenController {
     
     
     @PostMapping("/lostDamagegatePassAction")
-    public ResponseEntity<String> gatePassAction(@RequestBody GatePassActionDto dto,HttpServletRequest request,HttpServletResponse response) {
+    public ResponseEntity<String> lostgatePassAction(@RequestBody GatePassActionDto dto,HttpServletRequest request,HttpServletResponse response) {
     	String result=null; 
     	try {
              ObjectMapper objectMapper = new ObjectMapper();
