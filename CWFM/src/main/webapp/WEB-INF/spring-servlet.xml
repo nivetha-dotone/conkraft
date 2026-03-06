@@ -30,10 +30,9 @@
     <!-- JDBC DataSource configuration -->
 <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
     <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
-    <property name="url"
-              value="jdbc:sqlserver://localhost:1433;instanceName=SQLEXPRESS29;databaseName=WFD_CWFM;encrypt=true;trustServerCertificate=true"/>
-    <property name="username" value="sa"/>
-    <property name="password" value="admin123"/>
+    <property name="url" value="jdbc:sqlserver://localhost:1433;instanceName=SQLEXPRESS;databaseName=WFD_CWFM;encrypt=true;trustServerCertificate=true" />
+    <property name="username" value="sa" />
+    <property name="password" value="Admin" />
 </bean>
 
 <!-- JdbcTemplate -->
@@ -102,39 +101,7 @@
     </bean>
 
 
- <bean id="mailSender"
 
-          class="org.springframework.mail.javamail.JavaMailSenderImpl">
-
-
-
-        <property name="host" value="smtp.gmail.com"/>
-
-        <property name="port" value="587"/>
-
-        <property name="username" value="dot1track-noreply@dot1.in"/>
-
-        <property name="password" value="vywuaxebdovvhdxp"/>
-
-
-
-        <property name="javaMailProperties">
-
-            <props>
-
-                <prop key="mail.transport.protocol">smtp</prop>
-
-                <prop key="mail.smtp.auth">true</prop>
-
-                <prop key="mail.smtp.starttls.enable">true</prop>
-
-                <prop key="mail.debug">true</prop>
-
-            </props>
-
-        </property>
-
-    </bean>
 
     <!-- <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         Set max upload size if needed
