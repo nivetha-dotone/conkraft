@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
+import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 
 import java.text.SimpleDateFormat;
@@ -855,7 +856,11 @@ public class EmployeeMapper {
                 licenseAbsence.setLicenseTypeName("Absence");
                 EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+                if(individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.CREATE.getStatus()) || individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.RENEW.getStatus())){
+                    licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+                } else if (individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.PROJECT.getStatus())) {
+                    licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
+                }
                 EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
                 licenseScheduling.setLicenseTypeName("Scheduling");
@@ -904,7 +909,6 @@ public class EmployeeMapper {
     }
 
     public String gatePassEmpDtoDynamic(String gatePassId) {
-
         try {
 
             EmployeeRequestDTO employeeRequestDTO = gatePassEmpDto(gatePassId);
@@ -1000,8 +1004,6 @@ public class EmployeeMapper {
         }
     }
 
-
-
     public SkillProLevelDateDTO getSkillPRoLevelDate(String trndID) {
         try {
             SkillProLevelDateDTO onlySkillProByTrnId = this.gatePassToOnBoardService.getOnlySkillProByTrnId(trndID);
@@ -1010,6 +1012,7 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
+
 
     public UpdateEmployeeRequestDTO gatePassUpdateEmpDto(String GatePassId) {
         try {
