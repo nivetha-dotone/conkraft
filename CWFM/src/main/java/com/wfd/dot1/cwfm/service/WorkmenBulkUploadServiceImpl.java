@@ -345,13 +345,29 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	                continue;
 	            }
 
-	            if (saveResult.contains("mandatory")) {
-	                errorData.add(Map.of("transactionId", txnId, "error", "LL and WC is Mandatory"));
-	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL and WC is Mandatory");
-	            } else if (saveResult.contains("exceeded")) {
-	                errorData.add(Map.of("transactionId", txnId, "error", "LL and WC limit exceeded"));
-	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL and WC limit exceeded");
-	            } else {
+	            if (saveResult.equals("LL and WC/ESIC are mandatory")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "LL and WC/ESIC are mandatory"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL and WC/ESIC are mandatory");
+	            } else if (saveResult.equals("LL is mandatory")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "LL is mandatory"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL is mandatory");
+	            }else  if (saveResult.equals("WC/ESIC is mandatory")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "WC/ESIC is mandatory"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "WC/ESIC is mandatory");
+	            }
+	            else if (saveResult.equals("LL and WC/ESIC exceeded")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "LL and WC/ESIC exceeded"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL and WC/ESIC exceeded");
+	            }
+	            else if (saveResult.equals("LL exceeded")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "LL exceeded"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "LL exceeded");
+	            }
+	            else if (saveResult.equals("WC/ESIC exceeded")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "WC/ESIC exceeded"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "WC/ESIC exceeded");
+	            }
+	            else {
 	                successData.add(Map.of("transactionId", saveResult));
 	                workmenUploadDao.updateRecordProcessedByTransactionId(txnId);
 	            }
