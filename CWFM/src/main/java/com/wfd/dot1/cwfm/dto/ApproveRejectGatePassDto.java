@@ -60,5 +60,12 @@ public class ApproveRejectGatePassDto {
 	public void setTransactionId(String transactionId) {
 		this.transactionId = transactionId;
 	}
-	
+	private String onboardingDocType;
+
+	public String getOnboardingDocType() {
+		return onboardingDocType;
+	}
+	public void setOnboardingDocType(String onboardingDocType) {
+		this.onboardingDocType = onboardingDocType;
+	}
 }

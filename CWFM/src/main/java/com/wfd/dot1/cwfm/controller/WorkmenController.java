@@ -661,8 +661,27 @@ public class WorkmenController {
     	    	gatePassMainObj.setSkill(generalMaster.getGmName());
     		} else if("WORKMENTYPE".equals(gmType)) {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
+    		}else if("ONBOARDINGDOCTYPE".equals(gmType)) {
+    	    	gatePassMainObj.setOnboardingDocType(generalMaster.getGmName());
+    		 }
     		}
-    		}
+    		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
+
+    		// Grouping the CmsGeneralMaster objects by gmType
+    		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmLists.stream()
+    		        .collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
+
+    		// Define the types and their corresponding request attribute names
+    		Map<String, String> attributeMapping = Map.of(
+    		        "ONBOARDINGDOCTYPE","onboardingDocType"
+    		);
+
+    		// Iterate over the attribute mappings and set the request attributes dynamically
+    		attributeMapping.forEach((type, attributeName) -> {
+    		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+    		    request.setAttribute(attributeName, gmList1);
+    		});
+    		
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		
     		if(gatePassMainObj.getOnboardingType().equals("project")) {
@@ -2333,8 +2352,26 @@ public class WorkmenController {
     	    	gatePassMainObj.setSkill(generalMaster.getGmName());
     		}else if("WORKMENTYPE".equals(gmType)) {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
+    		}else if("ONBOARDINGDOCTYPE".equals(gmType)) {
+    	    	gatePassMainObj.setOnboardingDocType(generalMaster.getGmName());
+    		 }
     		}
-    		}
+    		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
+
+    		// Grouping the CmsGeneralMaster objects by gmType
+    		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmLists.stream()
+    		        .collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
+
+    		// Define the types and their corresponding request attribute names
+    		Map<String, String> attributeMapping = Map.of(
+    		        "ONBOARDINGDOCTYPE","onboardingDocType"
+    		);
+
+    		// Iterate over the attribute mappings and set the request attributes dynamically
+    		attributeMapping.forEach((type, attributeName) -> {
+    		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+    		    request.setAttribute(attributeName, gmList1);
+    		});
     		
     		 // ✅ Pass versioned documents to JSP
 //    		 List<Map<String, Object>> allVersionedDocs = workmenService.getAllVersionedDocuments(transactionId, user.getUserId());

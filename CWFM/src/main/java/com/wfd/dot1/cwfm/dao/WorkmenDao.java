@@ -232,5 +232,7 @@ public interface WorkmenDao {
 
 	public boolean updatePersonStatusValidityRenew(Long activeId, Long inactiveId, String dot);
 
+	public void updateonboardingDocTypeinGP(String onboardingDocType, String transactionId);
+
 
 }

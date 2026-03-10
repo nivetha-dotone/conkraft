@@ -604,7 +604,15 @@ public String getWoId() {
 public void setWoId(String woId) {
 	this.woId = woId;
 }	
-	
+private String onboardingDocType;
+
+public String getOnboardingDocType() {
+	return onboardingDocType;
+}
+public void setOnboardingDocType(String onboardingDocType) {
+	this.onboardingDocType = onboardingDocType;
+}
+
 	}
 	
 	

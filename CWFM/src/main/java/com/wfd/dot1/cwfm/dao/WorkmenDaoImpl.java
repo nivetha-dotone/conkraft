@@ -3876,5 +3876,15 @@ public boolean updatePersonStatusValidityRenew(Long activeId, Long inactiveId, S
     return updated;
 }
 
+@Override
+public void updateonboardingDocTypeinGP(String onboardingDocType, String transactionId) {
+	
+	jdbcTemplate.update(
+		        "update GATEPASSMAIN set OnboardingDocType=? where TransactionId=?",
+		        onboardingDocType,transactionId
+		    );
+	
+}
+
 
 }

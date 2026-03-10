@@ -844,7 +844,21 @@ textarea {
                 		</td>
             		</tr>
       				</c:if>
-        
+        	<% if (user != null && "Security".equals(roleName)) { %>
+    			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.documentType"/></label></th>
+                <td>  
+                            <select class="custom-select"  id="onboardingDocType" name="onboardingDocType" >
+       								 <option value="">Please select Onboarding Document Type</option>
+									
+        							<c:forEach var="option" items="${onboardingDocType}">
+										<option value="${option.gmId}" ${GatePassObj.onboardingDocType eq option.gmId ? 'selected="selected"' : ''}>
+										${option.gmName}</option>
+                        			</c:forEach>
+									
+    								</select>
+    								  <label id="error-onboardingDocType"style="color: red;display: none;">Onboarding Document Type is required</label> 
+    						</td>
+			    <% } %>
         <%-- <tr>
             <td colspan="20">
                 <div>

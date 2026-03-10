@@ -1081,6 +1081,16 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     }else{
 		$("#error-approvercomments").hide();
 	}
+	const Role= $("#roleName").val().trim();
+	const onboardingDocType= $("#onboardingDocType").val();
+	 if (onboardingDocType === "" && Role=='Security') {
+        $("#error-onboardingDocType").show();
+        alert("Onboarding Document Type is Required in Documents");
+        isValid = false;
+        hideLoader();
+    }else{
+		$("#error-onboardingDocType").hide();
+	}
 	if(isValid){
 		const data = {
 			approverId : $("#userId").val().trim(),
@@ -1091,6 +1101,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 			approverRole : $("#roleName").val().trim(),
 			roleId :$("#roleId").val().trim(),
 			gatePassType : gatePassType,
+			onboardingDocType:$("#onboardingDocType").val(),
 		};
 			  const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/approveRejectGatePass", true); // Replace with your actual controller URL
@@ -3326,6 +3337,17 @@ function approveRejectRenew(status,gatePassType){
    }else{
 	$("#error-approvercomments").hide();
 }
+const Role= $("#roleName").val().trim();
+	const onboardingDocType= $("#onboardingDocType").val();
+	 if (onboardingDocType === "" && Role=='Security') {
+        $("#error-onboardingDocType").show();
+        alert("Onboarding Document Type is Required in Documents");
+        isValid = false;
+        hideLoader();
+    }else{
+		$("#error-onboardingDocType").hide();
+	}
+	
 if(isValid){
 	const data = {
 		approverId : $("#userId").val().trim(),
@@ -3336,6 +3358,7 @@ if(isValid){
 		approverRole : $("#roleName").val().trim(),
 		roleId :$("#roleId").val().trim(),
 		gatePassType : gatePassType,
+		onboardingDocType:$("#onboardingDocType").val(),
 	};
 		  const xhr = new XMLHttpRequest();
    xhr.open("POST", "/CWFM/contractworkmen/approveRejectGatePass", true); // Replace with your actual controller URL

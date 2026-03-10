@@ -298,7 +298,6 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    if (gpm == null) {
 	        throw new RuntimeException("GatePass details not found for approval.");
 	    }
-
 	    // Save Approve/Reject Action
 	    String result = workmenDao.approveRejectGatePass(dto);
 
@@ -312,6 +311,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    statusLog.setUpdatedBy(dto.getApproverId());
 	    workmenDao.saveGatePassStatusLog(statusLog);
 
+	    //for security onboardingdoctype update in gatepassmain
+	    if((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus())
+      		 ||dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) &&dto.getApproverRole().equals("Security")) {
+      	  workmenDao.updateonboardingDocTypeinGP(dto.getOnboardingDocType(),dto.getTransactionId());
+ }
+	    
 	    // Handle REJECT first
 	    if (dto.getStatus().equals(GatePassStatus.REJECTED.getStatus())) {
 
@@ -384,7 +389,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    // Case: CREATE → insert CMS Person
 	    if (dto.getGatePassType().equals(GatePassType.CREATE.getStatus())) {
-
+	    	 
 	        gatePassId = workmenDao.updateGatePassIdByTransactionId(dto.getTransactionId());
 	        gpm.setGatePassId(gatePassId);
 
