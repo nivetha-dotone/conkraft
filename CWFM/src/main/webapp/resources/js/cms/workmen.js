@@ -4390,6 +4390,31 @@ function searchGatePassReportBasedOnPE() {
 							  		$("#error-eic").hide();
 							  	}
 							  	 
+								const wc = $("#wc").val();
+								     if (wc === "") {
+								        $("#error-wc").show();
+								        isValid = false;
+								    }else{
+										$("#error-wc").hide();
+									}
+									
+									const selectedOption = $("#wc").find(":selected");
+									//const licenceType = selectedOption.data("licencetype");
+									const licenceType = selectedOption.attr("data-code");
+									const esicNumber = $("#esicNumber").val().trim();
+
+									if (licenceType === "ESIC") {
+								showEsic();
+								    if ( esicNumber === "") {
+								        $("#error-esicNumber").show();
+								        isValid = false;
+								    } else {
+								        $("#error-esicNumber").hide(); // ✅ hides properly
+								    }
+
+								} else {
+								    $("#error-esicNumber").hide(); // ✅ hides properly
+								}
 							  	return isValid;
 							  }	
 function aadharValidation(){

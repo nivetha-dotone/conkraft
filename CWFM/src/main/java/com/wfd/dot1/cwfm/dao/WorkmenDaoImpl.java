@@ -1146,6 +1146,12 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 				dto.setGatePassType("Cancel");
 			}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
 				dto.setGatePassType("Lost/Damage");
+			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
+				dto.setGatePassType("Renew");
+			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
+				dto.setGatePassType("Bulk Cancel");
+			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
+				dto.setGatePassType("Bulk Renew");
 			}
 			String status =rs.getString("GatePassStatus");
 			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {

@@ -1041,15 +1041,15 @@ label {
                                 <label id="error-skill" style="color: red;display: none;">Skill is required</label>
                             </td>
                         </tr>
-                        <%-- <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
+                         <tr>
+                            <%-- <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
                             <td>
                             	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off" value="${not empty GatePassObj.natureOfJob ? GatePassObj.natureOfJob : ''}">
                             	  <div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;"><spring:message code="label.natureOfJobRegax"/></span>
                                 </div>
                             	  <label id="error-natureOfJob"style="color: red;display: none;">Please enter a valid Nature of Job</label>
-                            </td>
+                            </td> --%>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.wcPolicyesicRegNumber"/></label></th>
                             <td><select class="custom-select" id="wc" name="wcId" onchange="onWcChange(this)">
     <option value="">Please select WC Policy / ESIC Reg Number</option>
@@ -1080,7 +1080,7 @@ label {
                                 <label id="error-wc"style="color: red;display: none;">WC Policy/ESIC Reg Number is required</label>
                                 </td>
                         </tr>
-                        <tr>
+                        <!--<tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.hazardeousArea"/></label></th>
                             <td><select class="custom-select"  id="hazardousArea" name="hazardousArea">
                                 <option value="">Please select Hazardous Area</option>
@@ -1152,7 +1152,8 @@ label {
                                 </div>
                             		<label id="error-pfNumber"style="color: red;display: none;">Please enter a valid PF Number</label>
                             </td>
-                            <th>
+                             --> 
+                             <tr><th>
    <label class="custom-label">
     <span id="esicRequiredStar" class="required-field" style="display:none">*</span>
     <spring:message code="label.esicNumber"/>
@@ -1179,7 +1180,7 @@ label {
 
 </td>
                         </tr>
-                        <tr>
+                       <!-- <tr>
                          <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
                         	<td>
                         	<c:if test="${ empty GatePassObj.doj }">
@@ -1201,8 +1202,8 @@ label {
 
                      <!--  <label for="pfApplicable">Yes</label> -->
                       <!-- <label id="error-pfApplicable"style="color: red;display: none;">Please check pfApplicable</label> -->
-                     </td>
-                        </tr> --%>
+                     <!-- </td>
+                        </tr> --> 
                         
                     </tbody>
                 </table>

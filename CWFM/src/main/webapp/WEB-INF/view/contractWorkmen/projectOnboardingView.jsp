@@ -581,18 +581,18 @@ textarea {
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
                             <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
                         </tr>
-                       <%--  <tr>
-                            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
+                         <tr>
+                            <%-- <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
                             <td>
                             	<input id="natureOfJob" name="natureOfJob" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.natureOfJob }" readonly>
-                            </td>
+                            </td> --%>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.wcPolicyesicRegNumber"/></label></th>
                             <td><input id="wcEsicNo" name="wcEsicNo" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.wcEsicNo }" readonly> </td>
                        		<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.labourLicenseNumber"/></label></th>
                             <td><input id="llNo" name="llNo" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.llNo }" readonly> </td>
                       
                         </tr>
-                        <tr>
+                       <%--  <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.hazardeousArea"/></label></th>
                             <td><input id="hazardousArea" name="hazardousArea" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.hazardousArea }" readonly></td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.accessArea"/></label></th>
@@ -612,13 +612,13 @@ textarea {
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfNumber"/></label></th>
                             <td>
                             	<input id="pfNumber" name="pfNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.pfNumber }" readonly>
-                            </td>
-                            <th><label class="custom-label"><spring:message code="label.esicNumber"/></label></th>
-                            <td>
+                            </td>--%>
+                           <tr>  <th><label class="custom-label"><spring:message code="label.esicNumber"/></label></th>
+                      <td>
                             	<input id="esicNumber" name="esicNumber"  style="width: 100%;height: 20px;" type="text" value="${GatePassObj.esicNumber }" readonly>
-                            	</td>
+                            	</td> 
                         </tr>
-                        <tr>
+                       <%--  <tr>
                          <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.dateOfJoining"/></label></th>
                         	<td>
     				<input id="doj" name="doj" class="datetimepickerformat" style="width: 100%; height: 20px;" type="text" 
@@ -639,7 +639,7 @@ textarea {
                <c:if test="${GatePassObj.pfApplicable eq 'Yes'}">checked</c:if>
                disabled />
     </td>
-                        </tr> --%>
+                        </tr>  --%>
                     </tbody>
                 </table>
             </div>

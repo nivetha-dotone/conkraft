@@ -205,7 +205,14 @@ public class EntrypassStatusDaoImpl implements EntrypassStatusDao {
 	             dto.setGatePassType("Cancel");
 	         } else if (GatePassType.LOSTORDAMAGE.getStatus().equals(gatePassType)) {
 	             dto.setGatePassType("Lost/Damage");
-	         } else {
+	         } else if (GatePassType.PROJECT.getStatus().equals(gatePassType)) {
+	             dto.setGatePassType("Project");
+	         } else if (GatePassType.BULKCANCEL.getStatus().equals(gatePassType)) {
+	             dto.setGatePassType("Bulk Cancel");
+	         } else if (GatePassType.BULKRENEW.getStatus().equals(gatePassType)) {
+	             dto.setGatePassType("Bulk Renew");
+	         }
+	         else {
 	             dto.setGatePassType("Unknown");
 	         }
 

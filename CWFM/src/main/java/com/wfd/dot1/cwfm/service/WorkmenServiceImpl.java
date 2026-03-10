@@ -413,7 +413,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 		        if(!statusUpdated) {
 		        	throw new RuntimeException("Gatepassmain status update failed unexpectedly.");
 		        }else {
-		        	return result;
+		        	try {
+			        	String wfdIntegration = this.getWFDIntegration();
+			        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+			        		api.addOnBoardingDetailsActual(dto.getTransactionId());
+			        	}
+			        	}catch(Exception e) {return result;}
 		        }
 	    }
 
