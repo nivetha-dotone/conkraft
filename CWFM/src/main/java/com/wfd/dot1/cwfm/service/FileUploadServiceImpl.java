@@ -985,9 +985,8 @@ public class FileUploadServiceImpl implements FileUploadService {
                 csc.setSubContractId(subContractorCode);
                 csc.setContractorId(contractorCode);
                 csc.setWorkOrderNumber(workOrder);
-                if (fileUploadDao.subContractorExists(contractorCode, unitId, workOrder,subContractorCode)) {
-                    fileUploadDao.updatecsc(csc);
-                } else {
+               boolean cmsSubContExists= fileUploadDao.subContractorExists(contractorCode, unitId, workOrder,subContractorCode);
+                if (!cmsSubContExists) {
                     fileUploadDao.savecsc(csc);
                 }
                 
