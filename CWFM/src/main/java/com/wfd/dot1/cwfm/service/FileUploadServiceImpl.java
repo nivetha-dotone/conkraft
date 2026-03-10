@@ -757,6 +757,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             String plantCode = fields[1];
             String organization = fields[2];
             String contractorCode = fields[3];
+            String subContractorCode = fields[4];
             String contractorName = fields[5];
             String workOrder = fields[0];
             Date llFromDate = parseDateStrict(fields[12], "licenseValidFrom", fieldErrors);
@@ -779,10 +780,11 @@ public class FileUploadServiceImpl implements FileUploadService {
             	fieldErrors.put("plantCode" ,"Not found for plantCode and organization ");
             	fieldErrors.put("organization" ,"Not found for plantCode and organization ");
             }
-            Long existsContractorId = fileUploadDao.getContractorIdByCode(contractorCode);
+            
+            Long MainContractorexists = fileUploadDao.getContractorIdByCode(contractorCode);
             
             //2 Work order exists check
-            boolean activeWorkorderExists =fileUploadDao.hasActiveWorkorder(unitId, existsContractorId,workOrder);
+            boolean activeWorkorderExists =fileUploadDao.hasActiveWorkorder(unitId, MainContractorexists,workOrder);
             if (!activeWorkorderExists) {
             	fieldErrors.put("workOrder" ,"No active workorder exists for this contractor");
           }
@@ -875,25 +877,55 @@ public class FileUploadServiceImpl implements FileUploadService {
                 errorData.add(Map.of("row", rowNum,"fieldErrors", fieldErrors));
                 continue;
             }
-            try {
-                Long contractorId;
+            try { 
+            	Long contractorId=null;
+            	
+            	Long SubContractorexists = fileUploadDao.getContractorIdByCode(subContractorCode);
                 // Step 2: Save Contractor
                 Contractor contractor = new Contractor();
                 contractor.setContractorName(contractorName);
                 contractor.setContractorAddress(fields[6]);
-                contractor.setContractorCode(contractorCode);
+              //  contractor.setContractorCode(contractorCode);
                 contractor.setCity(fields[7]);
                 //Long contractorId = fileUploadDao.saveContractor(contractor);
 
-                if (existsContractorId != null) {
-                    // UPDATE
-                    contractor.setContractorId(String.valueOf(existsContractorId));
-                    fileUploadDao.updateContractor(contractor);
-                     contractorId = existsContractorId;
-                } else {
-                    // INSERT
-                	  contractorId = fileUploadDao.saveContractor(contractor);
-                }
+                if(contractorCode != null && contractorCode.equals(subContractorCode)) {
+                	contractor.setContractorCode(contractorCode);
+                	 if (MainContractorexists == null) {
+                		 fileUploadDao.saveContractor(contractor);
+                     }else {
+                    	 fileUploadDao.updateContractor(contractor);
+                    	 contractorId = MainContractorexists;
+                     }
+            	}else {
+            		if (MainContractorexists == null) {
+                     	fieldErrors.put("MainContractorCode" ,"Main Contractor not Found");
+                     }else{
+                    	 if (SubContractorexists == null) {
+
+                    		 Contractor subContractor = new Contractor();
+                   	        subContractor.setContractorName(contractorName);
+                   	        subContractor.setContractorAddress(fields[6]);
+                   	        subContractor.setCity(fields[7]);
+                   	        subContractor.setContractorCode(subContractorCode);
+
+                   	        contractorId =   fileUploadDao.saveContractor(subContractor);
+                          }else {
+                        	  
+                        	  Contractor subContractor = new Contractor();
+                              subContractor.setContractorId(String.valueOf(SubContractorexists));
+                              subContractor.setContractorName(contractorName);
+                              subContractor.setContractorAddress(fields[6]);
+                              subContractor.setCity(fields[7]);
+                              subContractor.setContractorCode(subContractorCode);
+                              
+                         	 fileUploadDao.updateContractor(contractor);
+                         	contractorId = SubContractorexists;
+                          }
+                     } 
+                    	
+            	}
+                
              //  LICENSE UNIQUENESS VALIDATION — CMSCONTRACTOR_WC ONLY
 
              // LL
@@ -950,10 +982,10 @@ public class FileUploadServiceImpl implements FileUploadService {
                 // Step 4: Save SubContractor
                 CMSSubContractor csc = new CMSSubContractor();
                 csc.setUnitId(String.valueOf(unitId));
-                csc.setSubContractId(fields[4]);
+                csc.setSubContractId(subContractorCode);
                 csc.setContractorId(contractorCode);
                 csc.setWorkOrderNumber(workOrder);
-                if (fileUploadDao.subContractorExists(contractorCode, unitId, workOrder)) {
+                if (fileUploadDao.subContractorExists(contractorCode, unitId, workOrder,subContractorCode)) {
                     fileUploadDao.updatecsc(csc);
                 } else {
                     fileUploadDao.savecsc(csc);
@@ -1059,8 +1091,8 @@ public class FileUploadServiceImpl implements FileUploadService {
                 map.put("workOrderNumber", csc.getWorkOrderNumber());
                 map.put("plantCode", plantCode);
                 map.put("organization", organization);
-                map.put("contractorCode", contractor.getContractorCode());
-                map.put("contractorId", csc.getContractorId());
+                map.put("contractorCode", contractorCode);
+                map.put("contractorId", subContractorCode);
                 map.put("contractorName", contractor.getContractorName());
                 map.put("contractorAddress", contractor.getContractorAddress());
                 map.put("city", contractor.getCity());

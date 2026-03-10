@@ -1361,12 +1361,12 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 
 		@Override
-		public Long getContractorIdByCode(String contractorCode) {
+		public Long getContractorIdByCode(String subContractorCode) {
 			//String sql=getUnitIdByPlantCodeAndOrg();
 		    String sql = "select contractorid from CMSCONTRACTOR where CODE= ?";
 		    		
 		    try {
-		        return jdbcTemplate.queryForObject(sql, new Object[]{contractorCode}, Long.class);
+		        return jdbcTemplate.queryForObject(sql, new Object[]{subContractorCode}, Long.class);
 		    } catch (EmptyResultDataAccessException e) {
 		        return null;
 		    }
@@ -1436,14 +1436,14 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    );
 		}
 		@Override
-		public boolean subContractorExists(String contractorCode, Long unitId, String workOrder) {
-		    String sql = "SELECT COUNT(*) FROM CMSSUBCONTRACTOR WHERE CONTRACTOR_ID=? AND UNITID=? AND WORKORDER_NO=?";
-		    return jdbcTemplate.queryForObject(sql, Integer.class, contractorCode, unitId, workOrder) > 0;
+		public boolean subContractorExists(String contractorCode, Long unitId, String workOrder,String subContractorCode) {
+		    String sql = "SELECT COUNT(*) FROM CMSSUBCONTRACTOR WHERE CONTRACTOR_ID=? AND UNITID=? AND WORKORDER_NO=? AND SUB_CONTRACTOR_ID=?";
+		    return jdbcTemplate.queryForObject(sql, Integer.class, contractorCode, unitId, workOrder,subContractorCode) > 0;
 		}
 		@Override
 		public void updatecsc(CMSSubContractor c) {
 		    jdbcTemplate.update(
-		        "UPDATE CMSSUBCONTRACTOR SET SUB_CONTRACTOR_ID=?,WORKORDER_NO=? WHERE CONTRACTOR_ID=? AND UNITID=?",
+		        "UPDATE CMSSUBCONTRACTOR SET SUB_CONTRACTOR_ID=?,WORKORDER_NO=? ,CONTRACTOR_ID=? WHERE  UNITID=?",
 		        c.getSubContractId(),
 		        c.getWorkOrderNumber(),
 		        c.getContractorId(),

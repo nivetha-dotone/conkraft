@@ -136,7 +136,7 @@ public interface FileUploadDao {
 
 	boolean existsInOrgLevelEntry(String name, long orgLevelDefId);
 
-	Long getContractorIdByCode(String contractorCode);	
+	Long getContractorIdByCode(String subContractorCode);	
 
 	boolean hasActiveWorkorder(Long unitId, Long contractorId, String workOrder);
 
@@ -146,7 +146,7 @@ public interface FileUploadDao {
 
 	void updatePemm(CMSContrPemm pemm);
 
-	boolean subContractorExists(String contractorCode, Long unitId, String workOrder);
+	boolean subContractorExists(String contractorCode, Long unitId, String workOrder, String subContractorCode);
 
 	void updatecsc(CMSSubContractor csc);
 
