@@ -1260,7 +1260,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		String transactionId =null;
 		
 		try {
-	
+			String allowOnboarding = this.workmenCountCheck(gatePassMain);
+			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
 			gatePassMain.setWorkFlowType(workFlowTypeId);
 			gatePassMain.setDotType(0);
@@ -1300,7 +1301,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return transactionId;
 				
 			}
-			
+			}else {
+				return allowOnboarding;
+			}
 		}catch(Exception e) {
 			
 		}
