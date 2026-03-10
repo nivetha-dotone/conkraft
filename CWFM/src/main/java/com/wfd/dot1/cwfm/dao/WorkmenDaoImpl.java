@@ -1812,6 +1812,8 @@ public List<GatePassListingDto> getRenewListingDetails(String userId,String gate
 			dto.setGatePassType("Bulk Cancel");
 		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
 			dto.setGatePassType("Bulk Renew");
+		}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
+			dto.setGatePassType("Project");
 		}
 		
 		String status =rs.getString("GatePassStatus");
