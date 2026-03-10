@@ -1374,7 +1374,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		@Override
 		public boolean hasActiveWorkorder(Long unitId, Long contractorId,String workOrder) {
 
-		    String sql = "SELECT COUNT(1) FROM CMSWORKORDER WHERE UNITID = ? AND CONTRACTORID = ? and name=? AND VALIDDT > GETDATE()";
+		    String sql = "SELECT COUNT(1) FROM CMSWORKORDER WHERE UNITID = ? AND CONTRACTORID = ? and SAP_WORKORDER_NUM=? AND VALIDDT > GETDATE()";
 
 		    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,unitId,contractorId,workOrder);
 		    return count != null && count > 0;
