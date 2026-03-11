@@ -28,6 +28,15 @@
      -->
     <script>
     var contextPath = '<%= request.getContextPath() %>';
+    $(document).ajaxError(function (event, xhr) {
+
+        if (xhr.status === 401) {
+
+            window.location.replace("UserLogin.jsp");
+
+        }
+
+    });
     function initializeDatePicker() {
         $('.datetimepickerformat').datepicker({
             dateFormat: 'yy-mm-dd', // Set the date format

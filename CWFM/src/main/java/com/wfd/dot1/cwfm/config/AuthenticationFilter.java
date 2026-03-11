@@ -3,6 +3,8 @@ package com.wfd.dot1.cwfm.config;
 
 import java.io.IOException;
 
+import org.springframework.web.bind.annotation.RequestMapping;
+
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -35,5 +37,13 @@ public class AuthenticationFilter implements Filter {
         }
     }
     // Other methods of the Filter interface
+    
+    @RequestMapping("/logout")
+    public String logout(HttpSession session) {
+
+        session.invalidate();
+
+        return "redirect:/UserLogin.jsp";
+    }
 }
 

@@ -531,5 +531,13 @@ public class HomeController {
 
 	    return "WelcomePage";   // Main page of application
 	}
+	
+	@RequestMapping("/logout")
+	public String logout(HttpSession session) {
+
+	    session.invalidate();
+
+	    return "redirect:/UserLogin.jsp";
+	}
 
 }

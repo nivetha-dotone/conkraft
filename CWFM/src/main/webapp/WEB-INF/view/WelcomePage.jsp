@@ -63,8 +63,35 @@
 
 
     <script>
+   
     var contextPath = '<%= request.getContextPath() %>';
-  
+    (function () {
+
+        const open = XMLHttpRequest.prototype.open;
+
+        XMLHttpRequest.prototype.open = function () {
+
+            this.addEventListener("readystatechange", function () {
+
+                if (this.readyState === 4 && this.status === 401) {
+
+                    alert("Session expired. Please login again.");
+
+                    document.cookie = "JSESSIONID=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    
+                    // Optionally, clear any additional session storage or local storage
+                    sessionStorage.clear();
+                    localStorage.clear();
+                    window.location.href = contextPath + "/logout";
+                }
+
+            });
+
+            open.apply(this, arguments);
+
+        };
+
+    })();
     const today = new Date();
    
 	const currentYear = today.getFullYear();
@@ -257,6 +284,7 @@ function loadCommonList(path, heading) {
         closeDrawer();
     };
     xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     xhttp.send();
 }
 
@@ -329,6 +357,7 @@ function loadCommonListDashboard(path,heading) {
         }
     };
     xhttp.open("GET", url, true);
+    xhttp.setRequestHeader("X-Requested-With", "XMLHttpRequest");
     xhttp.send();
 }
 
