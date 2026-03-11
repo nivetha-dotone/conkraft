@@ -523,30 +523,28 @@ textarea {
                 <td>
                 	<input id="gender" name="gender" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.gender }" readonly>
                      </td>
-                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
+               <%--  <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<input id="idMark" name="idMark" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.idMark }" readonly>
-                </td>
-            </tr>
-            <tr>
+                </td> --%>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
                 <td>
                 	<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.mobileNumber }" readonly>
                 </td>
+            </tr>
+            <tr>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.maritalStatus"/></label></th>
                 <td>
                 	<input id="maritalStatus" name="maritalStatus" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.maritalStatus }" readonly>
                 	 </td>
+                	 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.disability"/></label></th>				
+				<td ><input id="disability" name="disability" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.disability }" readonly></td>
             </tr>
             <tr>
-            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.disability"/></label></th>				
-				<td ><input id="disability" name="disability" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.disability }" readonly></td>
           
            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workmenType"/></label></th>
                             <td><input id="workmenType" name="workmenType" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.workmenType }" readonly>  </td>
            
-            </tr>
-             <tr>
            	 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.address"/></label></th>
                 <td>
                 	<%-- <input id="address" name="address" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.address }" readonly> --%>

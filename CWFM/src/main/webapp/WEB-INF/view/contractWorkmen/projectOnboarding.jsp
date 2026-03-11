@@ -933,7 +933,7 @@ label {
                     <label id="error-gender" style="color: red;display: none;">Gender is required</label>
                 </td>
 
-                <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
+                <%-- <th><label class="custom-label"><span class="required-field"></span><spring:message code="label.idMark"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.idMark }">
                 		<input id="idMark" name="idMark" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" size="30" maxlength="30" autocomplete="off">
@@ -945,10 +945,8 @@ label {
         <span style="color: #666; font-size: 11px;"><spring:message code="label.idMarkRegax"/></span>
     </div>
                 	<label id="error-idMark"style="color: red;display: none;">Please enter a valid ID Mark</label>
-                </td>
-            </tr>
-            <tr>
-                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
+                </td> --%>
+                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
                 <td>
                 	<c:if test="${empty GatePassObj.mobileNumber }">
                 		<input id="mobileNumber" name="mobileNumber" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(this.value.length==0 && !/[6-9]/.test(event.key)) return false;">
@@ -961,6 +959,9 @@ label {
     </div>
                 	<label id="error-mobileNumber" style="color: red;display: none;">Please enter a valid Mobile Number</label>
                 </td>
+            </tr>
+            <tr>
+                
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.maritalStatus"/></label></th>
                 <td>
                 	<select class="custom-select" name="maritalStatus" id="maritalStatus">
@@ -972,10 +973,7 @@ label {
                     </select>
                 	<label id="error-maritalStatus"style="color: red;display: none;">Marital Status is required</label>
                 </td>
-            </tr>
-           
-                  <tr>
-                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.disability"/></label></th>				
+                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.disability"/></label></th>				
 				<td >
 				    <select class="custom-select" id="disability"   name="disability"  >
 						<option value="" >Select Disability</option>
@@ -984,6 +982,9 @@ label {
 				    </select>
 						<label id="error-disability"style="color: red;display: none;">Disability is required</label>
 						</td>
+            </tr>
+           
+                  <tr>
 						
                   <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.workmenType"/></label></th>
                             <td>  
@@ -998,8 +999,7 @@ label {
     								</select>
     								 <label id="error-workmenType"style="color: red;display: none;">Workmen Type is required</label>
     						</td>
-                  </tr>
-                  <tr>
+                 
            	 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.address"/></label></th>
                 <td>
                 <c:if test="${empty GatePassObj.address }">

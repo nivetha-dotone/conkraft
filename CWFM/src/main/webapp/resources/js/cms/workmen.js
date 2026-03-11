@@ -1282,7 +1282,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     const lastName = toCapitalCase($("#lastName").val().trim());
     const relationName = toCapitalCase($("#relationName").val().trim());
     const address = toCapitalCase($("#address").val().trim());
-    const idMark = toCapitalCase($("#idMark").val().trim());
+    const idMark = $("#idMark").val();
 	let natureOfJob="";let emergencyName="";let pfApplicable="No";
 	if(type=== "regular" || type==="quick"){
 		 natureOfJob = toCapitalCase($("#natureOfJob").val().trim());
@@ -2931,7 +2931,7 @@ function previewImage(event, inputId, displayId) {
                                           const natureOfJob = toCapitalCase($("#natureOfJob").val().trim());
                                           const emergencyName = toCapitalCase($("#emergencyName").val().trim());
                                           const address = toCapitalCase($("#address").val().trim());
-                                          const idMark = toCapitalCase($("#idMark").val().trim());
+                                          const idMark = $("#idMark").val();
                                           const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
 										  const data = new FormData();
 										
@@ -3011,7 +3011,7 @@ function previewImage(event, inputId, displayId) {
 										                console.error("Error saving data:", xhr.status, xhr.responseText);
 														sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
 														loadCommonList('/contractworkmen/list', 'On-Boarding List');
-														//hideLoader();
+														hideLoader();
 										            }
 										        };
 
@@ -3209,7 +3209,7 @@ function renewGatePass(userId) {
             dateOfBirth: $("#dateOfBirth").val().trim(),
             gender: $("#gender").val(),
             relationName: $("#relationName").val().trim(),
-            idMark: $("#idMark").val().trim(),
+            idMark: $("#idMark").val(),
             mobileNumber: $("#mobileNumber").val().trim(),
             maritalStatus: $("#maritalStatus").val(),
             principalEmployer: $("#principalEmployer").val(),
