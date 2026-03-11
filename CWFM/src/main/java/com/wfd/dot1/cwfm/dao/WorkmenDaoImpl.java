@@ -3615,21 +3615,24 @@ public GatePassMain getIndividualContractWorkmenDetailsByGatePassIdRenew(String 
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+gatePassId);
 	return dto;
 }
-
+public String getActiveCountDetails() {
+	return QueryFileWatcher.getQuery("GET_ACTIVE_COUNT_DETAILS");
+}
 @Override
 public GatePassMain getActiveCountDetails(String transactionId) {
 	log.info("Entering into getIndividualContractWorkmenDetails dao method ");
 	GatePassMain dto = null;
-	String query = "SELECT gpm.UnitId,gpm.ContractorId,gpm.WorkorderId,\r\n"
-			+ " gpm.WcEsicNo,gpm.LLNo,gpm.EsicNumber\r\n"
-			+ " FROM GATEPASSMAIN gpm \r\n"
-			+ " where  gpm.TransactionId=?"
-			+ " union "
-			+ " SELECT gpm.UnitId,gpm.ContractorId,gpm.WorkorderId,"
-			+ "	gpm.WcEsicNo,gpm.LLNo,gpm.EsicNumber"
-			+ "	FROM GATEPASSMAIN gpm "
-			+ " join GatePassTransactionMapping gptm on gptm.GatePassId = gpm.GatePassId"
-			+ " where gptm.TransactionId=? and gptm.GatePassTypeId='2' ";
+	String query = getActiveCountDetails();
+//	String query = "SELECT gpm.UnitId,gpm.ContractorId,gpm.WorkorderId,\r\n"
+//			+ " gpm.WcEsicNo,gpm.LLNo,gpm.EsicNumber\r\n"
+//			+ " FROM GATEPASSMAIN gpm \r\n"
+//			+ " where  gpm.TransactionId=?"
+//			+ " union "
+//			+ " SELECT gpm.UnitId,gpm.ContractorId,gpm.WorkorderId,"
+//			+ "	gpm.WcEsicNo,gpm.LLNo,gpm.EsicNumber"
+//			+ "	FROM GATEPASSMAIN gpm "
+//			+ " join GatePassTransactionMapping gptm on gptm.GatePassId = gpm.GatePassId"
+//			+ " where gptm.TransactionId=? and gptm.GatePassTypeId='2' ";
 	log.info("Query to getIndividualContractWorkmenDetails "+query);
 	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,transactionId,transactionId);
 	if(rs.next()) {
@@ -3645,11 +3648,17 @@ public GatePassMain getActiveCountDetails(String transactionId) {
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+transactionId);
 	return dto;
 }
-
+public String getRenewTransactionIfExists() {
+	return QueryFileWatcher.getQuery("GET_RENEW_TRANSACTIONID_IF_EXISTS");
+}
+public String updateGatePassMainWithReasoningTab() {
+	return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_WITH_REASONINGTAB");
+}
 @Override
 public String getRenewTransactionIfExists(String gatePassId) {
 	String transactionId=null;
-	String query = "select TransactionId from GatePassTransactionMapping where gatepassId=? and GatePassTypeId='2'  order by CreatedDate desc";
+	String query =getRenewTransactionIfExists(); 
+	//String query = "select TransactionId from GatePassTransactionMapping where gatepassId=? and GatePassTypeId='2'  order by CreatedDate desc";
 	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassId);
 	if(rs.next()) {
 		transactionId = rs.getString("TransactionId");
@@ -3660,8 +3669,8 @@ public String getRenewTransactionIfExists(String gatePassId) {
 @Override
 public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto,MultipartFile exitFile,MultipartFile fnfFile,
         MultipartFile feedbackFile,MultipartFile rateManagerFile,MultipartFile locFile) {
-
-    String sql = "update GATEPASSMAIN set Reasoning=?,ExitLetterDocName=?,FNFDocName=?,FeedbackFormDocName=?,RateManagerDocName=?,LOCDocName=? where GatePassId=?";
+	String sql =updateGatePassMainWithReasoningTab();
+   // String sql = "update GATEPASSMAIN set Reasoning=?,ExitLetterDocName=?,FNFDocName=?,FeedbackFormDocName=?,RateManagerDocName=?,LOCDocName=? where GatePassId=?";
     try {
 
         String exitName = (exitFile != null && !exitFile.isEmpty()) ? "exitletter" : null;
@@ -3716,6 +3725,12 @@ public boolean updateCmsPersonCustDataEffectiveTillonDeblackUnblock(long personI
 
         return jdbcTemplate.update(updateSql, dot, dot, refId) > 0;
 }
+public String updateDeblockUnblockEffectiveTill() {
+    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_TO_RENEW");
+}
+public String updateDeblockUnblockFromEffectiveTill() {
+    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_FROM_RENEW");
+}
 @Override
 public boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId,String dot) {
 
@@ -3741,8 +3756,8 @@ public boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId
     // ================= UPDATE ACTIVE RECORD =================
     if (activeId != null) {
 
-        String sqlActive =
-            "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ? WHERE PERSONSTATUSMMID = ?";
+        String sqlActive =updateDeblockUnblockEffectiveTill();
+         //   "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ? WHERE PERSONSTATUSMMID = ?";
 
         int count1 = jdbcTemplate.update(
                 sqlActive,
@@ -3755,8 +3770,8 @@ public boolean updatePersonStatusOnDeblockUnblock(Long activeId, Long inactiveId
     // ================= UPDATE INACTIVE RECORD =================
     if (inactiveId != null) {
 
-        String sqlInactive =
-            "UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+        String sqlInactive =updateDeblockUnblockFromEffectiveTill();
+           // "UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
 
         int count2 = jdbcTemplate.update(
                 sqlInactive,
@@ -3875,14 +3890,14 @@ public boolean updatePersonStatusValidityRenew(Long activeId, Long inactiveId, S
 
     return updated;
 }
-
+public String updateonboardingDocTypeinGP() {
+	return QueryFileWatcher.getQuery("UPDATE_ONBOARDING_DOCUMENT_TYPE_IN_GP");
+}
 @Override
 public void updateonboardingDocTypeinGP(String onboardingDocType, String transactionId) {
-	
-	jdbcTemplate.update(
-		        "update GATEPASSMAIN set OnboardingDocType=? where TransactionId=?",
-		        onboardingDocType,transactionId
-		    );
+	String sql=updateonboardingDocTypeinGP();
+	// "update GATEPASSMAIN set OnboardingDocType=? where TransactionId=?",
+	jdbcTemplate.update(sql,onboardingDocType,transactionId);
 	
 }
 

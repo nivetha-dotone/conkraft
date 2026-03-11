@@ -93,7 +93,18 @@ public class WorkflowDaoImpl implements WorkflowDao{
 	    response.setHierarchy(approvers);
 	    return response;
 	}
-	
+	public String checkWorkflowExists() {
+	    return QueryFileWatcher.getQuery("CHECK_WORKFLOW_EXISTS");
+	}
+	public String updateWorkflowExists() {
+	    return QueryFileWatcher.getQuery("UPDATE_WORKFLOW_EXISTS");
+	}
+	public String deleteWorkflow() {
+	    return QueryFileWatcher.getQuery("DELETE_WORKFLOW");
+	}
+	public String insertWorkflow() {
+	    return QueryFileWatcher.getQuery("INSERT_WORKFLOW");
+	}
 	@Override
 	public void saveWorkflow(WorkflowRequestDto request) {
         // Check if workflow already exists
@@ -104,10 +115,10 @@ public class WorkflowDaoImpl implements WorkflowDao{
 		 * "		WHERE w.UNITID = ? AND w.BUSINESSTYPEID = ? AND  w.MODULEID =? AND a.Action_Name=?"
 		 * ;
 		 */
-        
-        String checkQuery = "SELECT w.WorkflowTypeId FROM CMSWORKFLOWTYPE  w"
-        		+ "			join CMSAPPROVERHIERARCHY a on a.workflowtypeid = w.workflowtypeid"
-        		+ "		WHERE w.UNITID = ?  AND  w.MODULEID =? AND a.Action_Name=?";
+		 String checkQuery =checkWorkflowExists();
+//        String checkQuery = "SELECT w.WorkflowTypeId FROM CMSWORKFLOWTYPE  w"
+//        		+ "			join CMSAPPROVERHIERARCHY a on a.workflowtypeid = w.workflowtypeid"
+//        		+ "		WHERE w.UNITID = ?  AND  w.MODULEID =? AND a.Action_Name=?";
 
         //SqlRowSet rs = jdbcTemplate.queryForRowSet(checkQuery, request.getUnitId(), request.getBusinessType(), request.getModuleId(),request.getActionName());
         
@@ -117,16 +128,18 @@ public class WorkflowDaoImpl implements WorkflowDao{
         if (rs.next()) {
             workflowTypeId = rs.getInt("WorkflowtypeId");
             // Update existing workflow type
-            String updateQuery = "UPDATE CMSWORKFLOWTYPE SET WORKFLOWTYPE = ? WHERE WorkflowTypeId = ?";
+            String updateQuery =updateWorkflowExists();
+           // String updateQuery = "UPDATE CMSWORKFLOWTYPE SET WORKFLOWTYPE = ? WHERE WorkflowTypeId = ?";
             jdbcTemplate.update(updateQuery, request.getWorkflowType(), workflowTypeId);
 
             // Delete existing approvers
-            jdbcTemplate.update("DELETE FROM CMSAPPROVERHIERARCHY WHERE WORKFLOWTYPEID = ?", workflowTypeId);
+            String deleteQuery =deleteWorkflow();
+            jdbcTemplate.update(deleteQuery, workflowTypeId);
         } else {
         	// Insert new workflow type and retrieve generated ID
         	//String insertQuery = "INSERT INTO CMSWORKFLOWTYPE (UNITID, BUSINESSTYPEID, MODULEID, WORKFLOWTYPE,UpdatedBy,UpdatedDate) VALUES (?, ?, ?, ?,?,GETDATE())";
-        	
-        	String insertQuery = "INSERT INTO CMSWORKFLOWTYPE (UNITID, MODULEID, WORKFLOWTYPE,UpdatedBy,UpdatedDate) VALUES (?, ?, ?,?,GETDATE())";
+        	String insertQuery =insertWorkflow(); 
+        	//String insertQuery = "INSERT INTO CMSWORKFLOWTYPE (UNITID, MODULEID, WORKFLOWTYPE,UpdatedBy,UpdatedDate) VALUES (?, ?, ?,?,GETDATE())";
         	KeyHolder keyHolder = new GeneratedKeyHolder();
         	jdbcTemplate.update(connection -> {
         	    PreparedStatement ps = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);

@@ -1359,11 +1359,13 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, name, orgLevelDefId);
 		    return count != null && count > 0;
 		}
-
+		public String getContractorIdByCode() {
+			return QueryFileWatcher.getQuery("GET_CONTRACTORID_BY_CODE");
+		}
 		@Override
 		public Long getContractorIdByCode(String subContractorCode) {
-			//String sql=getUnitIdByPlantCodeAndOrg();
-		    String sql = "select contractorid from CMSCONTRACTOR where CODE= ?";
+			String sql=getContractorIdByCode();
+		   // String sql = "select contractorid from CMSCONTRACTOR where CODE= ?";
 		    		
 		    try {
 		        return jdbcTemplate.queryForObject(sql, new Object[]{subContractorCode}, Long.class);
@@ -1371,18 +1373,34 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        return null;
 		    }
 		}
+		public String hasActiveWorkorder() {
+			return QueryFileWatcher.getQuery("HAS_ACTIVE_WORKORDER_FOR_CONTRACTOR");
+		}
+		public String updateContractor() {
+			return QueryFileWatcher.getQuery("UPDATE_CMSCONTRACTOR");
+		}
+		public String pemmExists() {
+			return QueryFileWatcher.getQuery("CHECK_CONTRACTOR_EXISTS_IN_PEMM");
+		}
+		public String updatePemm() {
+			return QueryFileWatcher.getQuery("UPDATE_CONTRACTOR_IN_PEMM");
+		}
+		public String wcExists() {
+			return QueryFileWatcher.getQuery("CHECK_CONTRACTOR_EXISTS_IN_WC");
+		}
 		@Override
 		public boolean hasActiveWorkorder(Long unitId, Long contractorId,String workOrder) {
-
-		    String sql = "SELECT COUNT(1) FROM CMSWORKORDER WHERE UNITID = ? AND CONTRACTORID = ? and SAP_WORKORDER_NUM=? AND VALIDDT > GETDATE()";
+			String sql=hasActiveWorkorder();
+		    //String sql = "SELECT COUNT(1) FROM CMSWORKORDER WHERE UNITID = ? AND CONTRACTORID = ? and SAP_WORKORDER_NUM=? AND VALIDDT > GETDATE()";
 
 		    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,unitId,contractorId,workOrder);
 		    return count != null && count > 0;
 		}
 		@Override
 		public void updateContractor(Contractor c) {
-		    jdbcTemplate.update(
-		        "UPDATE CMSCONTRACTOR SET NAME=?, ADDRESS=?, CITY=? WHERE CONTRACTORID=?",
+			String sql=updateContractor();
+			//"UPDATE CMSCONTRACTOR SET NAME=?, ADDRESS=?, CITY=? WHERE CONTRACTORID=?",
+		    jdbcTemplate.update(sql,
 		        c.getContractorName(),
 		        c.getContractorAddress(),
 		        c.getCity(),
@@ -1391,13 +1409,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 		@Override
 		public boolean pemmExists(Long contractorId, Long unitId) {
-		    String sql = "SELECT COUNT(*) FROM CMSCONTRPEMM WHERE CONTRACTORID=? AND UNITID=?";
+			String sql=pemmExists();
+		    //String sql = "SELECT COUNT(*) FROM CMSCONTRPEMM WHERE CONTRACTORID=? AND UNITID=?";
 		    return jdbcTemplate.queryForObject(sql, Integer.class, contractorId, unitId) > 0;
 		}
 		@Override
 		public void updatePemm(CMSContrPemm p) {
-		    jdbcTemplate.update(
-		        "UPDATE CMSCONTRPEMM SET MANAGERNM=?, LICENSENUM=?, VALIDFROMDT=?, VALIDTODT=?, COVERAGE=?, TOTALSTRENGTH=?, MAXNOEMP=?, NATUREOFWORK=?,  PFNUM=?, PFAPPLYDT=?, ESIWC=?, ESIVALIDFROM=?, ESIVALIDTO=? WHERE CONTRACTORID=? AND UNITID=?",
+			String sql=updatePemm();
+			 //"UPDATE CMSCONTRPEMM SET MANAGERNM=?, LICENSENUM=?, VALIDFROMDT=?, VALIDTODT=?, COVERAGE=?, TOTALSTRENGTH=?, MAXNOEMP=?, NATUREOFWORK=?,  PFNUM=?, PFAPPLYDT=?, ESIWC=?, ESIVALIDFROM=?, ESIVALIDTO=? WHERE CONTRACTORID=? AND UNITID=?",
+		    jdbcTemplate.update(sql,
 		        p.getManagerNm(),
 		        p.getLicenseNumber(),
 		        p.getLicenseValidFrom(),
@@ -1417,14 +1437,24 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 		@Override
 		public boolean wcExists(Long contractorId, Long unitId,String wcCode,String licenceType) {
-		    String sql = "SELECT COUNT(*) FROM CMSCONTRACTOR_WC WHERE CONTRACTORID=? AND UNITID=? and WC_CODE=? AND LICENCE_TYPE = ?";
+			String sql=wcExists();
+		    //String sql = "SELECT COUNT(*) FROM CMSCONTRACTOR_WC WHERE CONTRACTORID=? AND UNITID=? and WC_CODE=? AND LICENCE_TYPE = ?";
 		    return jdbcTemplate.queryForObject(sql, Integer.class, contractorId, unitId,wcCode,licenceType) > 0;
+		}
+		public String updatewc() {
+			return QueryFileWatcher.getQuery("UPDATE_CONTRACTOR_IN_WC");
+		}
+		public String subContractorExists() {
+			return QueryFileWatcher.getQuery("CHECK_SUBCONTRACTOR_EXISTS");
+		}
+		public String updatecsc() {
+			return QueryFileWatcher.getQuery("UPDATE_SUBCONTRACTOR");
 		}
 		@Override
 		public void updatewc(CmsContractorWC wc) {
-		    jdbcTemplate.update(
-		        "UPDATE CMSCONTRACTOR_WC SET  WC_FROM_DTM=?, WC_TO_DTM=?, WC_TOTAL=?,DELETE_SW=0 WHERE CONTRACTORID=? AND UNITID=? AND WC_CODE=? AND LICENCE_TYPE=?",
-		        
+			String sql=updatewc();
+			 // "UPDATE CMSCONTRACTOR_WC SET  WC_FROM_DTM=?, WC_TO_DTM=?, WC_TOTAL=?,DELETE_SW=0 WHERE CONTRACTORID=? AND UNITID=? AND WC_CODE=? AND LICENCE_TYPE=?",
+		    jdbcTemplate.update(sql,
 		        wc.getWcFromDtm(),
 		        wc.getWcToDtm(),
 		        wc.getWcTotal(),
@@ -1437,44 +1467,59 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 		@Override
 		public boolean subContractorExists(String contractorCode, Long unitId, String workOrder,String subContractorCode) {
-		    String sql = "SELECT COUNT(*) FROM CMSSUBCONTRACTOR WHERE CONTRACTOR_ID=? AND UNITID=? AND WORKORDER_NO=? AND SUB_CONTRACTOR_ID=?";
+			String sql=subContractorExists();
+		   // String sql = "SELECT COUNT(*) FROM CMSSUBCONTRACTOR WHERE CONTRACTOR_ID=? AND UNITID=? AND WORKORDER_NO=? AND SUB_CONTRACTOR_ID=?";
 		    return jdbcTemplate.queryForObject(sql, Integer.class, contractorCode, unitId, workOrder,subContractorCode) > 0;
 		}
 		@Override
 		public void updatecsc(CMSSubContractor c) {
-		    jdbcTemplate.update(
-		        "UPDATE CMSSUBCONTRACTOR SET SUB_CONTRACTOR_ID=?,WORKORDER_NO=? ,CONTRACTOR_ID=? WHERE  UNITID=?",
+			String sql=updatecsc();
+			  //"UPDATE CMSSUBCONTRACTOR SET SUB_CONTRACTOR_ID=?,WORKORDER_NO=? ,CONTRACTOR_ID=? WHERE  UNITID=?",
+		    jdbcTemplate.update(sql,
 		        c.getSubContractId(),
 		        c.getWorkOrderNumber(),
 		        c.getContractorId(),
 		        c.getUnitId()
 		    );
 		}
+		public String saveWorkorderLLWC() {
+			return QueryFileWatcher.getQuery("SAVE_WORKORDER_LLWC");
+		}
+		public String updateWorkorderLLWC() {
+			return QueryFileWatcher.getQuery("UPDATE_WORKORDER_LLWC");
+		}
+		public String llwcExists() {
+			return QueryFileWatcher.getQuery("CHECK_LLWC_EXISTS");
+		}
+		public String isLicenseMappedToOtherContractor() {
+			return QueryFileWatcher.getQuery("IS_LICENSE_MAPPED_OTHER_CONTRACTOR");
+		}
 		@Override
 		public void saveWorkorderLLWC(CMSWorkorderLLWC llwc) {
-		    String sql = "INSERT INTO CMSWORKORDER_LLWC(WONUMBER, LICENSE_NUMBER, LICENSE_TYPE)VALUES (?, ?, ?)";
+			String sql=saveWorkorderLLWC();
+		   // String sql = "INSERT INTO CMSWORKORDER_LLWC(WONUMBER, LICENSE_NUMBER, LICENSE_TYPE)VALUES (?, ?, ?)";
 		    jdbcTemplate.update(sql,llwc.getWorkorderNumber(),llwc.getLicenseNumber(),llwc.getLicenseType());
 		}
 
 		@Override
 		public void updateWorkorderLLWC(CMSWorkorderLLWC llwc) {
-
-		    String sql = "UPDATE CMSWORKORDER_LLWC SET LICENSE_NUMBER = ? WHERE WONUMBER = ? AND LICENSE_TYPE = ?";
+			String sql=updateWorkorderLLWC();
+		  //  String sql = "UPDATE CMSWORKORDER_LLWC SET LICENSE_NUMBER = ? WHERE WONUMBER = ? AND LICENSE_TYPE = ?";
 		    jdbcTemplate.update(sql,llwc.getLicenseNumber(),llwc.getWorkorderNumber(),llwc.getLicenseType());
 		}
 
 		@Override
 		public boolean llwcExists(String workOrderNumber, String licenseType,String license) {
-
-		    String sql = "SELECT COUNT(1)FROM CMSWORKORDER_LLWC WHERE WONUMBER = ? AND LICENSE_TYPE = ? and LICENSE_NUMBER=?";
+			String sql=llwcExists();
+		   // String sql = "SELECT COUNT(1)FROM CMSWORKORDER_LLWC WHERE WONUMBER = ? AND LICENSE_TYPE = ? and LICENSE_NUMBER=?";
 		    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,workOrderNumber,licenseType,license);
 		    return count != null && count > 0;
 		}
 
 		@Override
 		public boolean isLicenseMappedToOtherContractor(Long contractorId,String licenseNumber,String licenseType) {
-
-		    String sql = "SELECT COUNT(1)FROM CMSCONTRACTOR_WC WHERE WC_CODE = ? AND LICENCE_TYPE = ? AND CONTRACTORID != ?";
+			String sql=isLicenseMappedToOtherContractor();
+		   // String sql = "SELECT COUNT(1)FROM CMSCONTRACTOR_WC WHERE WC_CODE = ? AND LICENCE_TYPE = ? AND CONTRACTORID != ?";
 		    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,licenseNumber,licenseType,contractorId);
 
 		    return count != null && count > 0;
@@ -1525,51 +1570,59 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 		    return count != null && count > 0;
 		}
+		public String workorderExistsInStagging() {
+			return QueryFileWatcher.getQuery("WORKORDER_EXISTS_IN_WORKORDER_STAGGING");
+		}
+		public String updateWorkorderToStaging() {
+			return QueryFileWatcher.getQuery("UPDATE_WORKORDER_STAGGING");
+		}
 		@Override
 		public boolean workorderExists(String workOrder, String contractorCode, String plantCode,String item,String lines,String lineNumber) {
-			    String sql = "select COUNT(*) from KTC_WORKORDER_STAGING_ON_REQ where WORKORDER_NUM=? and VENDOR_CODE=? and UNIT_CODE=? and ITEM_NUM=? and SVC_LN_ITEM_DEL=? and SVC_LN_ITEM_NUM=? ";
+			String sql =workorderExistsInStagging();
+			//String sql = "select COUNT(*) from KTC_WORKORDER_STAGING_ON_REQ where WORKORDER_NUM=? and VENDOR_CODE=? and UNIT_CODE=? and ITEM_NUM=? and SVC_LN_ITEM_DEL=? and SVC_LN_ITEM_NUM=? ";
 		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, workOrder, contractorCode,plantCode,item,lines,lineNumber);
 		    return count != null && count > 0;
 		}
 		@Override
 		public void updateWorkorderToStaging(KTCWorkorderStaging w) {
-			String sql =
-				    "UPDATE KTC_WORKORDER_STAGING_ON_REQ SET " +
-				    " SVC_LN_ITEM_DEL = ?, " +
-				    " SVC_NUM = ?, " +
-				    " SVC_LN_ITEM_NAME = ?, " +
-				    " DELV_COMPLETION_SW = ?, " +
-				    " ITEM_CHANGED_ON_DATE = ?, " +
-				    " VENDOR_NAME = ?, " +
-				    " VENDOR_ADDRESS = ?, " +
-				    " BLOCKED_PO = ?, " +
-				    " WORKORDER_VALID_FROM = ?, " +
-				    " WORKORDER_VALID_TO = ?, " +
-				    " SAP_WORKORDER_TYPE = ?, " +
-				    " SEC_NAME = ?, " +
-				    " DEPT_NAME = ?, " +
-				    " GL_CODE = ?, " +
-				    " COST_CENTRE_CODE = ?, " +
-				    " JOB_NAME = ?, " +
-				    " RATE = ?, " +
-				    " QTY = ?, " +
-				    " UOM = ?, " +
-				    " WORKORDER_RELEASED_SW = ?, " +
-				    " PM_WORKORDER_NUM = ?, " +
-				    " WBS_ELEMENT = ?, " +
-				    " QTY_COMPLETED = ?, " +
-				    " WORKORDER_RELEASED_DATE = ?, " +
-				    " SERVICE_ENTRY_CREATE_DATE = ?, " +
-				    " SERVICE_ENTRY_UPDATED_DATE = ?, " +
-				    " PURCHASE_ORG_LEVEL = ?, " +
-				    " COMPANY_CODE = ?, " +
-				    " RECORD_UPDATED_ON = ?, " +
-				    " RECORD_STATUS = ? " +
-				    "WHERE WORKORDER_NUM = ? " +
-				    "  AND ITEM_NUM = ? " +
-				    "  AND SVC_LN_ITEM_NUM = ? " +
-				    "  AND VENDOR_CODE = ? " +
-				    "  AND UNIT_CODE = ?";
+			String sql =updateWorkorderToStaging();
+//			String sql =
+//				    "UPDATE KTC_WORKORDER_STAGING_ON_REQ SET " +
+//				    " SVC_LN_ITEM_DEL = ?, " +
+//				    " SVC_NUM = ?, " +
+//				    " SVC_LN_ITEM_NAME = ?, " +
+//				    " DELV_COMPLETION_SW = ?, " +
+//				    " ITEM_CHANGED_ON_DATE = ?, " +
+//				    " VENDOR_NAME = ?, " +
+//				    " VENDOR_ADDRESS = ?, " +
+//				    " BLOCKED_PO = ?, " +
+//				    " WORKORDER_VALID_FROM = ?, " +
+//				    " WORKORDER_VALID_TO = ?, " +
+//				    " SAP_WORKORDER_TYPE = ?, " +
+//				    " SEC_NAME = ?, " +
+//				    " DEPT_NAME = ?, " +
+//				    " GL_CODE = ?, " +
+//				    " COST_CENTRE_CODE = ?, " +
+//				    " JOB_NAME = ?, " +
+//				    " RATE = ?, " +
+//				    " QTY = ?, " +
+//				    " UOM = ?, " +
+//				    " WORKORDER_RELEASED_SW = ?, " +
+//				    " PM_WORKORDER_NUM = ?, " +
+//				    " WBS_ELEMENT = ?, " +
+//				    " QTY_COMPLETED = ?, " +
+//				    " WORKORDER_RELEASED_DATE = ?, " +
+//				    " SERVICE_ENTRY_CREATE_DATE = ?, " +
+//				    " SERVICE_ENTRY_UPDATED_DATE = ?, " +
+//				    " PURCHASE_ORG_LEVEL = ?, " +
+//				    " COMPANY_CODE = ?, " +
+//				    " RECORD_UPDATED_ON = ?, " +
+//				    " RECORD_STATUS = ? " +
+//				    "WHERE WORKORDER_NUM = ? " +
+//				    "  AND ITEM_NUM = ? " +
+//				    "  AND SVC_LN_ITEM_NUM = ? " +
+//				    "  AND VENDOR_CODE = ? " +
+//				    "  AND UNIT_CODE = ?";
 
 		    jdbcTemplate.update(sql,
 		        /* SET values */
