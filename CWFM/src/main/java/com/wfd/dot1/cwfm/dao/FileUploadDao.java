@@ -2,6 +2,7 @@ package com.wfd.dot1.cwfm.dao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -187,5 +188,13 @@ public interface FileUploadDao {
 	void updateGatepassBulkRenew(GatePassMain gm, String createdBy, String dot);
 
 	Map<String, Object> workorderExists(String workorderNumber, String gpContId);
+
+	void saveMinimumWageToStaging(MinimumWageDTO staging);
+
+	boolean minimumWageExistsInStagging(Integer unitId, String stateName, String zoneName, String skillName, Date fromDate);
+
+	void updateMinimumWageToStaging(MinimumWageDTO staging);
+
+	void callMinimumWageProcessingSP();
 
 }

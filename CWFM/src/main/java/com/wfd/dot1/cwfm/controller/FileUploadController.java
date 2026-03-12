@@ -133,19 +133,20 @@ public class FileUploadController {
             fields.add(Map.of("name", "GM TypeID", "type", "Number", "example", "1"));
             
             templateInfo.put("fields", fields);
-        }else if("Data-minimumWage".equals(templateType)){
+        }else if("Data-Minimum Wage".equals(templateType)){
         	templateInfo.put("title", "Data - Minimum Wage Event");
             templateInfo.put("description", "Imports Minimum Wage events.");
 
             List<Map<String, String>> fields = new ArrayList<>();
-            fields.add(Map.of("name", "Trade", "type", "Text", "example", "Operator"));
-            fields.add(Map.of("name", "Skill", "type", "Text", "example", "Skilled"));
-            fields.add(Map.of("name", "Basic", "type", "Number", "example", "1000"));
-            fields.add(Map.of("name", "Da", "type", "Number", "example", "0"));
-            fields.add(Map.of("name", "Allowance", "type", "Number", "example", "1265"));
-            fields.add(Map.of("name", "From Date", "type", "Date", "example", "2024-04-09"));
             fields.add(Map.of("name", "Unit Code", "type", "Text", "example", "112S"));
-            fields.add(Map.of("name", "Organization", "type", "Text", "example", "Adani Wilmar Limited"));
+            fields.add(Map.of("name", "State Name", "type", "Text", "example", "Uttar Pradesh"));
+            fields.add(Map.of("name", "Zone Name", "type", "Text", "example", "Zone 1"));
+            fields.add(Map.of("name", "Skill Name", "type", "Text", "example", "Highly Skilled"));
+            fields.add(Map.of("name", "Basic", "type", "Number", "example", "1000"));
+            fields.add(Map.of("name", "DA", "type", "Number", "example", "0"));
+            fields.add(Map.of("name", "Other Allowances", "type", "Number", "example", "1265"));
+            fields.add(Map.of("name", "From Date", "type", "Date", "example", "2024-04-09"));
+            fields.add(Map.of("name", "To Date", "type", "Date", "example", "2025-04-09"));
             
             templateInfo.put("fields", fields);
         }else if("Data-Work Order".equals(templateType)){

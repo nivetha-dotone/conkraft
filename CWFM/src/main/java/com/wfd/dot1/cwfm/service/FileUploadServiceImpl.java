@@ -146,11 +146,11 @@ public class FileUploadServiceImpl implements FileUploadService {
                 }
                 savedData = processWorkorder(reader);
                 break;
-            case "Data-minimumwage":
-                if (!headerLine.equalsIgnoreCase("BASIC,DA,ALLOWANCE,FROMDATE")) {
+            case "Data-Minimum Wage":
+                if (!headerLine.equalsIgnoreCase("Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date,To Date")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
-                // savedData = saveMinimumWage(reader);
+                 savedData = processMinimumWage(reader);
                 break;
             case "Data-Principal Employer":
                 if (!headerLine.equalsIgnoreCase("Organization,Plant Code,Name,Address,Manager Name,Manager Address,Business Type,Max Workmen,Max Contract Workmen,BOCW Applicability,"
@@ -553,37 +553,173 @@ public class FileUploadServiceImpl implements FileUploadService {
     
 
     
-    private List<Map<String, Object>> saveMinimumWage(BufferedReader reader) throws IOException {
-        List<Map<String, Object>> savedData = new ArrayList<>();
-        String line;
+    private Map<String, Object> processMinimumWage(BufferedReader reader) throws IOException {
+    	  List<Map<String, Object>> successData = new ArrayList<>();
+          List<Map<String, Object>> errorData = new ArrayList<>();
 
-        // Skip the header
-        reader.readLine();
+          String line;
+          int rowNum = 0;
+          List<MinimumWageDTO> MinimumWageDTO = new ArrayList<>();
+          String[] fieldNames = {"unitCode", "stateName", "zoneName", "skillName", "basic", "da", "otherAllowance",
+                                 "fromDate","toDate"};
 
-        while ((line = reader.readLine()) != null) {
-            String[] fields = line.split(",", -1);
-            if (fields.length < 4) continue;
+          Set<String> mandatoryFields = Set.of("unitCode", "stateName", "zoneName", "skillName", "basic", 
+        		                    "da", "otherAllowance","fromDate");
 
-            MinimumWageDTO dto = new MinimumWageDTO();
-            dto.setBasic(new BigDecimal(fields[0].trim()));
-            dto.setDa(new BigDecimal(fields[1].trim()));
-            dto.setAllowance(new BigDecimal(fields[2].trim()));
-            dto.setFromDate(LocalDate.parse(fields[3].trim()));  // Format: yyyy-MM-dd
 
-            // Save using service (inserts into CMSWAGE and CMSMINIMUMWAGE)
-            FileUploadService.saveMinimumWageTemplate(dto);
+          while ((line = reader.readLine()) != null) {
+              rowNum++;
+              line = line.replaceAll("[\\x00-\\x1F\\x7F]", "");
+              if (line.trim().isEmpty()) continue;
 
-            // Add to displayable result
-            Map<String, Object> map = new HashMap<>();
-            map.put("basic", dto.getBasic());
-            map.put("da", dto.getDa());
-            map.put("allowance", dto.getAllowance());
-            map.put("fromDate", dto.getFromDate().toString());
-            savedData.add(map);
-        }
+              String[] rawFields = line.split(",", -1);
+              String[] fields = new String[rawFields.length];
+              for (int i = 0; i < rawFields.length; i++) {
+                  fields[i] = rawFields[i].trim().replaceAll("\"", "");
+              }
 
-        return savedData;
+              Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+              if (fields.length < fieldNames.length) {
+                  errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
+                  continue;
+              }
+
+              // Check mandatory fields
+              for (int i = 0; i < fieldNames.length; i++) {
+                  if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
+                      fieldErrors.put(fieldNames[i], "is mandatory");
+                  }
+              }
+              String unitCode = fields[0];
+              String stateName = fields[1];
+              String zoneName = fields[2];
+              String skillName = fields[3];
+
+              Date fromDate = parseDateStrict(fields[7], "fromDate", fieldErrors);
+              Date toDate = parseDateStrict(fields[8], "toDate", fieldErrors);
+
+              BigDecimal basic = null;
+              BigDecimal da = null;
+              BigDecimal otherAllowance = null;
+
+              /* ---------- UNIT CODE VALIDATION ---------- */
+              Integer unitId = null;
+              if (!unitCode.isBlank()) {
+                  unitId = fileUploadDao.getUnitIdByName(unitCode);
+                  if (unitId == null) {
+                      fieldErrors.put("unitCode", "UnitCode not found");
+                  }
+              }
+
+              /* ---------- STATE VALIDATION ---------- */
+              Long stateId = null;
+              if (!stateName.isBlank()) {
+                  stateId = fileUploadDao.getStateIdByName(stateName);
+                  if (stateId == null) {
+                      fieldErrors.put("stateName", "State not found");
+                  }
+              }
+
+              /* ---------- SKILL VALIDATION ---------- */
+              Integer skillId = null;
+              if (!skillName.isBlank()) {
+                  skillId = fileUploadDao.getGeneralMasterId(skillName);
+                  if (skillId == null) {
+                      fieldErrors.put("skillName", "Skill Name not found");
+                  }
+              }
+
+              /* ---------- ZONE VALIDATION ---------- */
+              Integer zoneId = null;
+              if (!zoneName.isBlank()) {
+                  zoneId = fileUploadDao.getGeneralMasterId(zoneName);
+                  if (zoneId == null) {
+                      fieldErrors.put("zoneName", "Zone Name not found");
+                  }
+              }
+
+              /* ---------- BASIC VALIDATION ---------- */
+              if (!fields[4].isBlank()) {
+                  try {
+                      basic = new BigDecimal(fields[4]);
+                  } catch (Exception e) {
+                      fieldErrors.put("basic", "Invalid number");
+                  }
+              }
+
+              /* ---------- DA VALIDATION ---------- */
+              if (!fields[5].isBlank()) {
+                  try {
+                      da = new BigDecimal(fields[5]);
+                  } catch (Exception e) {
+                      fieldErrors.put("da", "Invalid number");
+                  }
+              }
+
+              /* ---------- OTHER ALLOWANCE VALIDATION ---------- */
+              if (!fields[6].isBlank()) {
+                  try {
+                      otherAllowance = new BigDecimal(fields[6]);
+                  } catch (Exception e) {
+                      fieldErrors.put("otherAllowance", "Invalid number");
+                  }
+              }
+              
+              if (!fieldErrors.isEmpty()) {
+                  errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+                  continue;
+              }
+              
+              try {
+                  
+            	  MinimumWageDTO staging = new MinimumWageDTO();
+            	  staging.setUnitCode(unitCode);
+            	  staging.setStateName(stateName);
+            	  staging.setZoneName(zoneName);
+            	  staging.setSkillName(skillName);
+            	  staging.setBasic(basic);
+            	  staging.setDa(da);
+            	  staging.setOtherAllowance(otherAllowance);
+            	  staging.setFromDate(fromDate);
+            	  staging.setToDate(toDate);
+
+            	  if (fileUploadDao.minimumWageExistsInStagging(unitId, stateName,zoneName,skillName,fromDate)) {
+                      fileUploadDao.updateMinimumWageToStaging(staging);
+                  } else {
+                   fileUploadDao.saveMinimumWageToStaging(staging);
+                  }
+                   // Prepare and add to success list
+                   Map<String, Object> success = new LinkedHashMap<>();
+                   success.put("unitCode",unitCode );
+                   success.put("stateName",stateName);
+                   success.put("zoneName",zoneName);
+                   success.put("skillName", skillName);
+                   success.put("basic", basic);
+                   success.put("da", da);
+                   success.put("otherAllowance",otherAllowance);
+                   success.put("fromDate", toSqlDateString(fromDate));
+                   success.put("toDate", toSqlDateString(toDate));
+
+                   successData.add(success);
+
+              } catch (Exception e) {
+                  // fallback if DB insert fails despite validations
+              	 errorData.add(Map.of("row", rowNum, "error", "Exception while processing row: " + e.getMessage()));
+              }
+          }
+          try {
+              fileUploadDao.callMinimumWageProcessingSP();
+          } catch (Exception e) {
+              errorData.add(Map.of("row", "Procedure", "error", "Stored Procedure Failed: " + e.getMessage()));
+          }
+
+          Map<String, Object> result = new HashMap<>();
+          result.put("successData", successData);
+          result.put("errorData", errorData);
+          return result;
     }
+    
     @Transactional
     private Map<String, Object> processPrincipalEmployer(BufferedReader reader) throws IOException {
         List<Map<String, Object>> successData = new ArrayList<>();
@@ -1194,7 +1330,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
     private String toSqlDateString(Date date) {
         if (date == null) {
-            return null;
+            return "";
         }
         return new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
     }

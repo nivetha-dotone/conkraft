@@ -254,7 +254,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
         Long nextWageId = jdbcTemplate.queryForObject("SELECT ISNULL(MAX(WAGEID), 0) + 1 FROM CMSWAGE", Long.class);
 
         String sql = "INSERT INTO CMSWAGE (WAGEID, BASIC, DA, ALLOWANCE) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, nextWageId, dto.getBasic(), dto.getDa(), dto.getAllowance());
+        jdbcTemplate.update(sql, nextWageId, dto.getBasic(), dto.getDa(), dto.getOtherAllowance());
 
         return nextWageId;
     }
@@ -520,6 +520,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "Gatepass Number,Bulk Cancel Reason";
             case "Data-Bulk Renew":
             	return "Gatepass Number,WorkOrder Number,WC/ESIC Number,LL Number";
+            case "Data-Minimum Wage":
+            	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date,To Date";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1894,9 +1896,70 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 			    return true;
 			}
+		 
+		@Override
+		public void saveMinimumWageToStaging(MinimumWageDTO stag) {
+			String sql ="INSERT INTO KTC_STATE_MINIMUMWAGE(UNITCODE,STATENM,ZONENM,SKILLNM,BASIC,DA,OTHERALLOW,FROMDATE,TODATE,RECORD_PROCESSED,RECORD_STATUS,RECORD_UPDATEDON) \r\n"
+					+ "VALUES (?,?,?,?,?,?,?,?,?,'N','NEW',GETDATE())";
 
+		    java.util.Date toDate = stag.getToDate();
+
+		    // if TODATE empty, use default future date
+		    if (toDate == null) {
+		        toDate = java.sql.Date.valueOf("3000-01-01");
+		    }
+			    jdbcTemplate.update(sql,
+			        /* 01 */ stag.getUnitCode(),
+			        /* 02 */ stag.getStateName(),
+			        /* 03 */ stag.getZoneName(),           
+			        /* 04 */ stag.getSkillName(),               
+			        /* 05 */ stag.getBasic(),
+			        /* 06 */ stag.getDa(),
+			        /* 07 */ stag.getOtherAllowance(),
+			        /* 08 */ stag.getFromDate(),
+			        /* 09 */ toDate
+			    );
+			
+		}
+		@Override
+		public boolean minimumWageExistsInStagging(Integer unitId, String stateName, String zoneName, String skillName,
+				java.util.Date fromDate) {
+			//String sql =workorderExistsInStagging();
+			String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=? and FROMDATE=?";
+		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitId, stateName,zoneName,skillName,fromDate);
+		    return count != null && count > 0;
+		}
+		@Override
+		public void updateMinimumWageToStaging(MinimumWageDTO staging){
+			//String sql =updateWorkorderToStaging();
+       String sql ="update KTC_STATE_MINIMUMWAGE set BASIC=?,DA=?,OTHERALLOW=?,FROMDATE=?,TODATE=? ,RECORD_STATUS=? ,RECORD_UPDATEDON=?\r\n"
+		         + "where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
+       
+       java.util.Date toDate = staging.getToDate();
+
+	    // if TODATE empty, use default future date
+	    if (toDate == null) {
+	        toDate = java.sql.Date.valueOf("3000-01-01");
+	    }
+		    jdbcTemplate.update(sql,
+		        /* SET values */
+		    		staging.getBasic() ,
+		    		staging.getDa(),
+		    		staging.getOtherAllowance(),
+		    		staging.getFromDate(),
+		    		toDate,
+		    		"UPDATED",
+		           new Timestamp(System.currentTimeMillis()),
+
+		        /* WHERE values (VERY IMPORTANT) */
+		           staging.getUnitCode(),
+		           staging.getStateName(),
+		           staging.getZoneName(),
+		           staging.getSkillName()
+		    );
+		}
+		 @Override
+		 public void callMinimumWageProcessingSP() {
+		     jdbcTemplate.execute("EXEC CMS_StateMinimumWage_Upload");
+		 }
 	}
-
-
-
-
