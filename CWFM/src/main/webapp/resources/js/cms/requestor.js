@@ -260,203 +260,7 @@ function extractKeyInfo(text) {
   return summary
 }
 
-// function saveRequester() {
-//   console.log("  ========== SAVE REQUESTER FUNCTION STARTED ==========")
-//   console.log("  Function called at:", new Date().toISOString())
-//   console.log("  Browser info:", navigator.userAgent)
 
-//   const requiredElements = [
-//     "principalEmployer",
-//     "contractor",
-//     "name",
-//     "aadharNumber",
-//     "department",
-//     "academic",
-//     "additionalQualification",
-//     "shortNote",
-//     "attachCV",
-//   ]
-
-//   console.log("  Checking if all required elements exist:")
-//   const missingElements = []
-//   requiredElements.forEach((id) => {
-//     const element = document.getElementById(id)
-//     if (!element) {
-//       missingElements.push(id)
-//       console.error("  Missing element:", id)
-//     } else {
-//       console.log("  Element found:", id, "- Value:", element.value || element.files?.length || "N/A")
-//     }
-//   })
-
-//   if (missingElements.length > 0) {
-//     console.error("  CRITICAL ERROR: Missing elements:", missingElements)
-//     alert("Form elements are missing. Please refresh the page and try again.")
-//     return
-//   }
-
-//   console.log("  All elements found, proceeding with validation")
-
-//   if (!confirm("Are you sure you want to add this new request? Please click OK to confirm.")) {
-//     console.log("  User cancelled the save operation")
-//     return
-//   }
-
-//   try {
-//     if (validateForm()) {
-//       console.log("  Form validation passed, building form data")
-
-//       showLoading("Saving requester data...", "Please wait while we process your information")
-
-//       const formData = new FormData()
-
-//       const principalEmployerValue = document.getElementById("principalEmployer").value
-//       const contractorValue = document.getElementById("contractor").value
-//       const nameValue = document.getElementById("name").value
-//       const aadharValue = document.getElementById("aadharNumber").value
-//       const departmentValue = document.getElementById("department").value
-//       const academicValue = document.getElementById("academic").value
-//       const additionalQualValue = document.getElementById("additionalQualification").value
-//       const shortNoteValue = document.getElementById("shortNote").value
-//       const fileInput = document.getElementById("attachCV")
-
-//       console.log("  Form values collected:", {
-//         principalEmployer: principalEmployerValue,
-//         contractor: contractorValue,
-//         name: nameValue,
-//         aadhar: aadharValue,
-//         department: departmentValue,
-//         academic: academicValue,
-//         additionalQual: additionalQualValue,
-//         shortNote: shortNoteValue,
-//         hasFile: fileInput.files.length > 0,
-//         fileName: fileInput.files[0]?.name || "No file",
-//       })
-
-//       const requesterData = {
-//         transactionId: generateTransactionId(),
-//         prEmpId: Number.parseInt(principalEmployerValue) || 0,
-//         contractorId: Number.parseInt(contractorValue) || 432,
-//         name: nameValue || "",
-//         aadharNumber: aadharValue || "",
-//         forPostId: Number.parseInt(departmentValue) || 546,
-//         academicId: Number.parseInt(academicValue) || 0,
-//         additionalQualification: additionalQualValue || "",
-//         attachmentCv: fileInput.files[0]?.name || "",
-//         shortNote: shortNoteValue || "",
-//         status: null, // Always null as per requirement
-//         updatedBy: "${sessionScope.loginuser.userAccount}" || "system",
-//       }
-
-//       console.log("  JSON data prepared:", JSON.stringify(requesterData, null, 2))
-
-//       formData.append("request", JSON.stringify(requesterData))
-
-//       if (fileInput.files[0]) {
-//         formData.append("attachCV", fileInput.files[0])
-//         console.log("  File attached:", fileInput.files[0].name, "Size:", fileInput.files[0].size, "bytes")
-//       }
-
-//       console.log("  FormData contents:")
-//       for (const pair of formData.entries()) {
-//         if (pair[1] instanceof File) {
-//           console.log("  FormData -", pair[0] + ":", "FILE -", pair[1].name, pair[1].size + " bytes")
-//         } else {
-//           console.log("  FormData -", pair[0] + ":", pair[1])
-//         }
-//       }
-
-//       console.log("  Creating XMLHttpRequest...")
-
-//       // Submit via AJAX
-//       const xhr = new XMLHttpRequest()
-//       const url = "/CWFM/requestor/saveRequestor"
-//       console.log("  Target URL:", url)
-
-//       xhr.open("POST", url, true)
-//       console.log("  XMLHttpRequest opened")
-
-//       xhr.onloadstart = () => {
-//         console.log("  XMLHttpRequest - Load started")
-//       }
-
-//       xhr.onprogress = (e) => {
-//         if (e.lengthComputable) {
-//           const progress = Math.round((e.loaded / e.total) * 100)
-//           console.log("  XMLHttpRequest - Progress:", progress + "%")
-//           showLoading("Uploading data...", `Progress: ${progress}%`)
-//         }
-//       }
-
-//       xhr.onload = () => {
-//         console.log("  ========== AJAX RESPONSE RECEIVED ==========")
-//         console.log("  Status:", xhr.status)
-//         console.log("  Status Text:", xhr.statusText)
-//         console.log("  Response Headers:", xhr.getAllResponseHeaders())
-//         console.log("  Response Text:", xhr.responseText)
-//         console.log("  Response Type:", xhr.responseType)
-
-//         hideLoading()
-
-        
-//         if (xhr.status === 200) {
-//           console.log("  SUCCESS - Request completed successfully")
-//           alert("Requester saved successfully!")
-//           resetFormData()
-//           sessionStorage.setItem("successMessage", "Gatepass saved successfully!");
-//           loadCommonList('/requestor/getRequestorList', 'Requestor List');
-//         } else if (xhr.status === 0) {
-//           console.error("  ERROR - Network error or CORS issue")
-//           alert("Network error. Please check if the server is running and accessible.")
-          
-//         } else {
-//           console.error("  ERROR - Server returned error status")
-//           alert("Error saving requester. Status: " + xhr.status + ". Response: " + xhr.responseText)
-//         }
-//       }
-
-//       xhr.onerror = () => {
-//         console.error("  ========== AJAX ERROR OCCURRED ==========")
-//         console.error("  Network error occurred")
-//         console.error("  Status:", xhr.status)
-//         console.error("  Ready State:", xhr.readyState)
-//         hideLoading()
-//         alert("Network error. Please check your connection and server status.")
-//       }
-
-//       xhr.ontimeout = () => {
-//         console.error("  XMLHttpRequest - Timeout occurred")
-//         hideLoading()
-//         alert("Request timeout. Please try again.")
-//       }
-
-//       xhr.onreadystatechange = () => {
-//         console.log(
-//           "  Ready state changed to:",
-//           xhr.readyState,
-//           "(" + ["UNSENT", "OPENED", "HEADERS_RECEIVED", "LOADING", "DONE"][xhr.readyState] + ")",
-//         )
-//       }
-
-//       xhr.timeout = 30000 // 30 seconds
-
-//       console.log("  Sending AJAX request...")
-//       console.log("  Request will timeout after 30 seconds")
-//       xhr.send(formData)
-//       console.log("  XMLHttpRequest.send() called")
-//     } else {
-//       console.log("  Form validation failed - stopping execution")
-//     }
-//   } catch (error) {
-//     console.error("  ========== JAVASCRIPT ERROR IN SAVE FUNCTION ==========")
-//     console.error("  Error:", error)
-//     console.error("  Stack trace:", error.stack)
-//     hideLoading()
-//     alert("An error occurred while processing the form. Please check the console for details.")
-//   }
-
-//   console.log("  ========== SAVE REQUESTER FUNCTION ENDED ==========")
-// }
 
 function saveRequester() {
 
@@ -919,82 +723,321 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-let capturedImageP = null;
-let contextPathP = "/CWFM";
+  let capturedImageP = null;
+  let contextPathP = "/CWFM";
+  let userLatitude = null;
+  let userLongitude = null;
 
 
 
-function openPunchTab() {
+ function openPunchTab() {
+
     document.getElementById("principalEmployerContent").style.display = "block";
+
     applyMobilePunchRestriction();
+
+    requestLocationPermission();
+
+}
+
+  // function isRealMobileDevice() {
+  //     return (
+  //         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+  //         'ontouchstart' in window &&
+  //         navigator.maxTouchPoints > 1
+  //     );
+  // }
+
+function requestLocationPermission(callback) {
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported on this device.");
+        return;
+    }
+
+    if (navigator.permissions) {
+
+        navigator.permissions.query({ name: "geolocation" }).then(function (permissionStatus) {
+
+            if (permissionStatus.state === "granted") {
+
+                getUserLocation(callback);
+
+            } 
+            else if (permissionStatus.state === "prompt") {
+
+                getUserLocation(callback); // browser will show popup
+
+            } 
+            else if (permissionStatus.state === "denied") {
+
+                showLocationBlockedAlert();
+
+            }
+
+        });
+
+    } else {
+
+        getUserLocation(callback);
+
+    }
+
 }
 
 
-function isRealMobileDevice() {
-    return (
-        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
-        'ontouchstart' in window &&
-        navigator.maxTouchPoints > 1
+
+
+  function getUserLocation(callback) {
+
+    navigator.geolocation.getCurrentPosition(
+
+        function (position) {
+
+            userLatitude = position.coords.latitude;
+            userLongitude = position.coords.longitude;
+
+            console.log("Latitude:", userLatitude);
+            console.log("Longitude:", userLongitude);
+
+            if (callback) callback();
+
+        },
+
+       function (error) {
+
+    if (error.code === 1) {
+
+        showLocationBlockedAlert();
+
+    }
+    else if (error.code === 2) {
+
+        alert("Location unavailable. Turn ON GPS.");
+
+    }
+    else if (error.code === 3) {
+
+        alert("Location request timed out.");
+
+    }
+
+},
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+
+    );
+
+}
+function showLocationBlockedAlert() {
+
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    if (isIOS) {
+
+        alert(
+            "Location access is blocked.\n\n" +
+            "For iPhone:\n\n" +
+            "1. Tap 'aA' in the address bar\n" +
+            "2. Tap 'Website Settings'\n" +
+            "3. Allow Location\n" +
+            "4. Refresh the page."
+        );
+
+    } else {
+
+        alert(
+            "Location access is blocked.\n\n" +
+            "For Android:\n\n" +
+            "1. Tap ⋮ menu\n" +
+            "2. Site settings\n" +
+            "3. Permissions\n" +
+            "4. Allow Location\n" +
+            "5. Refresh page."
+        );
+
+    }
+
+}
+
+  function checkLocationEnabled(callback) {
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+        function (position) {
+
+            userLatitude = position.coords.latitude;
+            userLongitude = position.coords.longitude;
+
+            console.log("Latitude:", userLatitude);
+            console.log("Longitude:", userLongitude);
+
+            if (callback) callback();
+
+        },
+
+        function (error) {
+
+            console.log(error);
+
+            if (error.code === 1) {
+                alert("Location permission denied. Allow location for this site.");
+            } 
+            else if (error.code === 2) {
+                alert("Location unavailable. Turn on GPS.");
+            } 
+            else if (error.code === 3) {
+                alert("Location request timeout.");
+            }
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
     );
 }
 
+ function isRealMobileDevice() {
 
-function applyMobilePunchRestriction() {
+    const ua = navigator.userAgent.toLowerCase();
 
-    const punchBtn = document.getElementById("punchBtn");
-    const preview = document.getElementById("preview");
+    return (
+        ua.includes("android") ||
+        ua.includes("iphone") ||
+        ua.includes("ipad") ||
+        ua.includes("ipod")
+    );
 
-    // If HTML not yet rendered, exit safely
-    if (!punchBtn || !preview) {
-        console.warn("Punch elements not found yet");
-        return;
-    }
-
-    if (!isRealMobileDevice()) {
-        punchBtn.style.display = "none";
-        preview.innerHTML =
-            "<div style='color:red;font-weight:bold;padding:10px'>" +
-            "Mobile Punch works only on a real mobile device." +
-            "</div>";
-    } else {
-        punchBtn.style.display = "inline-block";
-        preview.innerHTML = "";
-    }
 }
 
-// const loggedInUserId = "${sessionScope.loginuser.userId}";
-// console.log(loggedInUserId);
+  function applyMobilePunchRestriction() {
 
+      const punchBtn = document.getElementById("punchBtn");
+      const preview = document.getElementById("preview");
 
+      // If HTML not yet rendered, exit safely
+      if (!punchBtn || !preview) {
+          console.warn("Punch elements not found yet");
+          return;
+      }
+
+      if (!isRealMobileDevice()) {
+          punchBtn.style.display = "none";
+          preview.innerHTML =
+              "<div style='color:red;font-weight:bold;padding:10px'>" +
+              "Mobile Punch works only on a real mobile device." +
+              "</div>";
+      } else {
+          punchBtn.style.display = "inline-block";
+          preview.innerHTML = "";
+      }
+  }
 
 function openMobileCamera() {
-    if (!isRealMobileDevice()) {
-        alert("This feature works only on real mobile devices.");
+
+    // open camera immediately (required for iOS)
+    document.getElementById("mobileCameraInput").click();
+
+    // fetch location in background
+    requestLocationPermission();
+
+}
+
+  function handlePunchImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+          capturedImageP = e.target.result;
+
+          document.getElementById("preview").innerHTML =
+              "<img src='" + capturedImageP + "' style='width:100%;border-radius:8px'/>";
+      };
+      reader.readAsDataURL(file);
+  }
+
+  function cancelPunch() {
+      window.history.back();
+  }
+
+  function saveRegistraction() {
+
+      const workmanId = document.getElementById("workmanId").value;
+      const fileInput = document.getElementById("mobileCameraInput");
+
+      if (!workmanId) {
+          document.getElementById("error-workman").style.display = "block";
+          return;
+      }
+
+      if (!fileInput.files.length) {
+          alert("Please capture photo before saving.");
+          return;
+      }
+
+      if (userLatitude == null || userLongitude == null) {
+          alert("To use Mobile Punch turn on location in phone.");
+          return;
+      }
+
+      document.getElementById("loaderOverlay").style.display = "flex";
+
+      const formData = new FormData();
+
+      const registerFaceObj = {
+          userId: workmanId,
+          latitude: userLatitude,
+          longitude: userLongitude
+      };
+
+      formData.append("registerFace", JSON.stringify(registerFaceObj));
+      formData.append("imageFile", fileInput.files[0]);
+
+      const baseUrl = window.location.origin;
+
+      fetch(baseUrl + "/CWFM/faced/register", {
+          method: "POST",
+          body: formData
+      })
+      .then(async res => {
+
+    const text = await res.text();
+
+    document.getElementById("loaderOverlay").style.display = "none";
+
+    if (!res.ok) {
+        alert(text || "Server error occurred");
         return;
     }
-    document.getElementById("mobileCameraInput").click();
-}
 
-function handlePunchImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    alert(text);
+    resetForm();   // ✅ RESET AFTER SUCCESS
 
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        capturedImageP = e.target.result;
+})
+      .catch(() => {
 
-        document.getElementById("preview").innerHTML =
-            "<img src='" + capturedImageP + "' style='width:100%;border-radius:8px'/>";
-    };
-    reader.readAsDataURL(file);
-}
+          document.getElementById("loaderOverlay").style.display = "none";
+          alert("Unable to reach server");
 
-function cancelPunch() {
-    window.history.back();
-}
+      });
+  }
 
+  
+ function savePunch() {
 
-function saveRegistraction() {
     const workmanId = document.getElementById("workmanId").value;
     const fileInput = document.getElementById("mobileCameraInput");
 
@@ -1007,83 +1050,63 @@ function saveRegistraction() {
         alert("Please capture photo before saving.");
         return;
     }
+
+    if (userLatitude == null || userLongitude == null) {
+        alert("Location not detected. Please enable GPS.");
+        return;
+    }
+
     document.getElementById("loaderOverlay").style.display = "flex";
 
     const formData = new FormData();
-    const registerFaceObj = {
-        userId: workmanId
-    };
 
-    const registerFaceString = JSON.stringify(registerFaceObj);
-
-    formData.append("registerFace", registerFaceString);
+    formData.append("userId", workmanId);
+    formData.append("latitude", userLatitude);     
+    formData.append("longitude", userLongitude);   
     formData.append("imageFile", fileInput.files[0]);
 
     const baseUrl = window.location.origin;
 
-    fetch(baseUrl + "/CWFM/faced/register", {
+    fetch(baseUrl + "/CWFM/faced/save-image-auto", {
         method: "POST",
         body: formData
     })
-        .then(async res => {
-            const text = await res.text();
-            document.getElementById("loaderOverlay").style.display = "none";
+    .then(async res => {
 
-            if (!res.ok) {
-                alert(text || "Server error occurred");
-                return;
-            }
+        const data = await res.json();
 
-            alert(text);
-        })
-        .catch(() => {
-            alert("Unable to reach server");
-        });
+        document.getElementById("loaderOverlay").style.display = "none";
+
+        if (!res.ok) {
+            alert(data.message || "Server error occurred");
+            return;
+        }
+
+        alert(data.message);
+
+        resetForm(); 
+
+    })
+    .catch(() => {
+
+        document.getElementById("loaderOverlay").style.display = "none";
+        alert("Unable to reach server");
+
+    });
+}
+
+  function resetForm() {
+
+    document.getElementById("workmanId").value = "";
+
+    document.getElementById("mobileCameraInput").value = "";
+
+    document.getElementById("preview").innerHTML = "";
+
+    capturedImageP = null;
+
 }
 
 
-               function savePunch() {
-                    const workmanId = document.getElementById("workmanId").value;
-                    const fileInput = document.getElementById("mobileCameraInput");
 
-                    if (!workmanId) {
-                        document.getElementById("error-workman").style.display = "block";
-                        return;
-                    }
 
-                    if (!fileInput.files.length) {
-                        alert("Please capture photo before saving.");
-                        return;
-                    }
-                    document.getElementById("loaderOverlay").style.display = "flex";
-
-                    const formData = new FormData();
-                    formData.append("userId", workmanId);      // must match API param
-                    formData.append("imageFile", fileInput.files[0]); // actual file
-
-                    const baseUrl = window.location.origin;   // auto gets http://IP:PORT
-
-                    fetch(baseUrl + "/CWFM/faced/save-image-auto", {
-                        method: "POST",
-                        body: formData
-                    })
-                        .then(async res => {
-                            const data = await res.json();
-                    document.getElementById("loaderOverlay").style.display = "none";
-
-                            if (!res.ok) {
-                                // Handles 500 / 400 errors
-                                alert(data.message || "Server error occurred");
-                                return;
-                            }
-
-                            if (data.success) {
-                                alert(data.message);
-                            } else {
-                                alert(data.message); // <-- YOUR MESSAGE WILL SHOW HERE
-                            }
-                        })
-                        .catch(err => {
-                            alert("Unable to reach server");
-                        });
-                }

@@ -1,9 +1,9 @@
 <%@ page import="com.wfd.dot1.cwfm.pojo.MasterUser" %>
-    <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
-        <%@ page isELIgnored="false" %>
-            <%@ taglib uri="http://www.springframework.org/tags/form" prefix="f" %>
-                <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-                    <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+<%@ page isELIgnored="false" %>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="f" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
                         <!DOCTYPE html>
                         <html>
 
@@ -714,10 +714,8 @@
                                 }
                             </style>
 
-                            <% MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null
-                                && user.getUserId() !=null ? String.valueOf(user.getUserId()) : "" ; %>
-
-
+                            <!-- MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null && user.getUserId() !=null ? String.valueOf(user.getUserId()) : "" ;  -->
+                            
                                 <script>
                                     // Function to validate fields in the current active tab
                                     function validateCurrentTab() {
@@ -865,9 +863,8 @@
                                                     </div>
 
 
-                                                    <input type="file" id="mobileCameraInput" accept="image/*"
-                                                        capture="environment" style="display:none"
-                                                        onchange="handlePunchImage(event)" />
+                                                        <input type="file" id="mobileCameraInput" accept="image/*" capture
+                                                        style="display:none" onchange="handlePunchImage(event)">
 
 
                                                     <button type="button" class="punch-btn" id="punchBtn"
@@ -881,6 +878,7 @@
                                     </table>
   <script>
     applyMobilePunchRestriction();
+      requestLocationPermission();
 </script>
                                 </div>
                             </div>

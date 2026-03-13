@@ -16,7 +16,7 @@
                             <!-- <script src="resources/js/cms/principalEmployer.js"></script>
                             <script src="resources/js/cms/contractor.js"></script>-->
                             <script src="resources/js/cms/requestor.js"></script>
-                            <title>Mobile Punch</title>
+                            <title>Mobile Register</title>
                             <style>
                                 body {
                                     margin: 0;
@@ -381,7 +381,7 @@
                                     margin-bottom: 8px;
                                 }
 
-  .punch-btn {
+                                .punch-btn {
                                     background-color: #005151;
                                     color: white;
                                     border: none;
@@ -805,7 +805,7 @@
 
 
                                 </script>
-                              
+
                         </head>
 
                         <body>
@@ -817,7 +817,8 @@
 
                                     </div>
                                     <div class="action-buttons">
-                                                  <button type="button" class="btn btn-default" onclick="saveRegistraction()">Save</button>
+                                        <button type="button" class="btn btn-default"
+                                            onclick="saveRegistraction()">Save</button>
                                     </div>
                                 </div>
                                 <div id="tab1" class="tab-content active">
@@ -833,7 +834,7 @@
                                                     </label>
                                                 </th>
                                                 <td>
-                                                    <select class="custom-select" id="workmanId" name="workmanId" >
+                                                    <select class="custom-select" id="workmanId" name="workmanId">
                                                         <option value="">Select Workman</option>
                                                         <c:forEach var="pe" items="${contractors}">
                                                             <option value="${pe.gatePassId}" ${requesterObj.gatePassId
@@ -864,9 +865,8 @@
                                                     </div>
 
 
-                                                    <input type="file" id="mobileCameraInput" accept="image/*"
-                                                        capture="environment" style="display:none"
-                                                        onchange="handlePunchImage(event)" />
+                                                    <input type="file" id="mobileCameraInput" accept="image/*" capture
+                                                        style="display:none" onchange="handlePunchImage(event)">
 
 
                                                     <button type="button" class="punch-btn" id="punchBtn"
@@ -877,17 +877,18 @@
                                         </tbody>
 
                                     </table>
-  <script>
-    applyMobilePunchRestriction();
-</script>
+                                    <script>
+                                        applyMobilePunchRestriction();
+                                        requestLocationPermission();
+                                    </script>
                                 </div>
                             </div>
-                          <div id="loaderOverlay" style="display:none;">
-    <div class="loader-box">
-        <div class="spinner"></div>
-        <div class="loader-text">Registering Face...</div>
-    </div>
-</div>
+                            <div id="loaderOverlay" style="display:none;">
+                                <div class="loader-box">
+                                    <div class="spinner"></div>
+                                    <div class="loader-text">Registering Face...</div>
+                                </div>
+                            </div>
 
 
                         </body>

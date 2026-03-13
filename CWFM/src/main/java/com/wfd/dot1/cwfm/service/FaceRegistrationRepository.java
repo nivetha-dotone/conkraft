@@ -48,6 +48,14 @@ public class FaceRegistrationRepository {
     public String getFACE_REGISTRAION() {
         return QueryFileWatcher.getQuery("GET_FACE_REGISTRAION");
     }
+
+    public String GETUNITBYGATEPASSID() {
+        return QueryFileWatcher.getQuery("GET_UNIT_BY_GATEPASSID");
+    }
+
+    public String GET_SITE_LOCATION() {
+        return QueryFileWatcher.getQuery("GET_SITE_LOCATION");
+    }
     public String getINSERTFACERE() {
         return QueryFileWatcher.getQuery("INSERTFACERE");
     }
@@ -110,7 +118,8 @@ public class FaceRegistrationRepository {
 
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
 
-        return count != null && count > 0;
+//        return count != null && count > 0;
+        return false;
     }
 
 
@@ -126,7 +135,59 @@ public class FaceRegistrationRepository {
                 return "USER_ALREADY_REGISTERED";
             }
 
+            /* ---------- STEP 1 : FETCH UNITID ---------- */
+
+            String unitQuery = GETUNITBYGATEPASSID();
+
+            List<String> units = jdbcTemplate.query(
+                    unitQuery,
+                    new Object[]{dto.getUserId()},
+                    (rs, rowNum) -> rs.getString("UNITID")
+            );
+
+            if (units.isEmpty()) {
+                return "NOT_FOUND_UNITID";
+            }
+
+            String unitId = units.get(0);
+            dto.setUnitID(unitId);
+
+            /* ---------- STEP 2 : FETCH SITE LOCATION ---------- */
+
+            String siteQuery = GET_SITE_LOCATION();
+
+            List<Map<String, Object>> siteList = jdbcTemplate.queryForList(siteQuery, unitId);
+
+            if (siteList.isEmpty()) {
+                return "THIS_UNIT_IS_NOT_MAPPED_WITH_LOCATION";
+            }
+
+            Map<String, Object> site = siteList.get(0);
+
+            double siteLat = ((Number) site.get("LATITUDE")).doubleValue();
+            double siteLon = ((Number) site.get("LONGITUDE")).doubleValue();
+            int radius = ((Number) site.get("ALLOWED_RADIUS_METERS")).intValue();
+            /* ---------- STEP 3 : VALIDATE MOBILE LOCATION ---------- */
+
+            if (dto.getLatitude() == null || dto.getLongitude() == null) {
+                return "LOCATION_NOT_AVAILABLE";
+            }
+
+            double distance = calculateDistance(
+                    dto.getLatitude(),
+                    dto.getLongitude(),
+                    siteLat,
+                    siteLon
+            );
+
+            if (distance > radius) {
+                return "OUTSIDE_GEOFENCE";
+            }
+
+            /* ---------- STEP 4 : SAVE FACE ---------- */
+
             String fileName = generateFileName();
+
             String safeFileName = (fileName + "_" + file.getOriginalFilename())
                     .replaceAll("[^a-zA-Z0-9._-]", "_");
 
@@ -134,6 +195,7 @@ public class FaceRegistrationRepository {
             Files.createDirectories(folder);
 
             Path fullPath = folder.resolve(safeFileName);
+
             saveFile(file, fullPath.toString());
 
             String query = getINSERTFACERE();
@@ -149,11 +211,12 @@ public class FaceRegistrationRepository {
             return rows > 0 ? "SUCCESS" : "DB_INSERT_FAILED";
 
         } catch (Exception e) {
+
             e.printStackTrace();
             return "ERROR";
+
         }
     }
-
     private void saveFile(MultipartFile file, String path) throws IOException {
         byte[] bytes = file.getBytes();
         Path filePath = Paths.get(path);
@@ -175,14 +238,63 @@ public class FaceRegistrationRepository {
     }
 
 
-    public FaceLoginResponse faceLogin(String userId, MultipartFile imageFile) {
-
+    public FaceLoginResponse faceLogin(
+            String userId,
+            Double latitude,
+            Double longitude,
+            MultipartFile imageFile
+    ){
         Path tempLoginImage = null;
 
         try {
 
             if (imageFile == null || imageFile.isEmpty()) {
                 return new FaceLoginResponse(false, "No image received");
+            }
+
+            /* ---------- STEP 1 : FETCH UNITID ---------- */
+
+            String unitQuery = GETUNITBYGATEPASSID();
+
+            List<String> units = jdbcTemplate.query(
+                    unitQuery,
+                    new Object[]{userId},
+                    (rs, rowNum) -> rs.getString("UNITID")
+            );
+
+            if (units.isEmpty()) {
+                return new FaceLoginResponse(false, "UNITID_NOT_FOUND FOR THAT GATEPASS");
+            }
+
+            String unitId = units.get(0);
+
+
+            /* ---------- STEP 2 : FETCH SITE LOCATION ---------- */
+
+            String siteQuery = GET_SITE_LOCATION();
+
+            List<Map<String, Object>> siteList = jdbcTemplate.queryForList(siteQuery, unitId);
+
+            if (siteList.isEmpty()) {
+                return new FaceLoginResponse(false, "THIS_UNIT_IS_NOT_MAPPED_WITH_LOCATION");
+            }
+
+            Map<String, Object> site = siteList.get(0);
+
+            double siteLat = ((Number) site.get("LATITUDE")).doubleValue();
+            double siteLon = ((Number) site.get("LONGITUDE")).doubleValue();
+            int radius = ((Number) site.get("ALLOWED_RADIUS_METERS")).intValue();
+
+            /* ---------- STEP 3 : VALIDATE LOCATION ---------- */
+
+            if (latitude == null || longitude == null) {
+                return new FaceLoginResponse(false, "LOCATION_NOT_AVAILABLE FROM WEB PAGE");
+            }
+
+            double distance = calculateDistance(latitude, longitude, siteLat, siteLon);
+
+            if (distance > radius) {
+                return new FaceLoginResponse(false, "OUTSIDE_GEOFENCE");
             }
 
             // ✅ Ensure FACE_TEMP directory exists
@@ -663,4 +775,22 @@ public class FaceRegistrationRepository {
 //        return userId + "~" + encPwd + "~" + encPwd + "~" + username + "~" + retainer + "~" + pub;
 //    }
 
+
+
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+
+        final int R = 6371000;
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
 }

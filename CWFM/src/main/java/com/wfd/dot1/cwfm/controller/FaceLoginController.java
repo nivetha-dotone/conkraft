@@ -25,14 +25,28 @@ public class FaceLoginController {
 
 
 
-    @PostMapping(value = "/register",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> registerFace(@RequestPart("registerFace") String registerFace,@RequestParam(value = "imageFile", required = false) MultipartFile imageFile,  HttpServletRequest request) throws JsonProcessingException {
+    @PostMapping(
+            value = "/register",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> registerFace(
+            @RequestPart("registerFace") String registerFace,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            HttpServletRequest request) throws JsonProcessingException {
 
         ObjectMapper mapper = new ObjectMapper();
-        FaceRegistrationDTO FaceRegistrationDTODto = mapper.readValue(registerFace, FaceRegistrationDTO.class);
 
+        FaceRegistrationDTO faceRegistrationDTO =
+                mapper.readValue(registerFace, FaceRegistrationDTO.class);
 
-        String result = faceRegistrationRepository.registerFace(FaceRegistrationDTODto, imageFile);
+        // You now have latitude & longitude
+        Double latitude = faceRegistrationDTO.getLatitude();
+        Double longitude = faceRegistrationDTO.getLongitude();
+
+        System.out.println("Latitude: " + latitude);
+        System.out.println("Longitude: " + longitude);
+
+        String result = faceRegistrationRepository.registerFace(faceRegistrationDTO, imageFile);
 
         if ("SUCCESS".equals(result)) {
             return ResponseEntity.ok("Face Registered Successfully");
@@ -44,27 +58,34 @@ public class FaceLoginController {
 
 
 
-
-    @PostMapping(value="/save-image-auto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(
+            value="/save-image-auto",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<FaceLoginResponse> saveImageAuto(
+
             @RequestParam("userId") String userId,
-            @RequestParam("imageFile") MultipartFile imageFile) {
+            @RequestParam("latitude") Double latitude,      // ✅ ADDED
+            @RequestParam("longitude") Double longitude,    // ✅ ADDED
+            @RequestParam("imageFile") MultipartFile imageFile
+    ) {
+
         try {
-            // 1️⃣ Validate request
+
             if (userId == null || imageFile == null) {
                 return ResponseEntity.badRequest()
                         .body(new FaceLoginResponse(false, "Invalid request"));
             }
 
-            // 2️⃣ Call Service
-            FaceLoginResponse response = faceRegistrationRepository.faceLogin(userId,imageFile);
+            FaceLoginResponse response =
+                    faceRegistrationRepository.faceLogin(userId, latitude, longitude, imageFile);
 
-            // 3️⃣ Map Service Result → HTTP Status
             if (response.isSuccess()) {
-                return ResponseEntity.ok(response);  // 200
+                return ResponseEntity.ok(response);
             }
 
-            if ("Face login not enabled".equals(response.getMessage())) {
+            if ("OUTSIDE_GEOFENCE".equals(response.getMessage())) {
                 return ResponseEntity.status(403).body(response);
             }
 
@@ -72,21 +93,17 @@ public class FaceLoginController {
                 return ResponseEntity.status(401).body(response);
             }
 
-            if ("Failed to save captured image".equals(response.getMessage())) {
-                return ResponseEntity.status(500).body(response);
-            }
-
-            // Default fallback
             return ResponseEntity.internalServerError().body(response);
 
         } catch (Exception e) {
+
             e.printStackTrace();
+
             return ResponseEntity.internalServerError()
                     .body(new FaceLoginResponse(false, "Server error"));
+
         }
     }
-
-
 
 
 
