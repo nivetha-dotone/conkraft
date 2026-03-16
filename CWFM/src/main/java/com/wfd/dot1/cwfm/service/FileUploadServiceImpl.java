@@ -147,7 +147,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 savedData = processWorkorder(reader);
                 break;
             case "Data-Minimum Wage":
-                if (!headerLine.equalsIgnoreCase("Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date,To Date")) {
+                if (!headerLine.equalsIgnoreCase("Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                  savedData = processMinimumWage(reader);
@@ -157,7 +157,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                         + "Is MW Applicability,License Number,PF Code,ESWC,Factory License Number,State")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
-                 savedData = processPrincipalEmployer(reader);
+                 savedData = processPrincipalEmployer(reader, createdBy);
                 break;
             case "Data-Workmen Bulk Upload":
                 if (!headerLine.equalsIgnoreCase("First Name*,Last Name*,Father's Name or Husband's Name*,Date of Birth*,Trade*,Skill*,Nature of Work*,Hazardous Area*,"
@@ -561,7 +561,7 @@ public class FileUploadServiceImpl implements FileUploadService {
           int rowNum = 0;
           List<MinimumWageDTO> MinimumWageDTO = new ArrayList<>();
           String[] fieldNames = {"unitCode", "stateName", "zoneName", "skillName", "basic", "da", "otherAllowance",
-                                 "fromDate","toDate"};
+                                 "fromDate"};
 
           Set<String> mandatoryFields = Set.of("unitCode", "stateName", "zoneName", "skillName", "basic", 
         		                    "da", "otherAllowance","fromDate");
@@ -597,7 +597,7 @@ public class FileUploadServiceImpl implements FileUploadService {
               String skillName = fields[3];
 
               Date fromDate = parseDateStrict(fields[7], "fromDate", fieldErrors);
-              Date toDate = parseDateStrict(fields[8], "toDate", fieldErrors);
+             // Date toDate = parseDateStrict(fields[8], "toDate", fieldErrors);
 
               BigDecimal basic = null;
               BigDecimal da = null;
@@ -665,7 +665,21 @@ public class FileUploadServiceImpl implements FileUploadService {
                       fieldErrors.put("otherAllowance", "Invalid number");
                   }
               }
-              
+              if (fromDate != null) {
+
+            	    LocalDate today = LocalDate.now();
+            	    LocalDate minDate = today.minusDays(60);
+            	    LocalDate maxDate = today.plusDays(15);
+
+            	    LocalDate fromLocalDate = fromDate.toInstant()
+            	            .atZone(ZoneId.systemDefault())
+            	            .toLocalDate();
+
+            	    if (fromLocalDate.isBefore(minDate) || fromLocalDate.isAfter(maxDate)) {
+            	        fieldErrors.put("fromDate", 
+            	            "From Date must be between " + minDate + " and " + maxDate);
+            	    }
+            	}
               if (!fieldErrors.isEmpty()) {
                   errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
                   continue;
@@ -682,12 +696,16 @@ public class FileUploadServiceImpl implements FileUploadService {
             	  staging.setDa(da);
             	  staging.setOtherAllowance(otherAllowance);
             	  staging.setFromDate(fromDate);
-            	  staging.setToDate(toDate);
+            	  staging.setToDate(ESIC_MAX_DATE);
 
-            	  if (fileUploadDao.minimumWageExistsInStagging(unitId, stateName,zoneName,skillName,fromDate)) {
+            	  if (fileUploadDao.minimumWageFromExistsInStagging(unitCode, stateName,zoneName,skillName,fromDate)) {
                       fileUploadDao.updateMinimumWageToStaging(staging);
-                  } else {
-                   fileUploadDao.saveMinimumWageToStaging(staging);
+                  }
+//            	  else if(fileUploadDao.minimumWagesExistsInStagging(unitCode, stateName,zoneName,skillName)) {
+//                   fileUploadDao.saveMinimumWageToStaging(staging);
+//                  }
+            	  else {
+                	  fileUploadDao.saveMinimumWageToStaging(staging);  
                   }
                    // Prepare and add to success list
                    Map<String, Object> success = new LinkedHashMap<>();
@@ -699,7 +717,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                    success.put("da", da);
                    success.put("otherAllowance",otherAllowance);
                    success.put("fromDate", toSqlDateString(fromDate));
-                   success.put("toDate", toSqlDateString(toDate));
+                   //success.put("toDate", toSqlDateString(toDate));
 
                    successData.add(success);
 
@@ -721,7 +739,7 @@ public class FileUploadServiceImpl implements FileUploadService {
     }
     
     @Transactional
-    private Map<String, Object> processPrincipalEmployer(BufferedReader reader) throws IOException {
+    private Map<String, Object> processPrincipalEmployer(BufferedReader reader,String createdBy) throws IOException {
         List<Map<String, Object>> successData = new ArrayList<>();
         List<Map<String, Object>> errorData = new ArrayList<>();
 
@@ -799,9 +817,9 @@ public class FileUploadServiceImpl implements FileUploadService {
                 p.setPfCode(fields[12]);
                 p.setWcNumber(fields[13]);
                 p.setFactoryLicenseNumber(fields[14]);
-                p.setStateNM(stateName);  // Save for display/reference
+                p.setStateNM(String.valueOf(stateId));  // Save for display/reference
 
-                Long unitId = fileUploadDao.savePrincipalEmployer(p);  // Save and get unitId
+                Long unitId = fileUploadDao.savePrincipalEmployer(p, createdBy);  // Save and get unitId
 
                 // Save to CMSPrincipalEmployerState with unitId and stateId
                 fileUploadDao.savePEState(unitId, stateId);

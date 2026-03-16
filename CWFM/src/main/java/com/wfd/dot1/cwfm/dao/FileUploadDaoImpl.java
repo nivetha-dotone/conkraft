@@ -266,7 +266,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
     }
     
     @Override
-    public Long savePrincipalEmployer(PrincipalEmployer p) {
+    public Long savePrincipalEmployer(PrincipalEmployer p,String createdBy) {
     	 KeyHolder keyHolder = new GeneratedKeyHolder();
     	 String sql=savePrincipalEmployer();
         //String sql = "INSERT INTO CMSPRINCIPALEMPLOYER (ORGANIZATION,CODE,NAME,ADDRESS,MANAGERNAME,MANAGERADDRS,BUSINESSTYPE,MAXWORKMEN,MAXCNTRWORKMEN,BOCWAPPLICABILITY,ISMWAPPLICABILITY,LICENSENUMBER,PFCODE,WCNUMBER,FACTORYLICENCENUMBER) VALUES (?,?, ?, ?, ?,?,?, ?, ?, ?,?,?, ?, ?, ?)";
@@ -287,6 +287,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        ps.setString(13, p.getPfCode());
 	        ps.setString(14, p.getWcNumber());
 	        ps.setString(15,p.getFactoryLicenseNumber());
+	        ps.setString(16, createdBy); 
+	        ps.setString(17, p.getStateNM());
 	        return ps;
 	    }, keyHolder);
 
@@ -521,7 +523,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
             case "Data-Bulk Renew":
             	return "Gatepass Number,WorkOrder Number,WC/ESIC Number,LL Number";
             case "Data-Minimum Wage":
-            	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date,To Date";
+            	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1922,17 +1924,17 @@ public class FileUploadDaoImpl implements FileUploadDao {
 			
 		}
 		@Override
-		public boolean minimumWageExistsInStagging(Integer unitId, String stateName, String zoneName, String skillName,
+		public boolean minimumWageFromExistsInStagging(String unitCode, String stateName, String zoneName, String skillName,
 				java.util.Date fromDate) {
 			//String sql =workorderExistsInStagging();
 			String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=? and FROMDATE=?";
-		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitId, stateName,zoneName,skillName,fromDate);
+		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitCode, stateName,zoneName,skillName,fromDate);
 		    return count != null && count > 0;
 		}
 		@Override
 		public void updateMinimumWageToStaging(MinimumWageDTO staging){
 			//String sql =updateWorkorderToStaging();
-       String sql ="update KTC_STATE_MINIMUMWAGE set BASIC=?,DA=?,OTHERALLOW=?,FROMDATE=?,TODATE=? ,RECORD_STATUS=? ,RECORD_UPDATEDON=?\r\n"
+       String sql ="update KTC_STATE_MINIMUMWAGE set BASIC=?,DA=?,OTHERALLOW=?,RECORD_STATUS=? ,RECORD_UPDATEDON=?\r\n"
 		         + "where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
        
        java.util.Date toDate = staging.getToDate();
@@ -1946,8 +1948,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    		staging.getBasic() ,
 		    		staging.getDa(),
 		    		staging.getOtherAllowance(),
-		    		staging.getFromDate(),
-		    		toDate,
+		    		//staging.getFromDate(),
+		    		//toDate,
 		    		"UPDATED",
 		           new Timestamp(System.currentTimeMillis()),
 
@@ -1962,4 +1964,11 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		 public void callMinimumWageProcessingSP() {
 		     jdbcTemplate.execute("EXEC CMS_StateMinimumWage_Upload");
 		 }
+		 @Override
+			public boolean minimumWagesExistsInStagging(String unitCode, String stateName, String zoneName, String skillName) {
+				//String sql =workorderExistsInStagging();
+				String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
+			    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitCode, stateName,zoneName,skillName);
+			    return count != null && count > 0;
+			}
 	}

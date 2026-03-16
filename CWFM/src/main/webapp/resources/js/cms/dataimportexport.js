@@ -255,7 +255,7 @@ function downloadErrorCSV(errorData, uploadedFileName) {
                 break;
 
             case "data-minimum wage":
-                headers = ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date", "To Date"];
+                headers = ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date"];
                 break;
 
             case "data-work order":
@@ -524,8 +524,8 @@ const tableBody = document.getElementById("tableBody");
             fieldMap = ["gmName", "gmDescription", "gmTypeId"];
         }
         else if (templateType === "Data-Minimum Wage") {
-            headers = ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date", "To Date"];
-            fieldMap = ["unitCode", "stateName", "zoneName", "skillName", "basic", "da", "otherAllowance","fromDate","toDate"];
+            headers = ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date"];
+            fieldMap = ["unitCode", "stateName", "zoneName", "skillName", "basic", "da", "otherAllowance","fromDate"];
         }
         else if (templateType === "Data-Work Order") {
             headers = ["Work Order Number","Item","Line","Line Number","Service Code","Short Text","Delivery Completion","Item Changed On","Vendor Code","Vendor Name","Vendor Address","Blocked Vendor","Work Order Validity From","Work Order Validity To","Work Order Type","Plant Code","Section Code","Department Code","G/L Code","Cost Center","Nature of Job","Rate/Unit","Quantity","Base Unit of Measure","Work Order Released","PM Order No","WBS Element","Qty Completed","Work Order Release Date","Service Entry Created Date","Service Entry Updated Date","Purchase Org Level","Company Code"];
@@ -853,7 +853,7 @@ function getHeadersByTemplate(selectedText) {
             return ["GM Name", "GM Description", "GM Type ID"];
             
         case "data-minimum wage":
-            return ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date", "To Date"];
+            return ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date"];
         
         case "data-work order":
             return ["Work Order Number","Item","Line","Line Number","Service Code","Short Text","Delivery Completion","Item Changed On","Vendor Code","Vendor Name","Vendor Address","Blocked Vendor","Work Order Validity From","Work Order Validity To","Work Order Type","Plant Code","Section Code","Department Code","G/L Code","Cost Center","Nature of Job","Rate/Unit","Quantity","Base Unit of Measure","Work Order Released","PM Order No","WBS Element","Qty Completed","Work Order Release Date","Service Entry Created Date","Service Entry Updated Date","Purchase Org Level","Company Code"];

@@ -146,7 +146,7 @@ public class FileUploadController {
             fields.add(Map.of("name", "DA", "type", "Number", "example", "0"));
             fields.add(Map.of("name", "Other Allowances", "type", "Number", "example", "1265"));
             fields.add(Map.of("name", "From Date", "type", "Date", "example", "2024-04-09"));
-            fields.add(Map.of("name", "To Date", "type", "Date", "example", "2025-04-09"));
+            //fields.add(Map.of("name", "To Date", "type", "Date", "example", "2025-04-09"));
             
             templateInfo.put("fields", fields);
         }else if("Data-Work Order".equals(templateType)){

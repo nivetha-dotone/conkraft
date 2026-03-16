@@ -30,7 +30,7 @@ public interface FileUploadDao {
 
     void saveGeneralMaster(CmsGeneralMaster gm);
     void saveMinimumWage(MimumWageMasterTemplate mw);
-    Long savePrincipalEmployer(PrincipalEmployer p);
+    Long savePrincipalEmployer(PrincipalEmployer p, String createdBy);
     Long insertIntoWageTable(MinimumWageDTO dto);
     void insertIntoMinimumWageTable(LocalDate fromDate, Long wageId);
     Long saveContractor(Contractor contractor);
@@ -191,10 +191,12 @@ public interface FileUploadDao {
 
 	void saveMinimumWageToStaging(MinimumWageDTO staging);
 
-	boolean minimumWageExistsInStagging(Integer unitId, String stateName, String zoneName, String skillName, Date fromDate);
+	boolean minimumWageFromExistsInStagging(String unitCode, String stateName, String zoneName, String skillName, Date fromDate);
 
 	void updateMinimumWageToStaging(MinimumWageDTO staging);
 
 	void callMinimumWageProcessingSP();
+
+	boolean minimumWagesExistsInStagging(String unitCode, String stateName, String zoneName, String skillName);
 
 }
