@@ -234,5 +234,7 @@ public interface WorkmenDao {
 
 	public void updateonboardingDocTypeinGP(String onboardingDocType, String transactionId);
 
-
+	public String getStateOnPrincipalEmployer(String principalEmployer);
+	
+	Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill);
 }

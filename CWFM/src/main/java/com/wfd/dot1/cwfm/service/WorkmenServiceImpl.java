@@ -1508,5 +1508,14 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    return workmenDao.insertIntoCustDataRenew(createdBy, personId, type.getStatus());
 	}
+	@Override
+	public String getStateOnPrincipalEmployer(String principalEmployer) {
+		// TODO Auto-generated method stub
+		return workmenDao.getStateOnPrincipalEmployer( principalEmployer);
+	}
+	@Override
+	public Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill) {
+	    return workmenDao.getMinimumWage(principalEmployer, stateId, zone, skill);
+	}
 	}
 

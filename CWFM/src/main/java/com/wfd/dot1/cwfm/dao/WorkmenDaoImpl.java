@@ -3900,6 +3900,45 @@ public void updateonboardingDocTypeinGP(String onboardingDocType, String transac
 	jdbcTemplate.update(sql,onboardingDocType,transactionId);
 	
 }
+public String getStateOnPrincipalEmployer() {
+	return QueryFileWatcher.getQuery("GET_STATEID_BASED_ON_UNITID");
+}
+public String getMinimumWage() {
+	return QueryFileWatcher.getQuery("GET_MINIMUMWAGE_DETAILS_FOR_WORKMEN");
+}
+@Override
+public String getStateOnPrincipalEmployer(String principalEmployer) {
+	String sql=getStateOnPrincipalEmployer();
+	
+	 // String sql = "select STATEID from CMSPRINCIPALEMPLOYER where UNITID=? and ISACTIVE=1";
+    try {
+        return jdbcTemplate.queryForObject(sql, String.class, principalEmployer);
+    } catch (EmptyResultDataAccessException e) {
+        return null; // State not found
+    }
+}
 
+@Override
+public Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill) {
+
+    Map<String, Object> result = new HashMap<>();
+    
+    String sql=getMinimumWage();
+    
+   // String sql = "select BASICWG,DA,OTHERALLOWANCE from CMSSTATEMINIMUMWAGE where UNITID=? and STATEID=? and ZONENM=? and SKILLID=? and DELETEDSW=0";
+
+    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql,
+            principalEmployer, stateId, zone, skill);
+
+    if (!list.isEmpty()) {
+        Map<String, Object> row = list.get(0);
+
+        result.put("basic", row.get("BASICWG"));
+        result.put("da", row.get("DA"));
+        result.put("otherAllowance", row.get("OTHERALLOWANCE"));
+    }
+
+    return result;
+}
 
 }

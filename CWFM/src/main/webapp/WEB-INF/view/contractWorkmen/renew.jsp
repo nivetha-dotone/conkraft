@@ -1167,6 +1167,21 @@ label {
             border-radius:6px;
             border:1px solid #f5c2c7;
             margin-bottom:10px;"></div>
+              <div id="MinimumWageError" style="display:none;
+            background:#f8d7da;
+            color:#842029;
+            padding:10px;
+            border-radius:6px;
+            border:1px solid #f5c2c7;
+            margin-bottom:10px;"></div>
+           <label id="msg-minimumWage" style="display:none;"><spring:message code="error.minimum.wage"/></label>
+
+           <label id="msg-esicMonthly" style="display:none;"><spring:message code="error.esic.monthly"/></label>
+
+           <label id="msg-esicDaily" style="display:none;"><spring:message code="error.esic.daily"/></label>
+           
+           <label id="msg-minimumWageNotFound" style="display:none;"><spring:message code="error.minimumWage.notFound"/></label>
+           
             <table class="ControlLayout" cellspacing="0" cellpadding="0">
                     <tbody>
                    <tr>

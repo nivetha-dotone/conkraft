@@ -1173,6 +1173,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     let otherValid = true;
     let wagesValid = true;
     let documentValid = true;
+    let minimumwageValid = true;
 
     var aadharFile = $("#aadharFile").prop("files")[0];
     var policeFile = $("#policeFile").prop("files")[0];
@@ -1221,10 +1222,14 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
             wagesValid = false;
              hideLoader();
         }
-        
+        if(!validateMinimumWage()){
+			minimumwageValid = false;
+             hideLoader();
+		}
     }else{
 		otherValid = true;
 		wagesValid = true;
+		minimumwageValid=true;
 		$("#uniformAllowance").val("0.00"); 
 		$("#washingAllowance").val("0.00");  	
 		$("#hra").val("0.00");  	
@@ -1289,7 +1294,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 		    emergencyName = toCapitalCase($("#emergencyName").val().trim());
 		    pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
 		}
-    if (basicValid && employmentValid && otherValid && wagesValid && documentValid) {
+    if (basicValid && employmentValid && otherValid && wagesValid && minimumwageValid && documentValid) {
         const data = new FormData();
         const jsonData = {
 			transactionId:trimIfPresent($("#transactionId").val()),
@@ -3136,7 +3141,8 @@ function renewGatePass(userId) {
     let otherValid = true;
     let wagesValid = true;
     let documentValid = true;
-
+    let minimumwageValid = true;
+    
     var aadharFile = $("#aadharFile").prop("files")[0];
     var policeFile = $("#policeFile").prop("files")[0];
 	var profilePic = $("#imageFile").prop("files")[0];
@@ -3169,7 +3175,10 @@ function renewGatePass(userId) {
         wagesValid = false;
         hideLoader();
     }
-
+  if(!validateMinimumWage()){
+			minimumwageValid = false;
+             hideLoader();
+		}
     console.log("basicValid: " + basicValid);
     console.log("employmentValid: " + employmentValid);
     console.log("otherValid: " + otherValid);
@@ -3198,7 +3207,7 @@ function renewGatePass(userId) {
     }
     
  const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
-    if (basicValid && employmentValid && otherValid && wagesValid && documentValid) {
+    if (basicValid && employmentValid && otherValid && wagesValid && minimumwageValid && documentValid) {
         const data = new FormData();
         const jsonData = {
 			transactionId:$("#transactionId").val().trim(),
@@ -5027,4 +5036,111 @@ function createBulkApprove(status,type) {
         alert("Bulk approval failed");
         console.error(err);
     });
+}
+
+function validateMinimumWage() {
+
+    let isValid = true;
+
+    $("#MinimumWageError").hide().text("");
+
+    const principalEmp = $("#principalEmployer").val();
+    const zone = $("#zone option:selected").text();
+    const skill = $("#skill").val();
+    const wageType = $("#wageCategory option:selected").text().trim().toLowerCase();
+
+    const selectedOption = $("#wc").find(":selected");
+	//const licenceType = selectedOption.data("licencetype");
+	const licenceType = selectedOption.attr("data-code");
+
+
+    const basic = parseFloat($("#basic").val()) || 0;
+    const da = parseFloat($("#da").val()) || 0;
+    const hra = parseFloat($("#hra").val()) || 0;
+    const washing = parseFloat($("#washingAllowance").val()) || 0;
+    const other = parseFloat($("#otherAllowance").val()) || 0;
+    const uniform = parseFloat($("#uniformAllowance").val()) || 0;
+
+    const enteredWage = basic + da + hra + washing + other + uniform;
+
+    $.ajax({
+        url: "/CWFM/contractworkmen/getMinimumWageDetails",
+        type: "GET",
+        async: false,   // IMPORTANT
+        data: {
+            principalEmployer: principalEmp,
+            zone: zone,
+            skill: skill
+        },
+        success: function(response) {
+
+
+                const minWageMsg = $("#msg-minimumWage").text();
+                const esicMonthlyMsg = $("#msg-esicMonthly").text();
+                const esicDailyMsg = $("#msg-esicDaily").text();
+                const notFoundMsg = $("#msg-minimumWageNotFound").text(); 
+                
+                            // ⭐ Minimum Wage Not Configured
+            if (!response || response.basic == null) {
+
+                $("#MinimumWageError").text(notFoundMsg).show();
+                isValid = false;
+                return;
+            }
+
+                const stateBasic = parseFloat(response.basic) || 0;
+                const stateDa = parseFloat(response.da) || 0;
+                const stateOther = parseFloat(response.otherAllowance) || 0;
+
+                const stateMinimum = stateBasic + stateDa + stateOther;	
+                // DAILY VALIDATION
+                if (wageType === "daily") {
+
+                    if (enteredWage < stateMinimum) {
+                        $("#MinimumWageError").text(minWageMsg).show();
+                        isValid = false;
+                        return;
+                    }
+                }
+
+                // MONTHLY VALIDATION
+                if (wageType === "monthly") {
+
+                    const monthlyMinimum = stateMinimum * 26;
+
+                    if (enteredWage < monthlyMinimum) {
+                        $("#MinimumWageError").text(minWageMsg).show();
+                        isValid = false;
+                        return;
+                    }
+                }
+
+                // ESIC VALIDATION
+                if (licenceType === "ESIC") {
+
+                    if (wageType === "monthly" && enteredWage >= 21000) {
+                        $("#MinimumWageError").text(esicMonthlyMsg).show();
+                        isValid = false;
+                        return;
+                    }
+
+                    if (wageType === "daily" && enteredWage >= (21000 / 26)) {
+
+                        const limit = (21000 / 26).toFixed(2);
+                        const msg = esicDailyMsg.replace("{0}", limit);
+
+                        $("#MinimumWageError").text(msg).show();
+                        isValid = false;
+                        return;
+                    }
+                }
+
+        },
+        error: function() {
+            alert("Error while fetching wage details");
+            isValid = false;
+        }
+    });
+
+    return isValid;
 }

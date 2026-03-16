@@ -145,7 +145,9 @@ public interface WorkmenService {
 	public boolean  updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile exitFile, MultipartFile fnfFile,
 			MultipartFile feedbackFile, MultipartFile rateManagerFile, MultipartFile locFile);
 
-	
+	public String getStateOnPrincipalEmployer(String principalEmployer);
+
+	Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill);
 
 	
 }	

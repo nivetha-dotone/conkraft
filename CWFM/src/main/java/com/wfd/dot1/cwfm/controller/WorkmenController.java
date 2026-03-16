@@ -3311,5 +3311,26 @@ if (status.contains("Unique")) {
                     .body("Bulk approval failed: " + e.getMessage());
         }
     }
+    @GetMapping("/getMinimumWageDetails")
+    @ResponseBody
+    public Map<String, Object> getMinimumWageDetails(
+            @RequestParam("principalEmployer") String principalEmployer,
+            @RequestParam("zone") String zone,
+            @RequestParam("skill") String skill) {
 
+        Map<String, Object> result = new HashMap<>();
+
+         String stateId= workmenService.getStateOnPrincipalEmployer(principalEmployer);
+         
+       
+         Map<String, Object> wageData = workmenService.getMinimumWage(principalEmployer, stateId, zone, skill);
+
+         if (wageData != null) {
+             result.put("basic", wageData.get("basic"));
+             result.put("da", wageData.get("da"));
+             result.put("otherAllowance", wageData.get("otherAllowance"));
+         }
+
+         return result;
+    }
     }
