@@ -41,11 +41,15 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getupdateWFDLogOK");
     }
     public String getQueryInsertNotSuccess() {
-        return QueryFileWatcher.getQuery("getWFDLognotOK");
+        return QueryFileWatcher.getQuery("getWFDFLognotOK");
+    }
+    public String getQueryInsertNotSuccesstrNot() {
+        return QueryFileWatcher.getQuery("getWFDLognotOKtrNot");
     }
     public String getQueryUpdateWFDNotSuccess() {
         return QueryFileWatcher.getQuery("getupdateWFDLognotOK");
     }
+
     public String getSKILLSByTrnsId() {
         return QueryFileWatcher.getQuery("GET_SKILL_DETAILS_BY_TRANSACTIONID_QUERY");
     }
@@ -130,22 +134,17 @@ public class GatePassToOnBoardService {
         }
     }
 
-
-
     public void saveSuccessTrace(Long gpTransactionId,
                                  Long personId,
-                                 Integer statusNumber,
-                                 Boolean postFlag) {
+                                 Integer statusNumber) {
 
         String sql = getQueryInsertSuccessEnty();
 
         jdbcTemplate.update(sql,
                 gpTransactionId,
                 personId,
-                statusNumber
-                );
+                statusNumber);
     }
-
 
     public void updateSuccessTrace(Long gpTransactionId,
                                    Long personId,
@@ -164,18 +163,18 @@ public class GatePassToOnBoardService {
 
     public void updateErrorTrace(Long gpTransactionId,
                                  Integer statusNumber,
-                                 String errorResponse) {
+                                 String errorResponse,
+                                 Integer flag
+                                 ) {
 
         String sql = getQueryUpdateWFDNotSuccess();
 
         jdbcTemplate.update(sql,
                 statusNumber,
                 errorResponse,
+                flag,
                 gpTransactionId);
     }
-
-
-
 
     public void saveErrorTrace(Long gpTransactionId,
                                Integer statusNumber,
@@ -186,8 +185,18 @@ public class GatePassToOnBoardService {
         jdbcTemplate.update(sql,
                 gpTransactionId,
                 statusNumber,
-                errorResponse,
-                false);
+                errorResponse);
+    }
+    public void saveErrorTraceTrNOT(Long gpTransactionId,
+                                    Integer statusNumber,
+                                    String errorResponse) {
+
+        String sql = getQueryInsertNotSuccesstrNot();
+
+        jdbcTemplate.update(sql,
+                gpTransactionId,
+                statusNumber,
+                errorResponse);
     }
 
 
@@ -204,8 +213,6 @@ public class GatePassToOnBoardService {
                 String trId = sqlRowSet.getString("GPTranscationId");
                 dtoTrList.add(trId);
             }
-
-
 
             log.info("Exit from getListOfTrReScheduleOnb method");
             return dtoTrList;

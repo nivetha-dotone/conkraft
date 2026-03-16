@@ -191,7 +191,8 @@ public class EmployeeMapper {
                     gatePassToOnBoardService.updateErrorTrace(
                             Long.valueOf(gpTransactionId),
                             404,
-                            "Transaction Id Not Found"
+                            "Transaction Id Not Found",
+                            1
                     );
 
                 } else if (result.matches("\\d+")) {
@@ -214,11 +215,20 @@ public class EmployeeMapper {
                     );
 
                     String body = parts.length > 1 ? parts[1] : "";
+                    Integer flag = 0;
 
+                    // Check only the required part of JSON string
+                    if (body.contains("WCO-101520") && body.contains("ID already exists")) {
+                        flag = 1;
+
+                    } else if (body.contains("Transaction Id Not Found")) {
+                        flag = 1;
+                    }
                     gatePassToOnBoardService.updateErrorTrace(
                             Long.valueOf(gpTransactionId),
                             statusCode,
-                            body
+                            body,
+                            flag
                     );
                 }
             }
@@ -856,9 +866,9 @@ public class EmployeeMapper {
                 licenseAbsence.setLicenseTypeName("Absence");
                 EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                if(individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.CREATE.getStatus()) || individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.RENEW.getStatus())){
+                if(String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) || String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())){
                     licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-                } else if (individualOnBoardDetailsByTrnId.getGatePassTypeId().equals(GatePassType.PROJECT.getStatus())) {
+                } else if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
                     licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
                 }
                 EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();

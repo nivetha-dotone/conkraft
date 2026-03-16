@@ -86,11 +86,12 @@ public class CreateEmpFetchByGatePassAPICALL {
 
             String result = employeeMapper.gatePassEmpDtoDynamic(trnId);
 
+            // Transaction Not Found
             if (result == null) {
 
-                passToOnBoardService.saveErrorTrace(
+                passToOnBoardService.saveErrorTraceTrNOT(
                         gpTransactionId,
-                        404,
+                        200,
                         "Transaction Id Not Found"
                 );
 
@@ -98,6 +99,7 @@ public class CreateEmpFetchByGatePassAPICALL {
                         .body("Transaction Id Not Found");
             }
 
+            // Success Case (PersonId returned)
             if (result.matches("\\d+")) {
 
                 Long personKey = Long.parseLong(result);
@@ -105,13 +107,13 @@ public class CreateEmpFetchByGatePassAPICALL {
                 passToOnBoardService.saveSuccessTrace(
                         gpTransactionId,
                         personKey,
-                        200,
-                        true
+                        200
                 );
 
                 return ResponseEntity.ok(result);
             }
 
+            // API Error Response
             if (result.startsWith("STATUS:")) {
 
                 String[] parts = result.split("\n", 2);
@@ -122,15 +124,35 @@ public class CreateEmpFetchByGatePassAPICALL {
 
                 String body = parts.length > 1 ? parts[1] : "";
 
-                passToOnBoardService.saveErrorTrace(
-                        gpTransactionId,
-                        statusCode,
-                        body
-                );
+                // Special Case: Duplicate ID
+                if (body.contains("WCO-101520") && body.contains("ID already exists")) {
+
+                    passToOnBoardService.saveErrorTraceTrNOT(
+                            gpTransactionId,
+                            200,
+                            body
+                    );
+
+                } else if (body.contains("Transaction Id Not Found")) {
+                    passToOnBoardService.saveErrorTraceTrNOT(
+                            gpTransactionId,
+                            200,
+                            body
+                    );
+                } else {
+
+
+                    passToOnBoardService.saveErrorTrace(
+                            gpTransactionId,
+                            statusCode,
+                            body
+                    );
+                }
 
                 return ResponseEntity.status(statusCode).body(body);
             }
 
+            // Unexpected Response
             passToOnBoardService.saveErrorTrace(
                     gpTransactionId,
                     500,
@@ -143,6 +165,7 @@ public class CreateEmpFetchByGatePassAPICALL {
         } catch (Exception e) {
 
             if (gpTransactionId != null) {
+
                 passToOnBoardService.saveErrorTrace(
                         gpTransactionId,
                         500,
@@ -154,7 +177,6 @@ public class CreateEmpFetchByGatePassAPICALL {
                     .body("Internal Server Error: " + e.getMessage());
         }
     }
-
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
         try {
