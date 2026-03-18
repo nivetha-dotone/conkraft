@@ -126,13 +126,11 @@ public class CreateEmpFetchByGatePassAPICALL {
 
                 // Special Case: Duplicate ID
                 if (body.contains("WCO-101520") && body.contains("ID already exists")) {
-
                     passToOnBoardService.saveErrorTraceTrNOT(
                             gpTransactionId,
                             200,
                             body
                     );
-
                 } else if (body.contains("Transaction Id Not Found")) {
                     passToOnBoardService.saveErrorTraceTrNOT(
                             gpTransactionId,
@@ -140,8 +138,6 @@ public class CreateEmpFetchByGatePassAPICALL {
                             body
                     );
                 } else {
-
-
                     passToOnBoardService.saveErrorTrace(
                             gpTransactionId,
                             statusCode,

@@ -688,15 +688,37 @@ public class EmployeeMapper {
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
                 EmployeeRequestDTO.Person person = new EmployeeRequestDTO.Person();
-                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
-                person.setFirstName(individualOnBoardDetailsByTrnId.getFirstName());
-                person.setLastName(individualOnBoardDetailsByTrnId.getLastName());
-                String var10001 = individualOnBoardDetailsByTrnId.getLastName();
-                person.setFullName(var10001 + ", " + individualOnBoardDetailsByTrnId.getFirstName());
                 person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
-                var10001 = individualOnBoardDetailsByTrnId.getFirstName();
-                person.setShortName(var10001 + String.valueOf(individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().charAt(0) : ""));
+                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
+
+                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null
+                        ? individualOnBoardDetailsByTrnId.getFirstName().trim()
+                        : "";
+
+                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null
+                        ? individualOnBoardDetailsByTrnId.getLastName().trim()
+                        : "";
+
+// API does not allow null/blank last name
+                if (lastName.isEmpty()) {
+                    lastName = ".";
+                }
+
+                person.setFirstName(firstName);
+                person.setLastName(lastName);
+
+                String fullName = firstName;
+                if (!lastName.equals(".")) {
+                    fullName = firstName + " " + lastName;
+                }
+                person.setFullName(fullName);
+
+                String shortName = firstName;
+                if (!lastName.equals(".")) {
+                    shortName = firstName + " " + lastName.substring(0, 1);
+                }
+                person.setShortName(shortName);
                 personInfo.setPerson(person);
                 ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
                 if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
@@ -1048,15 +1070,38 @@ public class EmployeeMapper {
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
                 UpdateEmployeeRequestDTO.Person person = new UpdateEmployeeRequestDTO.Person();
-                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
-                person.setFirstName(individualOnBoardDetailsByTrnId.getFirstName());
-                person.setLastName(individualOnBoardDetailsByTrnId.getLastName());
-                String var10001 = individualOnBoardDetailsByTrnId.getLastName();
-                person.setFullName(var10001 + ", " + individualOnBoardDetailsByTrnId.getFirstName());
                 person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
-                var10001 = individualOnBoardDetailsByTrnId.getFirstName();
-                person.setShortName(var10001 + String.valueOf(individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().charAt(0) : ""));
+                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
+
+                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null
+                        ? individualOnBoardDetailsByTrnId.getFirstName().trim()
+                        : "";
+
+                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null
+                        ? individualOnBoardDetailsByTrnId.getLastName().trim()
+                        : "";
+
+// API does not allow null/blank last name
+                if (lastName.isEmpty()) {
+                    lastName = ".";
+                }
+
+                person.setFirstName(firstName);
+                person.setLastName(lastName);
+
+                String fullName = firstName;
+                if (!lastName.equals(".")) {
+                    fullName = firstName + " " + lastName;
+                }
+                person.setFullName(fullName);
+
+                String shortName = firstName;
+                if (!lastName.equals(".")) {
+                    shortName = firstName + " " + lastName.substring(0, 1);
+                }
+                person.setShortName(shortName);
+
                 personInfo.setPerson(person);
                 ArrayList<UpdateEmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
                 if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
