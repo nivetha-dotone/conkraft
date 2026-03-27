@@ -263,7 +263,7 @@
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportCSVFormat()">Export</button>
     	</c:if>
     	
-    	 <% if (user != null && ( !"Contractor".equals(roleName) ||!"Security".equals(roleName) )) { %>
+    	 <% if (user != null && ( !"Contractor".equals(roleName) && !"Security".equals(roleName) )) { %>
      <button type="submit" onclick="blackListBulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
         Bulk Approve
     </button>
