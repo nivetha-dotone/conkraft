@@ -3115,8 +3115,8 @@ function redirectToWorkmenRenewEdit() {
 	var gatePassType = selectedRow.cells[7].innerText.trim(); // Adjust index if needed
 	   var status = selectedRow.cells[9].innerText.trim(); // Adjust index if needed
 
-	   if (gatePassType.toLowerCase() !== "create" || status.toLowerCase() !== "approved") {
-	       alert("Edit is only allowed when Gate Pass Type is 'Create' and Status is 'Approved'.");
+	   if ((gatePassType.toLowerCase() !== "create" || status.toLowerCase() !== "approved")||(gatePassType.toLowerCase() !== "project" || status.toLowerCase() !== "approved")) {
+	       alert("Edit is only allowed when Gate Pass Type is 'Create / Project' and Status is 'Approved'.");
 	       return;
 	   }
 	var xhr = new XMLHttpRequest();

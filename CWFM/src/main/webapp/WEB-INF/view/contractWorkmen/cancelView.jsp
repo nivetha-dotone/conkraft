@@ -427,7 +427,7 @@ textarea {
             <button data-target="tab6" onclick="showTabNew('tab6')">Approval Status</button>
         </div>
          <div class="action-buttons" >
-         <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15') && mode eq 'add' }">
+         <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15'||GatePassObj.gatePassAction eq '12') && mode eq 'add' }">
       
            <% if (user != null && "Contractor".equals(roleName) ) { %>
              <button id="actionButton"  type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="submitCancel('${sessionScope.loginuser.userId}','9')">Cancel GatePass</button> 
@@ -883,7 +883,7 @@ textarea {
                 </tbody>
                 </table>
             </div>
-             <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15') && mode eq 'add' }">
+             <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15'||GatePassObj.gatePassAction eq '12') && mode eq 'add' }">
           <% if (user != null && "Contractor".equals(roleName) ) { %>
           
              <div id="tab7" class="tab-content">

@@ -1072,6 +1072,8 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 				dto.setGatePassType("Bulk Cancel");
 			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
 				dto.setGatePassType("Bulk Renew");
+			}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
+				dto.setGatePassType("Project");
 			}
 			
 			String status =rs.getString("GatePassStatus");
@@ -2012,6 +2014,8 @@ public List<GatePassListingDto> getGatePassActionListingForApprovers(String role
 			dto.setGatePassType("Bulk Cancel");
 		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
 			dto.setGatePassType("Bulk Renew");
+		}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
+			dto.setGatePassType("Project");
 		}
 		
 		String status =rs.getString("GatePassStatus");
@@ -3309,7 +3313,7 @@ private Object[] prepareRenewGatePassParameters1(String transId, GatePassMain ga
         gatePassMain.getRelationName(),
         gatePassMain.getIdMark(),
         gatePassMain.getMobileNumber(),
-        gatePassMain.getMaritalStatus(),
+        gatePassMain.getMaritalStatus(),	
         gatePassMain.getPrincipalEmployer(),
         gatePassMain.getContractor(),
         gatePassMain.getWorkorder(),

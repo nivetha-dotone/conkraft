@@ -577,7 +577,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 					||(gatePassMain.getGatePassAction().equals(GatePassType.RENEW.getStatus()) && gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()))
 					||(gatePassMain.getGatePassAction().equals(GatePassType.BULKRENEW.getStatus()) && gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()))
 					||dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus()) || dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus())
-					) {
+					|| ((gatePassMain.getGatePassAction().equals(GatePassType.PROJECT.getStatus()) &&gatePassMain.getGatePassStatus().equals(GatePassStatus.APPROVED.getStatus()) )
+					)) {
 				
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getUnitId(),dto.getGatePassType());
 			
@@ -1269,8 +1270,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
 			gatePassMain.setWorkFlowType(workFlowTypeId);
-			gatePassMain.setDotType(0);
-			String dot = null;
+			int dotTypeId = workmenDao.getDOTTYpe(gatePassMain.getPrincipalEmployer());
+			gatePassMain.setDotType(dotTypeId);
+			
+			String dot = this.getDOT(gatePassMain);
 			gatePassMain.setDot(dot);
 			gatePassMain.setGatePassAction(GatePassType.PROJECT.getStatus());
 			if(workFlowTypeId == WorkFlowType.AUTO.getWorkFlowTypeId()) {

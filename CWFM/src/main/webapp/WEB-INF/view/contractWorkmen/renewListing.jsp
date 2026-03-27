@@ -256,7 +256,7 @@
         <c:if test="${UserPermission.exportRights eq 1 }">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportCSVFormat()">Export</button>
    </c:if>
-    <% if (user != null && !"Contractor".equals(roleName)) { %>
+    <% if (user != null && ( !"Contractor".equals(roleName) ||!"Security".equals(roleName) )) { %>
      <button type="submit" onclick="renewBulkApprove(4)" class="btn btn-success process-footer-button-cancel ng-binding">
         Bulk Approve
     </button>
