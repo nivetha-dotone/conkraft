@@ -1354,15 +1354,13 @@ function saveGMMaster() {
         return;
     }
  // ✅ Convert to Capital Case
-    function toCapitalCase(str) {
-        return str
-            .toLowerCase()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    }
+ function toProperCase(str) {
+    return str.replace(/\b\w+/g, function(word) {
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    });
+}
 
-    masterName = toCapitalCase(masterName);
+    masterName = toProperCase(masterName);
     masterValue = masterValue;
     
     console.log("📌 Valid Input:", { gmTypeId, masterName, masterValue }); // Log data
