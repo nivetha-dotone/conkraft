@@ -4135,8 +4135,8 @@ if(valid){
 				     success: function (response) {
 
 						let status = response.status ? response.status.trim() : '';
-						if (status !== "Unique" && status !== "Invalid" && status !== "") {
-						    $("#error-aadhar").text("Aadhaar already exists").show();
+						if ( status !== "Invalid" && status !== "") {
+						    $("#error-aadhar").text(status).show();
 						    aadharCheckPassed = false;
 						} else if (status === "Invalid") {
 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
@@ -4440,8 +4440,8 @@ function aadharValidation(){
 			 				     success: function (response) {
 
 			 						let status = response.status ? response.status.trim() : '';
-			 						if (status !== "Unique" && status !== "Invalid" && status !== "") {
-			 						    $("#error-aadhar").text("Aadhaar already exists").show();
+			 						if ( status !== "Invalid" && status !== "") {
+			 						    $("#error-aadhar").text(status).show();
 			 						    aadharCheckPassed = false;
 			 						} else if (status === "Invalid") {
 			 						    $("#error-aadhar").text("Invalid Aadhar Number").show();

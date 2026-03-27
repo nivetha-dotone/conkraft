@@ -47,6 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dao.WorkmenDao;
+import com.wfd.dot1.cwfm.dto.AadharCheckDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectGatePassDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.GatePassActionDto;
@@ -3174,8 +3175,9 @@ public class WorkmenController {
             @RequestParam(value = "gatePassId", required = false) String gatePassId,
             @RequestParam(value = "transactionId", required = false) String transactionId) {
 
-        String status = workmenService.checkAadharUniqueness(aadharNumber, gatePassId, transactionId);
-if (status.contains("Unique")) {
+    	AadharCheckDto dto = workmenService.checkAadharUniqueness(aadharNumber, gatePassId, transactionId);
+    	String status=null;
+if (dto.getStatus().contains("Unique")) {
 	
 	String config = this.getVerhoeffConfig();
 	if("yes".equalsIgnoreCase(config)) {
@@ -3186,6 +3188,17 @@ if (status.contains("Unique")) {
 		  }
 	}
 	 
+}
+String dbStatus = dto.getStatus();
+String gatePassIds = dto.getGatePassIds();
+
+if (dbStatus != null && 
+    !(dbStatus.equalsIgnoreCase("Unique") || dbStatus.equalsIgnoreCase("Invalid"))) {
+
+    status = "Aadhar already exists" + 
+             (gatePassIds != null && !gatePassIds.isBlank() 
+                 ? " with GatePassId(s): " + gatePassIds 
+                 : "");
 }
         Map<String, String> result = new HashMap<>();
         result.put("status", status);   // "Unique", "Exists_Gatepass_Draft", etc.

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.wfd.dot1.cwfm.dto.AadharCheckDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectGatePassDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSPerson;
@@ -209,7 +210,7 @@ public interface WorkmenDao {
 
 	int getWorkFlowTypeId(String unitId, String actionId);
 
-	public String checkAadharUniqueness(String aadharNumber, String gatePassId, String transactionId) ;
+	public AadharCheckDto checkAadharUniqueness(String aadharNumber, String gatePassId, String transactionId) ;
 
 	GatePassMain getIndividualContractWorkmenDetailsByGatePassIdRenew(String gatePassId);
 
