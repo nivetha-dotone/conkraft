@@ -15,21 +15,8 @@ public class PreviousEmploymentDto {
     private String accessAreaId;
     private String doj;
     private String dot;
-    private String lastApprover;
-    private String nextApprover;
     
-	public String getLastApprover() {
-		return lastApprover;
-	}
-	public void setLastApprover(String lastApprover) {
-		this.lastApprover = lastApprover;
-	}
-	public String getNextApprover() {
-		return nextApprover;
-	}
-	public void setNextApprover(String nextApprover) {
-		this.nextApprover = nextApprover;
-	}
+	
 	public String getGatePassId() {
 		return gatePassId;
 	}

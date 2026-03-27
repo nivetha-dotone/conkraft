@@ -8,9 +8,17 @@ public class WorkmenSummaryDto {
 	    private String gender;
 	    private String mobileNumber;
 	    private String gatePassId;
+	    private String gatePassType;
 	    private String gatePassStatus;
 	    private String updatedBy;
 	    private String updatedDate;
+	   
+		public String getGatePassType() {
+			return gatePassType;
+		}
+		public void setGatePassType(String gatePassType) {
+			this.gatePassType = gatePassType;
+		}
 		public String getAadharNumber() {
 			return aadharNumber;
 		}

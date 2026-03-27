@@ -258,7 +258,7 @@
  <!-- Inline script placed immediately after dropdowns -->
 
   </div>
-    <div>
+   <%--  <div>
     <c:if test="${UserPermission.addRights eq 1 }">
          <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="redirectToWorkmenAdd()">Add</button> 
      </c:if>
@@ -273,7 +273,7 @@
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportToCSV()">Export</button>
     	</c:if>
 
-    </div>
+    </div> --%>
 </div>
 
      <form id="updateForm" action="/CWFM/workorders/update" method="POST" >

@@ -60,6 +60,7 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         w.setGender(rs.getString("Gender"));
                         w.setMobileNumber(rs.getString("MobileNumber"));
                         w.setGatePassId(rs.getString("GatePassId"));
+                        w.setGatePassType(rs.getString("GatePassType"));
                         w.setGatePassStatus(rs.getString("GatePassStatus"));
                         w.setUpdatedBy(rs.getString("UpdatedBy"));
                         w.setUpdatedDate(rs.getString("UpdatedDate"));
@@ -70,6 +71,7 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                 if (rsIndex == 1) {
                     while (rs.next()) {
                     	CurrentEmploymentDto c = new CurrentEmploymentDto();
+                    	c.setGatePassId(rs.getString("GatePassId"));;
                         c.setPrincipalEmployer(rs.getString("PrincipalEmployer"));
                         c.setContractor(rs.getString("Contractor"));
                         c.setWorkorder(rs.getString("Workorder"));
@@ -99,11 +101,11 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         p.setDepartment(rs.getString("Department"));
                         p.setArea(rs.getString("Area"));
                         p.setNatureOfJob(rs.getString("NatureOfJob"));
-                        p.setAccessAreaId(rs.getString("AccessAreaId"));
+                        p.setAccessAreaId(rs.getString("AccessArea"));
                         p.setDoj(rs.getString("DOJ"));
                         p.setDot(rs.getString("DOT"));
-                        p.setLastApprover(rs.getString("LastApprovers"));
-                        p.setNextApprover(rs.getString("NextApprovers"));
+                        //p.setLastApprover(rs.getString("LastApprovers"));
+                        //p.setNextApprover(rs.getString("NextApprovers"));
                         prevList.add(p);
                     }
                 }
@@ -119,7 +121,7 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         a.setActionDate(rs.getString("ActionDate"));
                         a.setFromDate(rs.getString("FromDate"));
                         a.setToDate(rs.getString("ToDate"));
-                        a.setSource(rs.getString("Source"));
+                        //a.setSource(rs.getString("Source"));
                         a.setLastApprover(rs.getString("LastApprovers"));
                         a.setNextApprover(rs.getString("NextApprovers"));
                         auditList.add(a);

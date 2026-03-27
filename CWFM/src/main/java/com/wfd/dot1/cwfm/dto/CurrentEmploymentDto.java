@@ -1,6 +1,7 @@
 package com.wfd.dot1.cwfm.dto;
 
 public class CurrentEmploymentDto {
+	private String gatePassId;
 	private String principalEmployer;
     private String contractor;
     private String workorder;
@@ -12,6 +13,13 @@ public class CurrentEmploymentDto {
     private String accessAreaId;
     private String doj;
     private String dot;
+    
+	public String getGatePassId() {
+		return gatePassId;
+	}
+	public void setGatePassId(String gatePassId) {
+		this.gatePassId = gatePassId;
+	}
 	public String getPrincipalEmployer() {
 		return principalEmployer;
 	}
