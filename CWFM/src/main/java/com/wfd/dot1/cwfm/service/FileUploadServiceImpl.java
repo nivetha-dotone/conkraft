@@ -58,6 +58,7 @@ import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
+import com.wfd.dot1.cwfm.pojo.UserImport;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
@@ -190,6 +191,12 @@ public class FileUploadServiceImpl implements FileUploadService {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processBulkRenew(reader, userAccount,createdBy);
+                break;
+            case "Data-User":
+                if (!headerLine.equalsIgnoreCase("User Name,Email,Role,SAP Vendor Code")) {
+                    throw new Exception("File can not upload due to incorrect format.");
+                }
+                savedData = processUser(reader);
                 break;
             default:
                 throw new Exception("Unsupported template type: " + templateType);
@@ -2630,4 +2637,121 @@ public class FileUploadServiceImpl implements FileUploadService {
 		            .map(d -> d.format(formatter))
 		            .orElse("No valid date available");
 		}
-   }
+	 @Transactional
+	 private Map<String, Object> processUser(BufferedReader reader) throws IOException {
+
+		    List<Map<String, Object>> successData = new ArrayList<>();
+		    List<Map<String, Object>> errorData = new ArrayList<>();
+
+		    String line;
+		    int rowNum = 0;
+
+		    String[] fieldNames = {"userName", "email", "role", "SAPvendorCode"};
+
+		    Set<String> mandatoryFields = Set.of("userName", "email", "role");
+
+		    while ((line = reader.readLine()) != null) {
+
+		        rowNum++;
+		        line = line.replaceAll("[\\x00-\\x1F\\x7F]", "");
+
+		        if (line.trim().isEmpty()) continue;
+
+		        String[] rawFields = line.split(",", -1);
+		        String[] fields = new String[rawFields.length];
+
+		        for (int i = 0; i < rawFields.length; i++) {
+		            fields[i] = rawFields[i].trim().replaceAll("\"", "");
+		        }
+
+		        Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+		        if (fields.length < fieldNames.length) {
+		            errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
+		            continue;
+		        }
+
+		        // Extract fields
+		        String userName = fields[0];
+		        String email = fields[1];
+		        String role = fields[2];
+		        String SAPVendorCode = fields[3];
+
+		        // =====================================================
+		        // ✅ 1. MANDATORY FIELD VALIDATION
+		        // =====================================================
+		        for (int i = 0; i < fieldNames.length; i++) {
+		            if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
+		                fieldErrors.put(fieldNames[i], "is mandatory");
+		            }
+		        }
+
+		        if (!fieldErrors.isEmpty()) {
+		            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+		            continue;
+		        }
+
+		        // =====================================================
+		        // ✅ 2. DUPLICATE USER CHECK
+		        // =====================================================
+		        if (fileUploadDao.isUserExists(userName)) {
+		            errorData.add(Map.of("row", rowNum,
+		                    "error", "Duplicate User: " + userName + " already exists"));
+		            continue;
+		        }
+
+		        // =====================================================
+		        // ✅ 3. ROLE VALIDATION
+		        // =====================================================
+		        Integer roleId = fileUploadDao.getGeneralMasterId("Role", role);
+
+		        if (roleId == null || roleId == 0) {
+		            errorData.add(Map.of("row", rowNum,
+		                    "error", "Role not found: " + role));
+		            continue;
+		        }
+
+		        // =====================================================
+		        // ✅ 4. EMAIL FORMAT VALIDATION
+		        // =====================================================
+		        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+
+		        if (email == null || email.isBlank() || !email.matches(emailRegex)) {
+		            errorData.add(Map.of("row", rowNum,
+		                    "error", "Email should be in standard format (e.g., name@gmail.com)"));
+		            continue;
+		        }
+
+		        // =====================================================
+		        // ✅ 5. SAVE DATA
+		        // =====================================================
+		        try {
+
+		            UserImport user = new UserImport();
+		            user.setUserName(userName);
+		            user.setEmail(email);
+
+		            Long userId = fileUploadDao.saveuserImport(user);
+
+		            fileUploadDao.saveUserRoleMapping(userId, roleId);
+
+		            Map<String, Object> success = new LinkedHashMap<>();
+		            success.put("userName", userName);
+		            success.put("email", email);
+		            success.put("role", role);
+		            success.put("SAPVendorCode", SAPVendorCode);
+
+		            successData.add(success);
+
+		        } catch (Exception e) {
+		            errorData.add(Map.of("row", rowNum,
+		                    "error", "Exception while processing row: " + e.getMessage()));
+		        }
+		    }
+
+		    Map<String, Object> result = new HashMap<>();
+		    result.put("successData", successData);
+		    result.put("errorData", errorData);
+
+		    return result;
+		}   }

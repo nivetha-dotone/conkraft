@@ -22,6 +22,7 @@ import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.MimumWageMasterTemplate;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
+import com.wfd.dot1.cwfm.pojo.UserImport;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 
@@ -198,5 +199,11 @@ public interface FileUploadDao {
 	void callMinimumWageProcessingSP();
 
 	boolean minimumWagesExistsInStagging(String unitCode, String stateName, String zoneName, String skillName);
+
+	boolean isUserExists(String userName);
+
+	Long saveuserImport(UserImport user);
+
+	void saveUserRoleMapping(Long userId, Integer roleId);
 
 }

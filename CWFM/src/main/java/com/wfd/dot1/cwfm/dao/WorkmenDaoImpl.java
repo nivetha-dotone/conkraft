@@ -3891,10 +3891,13 @@ public Map<String, Object> getMinimumWage(String principalEmployer, String state
 
     return result;
 }
+public String updateGatePassMainWithAttachmentOfReasoning() {
+	return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_WITH_ATTACHMENT_OF_REFERECNCE_REASONING");
+}
 @Override
 public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference) {
-	//String sql =updateGatePassMainWithReasoningTab();
-    String sql = "update GATEPASSMAIN set Reasoning=? , AttachmentOfReference=? where GatePassId=?";
+	String sql =updateGatePassMainWithAttachmentOfReasoning();
+   // String sql = "update GATEPASSMAIN set Reasoning=? , AttachmentOfReference=? where GatePassId=?";
     try {
 
         String AttachmentOfReference = (attachmentOfReference != null && !attachmentOfReference.isEmpty()) ? "attachmentOfReference" : null;

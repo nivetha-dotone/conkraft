@@ -390,6 +390,17 @@ public class FileUploadController {
             fields.add(Map.of("name", "WC/ESIC Number", "type", "Text", "example", "4810/407050783/00/000"));
             fields.add(Map.of("name", "LL Number", "type", "Number", "example", "89034774"));
             templateInfo.put("fields", fields);
+        } else  if ("Data-User".equals(templateType)) {
+            templateInfo.put("title", "Data - User Event");
+            templateInfo.put("description", "Imports User events.");
+
+            List<Map<String, String>> fields = new ArrayList<>();
+            fields.add(Map.of("name", "User Name", "type", "Text", "example", "John Dev"));
+            fields.add(Map.of("name", "Email", "type", "Text", "example", "security@gmail.com"));
+            fields.add(Map.of("name", "Role", "type", "Number", "example", "Security"));
+            fields.add(Map.of("name", "SAP Vendor Code", "type", "Number", "example", "198653"));
+            
+            templateInfo.put("fields", fields);
         }
         else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

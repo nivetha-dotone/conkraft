@@ -291,6 +291,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
             case "data-bulk renew":
                 headers = ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"];
                 break;
+            case "data-user":
+                headers = ["User Name","Email","Role","SAP Vendor Code"];
+                break;
             default:
                 alert("Template configuration not found for: " + selectedText);
                 return;
@@ -562,6 +565,10 @@ const tableBody = document.getElementById("tableBody");
         else if (templateType === "Data-Bulk Renew") {
             headers = ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"];
             fieldMap = ["gatepassNumber","workorderNumber","wcNumber","llNumber"];
+        }
+        else if (templateType === "Data-User") {
+            headers = ["User Name","Email","Role","SAP Vendor Code"];
+            fieldMap = ["userName","email","role","SAPVendorCode"];
         }
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
@@ -878,8 +885,12 @@ function getHeadersByTemplate(selectedText) {
             
         case  "data-bulk cancel":
             return  ["Gatepass Number","Bulk Cancel Reason"];
-         case  "data-bulk renew":
+            
+        case  "data-bulk renew":
             return  ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"]; 
+            
+        case "data-user":
+                return  ["User Name","Email","Role","SAP Vendor Code"];
         default:
             return [];
     }

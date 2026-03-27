@@ -50,6 +50,7 @@ import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.KTCWorkorderStaging;
 import com.wfd.dot1.cwfm.pojo.MimumWageMasterTemplate;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
+import com.wfd.dot1.cwfm.pojo.UserImport;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
@@ -524,6 +525,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "Gatepass Number,WorkOrder Number,WC/ESIC Number,LL Number";
             case "Data-Minimum Wage":
             	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date";
+            case "Data-User":
+            	return "User Name,Email,Role,SAP Vendor Code";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1898,11 +1901,17 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 			    return true;
 			}
-		 
+		 public String saveMinimumWageToStaging() {
+				return QueryFileWatcher.getQuery("SAVE_KTC_MINIMUMWAGE");
+			}
+			public String minimumWageFromExistsInStagging() {
+				return QueryFileWatcher.getQuery("CHECK_MINIMUMWAGE_FROM_EXISTS_IN_STAGGING");
+			}
 		@Override
 		public void saveMinimumWageToStaging(MinimumWageDTO stag) {
-			String sql ="INSERT INTO KTC_STATE_MINIMUMWAGE(UNITCODE,STATENM,ZONENM,SKILLNM,BASIC,DA,OTHERALLOW,FROMDATE,TODATE,RECORD_PROCESSED,RECORD_STATUS,RECORD_UPDATEDON) \r\n"
-					+ "VALUES (?,?,?,?,?,?,?,?,?,'N','NEW',GETDATE())";
+			String sql =saveMinimumWageToStaging();
+//			String sql ="INSERT INTO KTC_STATE_MINIMUMWAGE(UNITCODE,STATENM,ZONENM,SKILLNM,BASIC,DA,OTHERALLOW,FROMDATE,TODATE,RECORD_PROCESSED,RECORD_STATUS,RECORD_UPDATEDON) \r\n"
+//					+ "VALUES (?,?,?,?,?,?,?,?,?,'N','NEW',GETDATE())";
 
 		    java.util.Date toDate = stag.getToDate();
 
@@ -1926,16 +1935,19 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		@Override
 		public boolean minimumWageFromExistsInStagging(String unitCode, String stateName, String zoneName, String skillName,
 				java.util.Date fromDate) {
-			//String sql =workorderExistsInStagging();
-			String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=? and FROMDATE=?";
+			String sql =minimumWageFromExistsInStagging();
+			//String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=? and FROMDATE=?";
 		    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitCode, stateName,zoneName,skillName,fromDate);
 		    return count != null && count > 0;
 		}
+		public String updateMinimumWageToStaging() {
+			return QueryFileWatcher.getQuery("UPDATE_MINIMUMWAGE_IN_STAGGING");
+		}
 		@Override
 		public void updateMinimumWageToStaging(MinimumWageDTO staging){
-			//String sql =updateWorkorderToStaging();
-       String sql ="update KTC_STATE_MINIMUMWAGE set BASIC=?,DA=?,OTHERALLOW=?,RECORD_STATUS=? ,RECORD_UPDATEDON=?\r\n"
-		         + "where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
+			String sql =updateMinimumWageToStaging();
+//       String sql ="update KTC_STATE_MINIMUMWAGE set BASIC=?,DA=?,OTHERALLOW=?,RECORD_STATUS=? ,RECORD_UPDATEDON=?\r\n"
+//		         + "where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
        
        java.util.Date toDate = staging.getToDate();
 
@@ -1964,11 +1976,52 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		 public void callMinimumWageProcessingSP() {
 		     jdbcTemplate.execute("EXEC CMS_StateMinimumWage_Upload");
 		 }
+		 public String minimumWagesExistsInStagging() {
+				return QueryFileWatcher.getQuery("MINIMUMWAGE_EXISTS_IN_STAGGING");
+			}
+		 public String isUserExists() {
+				return QueryFileWatcher.getQuery("CHECK_USER_EXISTS_IN_MASTERUSER");
+			}
+		 public String saveuserImport() {
+				return QueryFileWatcher.getQuery("SAVE_USERIMPORT_IN_MASTERUSER");
+			}
+		 public String saveUserRoleMapping() {
+				return QueryFileWatcher.getQuery("SAVE_USER_ROLE_IN_USERROLEMAPPING");
+			}
+		 
 		 @Override
 			public boolean minimumWagesExistsInStagging(String unitCode, String stateName, String zoneName, String skillName) {
-				//String sql =workorderExistsInStagging();
-				String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
+				String sql =minimumWagesExistsInStagging();
+				//String sql = "select count(*) from KTC_STATE_MINIMUMWAGE where UNITCODE=? and STATENM=? and ZONENM=? and SKILLNM=?";
 			    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitCode, stateName,zoneName,skillName);
 			    return count != null && count > 0;
 			}
+		 
+		 @Override
+			public boolean isUserExists(String userName){
+				String sql=isUserExists();
+			    //String sql = "select count(*) from MASTERUSER where userAccount=? and status='A'";
+			    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userName);
+			    return count != null && count > 0;
+			}
+		  @Override
+		    public Long saveuserImport(UserImport user){
+		    	 KeyHolder keyHolder = new GeneratedKeyHolder();
+		    	 String sql=saveuserImport();
+		        //String sql = "INSERT INTO MASTERUSER (userAccount,Password,FirstName,LastName,EmailId,ContactNumber,Status) VALUES(?,'','','',?,'','A')";
+		        jdbcTemplate.update(connection -> {
+			        PreparedStatement us = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			        us.setString(1, user.getUserName());
+			        us.setString(2, user.getEmail());
+			        return us;
+			    }, keyHolder);
+
+			    return keyHolder.getKey().longValue();  // This is your auto-generated unitId
+			}
+		  @Override
+		    public void saveUserRoleMapping(Long userId, Integer roleId){
+			 String sql=saveUserRoleMapping();
+		       // String sql = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
+		        jdbcTemplate.update(sql, userId, roleId);
+		    }
 	}
