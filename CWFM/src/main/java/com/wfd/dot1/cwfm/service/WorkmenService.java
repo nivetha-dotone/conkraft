@@ -142,12 +142,14 @@ public interface WorkmenService {
 
 	String getRenewTransactionIfExists(String gatePassId);
 
-	public boolean  updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile exitFile, MultipartFile fnfFile,
+	public boolean  updateGatePassMainWithCancelReasoningTab(GatePassActionDto dto, MultipartFile exitFile, MultipartFile fnfFile,
 			MultipartFile feedbackFile, MultipartFile rateManagerFile, MultipartFile locFile);
 
 	public String getStateOnPrincipalEmployer(String principalEmployer);
 
 	Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill);
+
+	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference);
 
 	
 }	

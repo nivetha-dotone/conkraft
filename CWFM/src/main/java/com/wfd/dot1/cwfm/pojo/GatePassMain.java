@@ -612,6 +612,14 @@ public String getOnboardingDocType() {
 public void setOnboardingDocType(String onboardingDocType) {
 	this.onboardingDocType = onboardingDocType;
 }
+ 
+public String attachmentOfReference;
+public String getAttachmentOfReference() {
+	return attachmentOfReference;
+}
+public void setAttachmentOfReference(String attachmentOfReference) {
+	this.attachmentOfReference = attachmentOfReference;
+}
 
 	}
 	

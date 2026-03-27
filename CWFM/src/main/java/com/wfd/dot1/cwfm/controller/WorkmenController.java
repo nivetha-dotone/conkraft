@@ -878,8 +878,8 @@ public class WorkmenController {
                                   .body("Error saving data: " + e.getMessage());
          } 
     }
-    @PostMapping("/gatePassAction")
-    public ResponseEntity<String> gatePassAction(
+    @PostMapping("/cancelGatePassAction")
+    public ResponseEntity<String> cancelGatePassAction(
             @RequestParam("jsonData") String jsonData,
             @RequestParam(value = "exitFile", required = false) MultipartFile exitFile,
             @RequestParam(value = "fnfFile", required = false) MultipartFile fnfFile,
@@ -919,9 +919,89 @@ public class WorkmenController {
        
         	
         	 // ===== SAVE GATEPASSMAIN ENTITY =====
-        	boolean status = workmenService.updateGatePassMainWithReasoningTab(dto,exitFile,fnfFile,feedbackFile,rateManagerFile,locFile);
+        	boolean status = workmenService.updateGatePassMainWithCancelReasoningTab(dto,exitFile,fnfFile,feedbackFile,rateManagerFile,locFile);
         	 if (status) {
-        		 uploadReasoningDocuments(exitFile, fnfFile,feedbackFile,rateManagerFile ,locFile,String.valueOf(user.getUserId()), dto.getTransactionId());
+        		 uploadCancelReasoningDocuments(exitFile, fnfFile,feedbackFile,rateManagerFile ,locFile,String.valueOf(user.getUserId()), dto.getTransactionId());
+        	 }
+        	 else{
+        		 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                         .body("Failed to update GatePassMain");
+             }
+
+        	 result = workmenService.gatePassAction(dto);
+        	 
+       	if(null!=result) {
+       		
+                if (dto.getGatePassType().equals(GatePassType.CREATE.getStatus())) {
+                    result = "contractWorkmen/view";
+
+                } else if (dto.getGatePassType().equals(GatePassType.CANCEL.getStatus())) {
+                    result = "contractWorkmen/cancelView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.BLOCK.getStatus())) {
+                    result = "contractWorkmen/blockView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())) {
+                    result = "contractWorkmen/unblockView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus())) {
+                    result = "contractWorkmen/blackView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus())) {
+                    result = "contractWorkmen/deblackView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.LOSTORDAMAGE.getStatus())) {
+                    result = "contractWorkmen/lostView";
+
+                } else if (dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
+                    result = "contractWorkmen/renewView";
+                }
+
+                return new ResponseEntity<>(result, HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+        } catch (Exception e) {
+            log.error("Error saving data", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error saving data: " + e.getMessage());
+        }
+    }
+    @PostMapping("/gatePassAction")
+    public ResponseEntity<String> gatePassAction(
+            @RequestParam("jsonData") String jsonData,
+            @RequestParam(value = "attachmentOfReference", required = false) MultipartFile attachmentOfReference,
+            HttpServletRequest request, HttpServletResponse response) {
+    	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+        String result = null;
+        GatePassActionDto dto = null;
+        GatePassMain gatePassMain = null;
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Parse JSON into DTO (for workflow)
+            dto = mapper.readValue(jsonData, GatePassActionDto.class);
+
+            // Parse JSON into GatePassMain (for DB entity)
+            gatePassMain = mapper.readValue(jsonData, GatePassMain.class);
+
+            log.info("Received DTO: {}", dto);
+            log.info("Received GatePassMain: {}", gatePassMain);
+
+            // Set created by
+           // User user = (User) request.getSession().getAttribute("user");
+           // gatePassMain.setCreatedBy(String.valueOf(user.getUserId()));
+
+            // ===== SET DOCUMENT FLAGS / NAMES =====
+            gatePassMain.setAttachmentOfReference(attachmentOfReference != null && !attachmentOfReference.isEmpty() ? "attachmentOfReference": "");
+
+            // ===== SAVE GATEPASSMAIN ENTITY =====
+        	boolean status = workmenService.updateGatePassMainWithReasoningTab(dto,attachmentOfReference);
+        	 if (status) {
+        		 uploadReasoningDocuments(attachmentOfReference, String.valueOf(user.getUserId()), dto.getTransactionId());
         	 }
         	 else{
         		 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -3164,7 +3244,7 @@ if (status.contains("Unique")) {
 		});
         return "contractWorkmen/projectOnboarding";
     }
-    public String uploadReasoningDocuments(
+    public String uploadCancelReasoningDocuments(
             MultipartFile exitFile,
             MultipartFile fnfFile,
             MultipartFile feedbackFile,
@@ -3361,5 +3441,30 @@ if (status.contains("Unique")) {
          }
 
          return result;
+    }
+    public String uploadReasoningDocuments(MultipartFile attachmentOfReference,String userId,String gatePassId) {
+
+        String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+
+        try {
+            // Create directory if not exists
+            Path path = Paths.get(directoryPath);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            // Save Exit Letter
+            if (attachmentOfReference != null && !attachmentOfReference.isEmpty()) {
+            	String ext = getExtension(attachmentOfReference);
+                String attachmentOfReferenceFilePath = directoryPath + "attachmentOfReference"+ext;
+                saveFile(attachmentOfReference, attachmentOfReferenceFilePath);
+            }
+
+            return "success";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "failed";
+        }
     }
     }

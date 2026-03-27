@@ -217,7 +217,7 @@ public interface WorkmenDao {
 
 	String getRenewTransactionIfExists(String gatePassId);
 
-	public boolean  updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile exitFile,
+	public boolean  updateGatePassMainWithCancelReasoningTab(GatePassActionDto dto, MultipartFile exitFile,
 			MultipartFile fnfFile, MultipartFile feedbackFile, MultipartFile rateManagerFile, MultipartFile locFile);
 
 	public boolean updateCmsPersonCustDataEffectiveTillonDeblackUnblock(long personId, String dot);
@@ -237,4 +237,6 @@ public interface WorkmenDao {
 	public String getStateOnPrincipalEmployer(String principalEmployer);
 	
 	Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill);
+
+	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference);
 }

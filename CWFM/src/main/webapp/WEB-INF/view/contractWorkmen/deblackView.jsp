@@ -903,39 +903,13 @@ textarea {
     						</td>
 			</tr>
 			<tr>
-			       <td>
-                			<label for="exitFile"><spring:message code="label.uploadExitLetterReport"/></label> 
-                			<input type="file"	id="exitFile" name="exitFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('exitFile', 'exitFileName')">
-                			  <span id="exitFileName" style="margin-left: 10px;color:black;"></span> 
-							<!-- <div id="policeError"></div> Error message for Police file -->
-						</td>	
 			           <td>
-                			<label for="FNFFile"><spring:message code="label.uploadFNFReport"/></label> 
-                			<input type="file"	id="FNFFile" name="FNFFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('FNFFile', 'FNFFileName')">
-                			  <span id="FNFFileName" style="margin-left: 10px;color:black;"></span> 
+                			<label for="attachmentOfReference"><spring:message code="label.attachmentOfReference"/></label> 
+                			<input type="file"	id="attachmentOfReference" name="attachmentOfReference" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('attachmentOfReference', 'attachmentOfReferenceName')">
+                			  <span id="attachmentOfReferenceName" style="margin-left: 10px;color:black;"></span> 
 							<!-- <div id="policeError"></div> Error message for Police file -->
 						</td>
-						<td>
-                			<label for="feedbackFormFile"><spring:message code="label.uploadFeedbackFormReport"/></label> 
-                			<input type="file"	id="feedbackFormFile" name="feedbackFormFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('feedbackFormFile', 'feedbackFormFileName')">
-                			  <span id="feedbackFormFileName" style="margin-left: 10px;color:black;"></span> 
-							<!-- <div id="policeError"></div> Error message for Police file -->
-						</td>
-			</tr>
-			<tr>
-			           <td>
-                			<label for="rateManagerFile"><spring:message code="label.uploadRateManagerReport"/></label> 
-                			<input type="file"	id="rateManagerFile" name="rateManagerFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('rateManagerFile', 'rateManagerFileName')">
-                			  <span id="rateManagerFileName" style="margin-left: 10px;color:black;"></span> 
-							<!-- <div id="policeError"></div> Error message for Police file -->
-						</td>
-						<td>
-                			<label for="LOCFile"><spring:message code="label.uploadLOCReport"/></label> 
-                			<input type="file"	id="LOCFile" name="LOCFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('LOCFile', 'LOCFileName')">
-                			  <span id="LOCFileName" style="margin-left: 10px;color:black;"></span> 
-							<!-- <div id="policeError"></div> Error message for Police file -->
-						</td>
-			</tr>
+		   </tr>
        
                </tbody>
                 </table>
@@ -953,15 +927,16 @@ textarea {
                  <td><input id="reasonofOffboarding" name="reasonofOffboarding" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.reasoning }" readonly>  </td>
     										
 			</tr>
-			<c:if test="${not empty GatePassObj.exitLetterDocName && GatePassObj.gatePassAction eq '7'}">
+			<c:if test="${not empty GatePassObj.attachmentOfReference && GatePassObj.gatePassAction eq '7'}">
             		<tr>
-                		<td style="color:black"><spring:message code="label.exitDocument"/></td>
+                		<td style="color:black"><spring:message code="label.attachmentOfReference"/></td>
                 		<td>
-                    	<a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','exitletter')">Download Exit Letter Document</a>
+                		
+                    	<a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','attachmentOfReference')">Download Attachment of Reference</a>
                 		</td>
             		</tr>
-      				</c:if>
-      				<c:if test="${not empty GatePassObj.FNFDocName && GatePassObj.gatePassAction eq '7'}">
+      		</c:if>
+      				<%-- <c:if test="${not empty GatePassObj.FNFDocName && GatePassObj.gatePassAction eq '7'}">
             		<tr>
                 		<td style="color:black"><spring:message code="label.FNFDocument"/></td>
                 		<td>
@@ -992,7 +967,7 @@ textarea {
                     	<a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','loc')">Download LOC Document</a>
                 		</td>
             		</tr>
-      				</c:if>
+      				</c:if> --%>
        
                </tbody>
                 </table>

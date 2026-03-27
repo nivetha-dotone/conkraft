@@ -1429,9 +1429,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		return workmenDao.getRenewTransactionIfExists(gatePassId);
 	}
 	@Override
-	public boolean  updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile exitFile, MultipartFile fnfFile,
+	public boolean  updateGatePassMainWithCancelReasoningTab(GatePassActionDto dto, MultipartFile exitFile, MultipartFile fnfFile,
 			MultipartFile feedbackFile, MultipartFile rateManagerFile, MultipartFile locFile) {
-		return workmenDao.updateGatePassMainWithReasoningTab(dto,exitFile,fnfFile,feedbackFile,rateManagerFile,locFile);
+		return workmenDao.updateGatePassMainWithCancelReasoningTab(dto,exitFile,fnfFile,feedbackFile,rateManagerFile,locFile);
 		
 	}
 	@Transactional(rollbackFor = Exception.class)
@@ -1519,6 +1519,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 	@Override
 	public Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill) {
 	    return workmenDao.getMinimumWage(principalEmployer, stateId, zone, skill);
+	}
+	@Override
+	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference) {
+		return workmenDao.updateGatePassMainWithReasoningTab( dto,  attachmentOfReference);
 	}
 	}
 

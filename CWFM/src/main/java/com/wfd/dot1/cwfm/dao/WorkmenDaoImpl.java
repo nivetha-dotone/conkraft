@@ -1956,6 +1956,7 @@ public GatePassMain getIndividualContractWorkmenDetailsByGatePassId(String gateP
 		dto.setFeedbackFormDocName(rs.getString("FeedbackFormDocName"));
 		dto.setRateManagerDocName(rs.getString("RateManagerDocName"));
 		dto.setLOCDocName(rs.getString("LOCDocName"));
+		dto.setAttachmentOfReference(rs.getString("AttachmentOfReference"));		
 		dto.setWoId(rs.getString("woId"));
 	}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+gatePassId);
@@ -3671,7 +3672,7 @@ public String getRenewTransactionIfExists(String gatePassId) {
 }
 
 @Override
-public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto,MultipartFile exitFile,MultipartFile fnfFile,
+public boolean updateGatePassMainWithCancelReasoningTab(GatePassActionDto dto,MultipartFile exitFile,MultipartFile fnfFile,
         MultipartFile feedbackFile,MultipartFile rateManagerFile,MultipartFile locFile) {
 	String sql =updateGatePassMainWithReasoningTab();
    // String sql = "update GATEPASSMAIN set Reasoning=?,ExitLetterDocName=?,FNFDocName=?,FeedbackFormDocName=?,RateManagerDocName=?,LOCDocName=? where GatePassId=?";
@@ -3944,5 +3945,24 @@ public Map<String, Object> getMinimumWage(String principalEmployer, String state
 
     return result;
 }
+@Override
+public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference) {
+	//String sql =updateGatePassMainWithReasoningTab();
+    String sql = "update GATEPASSMAIN set Reasoning=? , AttachmentOfReference=? where GatePassId=?";
+    try {
 
+        String AttachmentOfReference = (attachmentOfReference != null && !attachmentOfReference.isEmpty()) ? "attachmentOfReference" : null;
+
+        int result = jdbcTemplate.update(sql,
+                dto.getReasoning(),
+                AttachmentOfReference,
+                dto.getGatePassId());
+
+        return result > 0;
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 }

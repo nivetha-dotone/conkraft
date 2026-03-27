@@ -1615,7 +1615,7 @@ showLoader();
     if (locFile) formData.append("locFile", locFile);
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true);
+    xhr.open("POST", "/CWFM/contractworkmen/cancelGatePassAction", true);
 
     // ❌ DO NOT SET Content-Type manually for FormData
     // xhr.setRequestHeader("Content-Type", "application/json");
@@ -1723,11 +1723,7 @@ showLoader();
     if (!isValid) return;
 
     // Files
-    var exitFile = $("#exitFile")[0].files[0];
-    var fnfFile = $("#FNFFile")[0].files[0];
-    var feedbackFile = $("#feedbackFormFile")[0].files[0];
-    var rateManagerFile = $("#rateManagerFile")[0].files[0];
-    var locFile = $("#LOCFile")[0].files[0];
+    var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
 
     const formData = new FormData();
 
@@ -1743,11 +1739,7 @@ showLoader();
 
     formData.append("jsonData", JSON.stringify(jsonData));
 
-    if (exitFile) formData.append("exitFile", exitFile);
-    if (fnfFile) formData.append("fnfFile", fnfFile);
-    if (feedbackFile) formData.append("feedbackFile", feedbackFile);
-    if (rateManagerFile) formData.append("rateManagerFile", rateManagerFile);
-    if (locFile) formData.append("locFile", locFile);
+    if (attachmentOfReference) formData.append("attachmentOfReference", attachmentOfReference);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true);
@@ -1859,11 +1851,7 @@ showLoader();
     if (!isValid) return;
 
     // Files
-    var exitFile = $("#exitFile")[0].files[0];
-    var fnfFile = $("#FNFFile")[0].files[0];
-    var feedbackFile = $("#feedbackFormFile")[0].files[0];
-    var rateManagerFile = $("#rateManagerFile")[0].files[0];
-    var locFile = $("#LOCFile")[0].files[0];
+     var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
 
     const formData = new FormData();
 
@@ -1879,11 +1867,7 @@ showLoader();
 
     formData.append("jsonData", JSON.stringify(jsonData));
 
-    if (exitFile) formData.append("exitFile", exitFile);
-    if (fnfFile) formData.append("fnfFile", fnfFile);
-    if (feedbackFile) formData.append("feedbackFile", feedbackFile);
-    if (rateManagerFile) formData.append("rateManagerFile", rateManagerFile);
-    if (locFile) formData.append("locFile", locFile);
+    if (attachmentOfReference) formData.append("attachmentOfReference", attachmentOfReference);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true);
@@ -1994,11 +1978,7 @@ showLoader();
     if (!isValid) return;
 
     // Files
-    var exitFile = $("#exitFile")[0]?.files[0];
-    var fnfFile = $("#FNFFile")[0]?.files[0];
-    var feedbackFile = $("#feedbackFormFile")[0]?.files[0];
-    var rateManagerFile = $("#rateManagerFile")[0]?.files[0];
-    var locFile = $("#LOCFile")[0]?.files[0];
+    var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
 
     const formData = new FormData();
 
@@ -2014,11 +1994,7 @@ showLoader();
 
     formData.append("jsonData", JSON.stringify(jsonData));
 
-    if (exitFile) formData.append("exitFile", exitFile);
-    if (fnfFile) formData.append("fnfFile", fnfFile);
-    if (feedbackFile) formData.append("feedbackFile", feedbackFile);
-    if (rateManagerFile) formData.append("rateManagerFile", rateManagerFile);
-    if (locFile) formData.append("locFile", locFile);
+    if (attachmentOfReference) formData.append("attachmentOfReference", attachmentOfReference);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true);
@@ -2131,11 +2107,7 @@ showLoader();
     if (!isValid) return;
 
     // Files
-    var exitFile = $("#exitFile")[0].files[0];
-    var fnfFile = $("#FNFFile")[0].files[0];
-    var feedbackFile = $("#feedbackFormFile")[0].files[0];
-    var rateManagerFile = $("#rateManagerFile")[0].files[0];
-    var locFile = $("#LOCFile")[0].files[0];
+    var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
 
     const formData = new FormData();
 
@@ -2151,11 +2123,7 @@ showLoader();
 
     formData.append("jsonData", JSON.stringify(jsonData));
 
-    if (exitFile) formData.append("exitFile", exitFile);
-    if (fnfFile) formData.append("fnfFile", fnfFile);
-    if (feedbackFile) formData.append("feedbackFile", feedbackFile);
-    if (rateManagerFile) formData.append("rateManagerFile", rateManagerFile);
-    if (locFile) formData.append("locFile", locFile);
+    if (attachmentOfReference) formData.append("attachmentOfReference", attachmentOfReference);
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/gatePassAction", true);
