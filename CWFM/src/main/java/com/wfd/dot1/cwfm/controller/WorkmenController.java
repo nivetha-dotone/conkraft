@@ -571,6 +571,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
 				if("project".equals(type)) {
@@ -1082,7 +1085,9 @@ public class WorkmenController {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 			
-			
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department") ) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
@@ -1131,7 +1136,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-			
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.UNBLOCK.getStatus(),GatePassType.BLOCK.getStatus()," ");
@@ -1184,7 +1191,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-			
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLACKLIST.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
@@ -1233,6 +1242,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.DEBLACKLIST.getStatus(),GatePassType.BLACKLIST.getStatus()," ");
@@ -1281,6 +1293,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CANCEL.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
@@ -1327,7 +1342,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-			
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.LOSTORDAMAGE.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
@@ -2152,6 +2169,9 @@ public class WorkmenController {
     	try {
 			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     		//write union for renewal pending and renewed
@@ -2695,7 +2715,9 @@ public class WorkmenController {
     	String type="quick";
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+		    deptId = null;
+		}
 		
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -2729,7 +2751,9 @@ public class WorkmenController {
     		@RequestParam(value = "deptId", required = false) String deptId) {
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+		    deptId = null;
+		}
 		String type="regular";
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -2763,7 +2787,9 @@ public class WorkmenController {
     		@RequestParam(value = "deptId", required = false) String deptId,@RequestParam(value = "action", required = false) String action) {
 		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-
+		if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+		    deptId = null;
+		}
 		String result=null;
 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
@@ -2778,7 +2804,6 @@ public class WorkmenController {
         rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/blockListFilter");
 		if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
 			gplistDto= workmenService.getGatePassActionListingDetailsForDashboardNav(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus());
-    		
 		}else {	
 			gplistDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLOCK.getStatus());
 		}

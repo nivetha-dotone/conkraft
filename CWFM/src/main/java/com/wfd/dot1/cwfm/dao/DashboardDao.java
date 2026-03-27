@@ -14,4 +14,6 @@ public interface DashboardDao {
 	int getGatePassActionListingForApprovers(String roleId, int workFlowType, String gatePassTypeId, String deptId,
 			String unitId);
 
+	int getWorkFlowTypeId(String unitId, String actionId);
+
 }

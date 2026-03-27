@@ -2,8 +2,8 @@ function getMyDashboard() {
     var employerId = document.getElementById("principalEmployerId").value;
     var deptId = document.getElementById("deptId").value;
 
-    if (employerId === "" || deptId === "") {
-        alert("Please select both Employer and Department");
+    if (employerId === "" ) {
+        alert("Please select Principal Employer ");
         return;
     }
 

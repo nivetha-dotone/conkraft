@@ -31,7 +31,7 @@ public class DashboardDaoImpl implements DashboardDao{
 			) {
 		String query =getDashboardCreationQueryForContractor();
 		int count=0;
-		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,type,gatePassTypeId,type,deptId,unitId);
+		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,type,gatePassTypeId,type,deptId,deptId,unitId);
 		while (rs.next()) {
 			count = rs.getInt("count");
 		}
@@ -43,7 +43,7 @@ public class DashboardDaoImpl implements DashboardDao{
 			) {
 		String query =getDashboardGatePassActionQueryForContractor();
 		int count=0;
-		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,deptId,unitId,gatePassTypeId);
+		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,deptId,deptId,unitId,gatePassTypeId);
 		while (rs.next()) {
 			count = rs.getInt("count");
 		}
@@ -69,18 +69,34 @@ public class DashboardDaoImpl implements DashboardDao{
 	public String getAllGatePassForParallel() {
 	    return QueryFileWatcher.getQuery("GET_ALL_GATE_PASS_COUNT_FOR_PARALLEL_APPROVER");
 	}
+	public String getWorkFlowTypeId() {
+		return QueryFileWatcher.getQuery("GET_WORKFLOWTYPEID");
+	}
+	@Override
+public int getWorkFlowTypeId(String unitId, String actionId) {
+		String query = getWorkFlowTypeId();
+	//String query = "select distinct cwt.WorkflowTypeId from CMSWORKFLOWTYPE cwt \r\n"
+	//		+ "join CMSAPPROVERHIERARCHY cah on cah.WorkFlowTypeId=cwt.WorkFlowTypeId where cwt.UnitId=? and cah.Action_id=?";
+	SqlRowSet rs =null;
+	rs = jdbcTemplate.queryForRowSet(query,unitId,actionId);
+	while(rs.next()) {
+		return rs.getInt("WorkflowTypeId");
+	}
+	return 0;
+}
 	@Override//
 	public int getGatePassListingForApprovers(String roleId,int workFlowType,String gatePassTypeId,String deptId,String unitId,String type) {
 		SqlRowSet rs =null;
 		String query=null;
 		int count=0;
+		int workflowTypeId = this.getWorkFlowTypeId(unitId, gatePassTypeId);
 		if(workFlowType == WorkFlowType.SEQUENTIAL.getWorkFlowTypeId()) {
 			query=this.getAllGatePassForSquential();
 			
-			 rs = jdbcTemplate.queryForRowSet(query,deptId,unitId,roleId,gatePassTypeId,type);
+			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,workflowTypeId,deptId,deptId,unitId,roleId,gatePassTypeId,type);
 		}else {
 			query=this.getAllGatePassForParallel();
-			 rs = jdbcTemplate.queryForRowSet(query,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,unitId,type);
+			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,deptId,unitId,type);
 		}
 		
 		while(rs.next()) {
@@ -101,13 +117,14 @@ public class DashboardDaoImpl implements DashboardDao{
 		SqlRowSet rs =null;
 		String query=null;
 		int count=0;
+		int workflowTypeId = this.getWorkFlowTypeId(unitId, gatePassTypeId);
 		if(workFlowType == WorkFlowType.SEQUENTIAL.getWorkFlowTypeId()) {
 			query=this.getAllGatePassActionForSquential();
 			
-			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,gatePassTypeId,gatePassTypeId,roleId,deptId,unitId);
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,workflowTypeId,gatePassTypeId,gatePassTypeId,gatePassTypeId,roleId,deptId,deptId,unitId);
 		}else {
 			query=this.getAllGatePassActionForParallel();
-			 rs = jdbcTemplate.queryForRowSet(query,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,unitId);
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,deptId,unitId);
 		}
 		
 		while(rs.next()) {

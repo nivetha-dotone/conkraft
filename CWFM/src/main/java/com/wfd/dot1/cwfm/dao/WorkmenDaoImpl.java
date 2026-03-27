@@ -523,7 +523,7 @@ public class WorkmenDaoImpl implements WorkmenDao{
 		String query =getAllGatePassForContractor();
 		log.info("Query to getGatePassListingDetails "+query);
 		//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,gatePassTypeId,deptId,unitId,type,userId,gatePassTypeId,type);
-		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,type,gatePassTypeId,type);
+		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,type,gatePassTypeId,type);
 		while(rs.next()) {
 			GatePassListingDto dto = new GatePassListingDto();
 			dto.setTransactionId(rs.getString("TransactionId"));
@@ -605,11 +605,11 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 			query=this.getAllGatePassForSquential();
 			log.info("Query to getGatePassListingForApprovers "+query);
 			
-			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,workflowTypeId,deptId,unitId,roleId,gatePassTypeId,type);
+			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,workflowTypeId,deptId,deptId,unitId,roleId,gatePassTypeId,type);
 		}else {
 			query=this.getAllGatePassForParallel();
 			log.info("Query to getGatePassListingForApprovers "+query);
-			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,unitId,type);
+			 rs = jdbcTemplate.queryForRowSet(query,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,deptId,unitId,type);
 		}
 		
 		while(rs.next()) {
@@ -1032,10 +1032,10 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 		if(gatePassTypeId.equals(GatePassType.CANCEL.getStatus())) {
 			query = getCancelActionListingDetailsQuery();
 			String bulkcancel = GatePassType.BULKCANCEL.getStatus();
-			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,bulkcancel,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId,bulkcancel);
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,bulkcancel,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId,bulkcancel);
 		}else {
 			query=getGatePassActionListingDetailsQuery();
-			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
 		}
 		
 		while(rs.next()) {
@@ -1779,7 +1779,7 @@ public List<GatePassListingDto> getRenewListingDetails(String userId,String gate
 	List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
 	String query =getAllRenewForContractor();
 	log.info("Query to getRenewListingDetails "+query);
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId,userId,gatePassTypeId,gatePassStatus,deptId,unitId);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId,userId,gatePassTypeId,gatePassStatus,deptId,deptId,unitId);
 	while(rs.next()) {
 		GatePassListingDto dto = new GatePassListingDto();
 		dto.setTransactionId(rs.getString("TransactionId"));
@@ -1974,11 +1974,11 @@ public List<GatePassListingDto> getGatePassActionListingForApprovers(String role
 		query=this.getAllGatePassActionForSquential();
 		log.info("Query to getGatePassListingForApprovers "+query);
 		
-		 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,workflowTypeId,gatePassTypeId,gatePassTypeId,gatePassTypeId,roleId,deptId,unitId);
+		 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,workflowTypeId,gatePassTypeId,gatePassTypeId,gatePassTypeId,roleId,deptId,deptId,unitId);
 	}else {
 		query=this.getAllGatePassActionForParallel();
 		log.info("Query to getGatePassListingForApprovers "+query);
-		 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,unitId);
+		 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,workflowTypeId,roleId,gatePassTypeId,roleId,gatePassTypeId,deptId,deptId,unitId);
 	}
 	
 	while(rs.next()) {
@@ -2339,7 +2339,7 @@ public List<GatePassListingDto> getGatePassActionListingDetailsDashboardNav(Stri
 	String query = getGatePassActionListingDetailsQueryNav();
 	log.info("Query to getGatePassListingDetails "+query);
 	//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,deptId,unitId,previousGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,deptId,unitId,gatePassTypeId);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,deptId,deptId,unitId,gatePassTypeId);
 	while(rs.next()) {
 		GatePassListingDto dto = new GatePassListingDto();
 		dto.setTransactionId(rs.getString("TransactionId"));

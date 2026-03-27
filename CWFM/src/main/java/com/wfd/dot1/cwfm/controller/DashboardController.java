@@ -90,14 +90,17 @@ public class DashboardController {
 			@RequestParam(value = "principalEmployerId", required = false) String principalEmployerId,
 			@RequestParam(value = "deptId", required = false) String deptId,Model model) { 
 		HttpSession session = request.getSession(false);
-		if(principalEmployerId!=null && deptId!=null ) {
+		if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department") ) {
+		    deptId = null;
+		}
+		if(principalEmployerId!=null) {
 		//user selected from pop up
 			session.setAttribute("principalEmployerId", principalEmployerId);
 	        session.setAttribute("deptId", deptId);
 		}else {
 			String pe = (session != null) ?(String)session.getAttribute("principalEmployerId") : null;
-			String de = (session != null) ?(String)session.getAttribute("deptId") : null;
-			if(pe == null && de == null) {
+			String de = (session != null) ?(session.getAttribute("deptId") == null?null:(String)session.getAttribute("deptId")) : null;
+			if(pe == null ) {
 				session.setAttribute("principalEmployerId", principalEmployerId);
 		        session.setAttribute("deptId", deptId);
 			}else {
@@ -113,21 +116,21 @@ public class DashboardController {
 			int quick = service.getGatePassListingDetails(principalEmployerId, deptId, GatePassType.CREATE.getStatus(),"quick");
 			String quickUrl = "/CWFM/contractworkmen/quickOnboardingListDashboardNav"
 			        + "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId;
+			        + "&deptId=" + (deptId != null ? deptId : "");
 			cards.add(new CardDto("Quick Onboarding ", "Manage new workmen", String.valueOf(quick), "border-onboarding", 
 					"icon-onboarding", "resources/img/onboarding.png", quickUrl,"Quick Onboarding")); 
 			
 			int regular = service.getGatePassListingDetails(principalEmployerId, deptId, GatePassType.CREATE.getStatus(),"regular");
 			String regUrl = "/CWFM/contractworkmen/regOnboardingListDashboardNav"
 			        + "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId;
+			        + "&deptId=" + (deptId != null ? deptId : "");
 			cards.add(new CardDto("Regular Onboarding", "Manage new workmen", String.valueOf(regular), "border-renewals",
 					"icon-renewals", "resources/img/verification.png", regUrl,"Create"));  
 			
 			int block = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.BLOCK.getStatus());
 			String blockUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.BLOCK.getStatus();
 			cards.add(new CardDto("Block", "Manage blocked workmen", String.valueOf(block), "border-verifications", 
 					"icon-verifications", "resources/img/official-document.png", blockUrl,"Block"));
@@ -135,7 +138,7 @@ public class DashboardController {
 			int unblock = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.UNBLOCK.getStatus());
 			String unblockUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.UNBLOCK.getStatus();
 			cards.add(new CardDto("Unblock ", "Manage unblocked workmen", String.valueOf(unblock), "border-onboarding", 
 					"icon-onboarding", "resources/img/onboarding.png", unblockUrl,"Unblock")); 
@@ -143,7 +146,7 @@ public class DashboardController {
 			int black = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.BLACKLIST.getStatus());
 			String blackurl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId="+ (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.BLACKLIST.getStatus();
 			cards.add(new CardDto("Blacklist", "Manage blacklisted workmen",  String.valueOf(black), 
 					"border-renewals", "icon-renewals", "resources/img/verification.png", blackurl,"Blacklist")); 
@@ -151,7 +154,7 @@ public class DashboardController {
 			int deblack = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.DEBLACKLIST.getStatus());
 			String deblackurl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.DEBLACKLIST.getStatus();
 			cards.add(new CardDto("DeBlacklist", "Manage deblacklisted workmen", String.valueOf(deblack), "border-renewals", 
 					"icon-renewals", "resources/img/verification.png", deblackurl,"Deblacklist")); 
@@ -159,7 +162,7 @@ public class DashboardController {
 			int cancel = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.CANCEL.getStatus());
 			String cancelUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.CANCEL.getStatus();
 			cards.add(new CardDto("Cancel", "Manage cancelled workmen", String.valueOf(cancel), "border-renewals",
 					"icon-renewals", "resources/img/verification.png", cancelUrl,"Cancel"));
@@ -167,7 +170,7 @@ public class DashboardController {
 			int renew = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.RENEW.getStatus());
 			String renewUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.RENEW.getStatus();
 			cards.add(new CardDto("Renew", "Track workmen renewals", String.valueOf(renew), "border-renewals"  ,
 					 "icon-renewals", "resources/img/verification.png", renewUrl,"Renew")); 
@@ -175,7 +178,7 @@ public class DashboardController {
 			int lost = service.getGatePassActionListingDetails(principalEmployerId, deptId, GatePassType.LOSTORDAMAGE.getStatus());
 			String lostUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.LOSTORDAMAGE.getStatus();
 			cards.add(new CardDto("Lost or Damage", "Manage lost or damaged gatepass", String.valueOf(lost), "border-renewals", "icon-renewals", 
 					"resources/img/verification.png", lostUrl,"Lost or Damage")); 
@@ -187,7 +190,7 @@ public class DashboardController {
 			int quick = service.getGatePassListingForApprovers(principalEmployerId,deptId,user,GatePassType.CREATE.getStatus(),"quick");
 			String quickUrl = "/CWFM/contractworkmen/quickOnboardingListDashboardNav"
 			        + "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId;
+			        + "&deptId=" + (deptId != null ? deptId : "");
 			cards.add(new CardDto("Quick Onboarding ", "Manage new workmen", String.valueOf(quick), "border-onboarding", 
 					"icon-onboarding", "resources/img/onboarding.png", quickUrl,"Quick Onboarding")); 
 		       }
@@ -197,7 +200,7 @@ public class DashboardController {
 			int regular = service.getGatePassListingForApprovers(principalEmployerId,deptId,user,GatePassType.CREATE.getStatus(),"regular");
 			String regUrl = "/CWFM/contractworkmen/regOnboardingListDashboardNav"
 			        + "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId;
+			        + "&deptId=" + (deptId != null ? deptId : "");
 			cards.add(new CardDto("Regular Onboarding", "Manage new workmen", String.valueOf(regular), "border-renewals",
 					"icon-renewals", "resources/img/verification.png", regUrl,"Create"));  
 			       }
@@ -208,7 +211,7 @@ public class DashboardController {
 			int block = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLOCK.getStatus());;
 			String blockUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.BLOCK.getStatus();
 			cards.add(new CardDto("Block", "Manage blocked workmen", String.valueOf(block), "border-verifications", 
 					"icon-verifications", "resources/img/official-document.png", blockUrl,"Block"));
@@ -219,7 +222,7 @@ public class DashboardController {
 			int unblock = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.UNBLOCK.getStatus());
 			String unblockUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId="+ (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.UNBLOCK.getStatus();
 			cards.add(new CardDto("Unblock ", "Manage unblocked workmen", String.valueOf(unblock), "border-onboarding", 
 					"icon-onboarding", "resources/img/onboarding.png", unblockUrl,"Unblock")); 
@@ -230,7 +233,7 @@ public class DashboardController {
 			int black = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLACKLIST.getStatus());
 			String blackurl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.BLACKLIST.getStatus();
 			cards.add(new CardDto("Blacklist", "Manage blacklisted workmen",  String.valueOf(black), 
 					"border-renewals", "icon-renewals", "resources/img/verification.png", blackurl,"Blacklist")); 
@@ -242,7 +245,7 @@ public class DashboardController {
 			int deblack = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.DEBLACKLIST.getStatus());
 			String deblackurl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.DEBLACKLIST.getStatus();
 			cards.add(new CardDto("DeBlacklist", "Manage deblacklisted workmen", String.valueOf(deblack), "border-renewals", 
 					"icon-renewals", "resources/img/verification.png", deblackurl,"Deblacklist")); 
@@ -254,7 +257,7 @@ public class DashboardController {
 			int cancel = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.CANCEL.getStatus());
 			String cancelUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.CANCEL.getStatus();
 			cards.add(new CardDto("Cancel", "Manage cancelled workmen", String.valueOf(cancel), "border-renewals",
 					"icon-renewals", "resources/img/verification.png", cancelUrl,"Cancel"));
@@ -265,7 +268,7 @@ public class DashboardController {
 			int renew = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.RENEW.getStatus());
 			String renewUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.RENEW.getStatus();
 			cards.add(new CardDto("Renew", "Track workmen renewals", String.valueOf(renew), "border-renewals"  ,
 					 "icon-renewals", "resources/img/verification.png", renewUrl,"Renew")); 
@@ -276,7 +279,7 @@ public class DashboardController {
 			int lost = service.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.LOSTORDAMAGE.getStatus());
 			String lostUrl = "/CWFM/contractworkmen/gatepassActionListDashboardNav"
 					+ "?principalEmployerId=" + principalEmployerId
-			        + "&deptId=" + deptId
+			        + "&deptId=" + (deptId != null ? deptId : "")
 			        + "&action=" + GatePassType.LOSTORDAMAGE.getStatus();
 			cards.add(new CardDto("Lost or Damage", "Manage lost or damaged gatepass", String.valueOf(lost), "border-renewals", "icon-renewals", 
 					"resources/img/verification.png", lostUrl,"Lost or Damage")); 
