@@ -247,7 +247,7 @@ public class FileUploadController {
            // fields.add(Map.of("name", "IS RC Applicable", "type", "Number", "example", "0"));
            // fields.add(Map.of("name", "RC Number", "type", "Number", "example", "RC001"));
            // fields.add(Map.of("name", "Attachment", "type", "File", "example", "Dot1_2025.pdf"));
-            //fields.add(Map.of("name", "State ID", "type", "Number", "example", "1"));
+            fields.add(Map.of("name", "State", "type", "Number", "example", "Assam"));
            // fields.add(Map.of("name", "IS Active", "type", "Number", "example", "1"));
           //  fields.add(Map.of("name", "Update Time", "type", "Date", "example", "12/05/2025"));
           //  fields.add(Map.of("name", "Updated By", "type", "Date", "example", "12/05/2025"));

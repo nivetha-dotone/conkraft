@@ -4683,6 +4683,89 @@ function bulkApprove(status) {
         console.error(err);
     });
 }
+/*function bulkApprove(status) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+    const commentsVal = ($("#approvercomments").val() || "").trim();
+
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/bulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.json())
+.then(data => {
+
+    hideLoader();
+
+    let successMsg = "";
+    let errorMsg = "";
+
+    if (data.successList && data.successList.length > 0) {
+        successMsg = data.successList.join("\n");
+    }
+
+    if (data.errorList && data.errorList.length > 0) {
+        errorMsg = data.errorList.join("\n");
+    }
+
+    // ✅ Case 1: Errors present → show in RED
+    if (errorMsg) {
+
+        $("#errorMessageBox").text(errorMsg).show();   // RED UI
+        $("#successMessageBox").hide();
+
+    }
+
+    // ✅ Case 2: Only success → show in GREEN
+    if (successMsg && !errorMsg) {
+
+        sessionStorage.setItem("successMessage", successMsg);
+
+    }
+
+    // ✅ Case 3: Mixed (both success + error)
+    if (successMsg && errorMsg) {
+
+        sessionStorage.setItem("successMessage", successMsg);
+
+        $("#errorMessageBox").text(errorMsg).show();   // show errors also
+
+    }
+
+    loadCommonList('/contractworkmen/blockListFilter', 'Block List');
+
+})
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}*/
 function validateProjectFiles(aadharFile, policeFile, profilePc,appointmentFile) {
     let valid = true;
 
@@ -4938,7 +5021,7 @@ function deblackListBulkApprove(status) {
         console.error(err);
     });
 }
-function renewBulkApprove(status) {
+/*function renewBulkApprove(status) {
 
     const selected = document.querySelectorAll(".bulk-check:checked");
 
@@ -4982,8 +5065,8 @@ function renewBulkApprove(status) {
         alert("Bulk approval failed");
         console.error(err);
     });
-}
-function createBulkApprove(status,type) {
+}*/
+/*function createBulkApprove(status,type) {
 
     const selected = document.querySelectorAll(".bulk-check:checked");
 
@@ -5036,8 +5119,283 @@ function createBulkApprove(status,type) {
         alert("Bulk approval failed");
         console.error(err);
     });
-}
+}*/
+function renewBulkApprove(status) {
 
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+    const commentsVal = ($("#approvercomments").val() || "").trim();
+
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/createBulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        hideLoader();
+
+       
+        if (data.errorList && data.errorList.length > 0) {
+            sessionStorage.setItem("bulkErrorMessages", JSON.stringify(data.errorList));
+          } else {
+           sessionStorage.removeItem("bulkErrorMessages"); // important for success case
+         }
+
+        // 🔄 Reload list
+        loadCommonList('/contractworkmen/renewFilter', 'Renew List');
+
+        // ✅ 🔥 IMPORTANT: Re-render AFTER reload (no document.ready)
+        setTimeout(function () {
+            renderBulkErrors();
+        }, 800); // wait for DOM reload
+
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+function createBulkApprove(status, type) {
+
+    const selected = document.querySelectorAll(".bulk-check:checked");
+
+    if (selected.length === 0) {
+        alert("Please select at least one record");
+        return;
+    }
+
+    const records = [];
+    const commentsVal = ($("#approvercomments").val() || "").trim();
+
+    selected.forEach(cb => {
+        records.push({
+            transactionId: cb.dataset.transaction,
+            gatePassId: cb.dataset.gatepass,
+            gatePassType: cb.dataset.type,
+            approverId: $("#userId").val(),
+            approverRole: $("#roleName").val(),
+            roleId: $("#roleId").val(),
+            comments: commentsVal,
+            status: status
+        });
+    });
+
+    showLoader();
+
+    fetch("/CWFM/contractworkmen/createBulkApproveGatePass", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(records)
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        hideLoader();
+
+        // ✅ Store ONLY errors
+        /*if (data.errorList && data.errorList.length > 0) {
+            sessionStorage.setItem("bulkErrorMessages", JSON.stringify(data.errorList));
+        } else {
+            sessionStorage.removeItem("bulkErrorMessages");
+        }*/
+        if (data.errorList && data.errorList.length > 0) {
+            sessionStorage.setItem("bulkErrorMessages", JSON.stringify(data.errorList));
+          } else {
+           sessionStorage.removeItem("bulkErrorMessages"); // important for success case
+         }
+
+        // 🔄 Reload list
+        if (type === "regular") {
+            loadCommonList('/contractworkmen/list', 'On-Boarding List');
+        } else if (type === "quick") {
+            loadCommonList('/contractworkmen/quickOnboardingList', 'Quick Onboarding List');
+        } else {
+            loadCommonList('/contractworkmen/projectOnboardingList', 'Project Gatepass List');
+        }
+
+        // ✅ 🔥 IMPORTANT: Re-render AFTER reload (no document.ready)
+        setTimeout(function () {
+            renderBulkErrors();
+        }, 800); // wait for DOM reload
+
+    })
+    .catch(err => {
+        hideLoader();
+        alert("Bulk approval failed");
+        console.error(err);
+    });
+}
+/*function renderBulkErrors() {
+
+    // Remove old error table if already exists
+    $("#bulkErrorContainer").remove();
+
+    const errorData = sessionStorage.getItem("bulkErrorMessages");
+
+    if (!errorData) return;
+
+    const errors = JSON.parse(errorData);
+
+    if (!errors || errors.length === 0) return;
+
+    // ✅ Create container
+    let html = `
+        <div id="bulkErrorContainer" style="margin-bottom:15px;">
+            <table class="table table-bordered" style="background:#ffe6e6; width:100%;">
+                <thead>
+                    <tr style="background:#f5c6cb; color:#721c24;">
+                        <th style="width:200px;">TransactionId</th>
+                        <th>Error</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    // ✅ Fill rows
+    errors.forEach(err => {
+
+        let transactionId = "-";
+        let message = err;
+
+        const match = err.match(/TransactionId\s*(\d+)\s*:\s*(.*)/i);
+
+        if (match) {
+            transactionId = match[1];
+            message = match[2];
+        }
+
+        html += `
+            <tr>
+                <td style="color:red; font-weight:bold;">${transactionId}</td>
+                <td style="color:red;">${message}</td>
+            </tr>
+        `;
+    });
+
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // ✅ Inject ABOVE main table (change selector if needed)
+    $("#workmenTable").before(html);
+}*/
+function renderBulkErrors() {
+
+    // Remove old containers
+    $("#bulkErrorContainer").remove();
+    $("#bulkSuccessMsg").remove();
+
+    const errorData = sessionStorage.getItem("bulkErrorMessages");
+
+    // ✅ NO ERRORS → SUCCESS MESSAGE
+    if (!errorData) {
+        $("#workmenTable").before(
+            `<div style="color:green; font-weight:bold;" id="bulkSuccessMsg">
+                Bulk approved successfully
+            </div>`
+        );
+        return;
+    }
+
+    const errors = JSON.parse(errorData);
+
+    if (!errors || errors.length === 0) {
+        $("#workmenTable").before(
+            `<div style="color:green; font-weight:bold;" id="bulkSuccessMsg">
+                Bulk approved successfully
+            </div>`
+        );
+        return;
+    }
+
+    // ✅ ERROR TABLE WITH SCROLL
+    let html = `
+        <div id="bulkErrorContainer" style="margin-bottom:15px;">
+
+            <div style="
+                max-height:200px;
+                overflow-y:auto;
+                overflow-x:hidden;
+                border:1px solid #ddd;
+                border-radius:5px;
+            ">
+
+                <table class="table table-bordered" 
+                       style="width:100%; margin-bottom:0; table-layout:fixed;">
+
+                    <thead style="background:#f8f9fa; position:sticky; top:0; z-index:1;">
+                        <tr>
+                            <th style="width:200px;">Transaction Id</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+    `;
+
+    errors.forEach(err => {
+
+        let transactionId = "-";
+        let message = err;
+
+        const match = err.match(/TransactionId\s*(\d+)\s*:\s*(.*)/i);
+
+        if (match) {
+            transactionId = match[1];
+            message = match[2];
+        }
+
+        html += `
+            <tr>
+                <td style="color:red; font-weight:bold; word-break:break-word;">
+                    ${transactionId}
+                </td>
+                <td style="color:red; word-break:break-word;">
+                    ${message}
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    $("#workmenTable").before(html);
+}
 function validateMinimumWage() {
 
     let isValid = true;

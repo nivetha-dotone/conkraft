@@ -467,6 +467,9 @@ textarea {
     <div class="loader"></div>
     <div class="loader-text">please wait...</div>
 </div>
+<div id="errorMessageBox" style="display:none; color:red; font-weight:bold;"></div>
+<div id="successMessageBox" style="display:none; color:green; font-weight:bold;"></div>
+           
             <div id="tab1" class="tab-content active">
             <table cellspacing="0" cellpadding="0">
             <tr><td>

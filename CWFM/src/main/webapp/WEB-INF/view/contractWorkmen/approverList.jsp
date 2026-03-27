@@ -281,6 +281,7 @@
 </div>
      <form id="updateForm" action="/CWFM/workorders/update" method="POST" >
      <div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
+     
                          <div class="table-container">
                          <input type="hidden" id="userId" value="${userId}">
 <input type="hidden" id="roleName" value="${roleName}">

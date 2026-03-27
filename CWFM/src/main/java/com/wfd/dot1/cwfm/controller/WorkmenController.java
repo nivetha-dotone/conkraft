@@ -3311,6 +3311,35 @@ if (status.contains("Unique")) {
                     .body("Bulk approval failed: " + e.getMessage());
         }
     }
+    @PostMapping("/createBulkApproveGatePass")
+    public ResponseEntity<Map<String, Object>> createBulkApproveGatePass(
+            @RequestBody List<ApproveRejectGatePassDto> dtos) {
+
+        Map<String, Object> result = new HashMap<>();
+        List<String> successList = new ArrayList<>();
+        List<String> errorList = new ArrayList<>();
+
+        for (ApproveRejectGatePassDto dto : dtos) {
+            try {
+                String response = workmenService.approveRejectGatePass(dto);
+
+                // 👉 Assume service returns message like "SUCCESS" or "LL exceeded"
+                if ("GatePass approved/rejected successfully".equalsIgnoreCase(response)) {
+                    successList.add("TransactionId " + dto.getTransactionId() + " approved");
+                } else {
+                    errorList.add("TransactionId " + dto.getTransactionId() + " : " + response);
+                }
+
+            } catch (Exception e) {
+                errorList.add("TransactionId " + dto.getTransactionId() + " : " + e.getMessage());
+            }
+        }
+
+        result.put("successList", successList);
+        result.put("errorList", errorList);
+
+        return ResponseEntity.ok(result);
+    }
     @GetMapping("/getMinimumWageDetails")
     @ResponseBody
     public Map<String, Object> getMinimumWageDetails(
