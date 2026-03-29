@@ -1189,7 +1189,7 @@ document.addEventListener('click', function (e) {
 		        <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" /></td>
 		        <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" min="${today}" /></td>
 		        <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" min="${today}" /></td>
-		        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf"/></td>
+		        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf,image/jpeg,image/png"/></td>
 		    `;
 
 			// Clone the documentType dropdown from the first row

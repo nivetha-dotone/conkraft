@@ -566,7 +566,7 @@ function validateEmploymentInformation(){
     }else{
 		$("#error-eic").hide();
 	}
-	if(type ==="regular" || type === "quick"){
+	/*if(type ==="regular" || type === "quick"){*/
 	 /*const noj = $("#natureOfJob").val().trim();
 	const nojRegex = /^(?=.*[A-Za-z]{2,})[A-Za-z\s]+$/;
     if (!nojRegex.test(noj)) {
@@ -736,7 +736,7 @@ showEsic();
     }else{
 		 $("#error-doj").hide();
 	}
-	}
+	/*}*/
 	return isValid;
 }
 
@@ -3618,7 +3618,17 @@ $(".compliancedatetimepicker").datepicker({
     maxDate: null,            // allow future
     defaultDate: null
 });
+$(".contractFromdatetimepicker").datepicker({
+    dateFormat: 'yy-mm-dd',
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1900:+50",
 
+    minDate: 0,   // ✅ today
+    maxDate: null, // ✅ no upper limit (future allowed)
+
+    defaultDate: 0 // optional → sets today as default
+});
 }
 
 function validatePfForm11Requirement() {

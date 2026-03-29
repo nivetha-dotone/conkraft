@@ -437,7 +437,7 @@ label {
                 </td>
                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.aadharDoc"/></label></th>
                 <td>
-                	<input type="file" class="form-control aadhardoc" id="aadharDocId" name="aadharDoc"  accept="application/pdf" autocomplete="off"/>
+                	<input type="file" class="form-control aadhardoc" id="aadharDocId" name="aadharDoc"  accept="application/pdf,image/jpeg,image/png" autocomplete="off"/>
                 	<label id="error-aadharDoc" style="color: red;display: none;">Aadhar Document is required</label>
                 </td>
                
@@ -451,7 +451,7 @@ label {
                 </td>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.panDoc"/></label></th>
                 <td>
-                	<input type="file" class="form-control pandoc" id="panDocId" name="panDoc"  accept="application/pdf" autocomplete="off"/>
+                	<input type="file" class="form-control pandoc" id="panDocId" name="panDoc"  accept="application/pdf,image/jpeg,image/png" autocomplete="off"/>
                 	<label id="error-panDoc" style="color: red;display: none;">Pan Document is required</label>
                 </td>
            </tr>
@@ -531,7 +531,7 @@ label {
             <tr>
            	   <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractFrom"/></label></th>
                 <td>
-                	<input id="contractFromId" name="contractFrom" class="grantdatetimepicker" style="width: 100%;height: 20px; color: #495057;" type="text" size="30" maxlength="30" autocomplete="off">
+                	<input id="contractFromId" name="contractFrom" class="contractFromdatetimepicker" style="width: 100%;height: 20px; color: #495057;" type="text" size="30" maxlength="30" autocomplete="off">
                 	<label id="error-contractFrom" style="color: red;display: none;">Contract From is required</label>
                 </td>
                <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractTo"/></label></th>
@@ -581,7 +581,7 @@ label {
                 </td>
                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.pfDoc"/></label></th>
                 <td>
-                	<input type="file" class="form-control pfdoc" id="pfDocId" name="pfDoc"  accept="application/pdf" autocomplete="off"/>
+                	<input type="file" class="form-control pfdoc" id="pfDocId" name="pfDoc"  accept="application/pdf,image/jpeg,image/png" autocomplete="off"/>
                 	<label id="error-pfDoc" style="color: red;display: none;">PF Document is required</label>
                 </td>
 </tr>
@@ -632,7 +632,7 @@ label {
         <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" autocomplete="off"/></td>
         <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" autocomplete="off"/></td>
         <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" autocomplete="off"/></td>
-        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf" autocomplete="off"/></td>
+        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf,image/jpeg,image/png" autocomplete="off"/></td>
         <td><input type="checkbox" class="form-control panIndia" name="panIndia" /></td>
          <td><input type="checkbox" class="form-control subApplicable" name="subApplicable" /></td>
     </tr>

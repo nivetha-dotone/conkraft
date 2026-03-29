@@ -132,7 +132,7 @@ function addRowContNew() {
         <td><input type="number" class="form-control coverage" name="coverage" min="0" step="1" /></td>
         <td><input type="text" class="form-control validFrom expirydatetimepicker" name="validFrom" min="${today}" /></td>
         <td><input type="text" class="form-control validTo expirydatetimepicker" name="validTo" min="${today}" /></td>
-        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf" /></td>
+        <td><input type="file" class="form-control attachment" name="attachment" accept="application/pdf,image/jpeg,image/png" /></td>
 		<td><input type="checkbox" class="form-control panIndia" name="panIndia" /></td>
 		<td><input type="checkbox" class="form-control subApplicable" name="subApplicable" /></td>
     `;
