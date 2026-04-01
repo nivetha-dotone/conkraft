@@ -3784,7 +3784,7 @@ public boolean insertIntoCustDataRenew(String updatedBy,long personId,String gat
 	boolean result = false;
 	String sql = insertIntoCustData();
 
-	 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,updatedBy);
+	 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,"3000-01-01",updatedBy);
    try {
    if (count1 > 0 ) {
    	result=true;
