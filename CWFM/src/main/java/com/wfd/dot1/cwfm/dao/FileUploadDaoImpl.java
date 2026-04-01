@@ -1736,6 +1736,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		
 		public boolean gatePassActionPersonInsertBulkCancel(BulkCancel bc,String createdBy) {
 
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	        String today = LocalDate.now().format(formatter);
+	       
 		    long personId = workmenDao.getPersonIdFromCmsPerson(bc.getGatepassNumber());
 		    if (personId <= 0) return false;
 
@@ -1745,7 +1748,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        return false;
 
 		    // Step 2: Insert new CUSTDATA row
-		    boolean custInserted = workmenDao.insertIntoCustData(createdBy,personId,GatePassType.BULKCANCEL.getStatus(),bc.getCancelReason());
+		    boolean custInserted = workmenDao.insertIntoCustData(createdBy,personId,GatePassType.BULKCANCEL.getStatus(),bc.getCancelReason(),today);
 
 		    if (!logAndCheck("CUSTDATA_INSERT", custInserted)) {
 		        return false;

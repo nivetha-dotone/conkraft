@@ -171,7 +171,7 @@ public interface WorkmenDao {
 
 	boolean updateCmsPersonCustDataEffectiveTill(long personId);
 
-	public boolean insertIntoCustData(String updatedBy,long personId,String gatePassStatus,String reasoning);
+	public boolean insertIntoCustData(String updatedBy,long personId,String gatePassStatus,String reasoning, String dot);
 
 	boolean isPersonActiveInStatusMM(long personId);
 
@@ -240,4 +240,6 @@ public interface WorkmenDao {
 	Map<String, Object> getMinimumWage(String principalEmployer, String stateId, String zone, String skill);
 
 	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference);
+
+	boolean updateDOTGatePassMainDOT(String gatePassId, String dot);
 }

@@ -390,8 +390,8 @@ function initializeDatePicker() {
 		 				     success: function (response) {
 
 		 						let status = response.status ? response.status.trim() : '';
-		 						if (status !== "Unique" && status !== "Invalid" && status !== "") {
-		 						    $("#error-aadhar").text("Aadhaar already exists").show();
+		 						if (status !== "Invalid" && status !== "") {
+		 						    $("#error-aadhar").text(status).show();
 		 						    aadharCheckPassed = false;
 		 						} else if (status === "Invalid") {
 		 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
@@ -790,7 +790,7 @@ function validateOtherInformation(){
 
 	const emergencyName = $("#emergencyName").val().trim();
 	const firstnameRegex = /^[A-Za-z\s]{2,}$/;
-    if (!firstnameRegex.test(emergencyName)) {
+    if (emergencyName && !firstnameRegex.test(emergencyName)) {
         $("#error-emergencyName").show();
         isValid = false;
     }else{
@@ -798,7 +798,7 @@ function validateOtherInformation(){
 	}
 	const emergencyNoInput = $("#emergencyNumber").val().trim();
 	const mobileNumberRegex = /^[6-9]\d{9}$/;
-	if (!mobileNumberRegex.test(emergencyNoInput)) {
+	if (emergencyNoInput && !mobileNumberRegex.test(emergencyNoInput)) {
                  $("#error-emergencyNumber").show();
         			isValid = false;
      }else{

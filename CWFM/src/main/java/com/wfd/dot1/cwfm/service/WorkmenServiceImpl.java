@@ -376,6 +376,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 	                GatePassType.CREATE.getStatus()
 	        );
              String dot=this.getDOT(gpm);
+             gpm.setDot(dot);
              boolean actionDone = this.gatePassActionPersonInsertOnDeblackUnblock(gpm, dto.getGatePassType(), dot);
              if (!actionDone) {
  	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
@@ -415,6 +416,14 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    if (dto.getGatePassType().equals(GatePassType.PROJECT.getStatus())) {
 	    	   gatePassId = workmenDao.updateGatePassIdByTransactionId(dto.getTransactionId());
 		        gpm.setGatePassId(gatePassId);
+		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        String today = LocalDate.now().format(formatter);
+		        gpm.setDoj(today);
+		        boolean cmsDone = this.cmsPersonInsert(gpm);
+
+		        if (!cmsDone) {
+		            throw new RuntimeException("CMS Person Insert failed unexpectedly.");
+		        }
 		        boolean statusUpdated  = workmenDao.updateGatePassMainStatus(gatePassId,dto.getStatus());
 		        if(!statusUpdated) {
 		        	throw new RuntimeException("Gatepassmain status update failed unexpectedly.");
@@ -433,6 +442,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 	            || dto.getGatePassType().equals(GatePassType.BLACKLIST.getStatus())
 	            || dto.getGatePassType().equals(GatePassType.CANCEL.getStatus())) {
 
+	    	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	        String today = LocalDate.now().format(formatter);
+	        gpm.setDot(today);
 	        boolean actionDone = this.gatePassActionPersonInsert(gpm, dto.getGatePassType());
 
 	        if (!actionDone) {
@@ -440,13 +452,15 @@ public class WorkmenServiceImpl implements WorkmenService{
 	        }
 
 	        boolean statusUpdated  = workmenDao.updateGatePassMainStatus(gatePassId,dto.getStatus());
-	        if(!statusUpdated) {
+	        boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(gatePassId,gpm.getDot());
+	        if(!statusUpdated && !dotUpdated) {
 	        	throw new RuntimeException("Gatepassmain status update failed unexpectedly.");
 	        }
 	        return result;
 	    } if (dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) {
 	    	try {
 	    		 String dot=this.getDOT(gpm);
+	    		 gpm.setDot(dot);
 	    		boolean actionDone = this.gatePassActionPersonInsertRenew(gpm, dto.getGatePassType(), dot);
 	             if (!actionDone) {
 	 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
@@ -462,8 +476,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    // OTHER APPROVALS → just update GatePass status
 	    boolean statusUpdated = workmenDao.updateGatePassMainStatus(
 	            gatePassId, dto.getStatus());
-
-	    if (!statusUpdated) {
+	    boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(gatePassId,gpm.getDot());
+	    if (!statusUpdated && !dotUpdated) {
 	        throw new RuntimeException("Failed to update GatePass status on final approval.");
 	    }
 
@@ -517,7 +531,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    // Step 2: Insert new CUSTDATA row
 	    if (!logAndCheck("CUSTDATA_INSERT",
-	            insertCustData(gpm.getCreatedBy(), personId, gatePassType,gpm.getReasoning())))
+	            insertCustData(gpm.getCreatedBy(), personId, gatePassType,gpm.getReasoning(),gpm.getDot())))
 	        return false;
 
 	    // Step 3: Update StatusMM only if active
@@ -544,7 +558,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	
 	
-	private boolean insertCustData(String createdBy, long personId, String gatePassType,String reasoning) {
+	private boolean insertCustData(String createdBy, long personId, String gatePassType,String reasoning,String dot) {
 
 	    GatePassType type = GatePassType.fromStatus(gatePassType);
 	    if (type == null) {
@@ -552,7 +566,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 	        return false;
 	    }
 
-	    return workmenDao.insertIntoCustData(createdBy, personId, type.getStatus(),reasoning);
+	    return workmenDao.insertIntoCustData(createdBy, personId, type.getStatus(),reasoning,dot);
 	}
 
 	private void log(String section, boolean status) {
@@ -590,14 +604,22 @@ public class WorkmenServiceImpl implements WorkmenService{
 					 workmenDao.updateGatePassMainStatusAndType(dto.getGatePassId(),dto.getGatePassStatus(),GatePassType.CREATE.getStatus());
 					 gatePassMain.setWorkorder(gatePassMain.getWoId());
 					 String dot=this.getDOT(gatePassMain);
+					 gatePassMain.setDot(dot);
+					 boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
 		             boolean actionDone = this.gatePassActionPersonInsertOnDeblackUnblock(gatePassMain, dto.getGatePassType(), dot);
 		             if (!actionDone) {
 		 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
 		 	        }
+		             if (!dotUpdated) {
+			 	            throw new RuntimeException("GatePass dotUpdate failed unexpectedly.");
+			 	        }
 				//rollback status and type to create
 				}else {
 					String gatePassId=dto.getGatePassId();
-					
+					 String dot=this.getDOT(gatePassMain);
+					 gatePassMain.setDot(dot);
+					 boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
+		            
 					
 				 workmenDao.updateGatePassMainStatus(gatePassId,dto.getGatePassStatus());
 				 
@@ -1294,6 +1316,17 @@ public class WorkmenServiceImpl implements WorkmenService{
 				
 				
 
+				boolean cmsDone = this.cmsPersonInsert(gatePassMain);
+
+		        if (!cmsDone) {
+		            throw new RuntimeException("CMS Person Insert failed unexpectedly.");
+		        }try {
+		        	String wfdIntegration = this.getWFDIntegration();
+		        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+		        		api.addOnBoardingDetailsActual(dto.getTransactionId());
+		        	}
+		        	}catch(Exception e) {return transactionId;}
+
 				return transactionId;
 			}else {
 				gatePassMain.setGatePassStatus(GatePassStatus.APPROVALPENDING.getStatus());
@@ -1448,7 +1481,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    // Step 2: Insert new CUSTDATA row
 	    if (!logAndCheck("CUSTDATA_INSERT",
-	            insertCustData(gpm.getCreatedBy(), personId, gatePassType,gpm.getReasoning())))
+	            insertCustData(gpm.getCreatedBy(), personId, gatePassType,gpm.getReasoning(),gpm.getDot())))
 	        return false;
 
 	    // Step 3: Update StatusMM only if active

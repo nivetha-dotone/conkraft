@@ -2599,63 +2599,64 @@ public String saveCMSPERSONCUSTDATA() {
 	return QueryFileWatcher.getQuery("SAVE_CMSPERSON_CUSTOMDATA");
 }
 
-@Override
-public boolean saveCMSPERSONCUSTDATA( GatePassMain gp,long employeeId) {
-	String sql = saveCMSPERSONCUSTDATA() ;
-    //String sql = "INSERT INTO CMSPERSONCUSTOMDATA "
-    //        + "(EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY) "
-    //        + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), '3000-01-01', GETDATE(), GETDATE(), ?)";
-
-    // Fetch all active custom definitions
-    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
-    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
-
-    boolean isQuick = "quick".equalsIgnoreCase(gp.getOnboardingType());
-
-    // Allowed fields only for quick onboarding
-    List<String> quickAllowed = Arrays.asList(
-            "IdProof",
-            "MobileNumber",
-            "ContractorId",
-            "UnitId",
-            "GatePassType",
-            "Status"
-    );
-
-    List<Object[]> batchArgs = new ArrayList<>();
-
-    for (Map<String, Object> def : defList) {
-
-        int defId = (Integer) def.get("CSTMDEFID");
-        String fieldName = (String) def.get("CSTMDEFNAME");
-
-        // If quick onboarding, allow only selected fields
-        if (isQuick && !quickAllowed.contains(fieldName)) {
-            continue;
-        }
-
-        String value = mapGatePassValue(fieldName, gp);
-
-        // Skip null/empty values
-        if (value == null || value.trim().isEmpty()) {
-            continue;
-        }
-
-        batchArgs.add(new Object[]{
-                employeeId,
-                defId,
-                value,
-                gp.getCreatedBy()
-        });
-    }
-
-    if (batchArgs.isEmpty()) {
-        return false; // nothing inserted
-    }
-
-    jdbcTemplate.batchUpdate(sql, batchArgs);
-    return true; // records inserted
-}
+//@Override
+//public boolean saveCMSPERSONCUSTDATA( GatePassMain gp,long employeeId) {
+//	String sql = saveCMSPERSONCUSTDATA() ;
+//    //String sql = "INSERT INTO CMSPERSONCUSTOMDATA "
+//    //        + "(EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY) "
+//    //        + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), '3000-01-01', GETDATE(), GETDATE(), ?)";
+//
+//    // Fetch all active custom definitions
+//    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+//    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+//
+//    boolean isQuick = "quick".equalsIgnoreCase(gp.getOnboardingType());
+//
+//    // Allowed fields only for quick onboarding
+//    List<String> quickAllowed = Arrays.asList(
+//            "IdProof",
+//            "MobileNumber",
+//            "ContractorId",
+//            "UnitId",
+//            "GatePassType",
+//            "Status"
+//    );
+//
+//    List<Object[]> batchArgs = new ArrayList<>();
+//
+//    for (Map<String, Object> def : defList) {
+//
+//        int defId = (Integer) def.get("CSTMDEFID");
+//        String fieldName = (String) def.get("CSTMDEFNAME");
+//
+//        // If quick onboarding, allow only selected fields
+//        if (isQuick && !quickAllowed.contains(fieldName)) {
+//            continue;
+//        }
+//
+//        String value = mapGatePassValue(fieldName, gp);
+//
+//        // Skip null/empty values
+//        if (value == null || value.trim().isEmpty()) {
+//            continue;
+//        }
+//
+//        batchArgs.add(new Object[]{
+//                employeeId,
+//                defId,
+//                value,
+//                gp.getDot(),
+//                gp.getCreatedBy()
+//        });
+//    }
+//
+//    if (batchArgs.isEmpty()) {
+//        return false; // nothing inserted
+//    }
+//
+//    jdbcTemplate.batchUpdate(sql, batchArgs);
+//    return true; // records inserted
+//}
 
 private String mapGatePassValue(String field, GatePassMain gp) {
 
@@ -2902,7 +2903,7 @@ public String insertIntoCustData() {
 	return QueryFileWatcher.getQuery("INSERT_CUSTOM_DATA");
 }
 @Override
-public boolean insertIntoCustData(String updatedBy,long personId,String gatePassStatus,String reasoning) {
+public boolean insertIntoCustData(String updatedBy,long personId,String gatePassStatus,String reasoning,String dot) {
 	String defSqlGatePass  = getCustomDefIDforGPtype();
 	String defSqlReasoning  = getCustomDefIDforreasoning();
 	//String defSql = "SELECT CSTMDEFID FROM CMSPERSONCUSTOMDATADEFINITION "
@@ -2923,8 +2924,8 @@ public boolean insertIntoCustData(String updatedBy,long personId,String gatePass
     //        + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), '3000-01-01', GETDATE(), GETDATE(), ?)";
 
    //Object[] parameters = new Object[] {personId,gatePassDefId,gatePassStatus,updatedBy};
-	 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,updatedBy);
-	 int count2 =jdbcTemplate.update(sql,personId,reasoningDefId,reasoning,updatedBy);
+	 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,dot,updatedBy);
+	 int count2 =jdbcTemplate.update(sql,personId,reasoningDefId,reasoning,"3000-01-01",updatedBy);
    try {
    //int status = jdbcTemplate.update(sql,count1,count2);
    if (count1 > 0 && count2>0) {
@@ -3369,7 +3370,7 @@ public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String u
 	log.info("Query to getGatePassListingDetails "+query);
 	//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,deptId,unitId,previousGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
 
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,unitId,previousGatePassAction,renewGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
 	while(rs.next()) {
 		GatePassListingDto dto = new GatePassListingDto();
 		dto.setTransactionId(rs.getString("TransactionId"));
@@ -3913,5 +3914,88 @@ public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, Multipa
         e.printStackTrace();
         return false;
     }
+}
+
+@Override
+public boolean saveCMSPERSONCUSTDATA(GatePassMain gp, long employeeId) {
+
+    String sql = saveCMSPERSONCUSTDATA(); 
+    // Expected SQL:
+    // INSERT INTO CMSPERSONCUSTOMDATA
+    // (EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY)
+    // VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)
+
+    // Fetch all active custom definitions
+    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+
+    boolean isQuick = "quick".equalsIgnoreCase(gp.getOnboardingType());
+
+    // Allowed fields only for quick onboarding
+    List<String> quickAllowed = Arrays.asList(
+            "IdProof",
+            "MobileNumber",
+            "ContractorId",
+            "UnitId",
+            "GatePassType",
+            "Status"
+    );
+
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    for (Map<String, Object> def : defList) {
+
+        int defId = (Integer) def.get("CSTMDEFID");
+        String fieldName = (String) def.get("CSTMDEFNAME");
+
+        // If quick onboarding, allow only selected fields
+        if (isQuick && !quickAllowed.contains(fieldName)) {
+            continue;
+        }
+
+        String value = mapGatePassValue(fieldName, gp);
+
+        // Skip null/empty values
+        if (value == null || value.trim().isEmpty()) {
+            continue;
+        }
+
+        // ✅ Set EFFECTIVETILL conditionally
+        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
+                ? gp.getDot()              // only GatePassType gets DOT
+                : "3000-01-01";           // others get default
+
+        batchArgs.add(new Object[]{
+                employeeId,        // ?
+                defId,             // ?
+                value,             // ?
+                effectiveTill,     // ? (EFFECTIVETILL)
+                gp.getCreatedBy()  // ?
+        });
+    }
+
+    if (batchArgs.isEmpty()) {
+        return false; // nothing to insert
+    }
+
+    jdbcTemplate.batchUpdate(sql, batchArgs);
+
+    return true; // records inserted
+}
+
+public String getUpdateGatepassMainDOT() {
+	return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_DOT");
+}
+
+@Override
+public synchronized boolean updateDOTGatePassMainDOT(String gatePassId, String dot) {
+	boolean res=false;
+	Object[] object=new Object[]{dot,gatePassId};
+	String query= getUpdateGatepassMainDOT();
+	int i = jdbcTemplate.update(query,object);
+	if(i>0){
+		res=true;
+	}
+	return res;
 }
 }
