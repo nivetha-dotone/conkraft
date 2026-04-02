@@ -131,6 +131,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		
 		try {
 	
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			if(ALLOW.equals(allowPlantOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.CREATE.getStatus());
@@ -194,12 +196,30 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}else {
 				return allowOnboarding;
 			}
+			}else {
+				return allowPlantOnboarding;
+			}
 		}catch(Exception e) {
 			
 		}
 		return transactionId;
 	}
 	
+	private static final String ALLOW = "ALLOW";
+	private static final String EXCEEDED = "Plant maximum contract workmen count exceeded";
+	private String plantCountCheck(String principalEmployer) {
+
+	    Map<String, Integer> counts = workmenDao.getPlantCounts(principalEmployer);
+
+	    int maxCount = counts.get("maxCount");
+	    int activeCount = counts.get("activeCount");
+
+	    if (activeCount >= maxCount) {
+	        return EXCEEDED;
+	    }
+
+	    return ALLOW;
+	}
 	public String workmenCountCheck(GatePassMain gatePassMain) {
 		int activeCount = workmenDao.getActiveWorkmenCount(gatePassMain.getPrincipalEmployer(), gatePassMain.getContractor(), 
 				GatePassStatus.APPROVED.getStatus(), GatePassType.CREATE.getStatus());
@@ -286,6 +306,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				&& dto.getStatus().equals(GatePassStatus.APPROVED.getStatus())) {
 			 GatePassMain gatePassMain = workmenDao.getActiveCountDetails(dto.getTransactionId());
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			if(!ALLOW.equals(allowPlantOnboarding)) {
+				return allowPlantOnboarding;
+			}
 			if(!"allow".equals(allowOnboarding)) {
 				return allowOnboarding;
 			}
@@ -1289,6 +1313,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		String transactionId =null;
 		
 		try {
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			if(ALLOW.equals(allowPlantOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
@@ -1345,6 +1371,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowOnboarding;
+			}
+			}else {
+				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
 			

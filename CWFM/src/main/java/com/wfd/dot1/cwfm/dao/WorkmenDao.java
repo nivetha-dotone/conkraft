@@ -242,4 +242,8 @@ public interface WorkmenDao {
 	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference);
 
 	boolean updateDOTGatePassMainDOT(String gatePassId, String dot);
+
+	
+
+	Map<String, Integer> getPlantCounts(String unitId);
 }

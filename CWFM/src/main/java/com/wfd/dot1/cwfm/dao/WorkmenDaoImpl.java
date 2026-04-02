@@ -3047,6 +3047,12 @@ public String getActiveWorkmenCount() {
 	return QueryFileWatcher.getQuery("GET_ACTIVE_WORKMEN_COUNT");
 }
 
+
+
+public String getPlantMaxWorkmenCount() {
+	return QueryFileWatcher.getQuery("GET_PLANT_COUNTS");
+}
+
 @Override
 public int getActiveWorkmenCount(String unitId,String contractorId,String gatePassStatus, String gatePassType) {
 	String query = getActiveWorkmenCount() ;
@@ -4008,5 +4014,17 @@ public synchronized boolean updateDOTGatePassMainDOT(String gatePassId, String d
 		res=true;
 	}
 	return res;
+}
+
+@Override
+public Map<String, Integer> getPlantCounts(String unitId) {
+    String query = getPlantMaxWorkmenCount();
+
+    return jdbcTemplate.queryForObject(query, new Object[]{unitId}, (rs, rowNum) -> {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("maxCount", rs.getInt("MaxCount"));
+        map.put("activeCount", rs.getInt("ActiveCount"));
+        return map;
+    });
 }
 }
