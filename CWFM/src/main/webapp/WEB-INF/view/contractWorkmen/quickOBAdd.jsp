@@ -1202,6 +1202,19 @@ label {
                                 </select>
                                 <label id="error-skill" style="color: red;display: none;">Skill is required</label>
                             </td>
+                            <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.proLevel"/></label></th>
+                            <td style="display:none;">
+				               <select class="custom-select" id="proficiency"   name="proficiencyId"  >
+						            <option value="" >Please select Proficiency</option>
+						
+						              <c:forEach var="option" items="${Proficiency}">
+                                       <option value="${option.gmId}" ${GatePassObj.proficiency eq option.gmId ? 'selected="selected"' : ''}>
+						                    	${option.gmName}</option>
+                                     </c:forEach>
+						
+						     </select>
+						    <label id="error-proficiency"style="color: red;display: none;">Proficiency is required</label>
+				        </td>
                         </tr>
                         <tr>
                             <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
@@ -1352,8 +1365,17 @@ label {
                         <th><label class="custom-label"><span id="esicRequiredStar" class="required-field" style="display:none">*</span><spring:message code="label.esicNumber"/></label></th>
                               <td>
                                 <div id="esicNumberSection" style="display:none;">
-                                  <input id="esicNumber" name="esicNumber" type="text" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                                 <!--  <input id="esicNumber" name="esicNumber" type="text" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')"> -->
                                      <!-- <label id="error-esicNumber" style="color:red;display:none;">Please enter a valid ESIC Number</label> -->
+                                     
+                            <c:if test="${empty GatePassObj.esicNumber }">
+                            	<input id="esicNumber" name="esicNumber"  type="text" size="30" maxlength="10" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </c:if>
+                            
+                            <c:if test="${not empty GatePassObj.esicNumber }">
+                            	<input id="esicNumber" name="esicNumber" type="text" size="30" maxlength="10" value="${GatePassObj.esicNumber }" autocomplete="off" inputmode="numeric" pattern="[0-9]*"  oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </c:if>
+                            
                                 </div>
                                    <label id="error-esicNumber" style="color:red;display:none;">Please enter a valid ESIC Number</label>
                                </td>

@@ -1164,6 +1164,19 @@ label {
                                 </select>
                                 <label id="error-skill" style="color: red;display: none;">Skill is required</label>
                             </td>
+                             <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.proLevel"/></label></th>
+                            <td style="display:none;">
+				               <select class="custom-select" id="proficiency"   name="proficiencyId"  >
+						            <option value="" >Please select Proficiency</option>
+						
+						              <c:forEach var="option" items="${Proficiency}">
+                                       <option value="${option.gmId}" ${GatePassObj.proficiency eq option.gmId ? 'selected="selected"' : ''}>
+						                    	${option.gmName}</option>
+                                     </c:forEach>
+						
+						     </select>
+						    <label id="error-proficiency"style="color: red;display: none;">Proficiency is required</label>
+				        </td>
                         </tr>
                         <tr>
                             <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>

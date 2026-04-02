@@ -598,6 +598,7 @@ public class GatePassMain {
 	}
 	
 private String woId;
+
 public String getWoId() {
 	return woId;
 }
@@ -614,6 +615,7 @@ public void setOnboardingDocType(String onboardingDocType) {
 }
  
 public String attachmentOfReference;
+
 public String getAttachmentOfReference() {
 	return attachmentOfReference;
 }
@@ -621,7 +623,13 @@ public void setAttachmentOfReference(String attachmentOfReference) {
 	this.attachmentOfReference = attachmentOfReference;
 }
 
-	}
-	
-	
+private String Proficiency;
 
+public String getProficiency() {
+	return Proficiency;
+}
+public void setProficiency(String proficiency) {
+	Proficiency = proficiency;
+}
+
+}

@@ -141,7 +141,8 @@ public class WorkmenController {
 		        "WAGECATEGORY", "WageCategory",
 		        "BONUSPAYOUT", "BonusPayout",
 		        "ZONE", "Zone",
-		        "WORKMENTYPE","WorkmenType"
+		        "WORKMENTYPE","WorkmenType",
+		        "PROFICIENCY","Proficiency"
 		);
 
 		// Iterate over the attribute mappings and set the request attributes dynamically
@@ -667,7 +668,9 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("ONBOARDINGDOCTYPE".equals(gmType)) {
     	    	gatePassMainObj.setOnboardingDocType(generalMaster.getGmName());
-    		 }
+    		 }else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -1429,7 +1432,9 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("CAN".equals(gmType)) {
     	    	gatePassMainObj.setReasoning(generalMaster.getGmName());
-    		}
+    		}else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -1521,7 +1526,9 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("BLK".equals(gmType)) {
     	    	gatePassMainObj.setReasoning(generalMaster.getGmName());
-    		}
+    		}else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -1618,7 +1625,9 @@ public class WorkmenController {
     			if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLOCK.getStatus())) {
     				gatePassMainObj.setReasoning("");
     			}
-    		}
+    		}else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
@@ -1715,7 +1724,9 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("BL".equals(gmType)) {
     	    	gatePassMainObj.setReasoning(generalMaster.getGmName());
-    		}
+    		}else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -1816,7 +1827,9 @@ public class WorkmenController {
     			if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLACKLIST.getStatus())) {
     				gatePassMainObj.setReasoning("");
     			}
-    		}
+    		}else if("PROFICIENCY".equals(gmType)) {
+     	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+     		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -2060,7 +2073,8 @@ public class WorkmenController {
 	        "WAGECATEGORY", "WageCategory",
 	        "BONUSPAYOUT", "BonusPayout",
 	        "ZONE", "Zone",
-	        "WORKMENTYPE","WorkmenType"
+	        "WORKMENTYPE","WorkmenType",
+	        "PROFICIENCY","Proficiency"
 	        
 	);
 
@@ -2230,7 +2244,8 @@ public class WorkmenController {
 	        "WAGECATEGORY", "WageCategory",
 	        "BONUSPAYOUT", "BonusPayout",
 	        "ZONE", "Zone",
-	        "WORKMENTYPE","WorkmenType"
+	        "WORKMENTYPE","WorkmenType",
+	        "PROFICIENCY","Proficiency"
 	);
 
 	// Iterate over the attribute mappings and set the request attributes dynamically
@@ -2455,7 +2470,9 @@ public class WorkmenController {
     	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
     		}else if("ONBOARDINGDOCTYPE".equals(gmType)) {
     	    	gatePassMainObj.setOnboardingDocType(generalMaster.getGmName());
-    		 }
+    		 }else if("PROFICIENCY".equals(gmType)) {
+      	    	gatePassMainObj.setProficiency(generalMaster.getGmName());
+      		 }
     		}
     		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
 
@@ -2664,7 +2681,8 @@ public class WorkmenController {
 		        "WAGECATEGORY", "WageCategory",
 		        "BONUSPAYOUT", "BonusPayout",
 		        "ZONE", "Zone",
-		        "WORKMENTYPE","WorkmenType"
+		        "WORKMENTYPE","WorkmenType",
+		        "PROFICIENCY","Proficiency"
 		);
 
 		// Iterate over the attribute mappings and set the request attributes dynamically
@@ -3272,7 +3290,8 @@ if (dbStatus != null &&
 		        "WAGECATEGORY", "WageCategory",
 		        "BONUSPAYOUT", "BonusPayout",
 		        "ZONE", "Zone",
-		        "WORKMENTYPE","WorkmenType"
+		        "WORKMENTYPE","WorkmenType",
+		        "PROFICIENCY","Proficiency"
 		);
 
 		// Iterate over the attribute mappings and set the request attributes dynamically

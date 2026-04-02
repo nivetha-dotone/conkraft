@@ -545,6 +545,13 @@ function validateEmploymentInformation(){
     }else{
 		$("#error-skill").hide();
 	}
+	/*const proficiency = $("#proficiency").val();
+     if (proficiency === "") {
+        $("#error-proficiency").show();
+        isValid = false;
+    }else{
+		$("#error-proficiency").hide();
+	}*/
 	const dept = $("#department").val();
      if (dept === "") {
         $("#error-department").show();
@@ -728,7 +735,7 @@ showEsic();
     $("#error-esicNumber").hide(); // ✅ hides properly
 }
 
-
+if(type === "regular" || type=== "quick"){
 	const doj = $("#doj").val().trim();
     if (doj === "") {
         $("#error-doj").show();
@@ -736,6 +743,7 @@ showEsic();
     }else{
 		 $("#error-doj").hide();
 	}
+ }
 	/*}*/
 	return isValid;
 }
@@ -1351,6 +1359,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
             policeVerificationDate: trimIfPresent($("#policeVerificationDate").val()),
             disability:$("#disability").val(),
             workmenType:$("#workmenType").val(),
+            proficiency: $("#proficiency").val(),
 			onboardingType:type,
         };
 
@@ -2963,6 +2972,7 @@ function previewImage(event, inputId, displayId) {
                                                     policeVerificationDate: $("#policeVerificationDate").val().trim(),
 			                                        disability:$("#disability").val(),
                                                     workmenType:$("#workmenType").val(),
+                                                    proficiency: $("#proficiency").val(),
 										        };
 
 										        // Serialize the JSON object to a string
@@ -3235,6 +3245,7 @@ function renewGatePass(userId) {
             policeVerificationDate: $("#policeVerificationDate").val().trim(),
             disability:$("#disability").val(),
             workmenType:$("#workmenType").val(),
+            proficiency: $("#proficiency").val(),
         };
 
         // Serialize the JSON object to a string
@@ -4380,6 +4391,13 @@ function searchGatePassReportBasedOnPE() {
 							      }else{
 							  		$("#error-skill").hide();
 							  	}
+							  	/*const proficiency = $("#proficiency").val();
+                                  if (proficiency === "") {
+                                   $("#error-proficiency").show();
+                                    isValid = false;
+                                    }else{
+	                              	$("#error-proficiency").hide();
+	                             }*/
 							  	const dept = $("#department").val();
 							       if (dept === "") {
 							          $("#error-department").show();

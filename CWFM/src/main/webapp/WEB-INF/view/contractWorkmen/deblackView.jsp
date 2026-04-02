@@ -595,6 +595,8 @@ textarea {
                             <td><input id="trade" name="trade" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.trade }" readonly> </td>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.skill"/></label></th>
                             <td><input id="skill" name="skill" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.skill }" readonly></td>
+                            <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.proLevel"/></label></th>				
+				            <td style="display:none;"><input type=hidden id="proficiency" name="proficiency" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.proficiency }" readonly></td>
                         </tr>
                         <tr>
                             <th style="display:none;"><label class="custom-label"><span class="required-field">*</span><spring:message code="label.natureOfJob"/></label></th>
