@@ -5,12 +5,14 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
+import com.wfd.dot1.cwfm.pojo.CMSVendor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLN;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -205,5 +207,15 @@ public interface FileUploadDao {
 	Long saveuserImport(UserImport user);
 
 	void saveUserRoleMapping(Long userId, Integer roleId);
+
+	Long getContractorIdByCodeInCMSVendor(String subContractorCode);
+
+	void insertContractorInCMSVendor(CMSVendor cmsvendor);
+
+	void updateContractorInCMSVendor(CMSVendor cmsvendor);
+
+	Set<String> getExistingContractorCodes(List<Contractor> list, long orgLevelDefId);
+
+	Integer getZoneIdFromMinimumWage(String zoneValue, Integer unitId);
 
 }

@@ -61,6 +61,8 @@ function getContractorsAndTrades(unitId, userAccount) {
     getTrades(unitId);
     
     getDepartments(unitId);
+    
+    getZones(unitId);
 }
 
 
@@ -5401,7 +5403,7 @@ function validateMinimumWage() {
     $("#MinimumWageError").hide().text("");
 
     const principalEmp = $("#principalEmployer").val();
-    const zone = $("#zone option:selected").text();
+    const zone = $("#zone option:selected").text().trim();
     const skill = $("#skill").val();
     const wageType = $("#wageCategory option:selected").text().trim().toLowerCase();
 
@@ -5499,4 +5501,37 @@ function validateMinimumWage() {
     });
 
     return isValid;
+}
+function getZones(unitId) {
+    var xhr = new XMLHttpRequest();
+    var url = contextPath + "/contractworkmen/getAllZonesBasedOnUnitId?unitId=" + unitId;
+    console.log("Fetching Zones from URL:", url);
+    xhr.open("GET", url, true);
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            var zone = JSON.parse(xhr.responseText);
+            console.log("Zones:", zone);
+            var zoneSelect = document.getElementById("zone");
+
+            // Clear existing options
+            zoneSelect.innerHTML = '<option value="">Please select Zone</option>';
+
+            // Populate the trade dropdown
+            zone.forEach(function (zone) {
+                var option = document.createElement("option");
+                option.value = zone.zoneId;
+                option.text = zone.zoneName;
+                zoneSelect.appendChild(option);
+            });
+        } else {
+            console.error("Error fetching zones:", xhr.statusText);
+        }
+    };
+
+    xhr.onerror = function () {
+        console.error("Request failed while fetching zones");
+    };
+
+    xhr.send();
 }

@@ -26,6 +26,7 @@ import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
 import com.wfd.dot1.cwfm.pojo.WageDetailsDto;
 import com.wfd.dot1.cwfm.pojo.Workorder;
+import com.wfd.dot1.cwfm.pojo.Zone;
 
 public interface WorkmenDao {
 
@@ -246,4 +247,5 @@ public interface WorkmenDao {
 	
 
 	Map<String, Integer> getPlantCounts(String unitId);
+	public List<Zone> getAllZonesBasedOnPE(String unitId);
 }

@@ -49,6 +49,7 @@ import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
+import com.wfd.dot1.cwfm.pojo.CMSVendor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
 import com.wfd.dot1.cwfm.pojo.CmsGeneralMaster;
@@ -1086,7 +1087,6 @@ public class FileUploadServiceImpl implements FileUploadService {
                      } 
                     	
             	}
-                
              //  LICENSE UNIQUENESS VALIDATION — CMSCONTRACTOR_WC ONLY
 
              // LL
@@ -1243,6 +1243,24 @@ public class FileUploadServiceImpl implements FileUploadService {
                  } else {
                      fileUploadDao.saveWorkorderLLWC(llwc);
                  }
+             }
+             
+             //save in cmsvendor
+             Long SubContractorexistsinCMSVendor =	fileUploadDao.getContractorIdByCodeInCMSVendor(subContractorCode);
+             
+             if(SubContractorexistsinCMSVendor == null) {
+             	CMSVendor cmsvendor= new CMSVendor();
+             	cmsvendor.setVendorCode(subContractorCode);
+             	cmsvendor.setVendorName(contractorName);
+             	cmsvendor.setVendorId(String.valueOf(contractorId));
+             	  fileUploadDao.insertContractorInCMSVendor(cmsvendor);
+             }else {
+             	CMSVendor cmsvendor= new CMSVendor();
+             	cmsvendor.setVendorCode(subContractorCode);
+             	cmsvendor.setVendorName(contractorName);
+             	cmsvendor.setVendorId(String.valueOf(SubContractorexistsinCMSVendor));
+                 
+             	fileUploadDao.updateContractorInCMSVendor(cmsvendor);
              }
 
                 ContListForOrgEntry.add(contractor);
@@ -1621,7 +1639,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
          // Only validate if something is truly entered
          if (!zoneValue.isBlank()) {
-             zoneId = fileUploadDao.getGeneralMasterId(zoneValue);
+             zoneId = fileUploadDao.getZoneIdFromMinimumWage(zoneValue,unitId);
 
              if (zoneId == null) {
                  fieldErrors.put("zone", "Invalid or not found");
@@ -1815,7 +1833,8 @@ public class FileUploadServiceImpl implements FileUploadService {
             Integer academicId = fileUploadDao.getGeneralMasterId(fields[18]);
             Integer wcecId = fileUploadDao.getWCECId(fields[32],unitId,contractorId);
             Integer workorderId = fileUploadDao.getWorkorderId(fields[14],unitId,contractorId);
-            Integer zoneId = fileUploadDao.getGeneralMasterId(fields[40]);
+            //Integer zoneId = fileUploadDao.getGeneralMasterId(fields[40]);
+            Integer zoneId = fileUploadDao.getZoneIdFromMinimumWage(fields[40],unitId);
             Integer genderId = fileUploadDao.getGeneralMasterId(fields[10]);
             Integer eicId = fileUploadDao.geteicId(fields[12],unitId,fields[31]);
             Integer LLNumber = fileUploadDao.getLlNumber(fields[38],unitId,contractorId);
@@ -1865,11 +1884,9 @@ public class FileUploadServiceImpl implements FileUploadService {
                     Integer accessArea = !fields[27].isBlank() ? fileUploadDao.getGeneralMasterId(fields[27]) : null;
                     if (!fields[27].isBlank() && accessArea == null) fieldErrors.put("accessArea", "Invalid or not found");
 
-                    Integer zone = !fields[40].isBlank() ? fileUploadDao.getGeneralMasterId(fields[40]) : null;
+                    Integer zone = !fields[40].isBlank() && unitId != null ? fileUploadDao.getZoneIdFromMinimumWage(fields[40],unitId) : null;
                     if (!fields[40].isBlank() && zone == null) fieldErrors.put("zone", "Invalid or not found");
         
-
-           
             
             /*	Integer academic = !fields[18].isBlank() ? fileUploadDao.getGeneralMasterId(fields[18]) : null;
                 if (!fields[18].isBlank() && academic == null) fieldErrors.put("academic", "Invalid or not found");
@@ -2068,7 +2085,33 @@ public class FileUploadServiceImpl implements FileUploadService {
 	        return false;
 	    }
 	}
-	@Transactional
+//	@Transactional
+//	public boolean InsertContractorOrgLevelEntry(List<Contractor> list) {
+//
+//	    if (list == null || list.isEmpty()) {
+//	        return true;
+//	    }
+//
+//	    try {
+//	        long orgLevelDefId = fileUploadDao.getOrgLevelDefId("contractor");
+//
+//	        if (orgLevelDefId <= 0) {
+//	            return false;
+//	        }
+//
+//	        boolean exists = fileUploadDao.codeExistsInOrgLevelEntry(list, orgLevelDefId);
+//
+//	        if (exists) {
+//	            return true; // Data already exists → skip insert
+//	        }
+//
+//	        return fileUploadDao.SaveContOrglevelEntry(list, orgLevelDefId);
+//
+//	    } catch (Exception e) {
+//	        log.error("ORGLEVELENTRY insert failed", e);
+//	        return false;
+//	    }
+//	}
 	public boolean InsertContractorOrgLevelEntry(List<Contractor> list) {
 
 	    if (list == null || list.isEmpty()) {
@@ -2082,13 +2125,23 @@ public class FileUploadServiceImpl implements FileUploadService {
 	            return false;
 	        }
 
-	        boolean exists = fileUploadDao.codeExistsInOrgLevelEntry(list, orgLevelDefId);
+	        // ✅ Get existing codes
+	        Set<String> existingCodes =
+	                fileUploadDao.getExistingContractorCodes(list, orgLevelDefId);
 
-	        if (exists) {
-	            return true; // Data already exists → skip insert
+	        // ✅ Filter only NEW contractor codes
+	        List<Contractor> newList = list.stream()
+	                .filter(c -> c.getContractorCode() != null &&
+	                        !existingCodes.contains(c.getContractorCode()))
+	                .toList();
+
+	        // ✅ If nothing to insert → skip
+	        if (newList.isEmpty()) {
+	            return true;
 	        }
 
-	        return fileUploadDao.SaveContOrglevelEntry(list, orgLevelDefId);
+	        // ✅ Insert only missing records
+	        return fileUploadDao.SaveContOrglevelEntry(newList, orgLevelDefId);
 
 	    } catch (Exception e) {
 	        log.error("ORGLEVELENTRY insert failed", e);

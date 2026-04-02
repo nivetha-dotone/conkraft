@@ -221,6 +221,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
         const selectedTemplate = select.value.trim();
         const selectedText = select.options[select.selectedIndex].text.trim();
 
+          // ✅ Set heading dynamically
+        document.getElementById("templateTitle").textContent = selectedText;
+
         if (!selectedTemplate) {
             alert("Please select at least one template.");
             return;

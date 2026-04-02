@@ -336,7 +336,7 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	        	gatePassMain.setCreatedBy(createdBy);
 	        	gatePassMain.setWorkFlowType(1);
 	        	gatePassMain.setUserId(createdBy);
-	        	gatePassMain.setComments(""); 
+	        	gatePassMain.setComments("Workmen Bulk Upload"); 
 	        	gatePassMain.setOnboardingType("regular");
 	        	String saveResult = workmenService.saveWorkmenBulkUploadGatePass(gatePassMain);
 

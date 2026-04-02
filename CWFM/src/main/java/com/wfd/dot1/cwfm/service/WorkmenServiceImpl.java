@@ -56,6 +56,7 @@ import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
 import com.wfd.dot1.cwfm.pojo.WageDetailsDto;
 import com.wfd.dot1.cwfm.pojo.Workorder;
+import com.wfd.dot1.cwfm.pojo.Zone;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 @Service
@@ -1586,6 +1587,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 	@Override
 	public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, MultipartFile attachmentOfReference) {
 		return workmenDao.updateGatePassMainWithReasoningTab( dto,  attachmentOfReference);
+	}
+	
+	@Override
+	public List<Zone> getAllZonesBasedOnPE(String unitId){
+		return workmenDao.getAllZonesBasedOnPE(unitId);
 	}
 	}
 

@@ -55,6 +55,7 @@ import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
 import com.wfd.dot1.cwfm.pojo.WageDetailsDto;
 import com.wfd.dot1.cwfm.pojo.Workorder;
+import com.wfd.dot1.cwfm.pojo.Zone;
 import com.wfd.dot1.cwfm.queries.WorkmenQueryBank;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
@@ -4026,5 +4027,27 @@ public Map<String, Integer> getPlantCounts(String unitId) {
         map.put("activeCount", rs.getInt("ActiveCount"));
         return map;
     });
+}  
+public String getAllZonesBasedOnPE() {
+	return QueryFileWatcher.getQuery("GET_ALL_ZONES_BASED_ON_PE");
+}
+@Override
+public List<Zone> getAllZonesBasedOnPE(String unitId){
+	log.info("Entering into getAllZonesBasedOnPE dao method "+unitId);
+	List<Zone> zoneList= new ArrayList<Zone>();
+	String query = getAllZonesBasedOnPE();
+	
+	//String query = "select distinct cgm.GMID as ZoneId,cmssm.ZONENM as Zone  from CMSSTATEMINIMUMWAGE cmssm inner join CMSGENERALMASTER cgm on  cgm.GMNAME = cmssm.ZONENM where cmssm.UNITID=?";
+	
+	log.info("Query to getAllTradesBasedOnPE "+query);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId);
+	while(rs.next()) {
+		Zone zone = new Zone();
+		zone.setZoneId(rs.getString("ZoneId"));
+		zone.setZoneName(rs.getString("Zone"));
+		zoneList.add(zone);
+	}
+	log.info("Exiting from getAllTradesBasedOnPE dao method "+zoneList.size());
+	return zoneList;
 }
 }

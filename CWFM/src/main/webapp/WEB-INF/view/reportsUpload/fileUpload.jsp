@@ -434,7 +434,8 @@ background-color: #DDF3FF; /* Light green for the table header */
       <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="openFileSidebar()"style="float:right;margin:3px;margin-right: 6px;">Open File</button>
        <!-- <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="cancelButton()"style="float:right;">cancel</button>  -->
        <button onclick="uploadTemplateFile()" class="btn btn-default process-footer-button-cancel ng-binding"style="float:right;margin:3px;margin-right: 6px;">Save</button>
-        <h2 style="color: darkcyan;font-size: 1rem;">Template Data</h2> 
+        <!-- <h2 style="color: darkcyan;font-size: 1rem;">Template Data</h2> --> 
+        <h2 id="templateTitle" style="color: darkcyan;font-size: 1rem; margin-left: 8px;"></h2>
         </div>
         <div id="uploadMessage" style="display: none; font-weight: bold; margin-top: 10px;"></div>
     <div id="viewTableContainer">

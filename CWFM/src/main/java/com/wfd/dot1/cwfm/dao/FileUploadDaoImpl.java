@@ -13,9 +13,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -39,6 +41,7 @@ import com.wfd.dot1.cwfm.pojo.BulkCancel;
 import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
+import com.wfd.dot1.cwfm.pojo.CMSVendor;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLLWC;
 import com.wfd.dot1.cwfm.pojo.CMSWorkorderLN;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -1577,6 +1580,44 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 		    return count != null && count > 0;
 		}
+		@Override
+		public Set<String> getExistingContractorCodes(List<Contractor> list, long orgLevelDefId) {
+
+		    if (list == null || list.isEmpty()) {
+		        return Collections.emptySet();
+		    }
+
+		    List<String> contractorCodes = list.stream()
+		            .map(Contractor::getContractorCode)
+		            .filter(Objects::nonNull)
+		            .distinct()
+		            .toList();
+
+		    if (contractorCodes.isEmpty()) {
+		        return Collections.emptySet();
+		    }
+
+		    String placeholders = contractorCodes.stream()
+		            .map(c -> "?")
+		            .collect(Collectors.joining(","));
+
+		    String sql =
+		        "SELECT NAME FROM ORGLEVELENTRY " +
+		        "WHERE ORGLEVELDEFID = ? " +
+		        "AND NAME IN (" + placeholders + ")";
+
+		    List<Object> params = new ArrayList<>();
+		    params.add(orgLevelDefId);
+		    params.addAll(contractorCodes);
+
+		    List<String> existing = jdbcTemplate.queryForList(
+		            sql,
+		            params.toArray(),
+		            String.class
+		    );
+
+		    return new HashSet<>(existing);
+		}
 		public String workorderExistsInStagging() {
 			return QueryFileWatcher.getQuery("WORKORDER_EXISTS_IN_WORKORDER_STAGGING");
 		}
@@ -2027,4 +2068,52 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		       // String sql = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
 		        jdbcTemplate.update(sql, userId, roleId);
 		    }
+		  public String getContractorIdByCodeInCMSVendor() {
+				return QueryFileWatcher.getQuery("GET_CONTRACTORID_FROM_CMSVENDOR");
+			}
+		  public String insertContractorInCMSVendor() {
+				return QueryFileWatcher.getQuery("INSERT_CONTRACTOR_IN_CMSVENDOR");
+			}
+		  public String updateContractorInCMSVendor() {
+				return QueryFileWatcher.getQuery("UPDATE_CONTRACTOR_IN_CMSVENDOR");
+			}
+		  public String getZoneIdFromMinimumWage() {
+				return QueryFileWatcher.getQuery("GET_ZONEID_FROM_MINIMUMWAGE");
+			}
+		  @Override
+			public Long getContractorIdByCodeInCMSVendor(String subContractorCode) {
+				String sql=getContractorIdByCodeInCMSVendor();
+			    //String sql = "select VENDORID from CMSVENDOR where VENDORCODE=? and IS_BLOCKED='N'";
+			    		
+			    try {
+			        return jdbcTemplate.queryForObject(sql, new Object[]{subContractorCode}, Long.class);
+			    } catch (EmptyResultDataAccessException e) {
+			        return null;
+			    }
+			}
+		@Override
+		public void insertContractorInCMSVendor(CMSVendor cmsvendor) {
+		     String sql=insertContractorInCMSVendor();
+		    //String sql = "insert into CMSVENDOR  (VENDORID,VENDORCODE,VENDORNAME,IS_BLOCKED) values (?,?,?,'N')";
+
+		    jdbcTemplate.update(sql, cmsvendor.getVendorId(),cmsvendor.getVendorCode(),cmsvendor.getVendorName());
+		}
+		@Override
+		public void updateContractorInCMSVendor(CMSVendor cmsvendor) {
+			
+				String sql=updateContractorInCMSVendor();
+			   //String sql="update CMSVENDOR set VENDORNAME=? where VENDORID=?";
+			    jdbcTemplate.update(sql,
+			    		//cmsvendor.getVendorCode(),
+			    		cmsvendor.getVendorName(),
+			    		cmsvendor.getVendorId()
+			    );
+			}
+		@Override
+		public Integer getZoneIdFromMinimumWage(String zoneValue, Integer unitId) {
+			String sql=getZoneIdFromMinimumWage();
+			//String sql="select  cgm.GMID as ZoneId  from CMSSTATEMINIMUMWAGE cmssm inner join CMSGENERALMASTER cgm on  cgm.GMNAME = cmssm.ZONENM where cmssm.ZONENM=? and cmssm.UNITID=?";
+			 List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class,zoneValue.trim(), unitId);
+			    return result.isEmpty() ? null : result.get(0);
+		}			
 	}

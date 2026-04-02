@@ -67,6 +67,7 @@ import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Trade;
 import com.wfd.dot1.cwfm.pojo.Workorder;
+import com.wfd.dot1.cwfm.pojo.Zone;
 import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.PrincipalEmployerService;
 import com.wfd.dot1.cwfm.service.WorkmenService;
@@ -140,7 +141,7 @@ public class WorkmenController {
 		        "ACADEMICS", "Academics",
 		        "WAGECATEGORY", "WageCategory",
 		        "BONUSPAYOUT", "BonusPayout",
-		        "ZONE", "Zone",
+		       // "ZONE", "Zone",
 		        "WORKMENTYPE","WorkmenType",
 		        "PROFICIENCY","Proficiency"
 		);
@@ -2072,7 +2073,7 @@ public class WorkmenController {
 	        "ACADEMICS", "Academics",
 	        "WAGECATEGORY", "WageCategory",
 	        "BONUSPAYOUT", "BonusPayout",
-	        "ZONE", "Zone",
+	       // "ZONE", "Zone",
 	        "WORKMENTYPE","WorkmenType",
 	        "PROFICIENCY","Proficiency"
 	        
@@ -2103,6 +2104,9 @@ public class WorkmenController {
 	 request.setAttribute("Skills", skills);
 	 List<DeptMapping> departments = workmenService.getAllDepartmentsOnPE(gatePassMainObj.getUnitId());
 	 
+		List<Zone> zones = workmenService.getAllZonesBasedOnPE(gatePassMainObj.getUnitId());
+		request.setAttribute("Zones", zones);
+		
 	 List<PersonOrgLevel> dept = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
  	List<PersonOrgLevel> subdepartments = groupedByLevelDef.getOrDefault("Area", new ArrayList<>());
  	List<DeptMapping> loggedDept = new ArrayList<>();
@@ -2243,7 +2247,7 @@ public class WorkmenController {
 	        "ACADEMICS", "Academics",
 	        "WAGECATEGORY", "WageCategory",
 	        "BONUSPAYOUT", "BonusPayout",
-	        "ZONE", "Zone",
+	        //"ZONE", "Zone",
 	        "WORKMENTYPE","WorkmenType",
 	        "PROFICIENCY","Proficiency"
 	);
@@ -2275,6 +2279,9 @@ public class WorkmenController {
 	 
 	 List<DeptMapping> skills = workmenService.getAllSkills(gatePassMainObj.getUnitId(),gatePassMainObj.getTrade());
 	 request.setAttribute("Skills", skills);
+	 
+	 List<Zone> zones = workmenService.getAllZonesBasedOnPE(gatePassMainObj.getUnitId());
+		request.setAttribute("Zones", zones);
 //	 List<DeptMapping> departments = workmenService.getAllDepartmentsOnPE(gatePassMainObj.getUnitId());
 //	 request.setAttribute("Departments", departments);
 //	 List<DeptMapping> Subdept = workmenService.getAllSubDepartments(gatePassMainObj.getUnitId(),gatePassMainObj.getDepartment());
@@ -3523,5 +3530,21 @@ if (dbStatus != null &&
             e.printStackTrace();
             return "failed";
         }
+    }
+    @GetMapping("/getAllZonesBasedOnUnitId")
+    public ResponseEntity<Set<Zone>> getAllZonesBasedOnUnitId(@RequestParam("unitId")String unitId){
+    	log.info("Entered into getAllZonesBasedOnUnitId for unitId:"+unitId);
+    	try {
+    		List<Zone> zones = workmenService.getAllZonesBasedOnPE(unitId);
+    		Set<Zone> zoneSet = new HashSet<>(zones);
+    		if(zones.isEmpty()) {
+    			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    		}
+    		return new ResponseEntity<>(zoneSet,HttpStatus.OK);
+    	}catch(Exception e) {
+    		log.error("Error fetching trades: ", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    	}
+    
     }
     }

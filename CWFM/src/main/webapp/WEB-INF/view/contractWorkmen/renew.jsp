@@ -1115,7 +1115,7 @@ label {
 				</tr>
         <tr>
 				<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.zone"/></label></th>
-				<td >
+				<%-- <td >
 					<select class="custom-select" id="zone"    name="zoneId"  >
 						<option value=""> Select Zone</option>
 						<c:forEach var="option" items="${Zone}">
@@ -1123,8 +1123,21 @@ label {
                         </c:forEach>
 					</select>
 					<label id="error-zone"style="color: red;display: none;">Zone is required</label>
-				</td>
+				</td> --%>
 		
+		<td><select class="custom-select" id="zone" name="zoneId">
+                                <option value="">Please select Zone</option>
+								<c:forEach var="pe" items="${Zones}">
+								
+                					<option value="${pe.zoneId}"
+									${GatePassObj.zone eq pe.zoneId ? 'selected="selected"' : ''}>
+									${pe.zoneName}</option>
+            					</c:forEach>
+								
+								</select>
+                                <label id="error-zone"style="color: red;display: none;">Zone is required</label>
+                  </td>
+                  
 			<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.basic"/></label></th>
 			
 				<td><input style="width: 100%;height: 20px;" type="text" size="30" name="basic" id="basic"   value="${not empty GatePassObj.basic ? GatePassObj.basic : ''}" autocomplete="off"/>
