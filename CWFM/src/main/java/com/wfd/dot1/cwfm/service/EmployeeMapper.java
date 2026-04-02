@@ -3,23 +3,36 @@ package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wfd.dot1.cwfm.dto.*;
+import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
+import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
+import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.FaceLogFetchDto;
+import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
+import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
+import com.wfd.dot1.cwfm.dto.PostSkillWfd;
+import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
+import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
+import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
+import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.WfdResponse;
+import com.wfd.dot1.cwfm.dto.WorkOrderDTOMail;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
-
-import java.text.SimpleDateFormat;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +42,10 @@ public class EmployeeMapper {
     private WfdEmployeeService wfdEmployeeService;
     @Autowired
     private GatePassToOnBoardService gatePassToOnBoardService;
-
     @Autowired
     private EmailService emailService;
-
     private final ObjectMapper objectMapper;
     private static final Logger log = LoggerFactory.getLogger(GatePassToOnBoardService.class.getName());
-
 
     public EmployeeMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -44,7 +54,6 @@ public class EmployeeMapper {
     public String getRegardsEmail() {
         return QueryFileWatcher.getQuery("getRegards");
     }
-
 
     public String gatePassEmpDtoStatic(String GatePassId) {
         try {
@@ -170,353 +179,42 @@ public class EmployeeMapper {
         }
     }
 
-    @Scheduled(cron = "0 */15 * * * *")
+    @Scheduled(
+            cron = "0 */15 * * * *"
+    )
     public void gatePassEmpDtoSchedular() {
-
         try {
-
-            List<String> listOfTrReScheduleOnb =
-                    gatePassToOnBoardService.getListOfTrReScheduleOnb();
-
+            List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListOfTrReScheduleOnb();
             if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
                 return;
             }
 
-            for (String gpTransactionId : listOfTrReScheduleOnb) {
-
-                String result = gatePassEmpDtoDynamic(gpTransactionId);
-
+            for(String gpTransactionId : listOfTrReScheduleOnb) {
+                String result = this.gatePassEmpDtoDynamic(gpTransactionId);
                 if (result == null) {
-
-                    gatePassToOnBoardService.updateErrorTrace(
-                            Long.valueOf(gpTransactionId),
-                            404,
-                            "Transaction Id Not Found",
-                            1
-                    );
-
+                    this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), 404, "Transaction Id Not Found", 1);
                 } else if (result.matches("\\d+")) {
-
                     Long personKey = Long.parseLong(result);
-
-                    gatePassToOnBoardService.updateSuccessTrace(
-                            Long.valueOf(gpTransactionId),
-                            personKey,
-                            200,
-                            true
-                    );
-
+                    this.gatePassToOnBoardService.updateSuccessTrace(Long.valueOf(gpTransactionId), personKey, 200, true);
                 } else if (result.startsWith("STATUS:")) {
-
                     String[] parts = result.split("\n", 2);
-
-                    int statusCode = Integer.parseInt(
-                            parts[0].replace("STATUS:", "").trim()
-                    );
-
+                    int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
                     String body = parts.length > 1 ? parts[1] : "";
                     Integer flag = 0;
-
-                    // Check only the required part of JSON string
                     if (body.contains("WCO-101520") && body.contains("ID already exists")) {
                         flag = 1;
-
                     } else if (body.contains("Transaction Id Not Found")) {
                         flag = 1;
                     }
-                    gatePassToOnBoardService.updateErrorTrace(
-                            Long.valueOf(gpTransactionId),
-                            statusCode,
-                            body,
-                            flag
-                    );
+
+                    this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), statusCode, body, flag);
                 }
             }
-
         } catch (Exception e) {
-            e.printStackTrace(); // never keep catch empty
+            e.printStackTrace();
         }
+
     }
-
-
-
-//    public List<EmployeeRequestDTO> gatePassEmpSchedular(){
-//        try {
-//            List<GatePassToOnBoard> individualOnBoardDetailsByTrnIdP = gatePassToOnBoardService.getIndividualOnBoardDetailsSchedular();
-//            List<EmployeeRequestDTO> dtoList = new LinkedList<>();
-//
-//
-//            for(GatePassToOnBoard individualOnBoardDetailsByTrnId: individualOnBoardDetailsByTrnIdP ){
-//
-//
-//                EmployeeRequestDTO dto = new EmployeeRequestDTO();
-//
-//                EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
-//                EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
-//                access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
-//                access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
-//                access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
-//                access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());
-//                access.setShiftCodeName(individualOnBoardDetailsByTrnId.getShiftCodeName());
-//                personInfo.setAccessAssignment(access);
-//
-//                EmployeeRequestDTO.EmailAddress email = new EmployeeRequestDTO.EmailAddress();
-//                email.setAddress(individualOnBoardDetailsByTrnId.getAddressEmail());
-//                email.setContactTypeName(individualOnBoardDetailsByTrnId.getContactTypeName());
-//                email.setHasEmailNotificationDelivery(false);
-//                personInfo.setEmailAddresses(Arrays.asList(email));
-//
-//                EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-//                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());  // joining date
-//                empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
-//                empStatus.setExpirationDate("3000-01-01");
-//                personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
-//
-//                EmployeeRequestDTO.Person person = new EmployeeRequestDTO.Person();
-//                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
-//                person.setFirstName(individualOnBoardDetailsByTrnId.getFirstName());
-//                person.setLastName(individualOnBoardDetailsByTrnId.getLastName());
-//                person.setFullName(individualOnBoardDetailsByTrnId.getLastName()+ ", " + individualOnBoardDetailsByTrnId.getFirstName());
-//                person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
-//                person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
-//                person.setShortName(individualOnBoardDetailsByTrnId.getFirstName() + (individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().charAt(0) : ""));
-//                personInfo.setPerson(person);
-//
-//                ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList<>();
-//
-//                if(individualOnBoardDetailsByTrnId.getGender()!=null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO gender = new EmployeeRequestDTO.CustomDataDTO();
-//                    gender.setCustomDataTypeName("Gender");
-//                    gender.setText(individualOnBoardDetailsByTrnId.getGender());
-//                    addCustomeList.add(gender);
-//                }  if ((individualOnBoardDetailsByTrnId.getAadharNumber()!=null && !individualOnBoardDetailsByTrnId.getAadharNumber().isEmpty()))
-//                {
-//                    EmployeeRequestDTO.CustomDataDTO aadharNumber = new EmployeeRequestDTO.CustomDataDTO();
-//                    aadharNumber.setCustomDataTypeName("Aadhar Number");
-//                    aadharNumber.setText(individualOnBoardDetailsByTrnId.getAadharNumber());
-//                    addCustomeList.add(aadharNumber);
-//
-//                } if ((individualOnBoardDetailsByTrnId.getAadharName()!=null && !individualOnBoardDetailsByTrnId.getAadharName().isEmpty())){
-//                    EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
-//                    aadharName.setCustomDataTypeName("Name as Per Aadhar");
-//                    aadharName.setText(individualOnBoardDetailsByTrnId.getAadharName());
-//                    addCustomeList.add(aadharName);
-//
-//                } if(individualOnBoardDetailsByTrnId.getRelativeName()!=null && !individualOnBoardDetailsByTrnId.getRelativeName().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO relativeName = new EmployeeRequestDTO.CustomDataDTO();
-//                    relativeName.setCustomDataTypeName("Father or Husband Name");
-//                    relativeName.setText(individualOnBoardDetailsByTrnId.getRelativeName());
-//                    addCustomeList.add(relativeName);
-//
-//                } if(individualOnBoardDetailsByTrnId.getAddress()!=null && !individualOnBoardDetailsByTrnId.getAddress().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentAddress = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentAddress.setCustomDataTypeName("Permanent Address");
-//                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getRelativeName());
-//                    addCustomeList.add(permanentAddress);
-//
-//                } if(individualOnBoardDetailsByTrnId.getPermanentDistrict()!=null && !individualOnBoardDetailsByTrnId.getPermanentDistrict().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Permanent District");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentDistrict());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getPermanentState()!=null && !individualOnBoardDetailsByTrnId.getPermanentState().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Permanent State");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentState());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getPermanentPincode()!=null && !individualOnBoardDetailsByTrnId.getPermanentPincode().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Permanent Pin code");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentPincode());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getIdMark()!=null && !individualOnBoardDetailsByTrnId.getIdMark().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("ID Mark");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                }if(individualOnBoardDetailsByTrnId.getUanNumber()!=null && !individualOnBoardDetailsByTrnId.getUanNumber().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("UAN Number");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getUanNumber());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getMaritalStatus()!=null && !individualOnBoardDetailsByTrnId.getMaritalStatus().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Marital Status");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getMaritalStatus());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getTechnical()!=null && !individualOnBoardDetailsByTrnId.getTechnical().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Technical Qualification");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getTechnical());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getAcademic()!=null && !individualOnBoardDetailsByTrnId.getAcademic().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Academic Qualification");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAcademic());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getShoeSize()!=null && !individualOnBoardDetailsByTrnId.getShoeSize().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Shoe Size");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getShoeSize());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getBloodGroup()!=null && !individualOnBoardDetailsByTrnId.getBloodGroup().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Blood Group");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBloodGroup());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getWorkmenType()!=null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Workmen Type");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getNatureOfJob()!=null && !individualOnBoardDetailsByTrnId.getNatureOfJob().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Nature Of Job");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getNatureOfJob());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getPanNumber()!=null && !individualOnBoardDetailsByTrnId.getPanNumber().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("PAN Number");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPanNumber());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getPfNumber()!=null && !individualOnBoardDetailsByTrnId.getPfNumber().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("PF Number");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPfNumber());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getAccountNumber()!=null && !individualOnBoardDetailsByTrnId.getAccountNumber().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Account Number");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccountNumber());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getBankName()!=null && !individualOnBoardDetailsByTrnId.getBankName().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("Bank Name");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBankName());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                } if(individualOnBoardDetailsByTrnId.getIfscCode()!=null && !individualOnBoardDetailsByTrnId.getIfscCode().isEmpty()){
-//                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
-//                    permanentDistrict.setCustomDataTypeName("IFSC Code");
-//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIfscCode());
-//                    addCustomeList.add(permanentDistrict);
-//
-//                }
-//                personInfo.setCustomDataList(addCustomeList);
-//
-//                // Authentication types
-//                EmployeeRequestDTO.PersonAuthenticationType auth = new EmployeeRequestDTO.PersonAuthenticationType();
-//                auth.setActiveFlag(true);
-//                auth.setAuthenticationTypeName("Basic");
-//                personInfo.setPersonAuthenticationTypes(Arrays.asList(auth));
-//
-//                // License types
-//                EmployeeRequestDTO.PersonLicenseType licenseEmployee = new EmployeeRequestDTO.PersonLicenseType();
-//                licenseEmployee.setActiveFlag(true);
-//                licenseEmployee.setLicenseTypeName("Employee");
-//
-//                EmployeeRequestDTO.PersonLicenseType licenseAbsence = new EmployeeRequestDTO.PersonLicenseType();
-//                licenseAbsence.setActiveFlag(true);
-//                licenseAbsence.setLicenseTypeName("Absence");
-//
-//                EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
-//                licensehourlyTimekeeping.setActiveFlag(true);
-//                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-//
-//
-//                EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
-//                licenseScheduling.setActiveFlag(true);
-//                licenseScheduling.setLicenseTypeName("Scheduling");
-//
-//                personInfo.setPersonLicenseTypes(Arrays.asList(
-//                        licenseEmployee,
-//                        licenseAbsence,
-//                        licensehourlyTimekeeping,
-//                        licenseScheduling
-//                ));
-//
-//
-//                // User account status
-//                EmployeeRequestDTO.UserAccountStatus userStatus = new EmployeeRequestDTO.UserAccountStatus();
-//                userStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-//                userStatus.setExpirationDate("3000-01-01");
-//                userStatus.setUserAccountStatusName(individualOnBoardDetailsByTrnId.getUserAccountStatus());
-//                personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
-//
-//                dto.setPersonInformation(personInfo);
-//
-//                // --- JobAssignment ---
-//                EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
-//
-//                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
-//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-//                wage.setExpirationDate("3000-01-01");
-//                // Example: convert monthly basic to hourly rate
-////            if (gatePass.getBasic() != null) {
-////                double hourlyRate = gatePass.getBasic().doubleValue() / 173; // approx monthly to hourly
-////                wage.setHourlyRate(hourlyRate);
-////            } else {
-//                wage.setHourlyRate(20.15);
-////            }
-//                job.setBaseWageRates(Arrays.asList(wage));
-//                EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
-//                jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
-//                jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName()); // EIC → supervisor
-//                jobDetails.setSupervisorPersonNumber(individualOnBoardDetailsByTrnId.getSupervisorPersonNumber());  // hardcoded, replace with mapping
-//                jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
-//                job.setJobAssignmentDetails(jobDetails);
-//                EmployeeRequestDTO.PrimaryLaborAccount labor = new EmployeeRequestDTO.PrimaryLaborAccount();
-//                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-//                labor.setExpirationDate("3000-01-01");
-////              labor.setOrganizationPath(individualOnBoardDetailsByTrnId.getCompany()+ "/" +individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/" +individualOnBoardDetailsByTrnId.getCategory());
-////                labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
-//
-//                String orgPath = individualOnBoardDetailsByTrnId.getLocation()+"/"+individualOnBoardDetailsByTrnId.getCompany()+"/"+
-//                        individualOnBoardDetailsByTrnId.getPlantLocation()+"/"+individualOnBoardDetailsByTrnId.getDepartment()+"/"+
-//                        individualOnBoardDetailsByTrnId.getSection()+"/"+individualOnBoardDetailsByTrnId.getSubSection()+"/"+
-//                        individualOnBoardDetailsByTrnId.getContractorCode()+"/Team Lead";
-//                System.out.println("orgPath"+orgPath);
-//                labor.setOrganizationPath(orgPath);
-//                job.setPrimaryLaborAccounts(Arrays.asList(labor));
-//                dto.setJobAssignment(job);
-//                // --- User ---
-//                EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();
-//                EmployeeRequestDTO.UserAccount userAcc = new EmployeeRequestDTO.UserAccount();
-//                userAcc.setLogonProfileName(individualOnBoardDetailsByTrnId.getLogonProfileName());
-//                userAcc.setUserName(individualOnBoardDetailsByTrnId.getUserAccountName());
-//                userAcc.setUserPassword(individualOnBoardDetailsByTrnId.getUserPassword()); // default password, can be generated
-//                user.setUserAccount(userAcc);
-//                dto.setUser(user);
-//
-////                String employee = wfdEmployeeService.createEmployee(dto);
-//
-//                dtoList.add(dto);
-//
-//            }
-//            return dtoList;
-//
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//
-//    }
-
 
     public String postCertificTowfd(Integer gmId) {
         try {
@@ -615,19 +313,50 @@ public class EmployeeMapper {
         }
     }
 
-
     public String updateEmpstatusTrorAc(String gmId, EmployeeStatusType empStatus) {
-
-        ActiveEmpStatusDto dto =
-                gatePassToOnBoardService.updateEmpStatusTr(gmId, empStatus);
-
-        if (dto == null) {
-            return "Employment status not updated";
-        }
-
-        return wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
+        ActiveEmpStatusDto dto = this.gatePassToOnBoardService.updateEmpStatusTr(gmId, empStatus);
+        return dto == null ? "Employment status not updated" : this.wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
     }
 
+    @Scheduled(
+            cron = "0 0 10 * * ?"
+    )
+    public Map<String, List<String>> updateEmpstatusTrSchedule() {
+        List<ActiveEmpStatusDto> dtoList = this.gatePassToOnBoardService.updateEmpStatusTrSchedule();
+        Map<String, List<String>> result = new HashMap();
+        List<String> successList = new ArrayList();
+        List<String> failedList = new ArrayList();
+        if (dtoList != null && !dtoList.isEmpty()) {
+            for(ActiveEmpStatusDto dt : dtoList) {
+                String gpId = dt.getPersonInformation().getPerson().getPersonNumber();
+                String gpTransactionId = gpId;
+
+                try {
+                    WfdResponse res = this.wfdEmployeeService.updateEmpStatusTarminateSch(dt, gpId);
+                    if (res.isSuccess()) {
+                        successList.add("GPID: " + gpId + " → Updated Successfully");
+                        this.gatePassToOnBoardService.saveSuccessTraceTr(gpTransactionId, 200);
+                    } else {
+                        failedList.add("GPID: " + gpId + " → Failed: " + res.getMessage());
+                        this.gatePassToOnBoardService.saveErrorTraceTr(gpTransactionId, 500, res.getMessage());
+                    }
+                } catch (Exception e) {
+                    failedList.add("GPID: " + gpId + " → Exception: " + e.getMessage());
+                    if (gpId != null) {
+                        this.gatePassToOnBoardService.saveErrorTraceTr(gpId, 500, e.getMessage());
+                    }
+                }
+            }
+
+            result.put("SUCCESS", successList);
+            result.put("FAILED", failedList);
+            return result;
+        } else {
+            failedList.add("No Employment records found");
+            result.put("FAILED", failedList);
+            return result;
+        }
+    }
 
     public String punchMatched(FaceLogFetchDto faceLogFetchDto) {
         try {
@@ -691,33 +420,25 @@ public class EmployeeMapper {
                 person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
                 person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
-
-                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null
-                        ? individualOnBoardDetailsByTrnId.getFirstName().trim()
-                        : "";
-
-                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null
-                        ? individualOnBoardDetailsByTrnId.getLastName().trim()
-                        : "";
-
-// API does not allow null/blank last name
+                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null ? individualOnBoardDetailsByTrnId.getFirstName().trim() : "";
+                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().trim() : "";
                 if (lastName.isEmpty()) {
                     lastName = ".";
                 }
 
                 person.setFirstName(firstName);
                 person.setLastName(lastName);
-
                 String fullName = firstName;
                 if (!lastName.equals(".")) {
                     fullName = firstName + " " + lastName;
                 }
-                person.setFullName(fullName);
 
+                person.setFullName(fullName);
                 String shortName = firstName;
                 if (!lastName.equals(".")) {
                     shortName = firstName + " " + lastName.substring(0, 1);
                 }
+
                 person.setShortName(shortName);
                 personInfo.setPerson(person);
                 ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
@@ -888,11 +609,14 @@ public class EmployeeMapper {
                 licenseAbsence.setLicenseTypeName("Absence");
                 EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                if(String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) || String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())){
+                if (!String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) && !String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())) {
+                    if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
+                        licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
+                    }
+                } else {
                     licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-                } else if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
-                    licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
                 }
+
                 EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
                 licenseScheduling.setLicenseTypeName("Scheduling");
@@ -942,96 +666,62 @@ public class EmployeeMapper {
 
     public String gatePassEmpDtoDynamic(String gatePassId) {
         try {
-
-            EmployeeRequestDTO employeeRequestDTO = gatePassEmpDto(gatePassId);
-
+            EmployeeRequestDTO employeeRequestDTO = this.gatePassEmpDto(gatePassId);
             if (employeeRequestDTO == null) {
                 return "STATUS:400\nTransaction Id Not Found";
-            }
+            } else {
+                String employeeResponse = this.wfdEmployeeService.createEmployee(employeeRequestDTO);
+                String[] parts = employeeResponse.split("\nBODY:", 2);
+                if (parts.length < 2) {
+                    return "STATUS:500\nInvalid response format";
+                } else {
+                    int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
+                    String body = parts[1];
+                    if (statusCode != 200) {
+                        return "STATUS:" + statusCode + "\n" + body;
+                    } else {
+                        JsonNode rootNode = this.objectMapper.readTree(body);
+                        JsonNode personKeyNode = rootNode.path("personIdentity").path("personKey");
+                        if (!personKeyNode.isMissingNode() && !personKeyNode.isNull()) {
+                            Long personKey = personKeyNode.asLong();
+                            SkillProLevelDateDTO skillData = this.getSkillPRoLevelDate(gatePassId);
+                            if (skillData == null) {
+                                return "STATUS:400\nSkill data not found";
+                            } else {
+                                String skillName = skillData.getSkill();
+                                String profName = skillData.getProficiencyLevel();
+                                if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
+                                    PostSkillWfd postSkill = new PostSkillWfd();
+                                    postSkill.setName(skillName);
+                                    this.wfdEmployeeService.createSkillsInWFD(postSkill);
+                                    if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
+                                        return "STATUS:400\nSkill creation failed";
+                                    }
+                                }
 
-            String employeeResponse =
-                    wfdEmployeeService.createEmployee(employeeRequestDTO);
+                                if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
+                                    ProficiencyDTO profDto = new ProficiencyDTO();
+                                    profDto.setId(329);
+                                    profDto.setActive(true);
+                                    profDto.setProficiencyLevelNumeric(329);
+                                    profDto.setVersion(0);
+                                    profDto.setName(profName);
+                                    this.wfdEmployeeService.createProfInWFD(profDto);
+                                    if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
+                                        return "STATUS:400\nProficiency creation failed";
+                                    }
+                                }
 
-            String[] parts = employeeResponse.split("\nBODY:", 2);
-
-            if (parts.length < 2) {
-                return "STATUS:500\nInvalid response format";
-            }
-
-            int statusCode = Integer.parseInt(
-                    parts[0].replace("STATUS:", "").trim()
-            );
-
-            String body = parts[1];
-
-            if (statusCode != 200) {
-                return "STATUS:" + statusCode + "\n" + body;
-            }
-
-            JsonNode rootNode = objectMapper.readTree(body);
-            JsonNode personKeyNode =
-                    rootNode.path("personIdentity").path("personKey");
-
-            if (personKeyNode.isMissingNode() || personKeyNode.isNull()) {
-                return "STATUS:400\n" + body;
-            }
-
-            Long personKey = personKeyNode.asLong();
-
-            // ---------------- SKILL FLOW ----------------
-
-            SkillProLevelDateDTO skillData =
-                    getSkillPRoLevelDate(gatePassId);
-
-            if (skillData == null) {
-                return "STATUS:400\nSkill data not found";
-            }
-
-            String skillName = skillData.getSkill();
-            String profName = skillData.getProficiencyLevel();
-
-            // Create skill if not exists
-            if (!wfdEmployeeService.verifySkillsInWFD(skillName)) {
-
-                PostSkillWfd postSkill = new PostSkillWfd();
-                postSkill.setName(skillName);
-
-                wfdEmployeeService.createSkillsInWFD(postSkill);
-
-                if (!wfdEmployeeService.verifySkillsInWFD(skillName)) {
-                    return "STATUS:400\nSkill creation failed";
+                                this.wfdEmployeeService.addPersonSkill(skillData.getPersonNumber(), skillName, profName, skillData.getEffectiveDate());
+                                return personKey.toString();
+                            }
+                        } else {
+                            return "STATUS:400\n" + body;
+                        }
+                    }
                 }
             }
-
-            // Create proficiency if not exists
-            if (!wfdEmployeeService.verifyProfInWFD(profName)) {
-
-                ProficiencyDTO profDto = new ProficiencyDTO();
-                profDto.setId(329);
-                profDto.setActive(true);
-                profDto.setProficiencyLevelNumeric(329);
-                profDto.setVersion(0);
-                profDto.setName(profName);
-
-                wfdEmployeeService.createProfInWFD(profDto);
-
-                if (!wfdEmployeeService.verifyProfInWFD(profName)) {
-                    return "STATUS:400\nProficiency creation failed";
-                }
-            }
-
-            // Assign skill (no response returned)
-            wfdEmployeeService.addPersonSkill(
-                    skillData.getPersonNumber(),
-                    skillName,
-                    profName,
-                    skillData.getEffectiveDate()
-            );
-
-            return personKey.toString();
-
         } catch (Exception e) {
-
             return "STATUS:500\n" + e.getMessage();
         }
     }
@@ -1044,7 +734,6 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
-
 
     public UpdateEmployeeRequestDTO gatePassUpdateEmpDto(String GatePassId) {
         try {
@@ -1073,35 +762,26 @@ public class EmployeeMapper {
                 person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
                 person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
-
-                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null
-                        ? individualOnBoardDetailsByTrnId.getFirstName().trim()
-                        : "";
-
-                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null
-                        ? individualOnBoardDetailsByTrnId.getLastName().trim()
-                        : "";
-
-// API does not allow null/blank last name
+                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null ? individualOnBoardDetailsByTrnId.getFirstName().trim() : "";
+                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().trim() : "";
                 if (lastName.isEmpty()) {
                     lastName = ".";
                 }
 
                 person.setFirstName(firstName);
                 person.setLastName(lastName);
-
                 String fullName = firstName;
                 if (!lastName.equals(".")) {
                     fullName = firstName + " " + lastName;
                 }
-                person.setFullName(fullName);
 
+                person.setFullName(fullName);
                 String shortName = firstName;
                 if (!lastName.equals(".")) {
                     shortName = firstName + " " + lastName.substring(0, 1);
                 }
-                person.setShortName(shortName);
 
+                person.setShortName(shortName);
                 personInfo.setPerson(person);
                 ArrayList<UpdateEmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
                 if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
@@ -1329,7 +1009,7 @@ public class EmployeeMapper {
                     return "Issue in Json or API";
                 }
             } else {
-                return "Not fount transcation Id";	
+                return "Not fount transcation Id";
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -1424,177 +1104,126 @@ public class EmployeeMapper {
         return dto;
     }
 
-
-    @Scheduled(cron = "0 0 10 * * ?")
+    @Scheduled(
+            cron = "0 0 10 * * ?"
+    )
     public void setupWorkorderMail() {
-     try{
-         log.info("Email Service Start");
-        List<WorkOrderDTOMail> expiringWorkOrders = gatePassToOnBoardService.getExpiringWorkOrders();
-         String regardsEmail = getRegardsEmail();
-         Map<Long, List<WorkOrderDTOMail>> grouped = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
-        for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
-            List<WorkOrderDTOMail> value = entry.getValue();
-            String bodyMail = buildHtmlTable(value,regardsEmail);
-            Set<String> mailSends = new HashSet<>();
-            for (WorkOrderDTOMail order : value) {
-                if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
-                    mailSends.add(order.getConEmail());
+        try {
+            log.info("Email Service Start");
+            List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringWorkOrders();
+            String regardsEmail = this.getRegardsEmail();
+            Map<Long, List<WorkOrderDTOMail>> grouped = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
+
+            for(Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+                List<WorkOrderDTOMail> value = (List)entry.getValue();
+                String bodyMail = this.buildHtmlTable(value, regardsEmail);
+                Set<String> mailSends = new HashSet();
+
+                for(WorkOrderDTOMail order : value) {
+                    if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                        mailSends.add(order.getConEmail());
+                    }
                 }
 
+                if (!mailSends.isEmpty()) {
+                    String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
+                    this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
+                }
             }
-            if (!mailSends.isEmpty()) {
-                String subject = "Workorder Expiry Notification " + LocalDate.now();
-                emailService.sendHtmlMail(mailSends, subject, bodyMail);
+
+            Map<String, List<WorkOrderDTOMail>> groupedHr = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+
+            for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
+                List<WorkOrderDTOMail> value = (List)hrMailEnty.getValue();
+                String bodyMail = this.buildHtmlTable(value, regardsEmail);
+                Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String)hrMailEnty.getKey());
+                if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
+                    String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
+                    this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+                }
             }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-         Map<String, List<WorkOrderDTOMail>> groupedHr = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
-        for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty: groupedHr.entrySet()){
-            List<WorkOrderDTOMail> value = hrMailEnty.getValue();
-            String bodyMail = buildHtmlTable(value, regardsEmail);
-            Set<String> hrMailByunitName = gatePassToOnBoardService.getHrMailByunitName(hrMailEnty.getKey());
-            if(!hrMailByunitName.isEmpty() && hrMailByunitName!=null){
-                String subject = "Workorder Expiry Notification " + LocalDate.now();
-                emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
-            }
-        }
-
-
-
-     } catch (Exception e) {
-         throw new RuntimeException(e);
-     }
     }
 
-
-
     public String buildHtmlTable(List<WorkOrderDTOMail> list, String regards) {
-
         StringBuilder html = new StringBuilder();
-
         html.append("<html><body>");
         html.append("<h3>Work Orders Expiring Within 1 Month</h3>");
         html.append("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse;'>");
+        html.append("<tr style='background-color:#f2f2f2;'>").append("<th>Contractor ID</th>").append("<th>Contractor Code</th>").append("<th>Principal Employer</th>").append("<th>Contractor</th>").append("<th>Work Order ID</th>").append("<th>SAP Work Order</th>").append("<th>Valid Till</th>").append("</tr>");
 
-        html.append("<tr style='background-color:#f2f2f2;'>")
-                .append("<th>Contractor ID</th>")
-                .append("<th>Contractor Code</th>")
-                .append("<th>Principal Employer</th>")
-                .append("<th>Contractor</th>")
-                .append("<th>Work Order ID</th>")
-                .append("<th>SAP Work Order</th>")
-                .append("<th>Valid Till</th>")
-                .append("</tr>");
-
-        for (WorkOrderDTOMail dto : list) {
-
-            html.append("<tr>")
-                    .append("<td>").append(dto.getContractorId()).append("</td>")
-                    .append("<td>").append(dto.getCode()).append("</td>")
-                    .append("<td>").append(dto.getUnitName()).append("</td>")
-                    .append("<td>").append(dto.getContractor()).append("</td>")
-                    .append("<td>").append(dto.getWorkOrderId()).append("</td>")
-                    .append("<td>").append(dto.getSapWorkOrderNum()).append("</td>")
-                    .append("<td>").append(dto.getValidDt()).append("</td>")
-                    .append("</tr>");
+        for(WorkOrderDTOMail dto : list) {
+            html.append("<tr>").append("<td>").append(dto.getContractorId()).append("</td>").append("<td>").append(dto.getCode()).append("</td>").append("<td>").append(dto.getUnitName()).append("</td>").append("<td>").append(dto.getContractor()).append("</td>").append("<td>").append(dto.getWorkOrderId()).append("</td>").append("<td>").append(dto.getSapWorkOrderNum()).append("</td>").append("<td>").append(dto.getValidDt()).append("</td>").append("</tr>");
         }
 
         html.append("</table>");
         html.append("<br><br>Regards,<br>");
         html.append(regards);
-
         return html.toString();
     }
 
+    @Scheduled(
+            cron = "0 0 10 * * ?"
+    )
+    public void setupLaborLMail() {
+        try {
+            log.info("Email Service Start");
+            List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringLL();
+            String regardsEmail = this.getRegardsEmail();
+            Map<Long, List<WorkOrderDTOMail>> grouped = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
 
+            for(Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+                List<WorkOrderDTOMail> value = (List)entry.getValue();
+                String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
+                Set<String> mailSends = new HashSet();
 
-    @Scheduled(cron = "0 0 10 * * ?")
-   public void setupLaborLMail() {
-     try{
-         log.info("Email Service Start");
-
-        List<WorkOrderDTOMail> expiringWorkOrders = gatePassToOnBoardService.getExpiringLL();
-         String regardsEmail = getRegardsEmail();
-        Map<Long, List<WorkOrderDTOMail>> grouped = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
-
-        for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
-            List<WorkOrderDTOMail> value = entry.getValue();
-            String bodyMail = buildHtmlTableLL(value,regardsEmail);
-            Set<String> mailSends = new HashSet<>();
-            for (WorkOrderDTOMail order : value) {
-                if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
-                    mailSends.add(order.getConEmail());
+                for(WorkOrderDTOMail order : value) {
+                    if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                        mailSends.add(order.getConEmail());
+                    }
                 }
 
+                if (!mailSends.isEmpty()) {
+                    String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
+                    this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
+                }
             }
-            if (!mailSends.isEmpty()) {
-                String subject = "Labor License Expiry Notification " + LocalDate.now();
-                emailService.sendHtmlMail(mailSends, subject, bodyMail);
+
+            Map<String, List<WorkOrderDTOMail>> groupedHr = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+
+            for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
+                List<WorkOrderDTOMail> value = (List)hrMailEnty.getValue();
+                String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
+                Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String)hrMailEnty.getKey());
+                if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
+                    String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
+                    this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+                }
             }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-         Map<String, List<WorkOrderDTOMail>> groupedHr = expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
-         for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty: groupedHr.entrySet()){
-             List<WorkOrderDTOMail> value = hrMailEnty.getValue();
-             String bodyMail = buildHtmlTableLL(value,regardsEmail);
-             Set<String> hrMailByunitName = gatePassToOnBoardService.getHrMailByunitName(hrMailEnty.getKey());
-             if(!hrMailByunitName.isEmpty() && hrMailByunitName!=null){
-                 String subject = "Labor License Expiry Notification " + LocalDate.now();
-                 emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
-             }
-         }
-
-     } catch (Exception e) {
-         throw new RuntimeException(e);
-     }
     }
 
-
-
-    public String buildHtmlTableLL(List<WorkOrderDTOMail> list , String regards) {
-
+    public String buildHtmlTableLL(List<WorkOrderDTOMail> list, String regards) {
         StringBuilder html = new StringBuilder();
-
         html.append("<html><body>");
         html.append("<h3>Labor License Expiring Within 1 Month</h3>");
         html.append("<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse;'>");
+        html.append("<tr style='background-color:#f2f2f2;'>").append("<th>Contractor ID</th>").append("<th>Contractor Code</th>").append("<th>Principal Employer</th>").append("<th>Contractor</th>").append("<th>WorkOrder Number</th>").append("<th>License Number</th>").append("<th>Valid Till</th>").append("</tr>");
 
-        html.append("<tr style='background-color:#f2f2f2;'>")
-                .append("<th>Contractor ID</th>")
-                .append("<th>Contractor Code</th>")
-                .append("<th>Principal Employer</th>")
-                .append("<th>Contractor</th>")
-                .append("<th>WorkOrder Number</th>")
-                .append("<th>License Number</th>")
-                .append("<th>Valid Till</th>")
-                .append("</tr>");
-
-        for (WorkOrderDTOMail dto : list) {
-
-            html.append("<tr>")
-                    .append("<td>").append(dto.getContractorId()).append("</td>")
-                    .append("<td>").append(dto.getCode()).append("</td>")
-                    .append("<td>").append(dto.getUnitName()).append("</td>")
-                    .append("<td>").append(dto.getContractor()).append("</td>")
-                    .append("<td>").append(dto.getWorkOrderId()).append("</td>")
-                    .append("<td>").append(dto.getSapWorkOrderNum()).append("</td>")
-                    .append("<td>").append(dto.getValidDt()).append("</td>")
-                    .append("</tr>");
+        for(WorkOrderDTOMail dto : list) {
+            html.append("<tr>").append("<td>").append(dto.getContractorId()).append("</td>").append("<td>").append(dto.getCode()).append("</td>").append("<td>").append(dto.getUnitName()).append("</td>").append("<td>").append(dto.getContractor()).append("</td>").append("<td>").append(dto.getWorkOrderId()).append("</td>").append("<td>").append(dto.getSapWorkOrderNum()).append("</td>").append("<td>").append(dto.getValidDt()).append("</td>").append("</tr>");
         }
 
         html.append("</table>");
         html.append("<br><br>Regards,<br>");
         html.append(regards);
         html.append("</body></html>");
-
         return html.toString();
     }
-
-
-
-
-
-
-
-
-
 }

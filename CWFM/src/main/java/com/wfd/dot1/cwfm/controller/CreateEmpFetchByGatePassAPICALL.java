@@ -7,18 +7,17 @@ import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping({"/WFDjson"})
@@ -30,7 +29,6 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     public CreateEmpFetchByGatePassAPICALL() {
     }
-
 
     @PostMapping({"/CreateEmpByGatePIdStatisCall/{gatePassId}"})
     public ResponseEntity<?> createEmpGateStatic(@PathVariable String gatePassId) {
@@ -62,117 +60,55 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
-//    @Scheduled(cron = "0 */15 * * * *")
-    @GetMapping("/schedularUpdate")
-    public void  addOnBoardingSchedular(){
-        try{
-
-            employeeMapper.gatePassEmpDtoSchedular();
-
-        } catch (Exception e) {
-
+    @GetMapping({"/schedularUpdate"})
+    public void addOnBoardingSchedular() {
+        try {
+            this.employeeMapper.gatePassEmpDtoSchedular();
+        } catch (Exception var2) {
         }
+
     }
 
-
-    @PostMapping("/addByTrnsIdToUKG/{trnId}")
+    @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
-
         Long gpTransactionId = null;
 
         try {
-
             gpTransactionId = Long.parseLong(trnId);
-
-            String result = employeeMapper.gatePassEmpDtoDynamic(trnId);
-
-            // Transaction Not Found
+            String result = this.employeeMapper.gatePassEmpDtoDynamic(trnId);
             if (result == null) {
-
-                passToOnBoardService.saveErrorTraceTrNOT(
-                        gpTransactionId,
-                        200,
-                        "Transaction Id Not Found"
-                );
-
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Transaction Id Not Found");
-            }
-
-            // Success Case (PersonId returned)
-            if (result.matches("\\d+")) {
-
+                this.passToOnBoardService.saveErrorTraceTrNOT(gpTransactionId, 200, "Transaction Id Not Found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction Id Not Found");
+            } else if (result.matches("\\d+")) {
                 Long personKey = Long.parseLong(result);
-
-                passToOnBoardService.saveSuccessTrace(
-                        gpTransactionId,
-                        personKey,
-                        200
-                );
-
+                this.passToOnBoardService.saveSuccessTrace(gpTransactionId, personKey, 200);
                 return ResponseEntity.ok(result);
-            }
-
-            // API Error Response
-            if (result.startsWith("STATUS:")) {
-
+            } else if (result.startsWith("STATUS:")) {
                 String[] parts = result.split("\n", 2);
-
-                int statusCode = Integer.parseInt(
-                        parts[0].replace("STATUS:", "").trim()
-                );
-
+                int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
                 String body = parts.length > 1 ? parts[1] : "";
-
-                // Special Case: Duplicate ID
                 if (body.contains("WCO-101520") && body.contains("ID already exists")) {
-                    passToOnBoardService.saveErrorTraceTrNOT(
-                            gpTransactionId,
-                            200,
-                            body
-                    );
+                    this.passToOnBoardService.saveErrorTraceTrNOT(gpTransactionId, 200, body);
                 } else if (body.contains("Transaction Id Not Found")) {
-                    passToOnBoardService.saveErrorTraceTrNOT(
-                            gpTransactionId,
-                            200,
-                            body
-                    );
+                    this.passToOnBoardService.saveErrorTraceTrNOT(gpTransactionId, 200, body);
                 } else {
-                    passToOnBoardService.saveErrorTrace(
-                            gpTransactionId,
-                            statusCode,
-                            body
-                    );
+                    this.passToOnBoardService.saveErrorTrace(gpTransactionId, statusCode, body);
                 }
 
                 return ResponseEntity.status(statusCode).body(body);
+            } else {
+                this.passToOnBoardService.saveErrorTrace(gpTransactionId, 500, result);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
             }
-
-            // Unexpected Response
-            passToOnBoardService.saveErrorTrace(
-                    gpTransactionId,
-                    500,
-                    result
-            );
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(result);
-
-        } catch (Exception e) {
-
+        } catch (Exception var7) {
             if (gpTransactionId != null) {
-
-                passToOnBoardService.saveErrorTrace(
-                        gpTransactionId,
-                        500,
-                        e.getMessage()
-                );
+                this.passToOnBoardService.saveErrorTrace(gpTransactionId, 500, var7.getMessage());
             }
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Internal Server Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error: " + var7.getMessage());
         }
     }
+
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
         try {
@@ -253,62 +189,47 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
-
-    @PostMapping("/updatedEmpStatus/{gatepassId}/{empStatus}")
-    public ResponseEntity<String> updateEmpStatusTerOrAct(
-            @PathVariable String gatepassId,
-            @PathVariable EmployeeStatusType empStatus) {
-
+    @PostMapping({"/updatedEmpStatus/{gatepassId}/{empStatus}"})
+    public ResponseEntity<String> updateEmpStatusTerOrAct(@PathVariable String gatepassId, @PathVariable EmployeeStatusType empStatus) {
         try {
-            String response = employeeMapper.updateEmpstatusTrorAc(gatepassId, empStatus);
-
+            String response = this.employeeMapper.updateEmpstatusTrorAc(gatepassId, empStatus);
             if ("already in the WFD".equalsIgnoreCase(response)) {
-                return ResponseEntity.badRequest()
-                        .body("Not updated Employment status in WFD");
+                return ResponseEntity.badRequest().body("Not updated Employment status in WFD");
+            } else {
+                return response != null ? ResponseEntity.ok(response) : ResponseEntity.internalServerError().build();
             }
-
-            return response != null
-                    ? ResponseEntity.ok(response)
-                    : ResponseEntity.internalServerError().build();
-
         } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body("Error: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
 
-    @GetMapping("/checkWorkOrderExMAil")
+    @PostMapping({"/updateEmpStatusTerSchedule"})
+    public ResponseEntity<Object> updateEmpStatusTerSchedule() {
+        try {
+            Map<String, List<String>> response = this.employeeMapper.updateEmpstatusTrSchedule();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    @GetMapping({"/checkWorkOrderExMAil"})
     public ResponseEntity<String> workorderMail() {
-
         try {
-            employeeMapper.setupWorkorderMail();
+            this.employeeMapper.setupWorkorderMail();
             return ResponseEntity.ok("Workorder expiry emails triggered successfully.");
-
         } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while sending workorder expiry emails: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending workorder expiry emails: " + e.getMessage());
         }
     }
 
-    @GetMapping("/checkLLExMAil")
+    @GetMapping({"/checkLLExMAil"})
     public ResponseEntity<String> lLMail() {
-
         try {
-            employeeMapper.setupLaborLMail();
+            this.employeeMapper.setupLaborLMail();
             return ResponseEntity.ok("LL expiry emails triggered successfully.");
-
         } catch (Exception e) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while sending LL expiry emails: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending LL expiry emails: " + e.getMessage());
         }
     }
-
-
-
-
-
-
-
 }

@@ -2,13 +2,23 @@
 
 package com.wfd.dot1.cwfm.service;
 
-import com.wfd.dot1.cwfm.dto.*;
+import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
+import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
+import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
+import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
+import com.wfd.dot1.cwfm.dto.PostSkillWfd;
+import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
+import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
+import com.wfd.dot1.cwfm.dto.WorkOrderDTOMail;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,24 +38,47 @@ public class GatePassToOnBoardService {
     public String getGTByTrnsId() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY");
     }
+
+    public String getListOfTrEmpStatus() {
+        return QueryFileWatcher.getQuery("getALLWorkmenTerminated");
+    }
+
     public String getGTByTrnsIdProject() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY_PROJ");
     }
+
     public String getQuerytoFetchListNOTPOST() {
         return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOST");
     }
+
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
     }
+
+    public String getQueryInsertSuccessEntyTr() {
+        return QueryFileWatcher.getQuery("getWFDLogOKTr");
+    }
+
     public String getQueryUpdateWFDLogOK() {
         return QueryFileWatcher.getQuery("getupdateWFDLogOK");
     }
+
     public String getQueryInsertNotSuccess() {
         return QueryFileWatcher.getQuery("getWFDFLognotOK");
     }
+
+    public String getQueryInsertNotSuccessTr() {
+        return QueryFileWatcher.getQuery("getWFDFLognotOKTr");
+    }
+
     public String getQueryInsertNotSuccesstrNot() {
         return QueryFileWatcher.getQuery("getWFDLognotOKtrNot");
     }
+
+    public String getQueryInsertNotSuccesstrNotTr() {
+        return QueryFileWatcher.getQuery("getWFDLognotOKtrNotTr");
+    }
+
     public String getQueryUpdateWFDNotSuccess() {
         return QueryFileWatcher.getQuery("getupdateWFDLognotOK");
     }
@@ -53,33 +86,47 @@ public class GatePassToOnBoardService {
     public String getSKILLSByTrnsId() {
         return QueryFileWatcher.getQuery("GET_SKILL_DETAILS_BY_TRANSACTIONID_QUERY");
     }
+
     public String getSKILLSByTrnsIdPro() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY_PROJ");
     }
+
     public String getSKILSPROBygpId() {
         return QueryFileWatcher.getQuery("GET_SKILLS_PRO");
     }
+
     public String getQueryMailerDiscuss() {
         return QueryFileWatcher.getQuery("getMailerDiscuss");
     }
+
     public String getQueryMailerDiscussLL() {
         return QueryFileWatcher.getQuery("getMailerDiscussLL");
     }
+
+    public String getQueryLocationPresentOrNotInDB() {
+        return QueryFileWatcher.getQuery("getLocationPathCheck");
+    }
+
     public String getQueryHrEmailByUnitName() {
         return QueryFileWatcher.getQuery("getHrMailByunitName");
     }
+
     public String getQueryOfBlacklist() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfBlacklist");
     }
+
     public String getQueryOfCancel() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfCancel");
     }
+
     public String getQueryOfBlock() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfBlock");
     }
+
     public String getQueryOfDeblack() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfDeblack");
     }
+
     public String getQueryOfDeblock() {
         return QueryFileWatcher.getQuery("GET_OffBoarding_QueryOfDeblock");
     }
@@ -134,82 +181,50 @@ public class GatePassToOnBoardService {
         }
     }
 
-    public void saveSuccessTrace(Long gpTransactionId,
-                                 Long personId,
-                                 Integer statusNumber) {
-
-        String sql = getQueryInsertSuccessEnty();
-
-        jdbcTemplate.update(sql,
-                gpTransactionId,
-                personId,
-                statusNumber);
+    public void saveSuccessTrace(Long gpTransactionId, Long personId, Integer statusNumber) {
+        String sql = this.getQueryInsertSuccessEnty();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
     }
 
-    public void updateSuccessTrace(Long gpTransactionId,
-                                   Long personId,
-                                   Integer statusNumber,
-                                   Boolean flag) {
-//UPDATE WFDOnbinTrace SET PersonId = ?, StatusNumber = ?, Postflag = 1, ErrorResponse = NULL, UpdatedDate = SYSDATETIME() WHERE GPTranscationId = ?;
-
-        String sql = getQueryUpdateWFDLogOK();
-
-        jdbcTemplate.update(sql,
-                personId,
-                statusNumber,
-
-                gpTransactionId);
+    public void saveSuccessTraceTr(String gpTransactionId, Integer statusNumber) {
+        String sql = this.getQueryInsertSuccessEntyTr();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber});
     }
 
-    public void updateErrorTrace(Long gpTransactionId,
-                                 Integer statusNumber,
-                                 String errorResponse,
-                                 Integer flag
-                                 ) {
-
-        String sql = getQueryUpdateWFDNotSuccess();
-
-        jdbcTemplate.update(sql,
-                statusNumber,
-                errorResponse,
-                flag,
-                gpTransactionId);
+    public void updateSuccessTrace(Long gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
+        String sql = this.getQueryUpdateWFDLogOK();
+        this.jdbcTemplate.update(sql, new Object[]{personId, statusNumber, gpTransactionId});
     }
 
-    public void saveErrorTrace(Long gpTransactionId,
-                               Integer statusNumber,
-                               String errorResponse) {
-
-        String sql = getQueryInsertNotSuccess();
-
-        jdbcTemplate.update(sql,
-                gpTransactionId,
-                statusNumber,
-                errorResponse);
-    }
-    public void saveErrorTraceTrNOT(Long gpTransactionId,
-                                    Integer statusNumber,
-                                    String errorResponse) {
-
-        String sql = getQueryInsertNotSuccesstrNot();
-
-        jdbcTemplate.update(sql,
-                gpTransactionId,
-                statusNumber,
-                errorResponse);
+    public void updateErrorTrace(Long gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
+        String sql = this.getQueryUpdateWFDNotSuccess();
+        this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse, flag, gpTransactionId});
     }
 
+    public void saveErrorTrace(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccess();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
+    }
 
+    public void saveErrorTraceTr(String gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccessTr();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
+    }
 
+    public void saveErrorTraceTrNOT(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccesstrNot();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
+    }
 
-    public List<String> getListOfTrReScheduleOnb( ){
-        try{
+    public List<String> getListOfTrReScheduleOnb() {
+        try {
             log.info("Fetching TranscationId list for reschedule to post ");
-            List<String> dtoTrList = new LinkedList<>();
-            String queryGetOnBdByTranId  = getQuerytoFetchListNOTPOST();
-            log.info("query to get onboardDetails "+ queryGetOnBdByTranId);
+            List<String> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchListNOTPOST();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
             SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
-            while(sqlRowSet.next()){
+
+            while(sqlRowSet.next()) {
                 String trId = sqlRowSet.getString("GPTranscationId");
                 dtoTrList.add(trId);
             }
@@ -219,10 +234,7 @@ public class GatePassToOnBoardService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
-
-
 
     public PostSkillWfd createCertifi(Integer id) {
         try {
@@ -264,8 +276,7 @@ public class GatePassToOnBoardService {
                 assignment.setExpirationDate(expiryDate.format(formatter));
                 assignmentList.add(assignment);
             }
-            
-            
+
             if (assignmentList.isEmpty()) {
                 return null;
             } else {
@@ -313,146 +324,113 @@ public class GatePassToOnBoardService {
         }
     }
 
-
-
-    public ActiveEmpStatusDto updateEmpStatusTr(String id,
-                                                EmployeeStatusType empStatus) {
-
+    public List<ActiveEmpStatusDto> updateEmpStatusTrSchedule() {
         try {
-            log.info("Fetching updateEmpStatus for status: {}", empStatus);
+            String query = this.getListOfTrEmpStatus();
+            if (query == null) {
+                return null;
+            } else {
+                SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(query);
+                List<ActiveEmpStatusDto> list = new ArrayList();
 
-            String query = getQueryByStatus(empStatus);
-            if (query == null) return null;
+                while(rowSet.next()) {
+                    ActiveEmpStatusDto dto = this.buildEmpStatusDtoSchedular(rowSet.getString("GatePassId"), rowSet.getString("DOT"));
+                    list.add(dto);
+                }
 
-            SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, id);
-
-            if (!rowSet.next()) return null;
-
-            String effectiveDate = rowSet.getString("effectiveDate");
-
-            return buildEmpStatusDto(empStatus, effectiveDate);
-
+                return list.isEmpty() ? null : list;
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    private ActiveEmpStatusDto buildEmpStatusDto(EmployeeStatusType status,
-                                                 String effectiveDate) {
 
+    private ActiveEmpStatusDto buildEmpStatusDtoSchedular(String gpId, String effectiveDate) {
         ActiveEmpStatusDto dto = new ActiveEmpStatusDto();
-        ActiveEmpStatusDto.PersonInformation personInfo =
-                new ActiveEmpStatusDto.PersonInformation();
-
-        // Custom Data
-        personInfo.setCustomDataList(
-                List.of(buildCustomData(status.name()))
-        );
-
-        // Employment Status
-        String employmentName =
-                (status == EmployeeStatusType.DEBLACKLIST ||
-                        status == EmployeeStatusType.UNBLOCK)
-                        ? "Active"
-                        : "Terminated";
-
-        personInfo.setEmploymentStatusList(
-                List.of(buildEmploymentStatus(employmentName, effectiveDate))
-        );
-
-        // Licenses
-        personInfo.setPersonLicenseTypes(buildLicenseTypes());
-
+        ActiveEmpStatusDto.PersonInformation personInfo = new ActiveEmpStatusDto.PersonInformation();
+        String employmentName = "Terminated";
+        personInfo.setEmploymentStatusList(List.of(this.buildEmploymentStatus(employmentName, effectiveDate)));
+        personInfo.setPerson(this.buildPersonData(gpId));
+        personInfo.setPersonLicenseTypes(this.buildLicenseTypes());
         dto.setPersonInformation(personInfo);
-
         return dto;
     }
 
+    public ActiveEmpStatusDto updateEmpStatusTr(String id, EmployeeStatusType empStatus) {
+        try {
+            log.info("Fetching updateEmpStatus for status: {}", empStatus);
+            String query = this.getQueryByStatus(empStatus);
+            if (query == null) {
+                return null;
+            } else {
+                SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(query, new Object[]{id});
+                if (!rowSet.next()) {
+                    return null;
+                } else {
+                    String effectiveDate = rowSet.getString("effectiveDate");
+                    return this.buildEmpStatusDto(empStatus, effectiveDate);
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ActiveEmpStatusDto buildEmpStatusDto(EmployeeStatusType status, String effectiveDate) {
+        ActiveEmpStatusDto dto = new ActiveEmpStatusDto();
+        ActiveEmpStatusDto.PersonInformation personInfo = new ActiveEmpStatusDto.PersonInformation();
+        personInfo.setCustomDataList(List.of(this.buildCustomData(status.name())));
+        String employmentName = status != EmployeeStatusType.DEBLACKLIST && status != EmployeeStatusType.UNBLOCK ? "Terminated" : "Active";
+        personInfo.setEmploymentStatusList(List.of(this.buildEmploymentStatus(employmentName, effectiveDate)));
+        personInfo.setPersonLicenseTypes(this.buildLicenseTypes());
+        dto.setPersonInformation(personInfo);
+        return dto;
+    }
 
     private String getQueryByStatus(EmployeeStatusType status) {
-        return switch (status) {
-            case BLACKLIST -> getQueryOfBlacklist();
-            case BLOCK -> getQueryOfBlock();
-            case CANCEL -> getQueryOfCancel();
-            case DEBLACKLIST -> getQueryOfDeblack();
-            case UNBLOCK -> getQueryOfDeblock();
-        };
+        String var10000;
+        switch (status) {
+            case BLACKLIST -> var10000 = this.getQueryOfBlacklist();
+            case BLOCK -> var10000 = this.getQueryOfBlock();
+            case CANCEL -> var10000 = this.getQueryOfCancel();
+            case DEBLACKLIST -> var10000 = this.getQueryOfDeblack();
+            case UNBLOCK -> var10000 = this.getQueryOfDeblock();
+            default -> throw new MatchException((String)null, (Throwable)null);
+        }
+
+        return var10000;
     }
 
     private ActiveEmpStatusDto.CustomData buildCustomData(String value) {
-        ActiveEmpStatusDto.CustomData data =
-                new ActiveEmpStatusDto.CustomData();
+        ActiveEmpStatusDto.CustomData data = new ActiveEmpStatusDto.CustomData();
         data.setCustomDataTypeName("Workmen Type");
         data.setText(value);
         return data;
     }
-    private ActiveEmpStatusDto.EmploymentStatus buildEmploymentStatus(
-            String name, String date) {
 
-        ActiveEmpStatusDto.EmploymentStatus status =
-                new ActiveEmpStatusDto.EmploymentStatus();
+    private ActiveEmpStatusDto.Person buildPersonData(String value) {
+        ActiveEmpStatusDto.Person data = new ActiveEmpStatusDto.Person();
+        data.setPersonNumber(value);
+        return data;
+    }
+
+    private ActiveEmpStatusDto.EmploymentStatus buildEmploymentStatus(String name, String date) {
+        ActiveEmpStatusDto.EmploymentStatus status = new ActiveEmpStatusDto.EmploymentStatus();
         status.setEmploymentStatusName(name);
         status.setEffectiveDate(date);
         return status;
     }
 
     private List<ActiveEmpStatusDto.PersonLicenseType> buildLicenseTypes() {
-
-        return List.of(
-                buildLicense("Employee"),
-                buildLicense("Absence"),
-                buildLicense("Hourly Timekeeping"),
-                buildLicense("Scheduling")
-        );
+        return List.of(this.buildLicense("Employee"), this.buildLicense("Absence"), this.buildLicense("Hourly Timekeeping"), this.buildLicense("Scheduling"));
     }
 
     private ActiveEmpStatusDto.PersonLicenseType buildLicense(String name) {
-        ActiveEmpStatusDto.PersonLicenseType license =
-                new ActiveEmpStatusDto.PersonLicenseType();
+        ActiveEmpStatusDto.PersonLicenseType license = new ActiveEmpStatusDto.PersonLicenseType();
         license.setLicenseTypeName(name);
         license.setActiveFlag(true);
         return license;
     }
-
-
-
-//
-//    public ActiveEmpStatusDto updateEmpStatusAc(String id) {
-//        try {
-//            log.info("Fetching Updated ternimate or active or deblock  Data");
-//            String skillQuery = this.getSKILSPROBygpId();
-//            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(skillQuery, new Object[]{id});
-//
-//            if(sqlRowSet.next()) {
-//                ActiveEmpStatusDto empStatusDto = new ActiveEmpStatusDto();
-//                ActiveEmpStatusDto.PersonInformation personInformation= new ActiveEmpStatusDto.PersonInformation();
-//
-//                List<ActiveEmpStatusDto.EmploymentStatus> employmentStatusList = new ArrayList<>();
-//                ActiveEmpStatusDto.EmploymentStatus employmentStatus= new ActiveEmpStatusDto.EmploymentStatus();
-//                employmentStatus.setEmploymentStatusName(sqlRowSet.getString(""));
-//
-//
-//                ActiveEmpStatusDto.UserAccountStatus userAccountStatus= new ActiveEmpStatusDto.UserAccountStatus();
-//
-//                ActiveEmpStatusDto.Person person= new ActiveEmpStatusDto.Person();
-//                ActiveEmpStatusDto.PersonLicenseType personLicenseType= new ActiveEmpStatusDto.PersonLicenseType();
-//
-//
-//
-//
-//                }
-//
-//            if (assignmentList.isEmpty()) {
-//                return null;
-//            } else {
-//                PersonSkillAssignmentDTO requestDTO = new PersonSkillAssignmentDTO();
-//                requestDTO.setAssignments(assignmentList);
-//                log.info("Exit from assignmentCertific method");
-//                return requestDTO;
-//            }
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
 
     public GatePassToOnBoard getIndividualOnBoardDetailsByTrnId(String trnsId) {
         try {
@@ -508,6 +486,9 @@ public class GatePassToOnBoardService {
                 dto.setIfscCode(rs.getString("IfscCode"));
                 dto.setCompany(rs.getString("company"));
                 dto.setLocation(rs.getString("location"));
+                dto.setSkill(rs.getString("skill"));
+                dto.setProLevel(rs.getString("proLevel"));
+                dto.setSkillDate(rs.getString("skillDate"));
                 dto.setPlantLocation(rs.getString("plantLocation"));
                 dto.setDepartment(rs.getString("department"));
                 dto.setSection(rs.getString("section"));
@@ -532,7 +513,7 @@ public class GatePassToOnBoardService {
         }
     }
 
-     public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdPro(String trnsId) {
+    public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdPro(String trnsId) {
         try {
             log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
             GatePassToOnBoard dto = null;
@@ -632,90 +613,74 @@ public class GatePassToOnBoardService {
         }
     }
 
-
-
-
     public List<WorkOrderDTOMail> getExpiringWorkOrders() {
-       try{
-
-        log.info("Work Order Expriry record fetch");
-        String sql = getQueryMailerDiscuss();
-
-            return jdbcTemplate.query(sql, (rs, rowNum) -> {
-
-            WorkOrderDTOMail dto = new WorkOrderDTOMail();
-
-            dto.setContractorId(rs.getLong("CONTRACTORID"));
-            dto.setCode(rs.getString("CODE"));
-            dto.setUnitCode(rs.getString("unitcode"));
-            dto.setUnitName(rs.getString("UnitName"));
-            dto.setContractor(rs.getString("Contractor"));
-            dto.setConEmail(rs.getString("ContractorMail"));
-            dto.setWorkOrderId(rs.getLong("WORKORDERID"));
-            dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
-            dto.setValidDt(rs.getString("VALIDDT"));
-
-            return dto;
-        });
-
-       } catch (Exception e) {
-           throw new RuntimeException(e);
-       }
+        try {
+            log.info("Work Order Expriry record fetch");
+            String sql = this.getQueryMailerDiscuss();
+            return this.jdbcTemplate.query(sql, (rs, rowNum) -> {
+                WorkOrderDTOMail dto = new WorkOrderDTOMail();
+                dto.setContractorId(rs.getLong("CONTRACTORID"));
+                dto.setCode(rs.getString("CODE"));
+                dto.setUnitCode(rs.getString("unitcode"));
+                dto.setUnitName(rs.getString("UnitName"));
+                dto.setContractor(rs.getString("Contractor"));
+                dto.setConEmail(rs.getString("ContractorMail"));
+                dto.setWorkOrderId(rs.getLong("WORKORDERID"));
+                dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
+                dto.setValidDt(rs.getString("VALIDDT"));
+                return dto;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    public Set<String> getHrMailByunitName(String unitName) {
+        try {
+            log.info("Work Order Expriry record fetch");
+            String sql = this.getQueryHrEmailByUnitName();
+            SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql, new Object[]{unitName});
+            Set<String> mailSends = new HashSet();
 
+            while(rs.next()) {
+                String string = rs.getString("EmailId");
+                mailSends.add(string);
+            }
 
-     public Set<String> getHrMailByunitName(String unitName) {
-       try{
-
-        log.info("Work Order Expriry record fetch");
-        String sql = getQueryHrEmailByUnitName();
-
-           SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql, unitName);
-           Set<String> mailSends = new HashSet<>();
-           while(rs.next()){
-
-               String string = rs.getString("EmailId");
-               mailSends.add(string);
-
-
-           }
-           return mailSends;
-
-       } catch (Exception e) {
-           throw new RuntimeException(e);
-       }
+            return mailSends;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-
-     public List<WorkOrderDTOMail> getExpiringLL() {
-       try{
-
-        log.info("Work Order Expriry record fetch");
-        String sql = getQueryMailerDiscussLL();
-
-            return jdbcTemplate.query(sql, (rs, rowNum) -> {
-
-            WorkOrderDTOMail dto = new WorkOrderDTOMail();
-
-            dto.setContractorId(rs.getLong("CONTRACTORID"));
-            dto.setCode(rs.getString("CODE"));
-            dto.setUnitCode(rs.getString("unitcode"));
-            dto.setUnitName(rs.getString("UnitName"));
-            dto.setContractor(rs.getString("Contractor"));
-            dto.setConEmail(rs.getString("ContractorMail"));
-            dto.setWorkOrderId(rs.getLong("WONUMBER"));
-            dto.setSapWorkOrderNum(rs.getString("LICENSE_NUMBER"));
-            dto.setValidDt(rs.getString("WC_TO_DTM"));
-
-            return dto;
-        });
-
-       } catch (Exception e) {
-           throw new RuntimeException(e);
-       }
+    public List<WorkOrderDTOMail> getExpiringLL() {
+        try {
+            log.info("Work Order Expriry record fetch");
+            String sql = this.getQueryMailerDiscussLL();
+            return this.jdbcTemplate.query(sql, (rs, rowNum) -> {
+                WorkOrderDTOMail dto = new WorkOrderDTOMail();
+                dto.setContractorId(rs.getLong("CONTRACTORID"));
+                dto.setCode(rs.getString("CODE"));
+                dto.setUnitCode(rs.getString("unitcode"));
+                dto.setUnitName(rs.getString("UnitName"));
+                dto.setContractor(rs.getString("Contractor"));
+                dto.setConEmail(rs.getString("ContractorMail"));
+                dto.setWorkOrderId(rs.getLong("WONUMBER"));
+                dto.setSapWorkOrderNum(rs.getString("LICENSE_NUMBER"));
+                dto.setValidDt(rs.getString("WC_TO_DTM"));
+                return dto;
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-
-
+    public boolean checkLocationPath(String fullLocationPath) {
+        try {
+            String sql = this.getQueryLocationPresentOrNotInDB();
+            return (Integer)this.jdbcTemplate.queryForObject(sql, Integer.class, new Object[]{fullLocationPath}) > 0;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

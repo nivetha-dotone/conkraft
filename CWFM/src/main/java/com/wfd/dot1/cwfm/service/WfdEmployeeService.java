@@ -1,9 +1,18 @@
 
+
 package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wfd.dot1.cwfm.dto.*;
+import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
+import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
+import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
+import com.wfd.dot1.cwfm.dto.PostSkillWfd;
+import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
+import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
+import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
+import com.wfd.dot1.cwfm.dto.WfdResponse;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +51,7 @@ public class WfdEmployeeService {
     public String getCreateCertificateUrl() {
         return QueryFileWatcher.getQuery("getCreateCertifcUrl");
     }
+
     public String getupdateEmpStatusTRACURL() {
         return QueryFileWatcher.getQuery("getupdateempstatusUrl");
     }
@@ -70,7 +80,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getfindProfUrl() + name;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class, new Object[0]);
             return response.getStatusCode() == HttpStatus.OK;
-        } catch (Exception var7) {
+        } catch (Exception var8) {
             return false;
         }
     }
@@ -85,7 +95,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getfindCertifUrl() + name;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class, new Object[0]);
             return response.getStatusCode() == HttpStatus.OK;
-        } catch (Exception var7) {
+        } catch (Exception var8) {
             return false;
         }
     }
@@ -100,7 +110,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getfindSkillsUrl() + name;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class, new Object[0]);
             return response.getStatusCode() == HttpStatus.OK;
-        } catch (Exception var7) {
+        } catch (Exception var8) {
             return false;
         }
     }
@@ -117,7 +127,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getCreateSkillsUrl();
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
             return (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating skill: " + e.getMessage();
@@ -136,7 +146,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getCreateProfUrl();
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
             return (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating skill: " + e.getMessage();
@@ -156,7 +166,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getAssignCertiUrl() + personKey;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
             return (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating skill: " + e.getMessage();
@@ -176,7 +186,7 @@ public class WfdEmployeeService {
             String url = var10000 + this.getUpdateSkillURL() + personKey;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
             return (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating skill: " + e.getMessage();
@@ -195,43 +205,48 @@ public class WfdEmployeeService {
             String url = var10000 + this.getCreateCertificateUrl();
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
             return (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating Certification: " + e.getMessage();
         }
     }
 
-    public String updateEmpStatusTarminate(ActiveEmpStatusDto dto,
-                                           String gpId) {
-
+    public WfdResponse updateEmpStatusTarminateSch(ActiveEmpStatusDto dto, String gpId) {
         try {
-            String jsonBody = objectMapper.writeValueAsString(dto);
-            String accessToken = wfdAuthService.getAccessToken();
-
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            String accessToken = this.wfdAuthService.getAccessToken();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
+            Integer personKey = this.getPersonKey(accessToken, gpId);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getupdateEmpStatusTRACURL() + personKey;
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
+            return response.getStatusCode().is2xxSuccessful() ? new WfdResponse(true, "Updated Successfully") : new WfdResponse(false, (String)response.getBody());
+        } catch (HttpStatusCodeException e) {
+            return new WfdResponse(false, e.getResponseBodyAsString());
+        } catch (Exception e) {
+            return new WfdResponse(false, "Error while updating employment status: " + e.getMessage());
+        }
+    }
 
-            Integer personKey = getPersonKey(accessToken, gpId);
-
-            String url = getHostName() +
-                    getupdateEmpStatusTRACURL() +
-                    personKey;
-
-            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
-
-            ResponseEntity<String> response =
-                    restTemplate.exchange(url,
-                            HttpMethod.PUT,
-                            entity,
-                            String.class);
-
-            return response.getBody();
-
+    public String updateEmpStatusTarminate(ActiveEmpStatusDto dto, String gpId) {
+        try {
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            String accessToken = this.wfdAuthService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+            Integer personKey = this.getPersonKey(accessToken, gpId);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getupdateEmpStatusTRACURL() + personKey;
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
+            return (String)response.getBody();
         } catch (HttpStatusCodeException e) {
             return e.getResponseBodyAsString();
-
         } catch (Exception e) {
             return "Error while updating employment status: " + e.getMessage();
         }
@@ -247,6 +262,10 @@ public class WfdEmployeeService {
 
     public String getUpdateSkillURL() {
         return QueryFileWatcher.getQuery("getUpdateSkillURLWFD");
+    }
+
+    public String getCheckLocationUrl() {
+        return QueryFileWatcher.getQuery("getCkeckLoaction");
     }
 
     public String getCreateEmpWFD() {
@@ -282,35 +301,23 @@ public class WfdEmployeeService {
         }
     }
 
-
     public String createEmployee(EmployeeRequestDTO dto) {
-
         try {
-            String jsonBody = objectMapper.writeValueAsString(dto);
-            String accessToken = wfdAuthService.getAccessToken();
-
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            String accessToken = this.wfdAuthService.getAccessToken();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-
-            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
-
-            String url = getHostName() + getCreateEmpWFD();
-
-            ResponseEntity<String> response =
-                    restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-
-            return "STATUS:" + response.getStatusCodeValue() +
-                    "\nBODY:" + response.getBody();
-
-        }
-
-        catch (HttpClientErrorException | HttpServerErrorException e) {
-            return "STATUS:" + e.getStatusCode().value() +
-                    "\nBODY:" + e.getResponseBodyAsString();
-        }
-
-        catch (Exception e) {
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            String var10 = this.getHostName();
+            String url = var10 + this.getCreateEmpWFD();
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
+            int var11 = response.getStatusCodeValue();
+            return "STATUS:" + var11 + "\nBODY:" + (String)response.getBody();
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+            int var10000 = ((HttpStatusCodeException)e).getStatusCode().value();
+            return "STATUS:" + var10000 + "\nBODY:" + ((HttpStatusCodeException)e).getResponseBodyAsString();
+        } catch (Exception e) {
             return "STATUS:500\nBODY:Error creating employee in WFD API: " + e.getMessage();
         }
     }
@@ -368,11 +375,32 @@ public class WfdEmployeeService {
             String url = var10000 + this.getUpdateSkillURL() + personKey;
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
             return response.getStatusCode().is2xxSuccessful() ? "Skill Assigned Successfully" : (String)response.getBody();
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error assigning skill: " + e.getMessage();
         }
     }
 
+    public boolean checkLocationInUKG(String path) {
+        try {
+            String accessToken = this.wfdAuthService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getCheckLocationUrl() + path + "&date=1900-01-01&context=ORG";
+            HttpEntity<String> entity = new HttpEntity(headers);
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class, new Object[0]);
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (HttpClientErrorException var7) {
+            if (var7.getStatusCode().value() == 400 && var7.getResponseBodyAsString().contains("does not exist")) {
+                return false;
+            } else {
+                throw var7;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error checking location in UKG", e);
+        }
     }
+}
