@@ -26,6 +26,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Repository
 public class WfdEmployeeService {
     private final RestTemplate restTemplate;
@@ -260,6 +264,11 @@ public class WfdEmployeeService {
         return QueryFileWatcher.getQuery("getPersonKeyEmpWFD");
     }
 
+
+    public String getUrlToCreateBS() {
+        return QueryFileWatcher.getQuery("getUrlToCreateBS");
+    }
+
     public String getUpdateSkillURL() {
         return QueryFileWatcher.getQuery("getUpdateSkillURLWFD");
     }
@@ -403,4 +412,37 @@ public class WfdEmployeeService {
             throw new RuntimeException("Error checking location in UKG", e);
         }
     }
+    public void createNodeInUKG(String parentPath, String name, String type) {
+
+        String accessToken = wfdAuthService.getAccessToken();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(accessToken);
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("parentNodeRef", Map.of("qualifier", parentPath));
+        body.put("orgNodeTypeRef", Map.of("qualifier", type));
+        body.put("name", name);
+        body.put("effectiveDate", "1900-01-01");
+        body.put("expirationDate", "3000-01-01");
+
+        if ("Job".equals(type)) {
+            body.put("genericJobRef", Map.of("qualifier", name));
+        }
+
+
+        HttpEntity<List<Map<String, Object>>> entity =
+                new HttpEntity<>(List.of(body), headers);
+
+        restTemplate.exchange(
+                getHostName() + getUrlToCreateBS(),
+                HttpMethod.POST,
+                entity,
+                String.class
+        );
+    }
+
+
+
 }

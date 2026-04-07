@@ -644,8 +644,11 @@ public class EmployeeMapper {
                 labor.setExpirationDate("3000-01-01");
                 String var10000 = individualOnBoardDetailsByTrnId.getLocation();
                 String orgPath = var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
-                System.out.println("orgPath" + orgPath);
-                labor.setOrganizationPath(orgPath);
+
+                labor.setOrganizationPath(
+                        resolveOrganizationPath(orgPath)
+                );
+
                 job.setPrimaryLaborAccounts(Arrays.asList(labor));
                 dto.setJobAssignment(job);
                 EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();
@@ -662,6 +665,28 @@ public class EmployeeMapper {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public String resolveOrganizationPath(String orgPath) {
+
+        if (gatePassToOnBoardService.checkLocationPath(orgPath)) {
+            return orgPath;
+        }
+
+        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            return orgPath;
+        }
+
+        gatePassToOnBoardService.createBusinessStructure(orgPath);
+
+        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            return orgPath;
+        }
+
+        throw new RuntimeException("Failed to resolve orgPath: " + orgPath);
     }
 
     public String gatePassEmpDtoDynamic(String gatePassId) {
@@ -686,7 +711,7 @@ public class EmployeeMapper {
                             Long personKey = personKeyNode.asLong();
                             SkillProLevelDateDTO skillData = this.getSkillPRoLevelDate(gatePassId);
                             if (skillData == null) {
-                                return "STATUS:400\nSkill data not found";
+                                return "STATUS:400\nSkill data not found from SQL query";
                             } else {
                                 String skillName = skillData.getSkill();
                                 String profName = skillData.getProficiencyLevel();

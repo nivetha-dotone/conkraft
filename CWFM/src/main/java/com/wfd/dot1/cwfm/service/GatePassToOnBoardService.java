@@ -14,14 +14,12 @@ import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -31,6 +29,9 @@ public class GatePassToOnBoardService {
     private static final Logger log = LoggerFactory.getLogger(GatePassToOnBoardService.class.getName());
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private WfdEmployeeService wfdEmployeeService;
 
     public GatePassToOnBoardService() {
     }
@@ -675,12 +676,127 @@ public class GatePassToOnBoardService {
         }
     }
 
-    public boolean checkLocationPath(String fullLocationPath) {
+//    public boolean checkLocationPath(String fullLocationPath) {
+//        try {
+//            String sql = this.getQueryLocationPresentOrNotInDB();
+//            return (Integer)this.jdbcTemplate.queryForObject(sql, Integer.class, new Object[]{fullLocationPath}) > 0;
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+
+
+    public boolean checkLocationPath(String path) {
         try {
             String sql = this.getQueryLocationPresentOrNotInDB();
-            return (Integer)this.jdbcTemplate.queryForObject(sql, Integer.class, new Object[]{fullLocationPath}) > 0;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, path);
+
+            return count != null && count > 0;
+
+        } catch (EmptyResultDataAccessException e) {
+            return false;
         }
     }
+
+    public void storeHierarchyInDB(String fullPath) {
+
+        String[] parts = fullPath.split("/");
+
+        for (int i = parts.length; i > 0; i--) {
+
+            String path = String.join("/", Arrays.copyOfRange(parts, 0, i));
+
+            if (!checkLocationPath(path)) {
+
+                String locationName = parts[i - 1];
+                String locationType = getLocationType(i - 1);
+
+                jdbcTemplate.update(
+                        "INSERT INTO BS_STRUCTURE (Path,LocationName, LocationType, DateEff, ActiveFlag, CreatedDate) " +
+                                "VALUES (?,'test', ?, '1900-01-01', 1, GETDATE())",
+                        path, locationType
+                );
+            }
+        }
+    }
+
+
+    public void createBusinessStructure(String fullPath) {
+
+        String[] parts = fullPath.split("/");
+
+        String currentPath = "";
+
+        for (int i = 0; i < parts.length; i++) {
+
+            String nodeName = parts[i];
+
+            // Build path step-by-step
+            currentPath = currentPath.isEmpty() ? nodeName : currentPath + "/" + nodeName;
+
+            boolean exists = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+            if (!exists) {
+
+                String parentPath = (i == 0) ? "/" : currentPath.substring(0, currentPath.lastIndexOf("/"));
+
+                String type = getLocationType(i);
+
+                wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
+                System.out.println("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+                log.info("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+
+                // 🔁 Optional: verify after create
+                boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+                if (!created) {
+                    throw new RuntimeException("Failed to create node: " + currentPath);
+                }
+            }
+        }
+    }
+
+
+    public String findValidParent(String fullPath) {
+
+        String parent = fullPath;
+
+        while (true) {
+
+            parent = removeLastNode(parent);
+
+            if (parent == null) {
+                throw new RuntimeException("No valid parent found in UKG");
+            }
+
+            if (wfdEmployeeService.checkLocationInUKG(parent)) {
+                return parent;
+            }
+        }
+    }
+
+
+    private String removeLastNode(String path) {
+        int index = path.lastIndexOf("/");
+        if (index == -1) return null;
+        return path.substring(0, index);
+    }
+
+
+    public String getLocationType(int level) {
+
+        switch (level) {
+            case 0: return "Company";
+            case 1: return "Location";
+            case 2: return "Site";
+            case 3: return "Department";
+            case 4: return "Sub Department";
+            case 5: return "Product";
+            case 6: return "Contractor";
+            case 7: return "Job";
+            default: return "Job";
+        }
+    }
+
 }
