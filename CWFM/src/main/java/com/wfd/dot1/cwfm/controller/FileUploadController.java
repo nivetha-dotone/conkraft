@@ -247,7 +247,7 @@ public class FileUploadController {
            // fields.add(Map.of("name", "IS RC Applicable", "type", "Number", "example", "0"));
            // fields.add(Map.of("name", "RC Number", "type", "Number", "example", "RC001"));
            // fields.add(Map.of("name", "Attachment", "type", "File", "example", "Dot1_2025.pdf"));
-            fields.add(Map.of("name", "State", "type", "Number", "example", "Assam"));
+            fields.add(Map.of("name", "State", "type", "Text", "example", "Assam"));
            // fields.add(Map.of("name", "IS Active", "type", "Number", "example", "1"));
           //  fields.add(Map.of("name", "Update Time", "type", "Date", "example", "12/05/2025"));
           //  fields.add(Map.of("name", "Updated By", "type", "Date", "example", "12/05/2025"));
@@ -389,15 +389,24 @@ public class FileUploadController {
             fields.add(Map.of("name", "Workorder Number", "type", "Number", "example", "461265"));
             fields.add(Map.of("name", "WC/ESIC Number", "type", "Text", "example", "4810/407050783/00/000"));
             fields.add(Map.of("name", "LL Number", "type", "Number", "example", "89034774"));
+            
             templateInfo.put("fields", fields);
         } else  if ("Data-User".equals(templateType)) {
             templateInfo.put("title", "Data - User Event");
             templateInfo.put("description", "Imports User events.");
 
             List<Map<String, String>> fields = new ArrayList<>();
-            fields.add(Map.of("name", "User Name", "type", "Text", "example", "John Dev"));
-            fields.add(Map.of("name", "Email", "type", "Text", "example", "security@gmail.com"));
-            fields.add(Map.of("name", "Role", "type", "Number", "example", "Security"));
+            fields.add(Map.of("name", "First Name", "type", "Text", "example", "John"));
+            fields.add(Map.of("name", "Last Name", "type", "Text", "example", "Dev"));
+            fields.add(Map.of("name", "Login Id", "type", "Text", "example", "8074356_MS"));
+            fields.add(Map.of("name", "Password", "type", "Text", "example", "Mar@2026"));
+            fields.add(Map.of("name", "Email Address", "type", "Text", "example", "John@gmail.com"));
+            fields.add(Map.of("name", "Mobile Number", "type", "Number", "example", "9989097676"));
+            fields.add(Map.of("name", "Plant Code", "type", "Text", "example", "116M"));
+            fields.add(Map.of("name", "Organisation", "type", "Text", "example", "Adani Wilmar Ltd-Alwar"));
+            fields.add(Map.of("name", "Department", "type", "Text", "example", "Logistics"));
+            fields.add(Map.of("name", "Area", "type", "Text", "example", "Gopalpur"));
+            fields.add(Map.of("name", "Role", "type", "Text", "example", "Security;HR Admin;Contractor"));
             fields.add(Map.of("name", "SAP Vendor Code", "type", "Number", "example", "198653"));
             
             templateInfo.put("fields", fields);

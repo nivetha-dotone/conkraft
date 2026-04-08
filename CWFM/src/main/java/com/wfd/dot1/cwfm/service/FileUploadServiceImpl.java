@@ -194,7 +194,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 savedData = processBulkRenew(reader, userAccount,createdBy);
                 break;
             case "Data-User":
-                if (!headerLine.equalsIgnoreCase("User Name,Email,Role,SAP Vendor Code")) {
+                if (!headerLine.equalsIgnoreCase("First Name,Last Name,Login Id,Password,Email Address,Mobile Number,Plant Code,Organisation,Department,Area,Role,SAP Vendor Code")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processUser(reader);
@@ -2699,9 +2699,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 		    String line;
 		    int rowNum = 0;
 
-		    String[] fieldNames = {"userName", "email", "role", "SAPvendorCode"};
+		    String[] fieldNames = {"firstName","lastName","userAccount","password","email","mobileNumber","plantCode","organisation","department","area","role","SAPVendorCode"};
 
-		    Set<String> mandatoryFields = Set.of("userName", "email", "role");
+		    Set<String> mandatoryFields = Set.of("firstName","lastName","userAccount","password","email","mobileNumber","plantCode","organisation","department","area","role");
 
 		    while ((line = reader.readLine()) != null) {
 
@@ -2725,14 +2725,21 @@ public class FileUploadServiceImpl implements FileUploadService {
 		        }
 
 		        // Extract fields
-		        String userName = fields[0];
-		        String email = fields[1];
-		        String role = fields[2];
-		        String SAPVendorCode = fields[3];
+		        String firstName = fields[0];
+		        String lastName = fields[1];
+		        String userAccount = fields[2];
+		        String password = fields[3];
+		        String email = fields[4];
+		        String mobileNumber = fields[5];
+		        String plantCode = fields[6];
+		        String organisation = fields[7];
+		        String department = fields[8];
+		        String area = fields[9];
+		        String role = fields[10];
+		        String SAPVendorCode = fields[11];
 
-		        // =====================================================
 		        // ✅ 1. MANDATORY FIELD VALIDATION
-		        // =====================================================
+
 		        for (int i = 0; i < fieldNames.length; i++) {
 		            if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
 		                fieldErrors.put(fieldNames[i], "is mandatory");
@@ -2743,30 +2750,74 @@ public class FileUploadServiceImpl implements FileUploadService {
 		            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
 		            continue;
 		        }
+		        
+		        // ✅ 2.CHECK USER EXISTS
+		        
+		        Integer userId=fileUploadDao.isUserExists(userAccount);
+		        
+		     // ✅ 3. ROLE VALIDATION (MULTIPLE ROLES)
 
-		        // =====================================================
-		        // ✅ 2. DUPLICATE USER CHECK
-		        // =====================================================
-		        if (fileUploadDao.isUserExists(userName)) {
-		            errorData.add(Map.of("row", rowNum,
-		                    "error", "Duplicate User: " + userName + " already exists"));
-		            continue;
+		        String[] roleArray = role.split(";");
+		        List<Long> roleIds = new ArrayList<>();
+		        boolean isContractorRole = false;
+
+		        for (String r : roleArray) {
+
+		            String trimmedRole = r.trim();
+
+		            Integer roleId = fileUploadDao.getGeneralMasterId("Role", trimmedRole);
+
+		            if (roleId == null || roleId == 0) {
+		            	 errorData.add(Map.of("row", rowNum, "error", "Role not found: " + trimmedRole));
+		            	 continue;
+		            } else {
+		                roleIds.add(roleId.longValue());
+		            }
+
+		            // Contractor role check (case-insensitive)
+		            if (trimmedRole.equalsIgnoreCase("CONTRACTOR") ||
+		                trimmedRole.equalsIgnoreCase("CONTRACTOR SUPERVISOR")) {
+		                isContractorRole = true;
+		            }
 		        }
 
-		        // =====================================================
-		        // ✅ 3. ROLE VALIDATION
-		        // =====================================================
-		        Integer roleId = fileUploadDao.getGeneralMasterId("Role", role);
-
-		        if (roleId == null || roleId == 0) {
-		            errorData.add(Map.of("row", rowNum,
-		                    "error", "Role not found: " + role));
-		            continue;
+		        // ================================
+		        // ✅ 3. SAP VALIDATION
+		        // ================================
+		        if (isContractorRole && (SAPVendorCode == null || SAPVendorCode.isBlank())) {
+		        	 errorData.add(Map.of("row", rowNum,
+			                  "error", "SAPVendorCode is mandatory for Contractor roles"));
+		        	 continue;
 		        }
+		    
+		  // ✅ 4. plant VALIDATION
+		        Long plantId = fileUploadDao.getOrgLevelEntryId(plantCode);
+             if (plantId == null || plantId == 0) {
+             	 errorData.add(Map.of("row", rowNum,
+		                    "error", "Plant not found: " + plantCode));
+		            continue;
+             }
+             
+		     // ✅ 5. department VALIDATION
+		        Long departmentId = fileUploadDao.getOrgLevelEntryId(department);
+                if (departmentId == null || departmentId == 0) {
+                	 errorData.add(Map.of("row", rowNum,
+ 		                    "error", "Department not found: " + department));
+ 		            continue;
+                }
 
-		        // =====================================================
-		        // ✅ 4. EMAIL FORMAT VALIDATION
-		        // =====================================================
+                // ✅ 6. area VALIDATION
+              
+                Long  areaId = fileUploadDao.getOrgLevelEntryId(area);
+                    if (areaId == null || areaId == 0) {
+                    	 errorData.add(Map.of("row", rowNum,
+     		                    "error", "Area not found: " + area));
+     		            continue;
+                    }
+                 
+		        
+                 // ✅ 7. EMAIL FORMAT VALIDATION
+                    
 		        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
 
 		        if (email == null || email.isBlank() || !email.matches(emailRegex)) {
@@ -2774,23 +2825,84 @@ public class FileUploadServiceImpl implements FileUploadService {
 		                    "error", "Email should be in standard format (e.g., name@gmail.com)"));
 		            continue;
 		        }
-
-		        // =====================================================
-		        // ✅ 5. SAVE DATA
-		        // =====================================================
+		        
+		        if (!fieldErrors.isEmpty()) {
+		            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+		            continue;
+		        }
+		        // ✅ 8. SAVE DATA
+		      
 		        try {
+		    	  UserImport user = new UserImport();
 
-		            UserImport user = new UserImport();
-		            user.setUserName(userName);
-		            user.setEmail(email);
+		    	    user.setFirstName(firstName);
+		    	    user.setLastName(lastName);
+		    	    user.setUserAccount(userAccount);
+		    	    user.setPassword(password);
+		    	    user.setEmail(email);
+		    	    user.setMobileNumber(mobileNumber);
 
-		            Long userId = fileUploadDao.saveuserImport(user);
+		    	    if (userId == null) {
+		    	        fileUploadDao.saveuserImport(user, roleIds);
+		    	    } else {
+		    	        user.setUserId(userId);
+		    	        fileUploadDao.updateuserImport(user, userId, roleIds);
+		    	    }
+		    	    
+		    	    // Collect all org entries
+				    // List<Long> orgEntryIds = List.of(plantId, departmentId, areaId,contractorId);
 
-		            fileUploadDao.saveUserRoleMapping(userId, roleId);
+				     List<Long> orgEntryIds = new ArrayList<>();
 
+				  // Always required
+				  orgEntryIds.add(plantId);
+				  orgEntryIds.add(departmentId);
+				  orgEntryIds.add(areaId);
+
+				  // OPTIONAL → SAP Vendor Code
+				  if (SAPVendorCode != null && !SAPVendorCode.trim().isEmpty()) {
+
+				      Long contractorId = fileUploadDao.getOrgLevelEntryId(SAPVendorCode.trim());
+
+				      if (contractorId != null) {
+				          orgEntryIds.add(contractorId);
+				      } else {
+				          // OPTIONAL: log only (no error)
+				    	  throw new IllegalArgumentException("SAP Vendor Code not found '" + SAPVendorCode + "'");
+				      }
+				  }
+				  
+				 Long orgSetId=fileUploadDao.getOrgAccountSetIdFromSet(userAccount);
+                 if(orgSetId == null || orgSetId == 0) {
+				  // Insert mapping
+				     orgSetId = fileUploadDao.insertUserOrgAccountSet(user.getUserAccount());
+                 }
+                 
+                 List<Long> existingIds = fileUploadDao.getExistingOrgMappings(orgSetId);
+
+                 Set<Long> existingSet = new HashSet<>(existingIds);
+
+                 // Find missing IDs
+                 List<Long> missingIds = orgEntryIds.stream()
+                         .filter(id -> !existingSet.contains(id))
+                         .toList();
+
+                 // Insert only missing
+                 if (!missingIds.isEmpty()) {
+                     fileUploadDao.insertUserOrgMapping(missingIds, orgSetId);
+                 }
+				  
 		            Map<String, Object> success = new LinkedHashMap<>();
-		            success.put("userName", userName);
+		            success.put("firstName", firstName);
+		            success.put("lastName", lastName);
+		            success.put("userAccount", userAccount);
+		            success.put("password", password);
 		            success.put("email", email);
+		            success.put("mobileNumber", mobileNumber);
+		            success.put("plantCode", plantCode);
+		            success.put("organisation", organisation);
+		            success.put("department", department);
+		            success.put("area", area);
 		            success.put("role", role);
 		            success.put("SAPVendorCode", SAPVendorCode);
 
@@ -2807,4 +2919,6 @@ public class FileUploadServiceImpl implements FileUploadService {
 		    result.put("errorData", errorData);
 
 		    return result;
-		}   }
+		}  
+	 
+}

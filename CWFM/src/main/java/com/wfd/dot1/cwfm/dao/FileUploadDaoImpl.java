@@ -30,6 +30,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
@@ -64,6 +65,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	
 	@Autowired
 	WorkmenDao workmenDao;
+	
+	@Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 	
 	@Autowired
     private JdbcTemplate jdbcTemplate;
@@ -529,7 +533,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
             case "Data-Minimum Wage":
             	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date";
             case "Data-User":
-            	return "User Name,Email,Role,SAP Vendor Code";
+            	return "First Name,Last Name,Login Id,Password,Email Address,Mobile Number,Plant Code,Organisation,Department,Area,Role,SAP Vendor Code";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -2040,27 +2044,53 @@ public class FileUploadDaoImpl implements FileUploadDao {
 			    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitCode, stateName,zoneName,skillName);
 			    return count != null && count > 0;
 			}
-		 
-		 @Override
-			public boolean isUserExists(String userName){
-				String sql=isUserExists();
-			    //String sql = "select count(*) from MASTERUSER where userAccount=? and status='A'";
-			    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userName);
-			    return count != null && count > 0;
+		 public String isActiveUserExists() {
+				return QueryFileWatcher.getQuery("CHECK_ACTIVE_USER_EXISTS");
 			}
+		 @Override
+			public Integer isUserExists(String userName){
+				String sql=isActiveUserExists();
+			    //String sql = "select UserId from MASTERUSER where userAccount=? and status='A'";
+			  List<Integer> result = jdbcTemplate.query(sql, new Object[]{userName},
+				        (rs, rowNum) -> rs.getInt("UserId"));
+				    return result.isEmpty() ? null : result.get(0);
+			}
+		 public String saveusers() {
+			    return QueryFileWatcher.getQuery("SAVE_USER");
+		    }
+		 public String insertrolemapping() {
+			    return QueryFileWatcher.getQuery("INSERT_ROLE_MAPPING");
+		    }
 		  @Override
-		    public Long saveuserImport(UserImport user){
-		    	 KeyHolder keyHolder = new GeneratedKeyHolder();
-		    	 String sql=saveuserImport();
-		        //String sql = "INSERT INTO MASTERUSER (userAccount,Password,FirstName,LastName,EmailId,ContactNumber,Status) VALUES(?,'','','',?,'','A')";
-		        jdbcTemplate.update(connection -> {
-			        PreparedStatement us = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-			        us.setString(1, user.getUserName());
-			        us.setString(2, user.getEmail());
-			        return us;
-			    }, keyHolder);
+		    public void saveuserImport(UserImport user, List<Long> roleIds){
+		  
+			  String query=saveusers();
+		        String query1=insertrolemapping();
+		        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-			    return keyHolder.getKey().longValue();  // This is your auto-generated unitId
+		        // Encrypt password
+		        user.setPassword(passwordEncoder.encode(user.getPassword()));
+		        // Insert the user and retrieve the generated key
+		        jdbcTemplate.update(connection -> {
+		            PreparedStatement ps = connection.prepareStatement(query, new String[] {"UserId"});
+		            ps.setString(1, user.getFirstName());
+		            ps.setString(2, user.getLastName());
+		            ps.setString(3, user.getEmail());
+		            ps.setString(4, user.getMobileNumber());
+		            ps.setString(5, user.getPassword());
+		            ps.setString(6, user.getUserAccount());
+		            return ps;
+		        }, keyHolder);
+		        // Set the generated UserId in the user object
+		        int userId = keyHolder.getKey().intValue();
+		        user.setUserId(userId);
+		        // Save role mappings if provided
+		        if (roleIds != null) {
+		            for (Long roleId : roleIds) {
+		               // String insertRoleMappingQuery = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
+		                jdbcTemplate.update(query1, user.getUserId(), roleId);
+		            }
+		        }
 			}
 		  @Override
 		    public void saveUserRoleMapping(Long userId, Integer roleId){
@@ -2115,5 +2145,130 @@ public class FileUploadDaoImpl implements FileUploadDao {
 			//String sql="select  cgm.GMID as ZoneId  from CMSSTATEMINIMUMWAGE cmssm inner join CMSGENERALMASTER cgm on  cgm.GMNAME = cmssm.ZONENM where cmssm.ZONENM=? and cmssm.UNITID=?";
 			 List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class,zoneValue.trim(), unitId);
 			    return result.isEmpty() ? null : result.get(0);
-		}			
+		}
+		 public String updateuserRole() {
+			    return QueryFileWatcher.getQuery("UPDATE_USER_ROLE_TEMPLATE");
+		    }
+		    public String fetchRoleSql() {
+			    return QueryFileWatcher.getQuery("FETCH_ROLES_EXISTS");
+		    }
+		    public String insertuserRole() {
+			    return QueryFileWatcher.getQuery("INSERT_USER_ROLE");
+		    }
+		    public String saveorgacctset() {
+			    return QueryFileWatcher.getQuery("SAVE_ORG_ACCT_SET");
+		    }
+		@Override
+		public void updateuserImport(UserImport user, Integer userId, List<Long> roleIds) {
+
+		    String insertRoleSql = insertuserRole();
+
+		    // ✅ IMPORTANT FIX
+		    user.setUserId(userId);
+		    user.setPassword(passwordEncoder.encode(user.getPassword()));
+		    //String sql = "UPDATE MASTERUSER SET EmailId = ?, FirstName = ?, LastName = ?, ContactNumber = ?, Password = ? WHERE UserId = ?";
+		    String sql =updateuserRole();
+		    jdbcTemplate.update(sql,
+		            user.getEmail(),
+		            user.getFirstName(),
+		            user.getLastName(),
+		            user.getMobileNumber(),
+		            user.getPassword(),
+		            user.getUserId()
+		    );
+
+		    // =====================================================
+		    // ✅ FETCH EXISTING ROLES
+		    // =====================================================
+		    //String fetchRolesSql = "SELECT RoleId FROM UserRoleMapping WHERE UserId = ?";
+		    
+		    String fetchRolesSql =fetchRoleSql();
+		    
+		    List<Long> existingRoles = jdbcTemplate.query(
+		            fetchRolesSql,
+		            new Object[]{user.getUserId()},
+		            (rs, rowNum) -> rs.getLong("RoleId")
+		    );
+
+		    Set<Long> existingRoleSet = new HashSet<>(existingRoles);
+
+		    // =====================================================
+		    // ✅ INSERT ONLY NEW ROLES
+		    // =====================================================
+		    for (Long roleId : roleIds) {
+
+		        if (!existingRoleSet.contains(roleId)) {
+
+		            jdbcTemplate.update(insertRoleSql, user.getUserId(), roleId);
+		        }
+		    }
+		}
+		public String getOrgLevelEntryId() {
+		    return QueryFileWatcher.getQuery("FETCH_ORGLEVELENTRYID");
+	    }
+		@Override
+		public Long getOrgLevelEntryId(String name) {
+
+		    //String sql = "SELECT ORGLEVELENTRYID FROM ORGLEVELENTRY WHERE LOWER(NAME) = LOWER(?)";
+			String  sql = getOrgLevelEntryId();
+		    try {
+		        return jdbcTemplate.queryForObject(sql, new Object[]{name}, Long.class);
+		    } catch (Exception e) {
+		        return null; // not found
+		    }
+		}
+		@Override
+		public Long insertUserOrgAccountSet(String userAccount) {
+			String query=saveorgacctset();
+			Long generatedId = jdbcTemplate.queryForObject(query,
+                    new Object[] { userAccount, userAccount },
+                    Long.class);
+            if (generatedId == null) {
+                System.out.println("Failed to retrieve the generated ID after insert.");
+                throw new RuntimeException("Failed to retrieve the generated ID after insert.");
+            }
+            System.out.println("Generated ID: " + generatedId);
+            return generatedId;
+        }
+		public String insertUserOrgMapping() {
+		    return QueryFileWatcher.getQuery("SAVE_USER_ORG_MAPPING");
+	    }
+		@Override
+		public void insertUserOrgMapping(List<Long> orgEntryIds, Long orgSetId) {
+			 String sql =insertUserOrgMapping();
+		    //String sql = "INSERT INTO OLACCTSETMM (ORGLEVELENTRYID, ORGACCTSETID, UPDATEDTM) VALUES (?, ?, getdate())";
+
+		    for (Long entryId : orgEntryIds) {
+		        jdbcTemplate.update(sql, entryId,orgSetId);
+		    }
+		}
+		public String getOrgAccountSetIdFromSet() {
+		    return QueryFileWatcher.getQuery("GET_ORG_ACCOUNT_SET_ID");
+	    }
+		@Override
+		public Long getOrgAccountSetIdFromSet(String userAccount) {
+
+		    //String sql = "SELECT ORGACCTSETID FROM ORGACCTSET WHERE SHORTNM = ?";
+			String sql =getOrgAccountSetIdFromSet();
+		    try {
+		        return jdbcTemplate.queryForObject(sql,new Object[]{userAccount},Long.class);
+		    } catch (EmptyResultDataAccessException e) {
+		        // ✅ No record found
+		        return null;
+		    }
+		}
+		public String getExistingOrgMappings() {
+		    return QueryFileWatcher.getQuery("GET_EXISTING_ORG_MAPPING");
+	    }
+		@Override
+		public List<Long> getExistingOrgMappings(Long orgSetId) {
+              String sql = getExistingOrgMappings();
+		   // String sql = "SELECT ORGLEVELENTRYID FROM OLACCTSETMM WHERE ORGACCTSETID = ?";
+
+		    return jdbcTemplate.query(
+		            sql,
+		            new Object[]{orgSetId},
+		            (rs, rowNum) -> rs.getLong("ORGLEVELENTRYID")
+		    );
+		}
 	}

@@ -202,9 +202,9 @@ public interface FileUploadDao {
 
 	boolean minimumWagesExistsInStagging(String unitCode, String stateName, String zoneName, String skillName);
 
-	boolean isUserExists(String userName);
+	Integer isUserExists(String userName);
 
-	Long saveuserImport(UserImport user);
+	void saveuserImport(UserImport user, List<Long> roleIds);
 
 	void saveUserRoleMapping(Long userId, Integer roleId);
 
@@ -217,5 +217,17 @@ public interface FileUploadDao {
 	Set<String> getExistingContractorCodes(List<Contractor> list, long orgLevelDefId);
 
 	Integer getZoneIdFromMinimumWage(String zoneValue, Integer unitId);
+
+	void updateuserImport(UserImport user, Integer userId, List<Long> roleIds);
+
+	Long getOrgLevelEntryId(String department);
+
+	Long insertUserOrgAccountSet(String userAccount);
+
+	void insertUserOrgMapping(List<Long> orgEntryIds, Long orgSetId);
+
+	Long getOrgAccountSetIdFromSet(String userAccount);
+
+	List<Long> getExistingOrgMappings(Long orgSetId);
 
 }

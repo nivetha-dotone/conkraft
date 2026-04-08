@@ -295,7 +295,7 @@ function downloadErrorCSV(errorData, uploadedFileName) {
                 headers = ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"];
                 break;
             case "data-user":
-                headers = ["User Name","Email","Role","SAP Vendor Code"];
+                headers = ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
                 break;
             default:
                 alert("Template configuration not found for: " + selectedText);
@@ -570,8 +570,8 @@ const tableBody = document.getElementById("tableBody");
             fieldMap = ["gatepassNumber","workorderNumber","wcNumber","llNumber"];
         }
         else if (templateType === "Data-User") {
-            headers = ["User Name","Email","Role","SAP Vendor Code"];
-            fieldMap = ["userName","email","role","SAPVendorCode"];
+            headers = ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
+            fieldMap = ["firstName","lastName","userAccount","password","email","mobileNumber","plantCode","organisation","department","area","role","SAPVendorCode"];
         }
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
@@ -893,7 +893,7 @@ function getHeadersByTemplate(selectedText) {
             return  ["Gatepass Number","WorkOrder Number","WC/ESIC Number","LL Number"]; 
             
         case "data-user":
-                return  ["User Name","Email","Role","SAP Vendor Code"];
+                return  ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
         default:
             return [];
     }
