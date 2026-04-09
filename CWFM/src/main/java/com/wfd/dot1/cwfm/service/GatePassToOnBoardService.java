@@ -2,14 +2,7 @@
 
 package com.wfd.dot1.cwfm.service;
 
-import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
-import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
-import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
-import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
-import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
-import com.wfd.dot1.cwfm.dto.WorkOrderDTOMail;
+import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
@@ -108,6 +101,10 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getLocationPathCheck");
     }
 
+     public String getQueryCreateLocation() {
+        return QueryFileWatcher.getQuery("INSERTBSIN");
+    }
+
     public String getQueryHrEmailByUnitName() {
         return QueryFileWatcher.getQuery("getHrMailByunitName");
     }
@@ -135,6 +132,12 @@ public class GatePassToOnBoardService {
     public String getSkillQuery() {
         return QueryFileWatcher.getQuery("getSkillQuery");
     }
+    public String getCSMWorkOrderNumber() {
+        return QueryFileWatcher.getQuery("getCMSWorkOrder");
+    }
+    public String getLAborCategory() {
+        return QueryFileWatcher.getQuery("getLaborCategory");
+    }
 
     public String getCertiteQuery() {
         return QueryFileWatcher.getQuery("getassCertificateQuery");
@@ -155,6 +158,49 @@ public class GatePassToOnBoardService {
 
             log.info("Exit from create skill method");
             return postSkillWfd;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public PostLaborCatDTO createLaborCategory(String id) {
+        try {
+            log.info("fetching SAP Work Order to Labor Category record");
+            String workOrder = this.getCSMWorkOrderNumber();
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(workOrder, new Object[]{id});
+
+            PostLaborCatDTO postLaborCateWfd = null;
+            if (sqlRowSet.next() && !getLAborCategory().isEmpty()) {
+                postLaborCateWfd = new PostLaborCatDTO();
+                postLaborCateWfd.setName(sqlRowSet.getString("SAP_WORKORDER_NUM"));
+                PostLaborCatDTO.LaborCategory laborCategory = new PostLaborCatDTO.LaborCategory();
+                laborCategory.setQualifier(getLAborCategory());
+                postLaborCateWfd.setLaborCategory(laborCategory);
+                postLaborCateWfd.setInactive(false);
+            }
+
+            log.info("Exit from SAP Work Order to Labor Category record");
+            return postLaborCateWfd;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public PostLaborCatDTO createLaborCategoryDto(String workOrder) {
+        try {
+            log.info("fetching SAP Work Order to Labor Category record");
+
+            PostLaborCatDTO postLaborCateWfd = null;
+                postLaborCateWfd = new PostLaborCatDTO();
+                postLaborCateWfd.setName(workOrder);
+                PostLaborCatDTO.LaborCategory laborCategory = new PostLaborCatDTO.LaborCategory();
+                laborCategory.setQualifier(getLAborCategory());
+                postLaborCateWfd.setLaborCategory(laborCategory);
+                postLaborCateWfd.setInactive(false);
+
+            log.info("Exit from SAP Work Order to Labor Category record");
+            return postLaborCateWfd;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -689,12 +735,18 @@ public class GatePassToOnBoardService {
 
     public boolean checkLocationPath(String path) {
         try {
-            String sql = this.getQueryLocationPresentOrNotInDB();
-            Integer count = jdbcTemplate.queryForObject(sql, Integer.class, path);
+            String sql = getQueryLocationPresentOrNotInDB();
 
-            return count != null && count > 0;
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, path);
 
-        } catch (EmptyResultDataAccessException e) {
+            if (rs.next()) {
+                int count = rs.getInt(1); // first column
+                return count > 0;
+            }
+
+            return false;
+
+        } catch (Exception e) {
             return false;
         }
     }
@@ -702,7 +754,7 @@ public class GatePassToOnBoardService {
     public void storeHierarchyInDB(String fullPath) {
 
         String[] parts = fullPath.split("/");
-
+        String queryCreateLocation = getQueryCreateLocation();
         for (int i = parts.length; i > 0; i--) {
 
             String path = String.join("/", Arrays.copyOfRange(parts, 0, i));
@@ -713,8 +765,7 @@ public class GatePassToOnBoardService {
                 String locationType = getLocationType(i - 1);
 
                 jdbcTemplate.update(
-                        "INSERT INTO BS_STRUCTURE (Path,LocationName, LocationType, DateEff, ActiveFlag, CreatedDate) " +
-                                "VALUES (?,'test', ?, '1900-01-01', 1, GETDATE())",
+                        queryCreateLocation,
                         path, locationType
                 );
             }

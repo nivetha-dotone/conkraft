@@ -4,15 +4,7 @@ package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
-import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
-import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
-import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.WfdResponse;
+import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +18,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +31,10 @@ public class WfdEmployeeService {
 
     public String getCreateSkillsUrl() {
         return QueryFileWatcher.getQuery("getCreateSkillsUrl");
+    }
+
+    public String getCreateLaborCatEntryUrl() {
+        return QueryFileWatcher.getQuery("getCreateLaborsUrl");
     }
 
     public String getCreateProfUrl() {
@@ -66,6 +63,10 @@ public class WfdEmployeeService {
 
     public String getfindSkillsUrl() {
         return QueryFileWatcher.getQuery("getFindSkillsUrl");
+    }
+
+    public String getfindLaborCatUrl() {
+        return QueryFileWatcher.getQuery("getFindLaborCatUrl");
     }
 
     public WfdEmployeeService(RestTemplate restTemplate, ObjectMapper objectMapper, WfdAuthService wfdAuthService) {
@@ -119,6 +120,51 @@ public class WfdEmployeeService {
         }
     }
 
+    public boolean verifyLaborCatEnInWFD(String name) {
+        try {
+            String accessToken = this.wfdAuthService.getAccessToken();
+
+            String jsonBody = "{\n" +
+                    "  \"where\": {\n" +
+                    "    \"entries\": {\n" +
+                    "      \"key\": \"qualifiers\",\n" +
+                    "      \"values\": [\"" + name + "\"]\n" +
+                    "    }\n" +
+                    "  }\n" +
+                    "}";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            String url = this.getHostName() + this.getfindLaborCatUrl();
+
+            ResponseEntity<String> response = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                return true;
+            }
+
+            return false;
+
+        } catch (HttpClientErrorException ex) {
+            if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                return false;
+            }
+            return false;
+
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     public String createSkillsInWFD(PostSkillWfd dto) {
         try {
             String jsonBody = this.objectMapper.writeValueAsString(dto);
@@ -135,6 +181,29 @@ public class WfdEmployeeService {
             return ((HttpStatusCodeException)e).getResponseBodyAsString();
         } catch (Exception e) {
             return "Error while creating skill: " + e.getMessage();
+        }
+    }
+
+    public String createLaborCatInWFD(PostLaborCatDTO dto) {
+        try {
+
+            ArrayList addList = new ArrayList();
+            addList.add(dto);
+
+            String jsonBody = this.objectMapper.writeValueAsString(addList);
+            String accessToken = this.wfdAuthService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getCreateLaborCatEntryUrl();
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
+            return (String)response.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            return ((HttpStatusCodeException)e).getResponseBodyAsString();
+        } catch (Exception e) {
+            return "Error while creating labor categories: " + e.getMessage();
         }
     }
 

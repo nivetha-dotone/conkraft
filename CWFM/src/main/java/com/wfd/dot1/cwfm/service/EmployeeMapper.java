@@ -3,19 +3,7 @@ package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wfd.dot1.cwfm.dto.ActiveEmpStatusDto;
-import com.wfd.dot1.cwfm.dto.CertificationAssignmentRequestDTO;
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.FaceLogFetchDto;
-import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
-import com.wfd.dot1.cwfm.dto.PersonSkillAssignmentDTO;
-import com.wfd.dot1.cwfm.dto.PostSkillWfd;
-import com.wfd.dot1.cwfm.dto.ProficiencyDTO;
-import com.wfd.dot1.cwfm.dto.PunchRequestDTO;
-import com.wfd.dot1.cwfm.dto.SkillProLevelDateDTO;
-import com.wfd.dot1.cwfm.dto.UpdateEmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.WfdResponse;
-import com.wfd.dot1.cwfm.dto.WorkOrderDTOMail;
+import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
@@ -141,6 +129,7 @@ public class EmployeeMapper {
         }
     }
 
+
     public String postSkillTowfd(Integer gmId) {
         try {
             PostSkillWfd skills = this.gatePassToOnBoardService.createSkills(gmId);
@@ -154,6 +143,24 @@ public class EmployeeMapper {
                 return skillsInWFD;
             } else {
                 return "Skill is not present";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public String postToLaborCate(String gmId) {
+        try {
+            PostLaborCatDTO laborCategory = this.gatePassToOnBoardService.createLaborCategory(gmId);
+            boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(laborCategory.getName());
+            if (laborCategory == null ) {
+                return "Workorder ID is not present table";
+            } else if (b) {
+                return "Labor Category already in the WFD";
+            } else if (laborCategory != null) {
+                String skillsInWFD = this.wfdEmployeeService.createLaborCatInWFD(laborCategory);
+                return skillsInWFD;
+            } else {
+                return "Labor Category is not posted in wfd";
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -642,13 +649,37 @@ public class EmployeeMapper {
                 EmployeeRequestDTO.PrimaryLaborAccount labor = new EmployeeRequestDTO.PrimaryLaborAccount();
                 labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 labor.setExpirationDate("3000-01-01");
+
+                boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
+                if(b){
+
+                    String category = individualOnBoardDetailsByTrnId.getCategory();
+
+                    if (category != null && !category.isEmpty()) {
+                        labor.setLaborCategoryName(",,,," + category + ",");
+                    }
+
+                }else{
+                    PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
+                    String response = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
+
+
+                        String category = individualOnBoardDetailsByTrnId.getCategory();
+
+                        if (category != null && !category.isEmpty()) {
+                            labor.setLaborCategoryName(",,,," + category + ",");
+                        }
+
+
+                }
+
                 String var10000 = individualOnBoardDetailsByTrnId.getLocation();
                 String orgPath = var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
 
                 labor.setOrganizationPath(
-                        resolveOrganizationPath(orgPath)
-                );
+                resolveOrganizationPath(orgPath)
 
+                );
                 job.setPrimaryLaborAccounts(Arrays.asList(labor));
                 dto.setJobAssignment(job);
                 EmployeeRequestDTO.User user = new EmployeeRequestDTO.User();

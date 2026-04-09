@@ -133,6 +133,20 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+    @PostMapping({"/postLaborCategoriesEntry/{WORKORDERID}"})
+    public ResponseEntity<?> postLaborCategoriesEntry(@PathVariable String WORKORDERID) {
+        try {
+            String individualOnBoardDetailsByTrnId = this.employeeMapper.postToLaborCate(WORKORDERID);
+            if (individualOnBoardDetailsByTrnId != null && individualOnBoardDetailsByTrnId.equals("Labor category already in the WFD")) {
+                return new ResponseEntity("Labor Cate already in the WFD ", HttpStatus.BAD_REQUEST);
+            } else {
+                return individualOnBoardDetailsByTrnId != null ? new ResponseEntity(individualOnBoardDetailsByTrnId, HttpStatus.OK) : new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @PostMapping({"/postProfLevels/{gmId}"})
     public ResponseEntity<?> postProfLevels(@PathVariable Integer gmId) {
         try {

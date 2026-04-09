@@ -108,6 +108,7 @@ public class EmployeeRequestDTO {
         private String effectiveDate;
         private String expirationDate;
         private String organizationPath;
+        private String laborCategoryName;
     }
 
     @Data
