@@ -88,7 +88,7 @@ public class PrincipalEmployerDaoImpl implements PrincipalEmployerDao {
 			pe.setIsRcApplicable(rs.getString("ISRCAPPLICABLE"));
 			pe.setRcNumber(rs.getString("RCNUMBER"));
 			pe.setAttachmentNm(rs.getString("ATTACHMENTNM"));
-			pe.setStateId(rs.getInt("STATEID"));
+			pe.setStateNM(rs.getString("STATENM"));
 			pe.setIsActive(rs.getInt("ISACTIVE"));
 			
 			peList.add(pe);
@@ -128,7 +128,8 @@ public class PrincipalEmployerDaoImpl implements PrincipalEmployerDao {
 			pe.setIsRcApplicable(rs.getString("ISRCAPPLICABLE"));
 			pe.setRcNumber(rs.getString("RCNUMBER"));
 			pe.setAttachmentNm(rs.getString("ATTACHMENTNM"));
-			pe.setStateId(rs.getInt("STATEID"));
+			//pe.setStateId(rs.getInt("STATEID"));
+			pe.setStateNM(rs.getString("STATEID"));
 			pe.setIsActive(rs.getInt("ISACTIVE"));
 			
 		}
@@ -167,7 +168,8 @@ public class PrincipalEmployerDaoImpl implements PrincipalEmployerDao {
 			pe.setIsRcApplicable(rs.getString("ISRCAPPLICABLE"));
 			pe.setRcNumber(rs.getString("RCNUMBER"));
 			pe.setAttachmentNm(rs.getString("ATTACHMENTNM"));
-			pe.setStateId(rs.getInt("STATEID"));
+			//pe.setStateId(rs.getInt("STATEID"));
+			pe.setStateNM(rs.getString("STATENM"));
 			pe.setIsActive(rs.getInt("ISACTIVE"));
 			pe.setId(String.valueOf(rs.getInt("UNITID")));
 			pe.setDescription(rs.getString("NAME"));

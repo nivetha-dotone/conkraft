@@ -263,7 +263,7 @@ function redirectToPEAdd() {
                     <td >${cmSPRINCIPALEMPLOYER.isRcApplicable}</td>
                     <td >${cmSPRINCIPALEMPLOYER.rcNumber}</td>
                     <td >${cmSPRINCIPALEMPLOYER.attachmentNm}</td>
-                    <td >${cmSPRINCIPALEMPLOYER.stateId}</td>
+                    <td >${cmSPRINCIPALEMPLOYER.stateNM}</td>
                   <%--   <td >${cmSPRINCIPALEMPLOYER.ISACTIVE}</td> --%>
                     <%-- <td >${cmSPRINCIPALEMPLOYER.UPDATEDTM}</td>
                     <td >${cmSPRINCIPALEMPLOYER.UPDATEDBY}</td> --%>
