@@ -1593,5 +1593,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public List<Zone> getAllZonesBasedOnPE(String unitId){
 		return workmenDao.getAllZonesBasedOnPE(unitId);
 	}
+	@Override
+	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber) {
+	    return workmenDao.getWorkmenDetailsByAadhar(aadharNumber);
+	}
 	}
 

@@ -155,5 +155,7 @@ public interface WorkmenService {
 
 	public List<Zone> getAllZonesBasedOnPE(String unitId);
 
+	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber);
+
 	
 }	

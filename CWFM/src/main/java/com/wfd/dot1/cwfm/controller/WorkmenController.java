@@ -3200,37 +3200,73 @@ public class WorkmenController {
             @RequestParam(value = "gatePassId", required = false) String gatePassId,
             @RequestParam(value = "transactionId", required = false) String transactionId) {
 
-    	AadharCheckDto dto = workmenService.checkAadharUniqueness(aadharNumber, gatePassId, transactionId);
-    	String status=null;
-if (dto.getStatus().contains("Unique")) {
-	
-	String config = this.getVerhoeffConfig();
-	if("yes".equalsIgnoreCase(config)) {
-	  boolean valid = VerhoeffAlgorithm.validateVerhoeff(aadharNumber); 
-	  if(!valid)
-	  { 
-		  status = "Invalid"; 
-		  }
-	}
-	 
-}
-String dbStatus = dto.getStatus();
-String gatePassIds = dto.getGatePassIds();
+        Map<String, String> result = new HashMap<>(); // ✅ Declare FIRST
 
-if (dbStatus != null && 
-    !(dbStatus.equalsIgnoreCase("Unique") || dbStatus.equalsIgnoreCase("Invalid"))) {
+        AadharCheckDto dto = workmenService.checkAadharUniqueness(aadharNumber, gatePassId, transactionId);
 
-    status = "Aadhar already exists" + 
-             (gatePassIds != null && !gatePassIds.isBlank() 
-                 ? " with GatePassId(s): " + gatePassIds 
-                 : "");
-}
-        Map<String, String> result = new HashMap<>();
-        result.put("status", status);   // "Unique", "Exists_Gatepass_Draft", etc.
+        String status = null;
+
+        // ✅ 1. UNIQUE CHECK + VERHOEFF VALIDATION
+        if (dto.getStatus() != null && dto.getStatus().contains("Unique")) {
+
+            String config = this.getVerhoeffConfig();
+
+            if ("yes".equalsIgnoreCase(config)) {
+                boolean valid = VerhoeffAlgorithm.validateVerhoeff(aadharNumber);
+
+                if (!valid) {
+                    status = "Invalid";
+                }
+            }
+        }
+
+        String dbStatus = dto.getStatus();
+        String gatePassIds = dto.getGatePassIds();
+
+        // ✅ 2. AADHAR ALREADY EXISTS CASE
+        if (dbStatus != null &&
+            !(dbStatus.equalsIgnoreCase("Unique") || dbStatus.equalsIgnoreCase("Invalid"))) {
+
+            status = "Aadhar already exists" +
+                    (gatePassIds != null && !gatePassIds.isBlank()
+                            ? " with GatePassId(s): " + gatePassIds
+                            : "");
+
+            result.put("status", status);
+            return result; // 🔥 STOP here
+        }
+
+        // ✅ 3. INVALID CASE
+        if ("Invalid".equalsIgnoreCase(status)) {
+            result.put("status", status);
+            return result; // 🔥 STOP here
+        }
+
+        // ✅ 4. FETCH DATA FROM DB
+        Map<String, Object> workmenData = workmenService.getWorkmenDetailsByAadhar(aadharNumber);
+
+        if (workmenData != null && !workmenData.isEmpty()) {
+
+            result.put("status", "FOUND");
+
+            result.put("firstName", String.valueOf(workmenData.get("FirstName")));
+            result.put("lastName", String.valueOf(workmenData.get("LastName")));
+            result.put("relativeName", String.valueOf(workmenData.get("RelativeName")));
+            result.put("dob", String.valueOf(workmenData.get("DOB")));
+            result.put("gender", String.valueOf(workmenData.get("Gender")));
+            result.put("mobileNumber", String.valueOf(workmenData.get("MobileNumber")));
+            result.put("maritalStatus", String.valueOf(workmenData.get("MaritalStatus")));
+            result.put("disability", String.valueOf(workmenData.get("disability")));
+            result.put("workmenType", String.valueOf(workmenData.get("WorkmenType")));
+            result.put("address", String.valueOf(workmenData.get("Address")));
+
+        } 
+//        else {
+//            result.put("status", "No Data Found");
+//        }
 
         return result;
     }
-
     
     //projectOnboardingList
     @GetMapping("/projectOnboardingList")

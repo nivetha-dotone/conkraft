@@ -2789,9 +2789,17 @@ public class FileUploadServiceImpl implements FileUploadService {
 			                  "error", "SAPVendorCode is mandatory for Contractor roles"));
 		        	 continue;
 		        }
+		        
+		     Map<String, Long> orgDefMap = fileUploadDao.getAllOrgLevelDefIds();
+
+		     // Resolve required IDs once
+		     Long plantDefId = findDefId(orgDefMap, "principal");
+		     Long deptDefId = findDefId(orgDefMap, "dept");
+		     Long areaDefId = findDefId(orgDefMap, "area");
+		     Long contractorDefId = findDefId(orgDefMap, "contractor");
 		    
 		  // ✅ 4. plant VALIDATION
-		        Long plantId = fileUploadDao.getOrgLevelEntryId(plantCode);
+		        Long plantId = fileUploadDao.getOrgLevelEntryId(plantCode,plantDefId);
              if (plantId == null || plantId == 0) {
              	 errorData.add(Map.of("row", rowNum,
 		                    "error", "Plant not found: " + plantCode));
@@ -2799,7 +2807,7 @@ public class FileUploadServiceImpl implements FileUploadService {
              }
              
 		     // ✅ 5. department VALIDATION
-		        Long departmentId = fileUploadDao.getOrgLevelEntryId(department);
+		        Long departmentId = fileUploadDao.getOrgLevelEntryId(department,deptDefId);
                 if (departmentId == null || departmentId == 0) {
                 	 errorData.add(Map.of("row", rowNum,
  		                    "error", "Department not found: " + department));
@@ -2808,7 +2816,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
                 // ✅ 6. area VALIDATION
               
-                Long  areaId = fileUploadDao.getOrgLevelEntryId(area);
+                Long  areaId = fileUploadDao.getOrgLevelEntryId(area,areaDefId);
                     if (areaId == null || areaId == 0) {
                     	 errorData.add(Map.of("row", rowNum,
      		                    "error", "Area not found: " + area));
@@ -2862,7 +2870,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 				  // OPTIONAL → SAP Vendor Code
 				  if (SAPVendorCode != null && !SAPVendorCode.trim().isEmpty()) {
 
-				      Long contractorId = fileUploadDao.getOrgLevelEntryId(SAPVendorCode.trim());
+				      Long contractorId = fileUploadDao.getOrgLevelEntryId(SAPVendorCode.trim(),contractorDefId);
 
 				      if (contractorId != null) {
 				          orgEntryIds.add(contractorId);
@@ -2920,5 +2928,12 @@ public class FileUploadServiceImpl implements FileUploadService {
 
 		    return result;
 		}  
-	 
+	 private Long findDefId(Map<String, Long> map, String keyword) {
+
+		    return map.entrySet().stream()
+		            .filter(e -> e.getKey().contains(keyword.toLowerCase()))
+		            .map(Map.Entry::getValue)
+		            .findFirst()
+		            .orElse(null);
+		}
 }

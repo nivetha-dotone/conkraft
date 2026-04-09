@@ -248,4 +248,6 @@ public interface WorkmenDao {
 
 	Map<String, Integer> getPlantCounts(String unitId);
 	public List<Zone> getAllZonesBasedOnPE(String unitId);
+
+	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber);
 }

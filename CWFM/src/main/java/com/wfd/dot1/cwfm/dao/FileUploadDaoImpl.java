@@ -13,6 +13,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -2207,16 +2208,17 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    return QueryFileWatcher.getQuery("FETCH_ORGLEVELENTRYID");
 	    }
 		@Override
-		public Long getOrgLevelEntryId(String name) {
+		public Long getOrgLevelEntryId(String name, Long orgLevelDefId) {
 
-		    //String sql = "SELECT ORGLEVELENTRYID FROM ORGLEVELENTRY WHERE LOWER(NAME) = LOWER(?)";
+			//String sql = "SELECT ORGLEVELENTRYID FROM ORGLEVELENTRY WHERE NAME = ? AND ORGLEVELDEFID = ?";
 			String  sql = getOrgLevelEntryId();
-		    try {
-		        return jdbcTemplate.queryForObject(sql, new Object[]{name}, Long.class);
-		    } catch (Exception e) {
-		        return null; // not found
-		    }
+			 try {
+			        return jdbcTemplate.queryForObject(sql,new Object[]{name.trim(), orgLevelDefId},Long.class);
+			    } catch (Exception e) {
+			        return null; // not found
+			    }
 		}
+	
 		@Override
 		public Long insertUserOrgAccountSet(String userAccount) {
 			String query=saveorgacctset();
@@ -2270,5 +2272,28 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		            new Object[]{orgSetId},
 		            (rs, rowNum) -> rs.getLong("ORGLEVELENTRYID")
 		    );
+		}
+		public String getOrgLevelDefIds() {
+		    return QueryFileWatcher.getQuery("GET_ALL_ORG_LEVEL_DEFID");
+	    }
+		
+		@Override
+		public Map<String, Long> getAllOrgLevelDefIds() {
+
+		    //String sql = "SELECT ORGLEVELDEFID, NAME FROM ORGLEVELDEF";
+
+		    String sql =getOrgLevelDefIds();
+		    return jdbcTemplate.query(sql, rs -> {
+		        Map<String, Long> map = new HashMap<>();
+
+		        while (rs.next()) {
+		            String name = rs.getString("NAME");
+
+		            if (name != null) {
+		                map.put(name.toLowerCase().trim(), rs.getLong("ORGLEVELDEFID"));
+		            }
+		        }
+		        return map;
+		    });
 		}
 	}

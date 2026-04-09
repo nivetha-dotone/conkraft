@@ -392,17 +392,32 @@ function initializeDatePicker() {
 		 				     success: function (response) {
 
 		 						let status = response.status ? response.status.trim() : '';
-		 						if (status !== "Invalid" && status !== "") {
+		 						if (status !== "Invalid" && status !== "" && status !== "FOUND") {
 		 						    $("#error-aadhar").text(status).show();
 		 						    aadharCheckPassed = false;
 		 						} else if (status === "Invalid") {
 		 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
 		 						    aadharCheckPassed = false;
-		 						} else {
+		 						}else if (status === "FOUND") {
+
+                          $("#error-aadhar").hide();
+
+                          $("#firstName").val(response.firstName || "");
+                          $("#lastName").val(response.lastName || "");
+                          $("#relationName").val(response.relativeName || "");
+                          $("#dateOfBirth").val(response.dob || "");
+                          $("#gender").val(response.gender || "");
+                          $("#mobileNumber").val(response.mobileNumber || "");
+                          $("#maritalStatus").val(response.maritalStatus || "");
+                          $("#disability").val(response.disability || "");
+                          $("#workmenType").val(response.workmenType || "");
+                          $("#address").val(response.address || "");
+
+                           aadharCheckPassed = true;
+                      } else {
 		 						    $("#error-aadhar").hide();
 		 						    aadharCheckPassed = true;
 		 						}
-
 		 				     },
 		 				     error: function () {
 		 				         $("#error-aadhar").text("Unable to verify Aadhaar").show();
@@ -4160,13 +4175,29 @@ if(valid){
 				     success: function (response) {
 
 						let status = response.status ? response.status.trim() : '';
-						if ( status !== "Invalid" && status !== "") {
+						if ( status !== "Invalid" && status !== "" && status !== "FOUND") {
 						    $("#error-aadhar").text(status).show();
 						    aadharCheckPassed = false;
 						} else if (status === "Invalid") {
 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
 						    aadharCheckPassed = false;
-						} else {
+						} else if (status === "FOUND") {
+
+                          $("#error-aadhar").hide();
+
+                          $("#firstName").val(response.firstName || "");
+                          $("#lastName").val(response.lastName || "");
+                          $("#relationName").val(response.relativeName || "");
+                          $("#dateOfBirth").val(response.dob || "");
+                          $("#gender").val(response.gender || "");
+                          $("#mobileNumber").val(response.mobileNumber || "");
+                          $("#maritalStatus").val(response.maritalStatus || "");
+                          $("#disability").val(response.disability || "");
+                          $("#workmenType").val(response.workmenType || "");
+                          $("#address").val(response.address || "");
+
+                           aadharCheckPassed = true;
+                      }else {
 						    $("#error-aadhar").hide();
 						    aadharCheckPassed = true;
 						}
@@ -4472,13 +4503,29 @@ function aadharValidation(){
 			 				     success: function (response) {
 
 			 						let status = response.status ? response.status.trim() : '';
-			 						if ( status !== "Invalid" && status !== "") {
+			 						if ( status !== "Invalid" && status !== "" && status !== "FOUND") {
 			 						    $("#error-aadhar").text(status).show();
 			 						    aadharCheckPassed = false;
 			 						} else if (status === "Invalid") {
 			 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
 			 						    aadharCheckPassed = false;
-			 						} else {
+			 						} else if (status === "FOUND") {
+
+                          $("#error-aadhar").hide();
+
+                          $("#firstName").val(response.firstName || "");
+                          $("#lastName").val(response.lastName || "");
+                          $("#relationName").val(response.relativeName || "");
+                          $("#dateOfBirth").val(response.dob || "");
+                          $("#gender").val(response.gender || "");
+                          $("#mobileNumber").val(response.mobileNumber || "");
+                          $("#maritalStatus").val(response.maritalStatus || "");
+                          $("#disability").val(response.disability || "");
+                          $("#workmenType").val(response.workmenType || "");
+                          $("#address").val(response.address || "");
+
+                           aadharCheckPassed = true;
+                      }else {
 			 						    $("#error-aadhar").hide();
 			 						    aadharCheckPassed = true;
 			 						}

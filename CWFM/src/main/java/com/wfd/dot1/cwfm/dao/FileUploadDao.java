@@ -220,7 +220,7 @@ public interface FileUploadDao {
 
 	void updateuserImport(UserImport user, Integer userId, List<Long> roleIds);
 
-	Long getOrgLevelEntryId(String department);
+	Long getOrgLevelEntryId(String department, Long plantDefId);
 
 	Long insertUserOrgAccountSet(String userAccount);
 
@@ -230,4 +230,5 @@ public interface FileUploadDao {
 
 	List<Long> getExistingOrgMappings(Long orgSetId);
 
+	Map<String, Long> getAllOrgLevelDefIds();
 }

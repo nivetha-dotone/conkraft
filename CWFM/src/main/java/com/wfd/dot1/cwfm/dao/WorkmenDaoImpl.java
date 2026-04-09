@@ -4050,4 +4050,19 @@ public List<Zone> getAllZonesBasedOnPE(String unitId){
 	log.info("Exiting from getAllTradesBasedOnPE dao method "+zoneList.size());
 	return zoneList;
 }
+public String getWorkmenDetailsByAadhar() {
+	return QueryFileWatcher.getQuery("GET_BASIC_DETAILS_ON_AADHAR");
+}
+@Override
+public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber) {
+
+	String sql = getWorkmenDetailsByAadhar();
+//    String sql = "SELECT FirstName, LastName, RelativeName, DOB, Gender, " +
+//                 "MobileNumber, MaritalStatus, disability, WorkmenType, Address " +
+//                 "FROM GATEPASSMAIN WHERE AadharNumber = ? and GatePassTypeId=9 and GatePassStatus=4";
+
+    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, aadharNumber);
+
+    return list.isEmpty() ? null : list.get(0);
+}
 }
