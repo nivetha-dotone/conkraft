@@ -187,26 +187,36 @@ public class WfdEmployeeService {
     public String createLaborCatInWFD(PostLaborCatDTO dto) {
         try {
 
-            ArrayList addList = new ArrayList();
+            ArrayList<PostLaborCatDTO> addList = new ArrayList<>();
             addList.add(dto);
 
             String jsonBody = this.objectMapper.writeValueAsString(addList);
             String accessToken = this.wfdAuthService.getAccessToken();
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
-            String var10000 = this.getHostName();
-            String url = var10000 + this.getCreateLaborCatEntryUrl();
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
-            return (String)response.getBody();
+
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            String url = this.getHostName() + this.getCreateLaborCatEntryUrl();
+
+            ResponseEntity<String> response = this.restTemplate.exchange(
+                    url, HttpMethod.POST, entity, String.class);
+
+
+            if (response.getStatusCode() == HttpStatus.OK) {
+                return "SUCCESS:" + response.getBody();
+            } else {
+                return "FAILED:" + response.getBody();
+            }
+
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            return ((HttpStatusCodeException)e).getResponseBodyAsString();
+            return "FAILED:" + e.getResponseBodyAsString();
         } catch (Exception e) {
-            return "Error while creating labor categories: " + e.getMessage();
+            return "FAILED:" + e.getMessage();
         }
     }
-
     public String createProfInWFD(ProficiencyDTO dto) {
         try {
             String jsonBody = this.objectMapper.writeValueAsString(dto);

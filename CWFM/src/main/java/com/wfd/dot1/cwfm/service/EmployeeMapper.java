@@ -651,28 +651,28 @@ public class EmployeeMapper {
                 labor.setExpirationDate("3000-01-01");
 
                 boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
+                System.out.println(b +" :- avaiable to set");
                 if(b){
 
                     String category = individualOnBoardDetailsByTrnId.getCategory();
+                    System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(",,,," + category + ",");
+                        labor.setLaborCategoryName(category +",,,,,");
+                        System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
                 }else{
                     PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
-                    String response = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
-
-
+                    String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
+                    if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
-
                         if (category != null && !category.isEmpty()) {
-                            labor.setLaborCategoryName(",,,," + category + ",");
+                            labor.setLaborCategoryName(category + ",,,,,");
                         }
-
-
+                    }
                 }
-
+                System.out.println(labor.getLaborCategoryName() +" :- final set json");
                 String var10000 = individualOnBoardDetailsByTrnId.getLocation();
                 String orgPath = var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
 
