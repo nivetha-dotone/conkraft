@@ -254,7 +254,7 @@ function downloadErrorCSV(errorData, uploadedFileName) {
 
         switch (selectedText.toLowerCase()) {
             case "data-general master":
-                headers = ["GM Name", "GM Description", "GM Type ID"];
+                headers = ["GM Name", "GM Description", "GM Type"];
                 break;
 
             case "data-minimum wage":
@@ -526,8 +526,8 @@ const tableBody = document.getElementById("tableBody");
     let fieldMap = [];
 
         if (templateType === "Data-General Master") {
-            headers = ["GM Name", "GM Description", "GM Type ID"];
-            fieldMap = ["gmName", "gmDescription", "gmTypeId"];
+            headers = ["GM Name", "GM Description", "GM Type"];
+            fieldMap = ["gmName", "gmDescription", "gmType"];
         }
         else if (templateType === "Data-Minimum Wage") {
             headers = ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date"];
@@ -860,7 +860,7 @@ function getHeadersByTemplate(selectedText) {
     switch (selectedText.toLowerCase()) {
 		
         case "data-general master":
-            return ["GM Name", "GM Description", "GM Type ID"];
+            return ["GM Name", "GM Description", "GM Type"];
             
         case "data-minimum wage":
             return ["Unit Code", "State Name", "Zone Name", "Skill Name", "Basic", "DA","Other Allowances","From Date"];

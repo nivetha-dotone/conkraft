@@ -231,4 +231,8 @@ public interface FileUploadDao {
 	List<Long> getExistingOrgMappings(Long orgSetId);
 
 	Map<String, Long> getAllOrgLevelDefIds();
+
+	Integer getGmTypeId(String gmType);
+
+	boolean isGmNameGmTypeExists(String gmName, Integer gmTypeId);
 }

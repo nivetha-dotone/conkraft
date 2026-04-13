@@ -499,7 +499,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
     public String getCSVHeaders(String templateType) {
         switch (templateType) {
             case "Data-General Master":
-                return "GM Name,GM Description,GM Type ID\n";
+                return "GM Name,GM Description,GM Type\n";
 
             case "Data-Principal Employer":
                 return "Organization,Plant Code,Name,Address,Manager Name,Manager Address,Business Type,Max Workmen,Max Contract Workmen,BOCW Applicability,"
@@ -2296,4 +2296,26 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        return map;
 		    });
 		}
+		public String getGmTypeIdBasedOnGmType() {
+		    return QueryFileWatcher.getQuery("GET_GMTYPEID");
+	    }
+		public String isGmNameGmTypeExists() {
+		    return QueryFileWatcher.getQuery("CHECK_GMNAME_EXISTS");
+	    }
+		 @Override
+		 public Integer getGmTypeId(String gmType) {
+			    if (gmType == null || gmType.trim().isEmpty()) return null;
+			    String sql=getGmTypeIdBasedOnGmType();
+			    //String sql = "select GMTYPEID from CMSGMTYPE where GMTYPE = ?";
+			    List<Integer> result = jdbcTemplate.query(sql, new Object[]{gmType.trim()},
+			        (rs, rowNum) -> rs.getInt("GMTYPEID"));
+			    return result.isEmpty() ? null : result.get(0);
+			}
+		 @Override
+			public boolean isGmNameGmTypeExists(String gmName, Integer gmTypeId) {
+		    	String sql=isGmNameGmTypeExists();
+				// String sql = "select count (*) from CMSGENERALMASTER where GMNAME=? and GMTYPEID =?";
+				    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gmName,gmTypeId);
+				    return count != null && count > 0;
+			}
 	}

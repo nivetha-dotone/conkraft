@@ -1232,10 +1232,20 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 	        documentValid = false;
 	         hideLoader();
 	    }
-	    if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+	    // Check if already file exists in UI (from folder)
+var existingAadhar = $("#aadharFileName").text().trim();
+var existingPolice = $("#policeFileName").text().trim();
+var existingProfile = $("#imageFileName").text().trim();
+var existingAppointment = $("#appointmentFileName").text().trim();
+
+if (!validateFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
+    documentValid = false;
+    hideLoader();
+}
+	    /*if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
         documentValid = false; // Stop the upload if validation fails
         hideLoader();
-    }
+    }*/
 	}
 	if(type=== "regular"){
         if (!validateOtherInformation()) {
@@ -1384,8 +1394,15 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 		data.append("jsonData", jsonString);
 
         if (aadharFile) data.append("aadharFile", aadharFile);
+        var existingProfile = $("#imageFileName").text().trim();
+
+if (profilePic) {
+    data.append("profilePic", profilePic);
+} else if (existingProfile) {
+    data.append("existingProfile", existingProfile); // ✅ send old name
+}
         if (policeFile) data.append("policeFile", policeFile);
-		if(profilePic) data.append("profilePic",profilePic);
+		//if(profilePic) data.append("profilePic",profilePic);
        if (appointmentFile) {
     data.append("appointmentFile", appointmentFile);
 } else {
@@ -1402,6 +1419,30 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
                 data.append('documentTypes', docType);
             }
         });
+
+
+let remainingDocTypes = [];
+
+additionalFields.forEach((field) => {
+
+    const docType = field.querySelector('select[name="documentType"]').value;
+    const fileInput = field.querySelector('input[type="file"]');
+
+    if (docType && docType.trim() !== "") {
+
+        // ✅ Track ALL docTypes (even without file)
+        remainingDocTypes.push(docType.trim().toLowerCase());
+
+        // ✅ Only send file if newly selected
+        if (fileInput.files[0]) {
+            data.append('additionalFiles', fileInput.files[0]);
+            data.append('documentTypes', docType);
+        }
+    }
+});
+
+// ✅ VERY IMPORTANT (missing in your code)
+data.append("remainingDocTypes", JSON.stringify(remainingDocTypes));
 
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/CWFM/contractworkmen/saveGatePass", true);
@@ -1480,15 +1521,11 @@ function viewDoc(transactionId, userId, docType) {
         });
 }
 
+function additionalDocUpload(selectedType = "", existingFileName = "") {
 
-
-
-//let divIndex = 0;
-
-function additionalDocUpload() {
     const currentCount = $(".document-field").length;
     if (currentCount >= 7) {
-        alert("You can add a maximum of 7 additional documents.");
+        alert("Max 7 documents allowed");
         return;
     }
 
@@ -1499,36 +1536,53 @@ function additionalDocUpload() {
         "Education", "Training", "Form11"
     ];
 
-    // Generate options dynamically while avoiding already selected ones
+    // ✅ GET ALREADY SELECTED VALUES
     const selectedValues = $(".document-field select").map(function () {
         return $(this).val();
     }).get();
 
     let optionsHtml = '<option value="">Select Document Type</option>';
-    docOptions.forEach(function (opt) {
-        if (!selectedValues.includes(opt)) {
-            optionsHtml += '<option value="' + opt + '">' + opt + '</option>';
+
+    docOptions.forEach(opt => {
+        // ✅ ALLOW if not selected OR same as current selectedType (for edit)
+        if (!selectedValues.includes(opt) || opt === selectedType) {
+            optionsHtml += `<option value="${opt}" ${opt === selectedType ? 'selected' : ''}>${opt}</option>`;
         }
     });
 
-    // Unique IDs for the new row
     const fileNameId = 'fileName-' + divIndex;
 
-    const newField = `
-        <div class="document-field" id="document-field-${divIndex}" style="display: flex; align-items: center; margin-bottom: 10px;">
-            <select name="documentType" onchange="updateDocTypeDropdowns()" style="margin-right: 10px;color:black;">
+    const html = `
+        <div class="document-field" id="document-field-${divIndex}" 
+             style="margin-bottom:10px; display:flex; align-items:center;">
+
+            <select name="documentType" 
+                    onchange="updateDocTypeDropdowns()" 
+                    style="margin-right: 10px;color:black;">
                 ${optionsHtml}
             </select>
-            <input type="file" accept="application/pdf,image/jpeg,image/png" style="margin-right: 10px;" onchange="displayFileName(this, '${fileNameId}')">
-            <span id="${fileNameId}" style="margin-right: 10px;color:black;"></span>
-            <button type="button" onclick="removeDocument(${divIndex})" style="color:black;">Remove</button>
+
+            <input type="file"
+                   accept="application/pdf,image/jpeg,image/png"
+                   onchange="displayFileName(this,'${fileNameId}')"
+                   style="margin-right:10px;">
+
+            <!-- ✅ EXISTING FILE NAME -->
+            <span id="${fileNameId}" style="color:black;">
+                ${existingFileName || ""}
+            </span>
+
+            <button type="button" onclick="removeDocument(${divIndex})" style="color:black;">
+                Remove
+            </button>
         </div>
     `;
 
-    $("#additionalDoc").append(newField);
-    updateDocTypeDropdowns(); // Refresh all dropdowns to disable already-selected options
-}
+    $("#additionalDoc").append(html);
 
+    // ✅ VERY IMPORTANT
+    updateDocTypeDropdowns();
+}
 function removeDocument(index) {
     $(`#document-field-${index}`).remove();
     updateDocTypeDropdowns(); // Update dropdowns after removal
@@ -2915,6 +2969,10 @@ function previewImage(event, inputId, displayId) {
 										}
 								function draftGatePass(userId) {
 									showLoader();
+									 var aadharFile = $("#aadharFile").prop("files")[0];
+                                     var policeFile = $("#policeFile").prop("files")[0];
+	                                 var profilePic = $("#imageFile").prop("files")[0];
+	                                 var appointmentFile = $("#appointmentFile").prop("files")[0];
 											    // ✅ Utility function for Capital Case
                                                    function toCapitalCase(str) {
                                                      return str
@@ -2997,6 +3055,49 @@ function previewImage(event, inputId, displayId) {
 
 												// Append the JSON data to FormData
 												data.append("jsonData", jsonString);
+												 // ✅ AADHAR
+                                                 if (aadharFile) {
+                                                    data.append("aadharFile", aadharFile);
+                                                  }
+
+                                               // ✅ POLICE
+                                               if (policeFile) {
+                                                   data.append("policeFile", policeFile);
+                                                }
+
+                                              // ✅ PROFILE
+                                                if (profilePic) {
+                                                   data.append("profilePic", profilePic);
+                                                 }
+
+                                                // ✅ APPOINTMENT
+                                              if (appointmentFile) {
+                                                  data.append("appointmentFile", appointmentFile);
+                                                }
+                                           const additionalFields = document.querySelectorAll('.document-field');
+                                             additionalFields.forEach((field) => {
+                                             const docType = field.querySelector('select[name="documentType"]').value;
+                                             const fileInput = field.querySelector('input[type="file"]');
+                                               if (docType && fileInput.files[0]) {
+                                                data.append('additionalFiles', fileInput.files[0]);
+                                                data.append('documentTypes', docType);
+                                                }
+                                              });
+                                             // ✅ COLLECT REMAINING DOC TYPES
+                                          const remainingDocTypes = [];
+
+                                            document.querySelectorAll('.document-field').forEach(field => {
+                                              const docType = field.querySelector('select[name="documentType"]').value;
+
+                                                   if (docType && docType.trim() !== "") {
+                                                   remainingDocTypes.push(docType.trim().toLowerCase());
+                                                     }
+                                                    });
+
+                                                   console.log("Remaining Doc Types:", remainingDocTypes);
+
+                                          data.append("remainingDocTypes", JSON.stringify(remainingDocTypes));
+                                                
 										   const xhr = new XMLHttpRequest();
 										        xhr.open("POST", "/CWFM/contractworkmen/draftGatePass", true);
 
@@ -3027,7 +3128,7 @@ function previewImage(event, inputId, displayId) {
 										    } 
 											
 												
-												function redirectToWorkmenEdit() {
+												/*function redirectToWorkmenEdit() {
 											    var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 											    if (selectedCheckboxes.length !== 1) {
 											        alert("Please select exactly one row to view.");
@@ -3052,7 +3153,70 @@ function previewImage(event, inputId, displayId) {
 											    };
 											    xhr.open("GET", "/CWFM/contractworkmen/getDraftDetails/" + transactionId, true);
 											    xhr.send();
-											}
+											}*/
+						function redirectToWorkmenEdit() {
+
+    var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+
+    if (selectedCheckboxes.length !== 1) {
+        alert("Please select exactly one row to view.");
+        return;
+    }
+
+    var selectedRow = selectedCheckboxes[0].closest('tr');
+    var transactionId = selectedRow.querySelector('[name="selectedWOs"]').value;
+
+    var gatePassType = selectedRow.cells[7].innerText.trim();
+    var status = selectedRow.cells[9].innerText.trim();
+
+    if (gatePassType.toLowerCase() !== "create" || status.toLowerCase() !== "draft") {
+        alert("Edit is only allowed when Gate Pass Type is 'Create' and Status is 'Draft'.");
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            // ✅ Load JSP
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+
+            setDateRange();
+
+            // 🔥 FORCE EXECUTION OF JSP SCRIPTS
+           setTimeout(function () {
+
+    const scripts = document
+        .getElementById("mainContent")
+        .getElementsByTagName("script");
+
+    for (let i = 0; i < scripts.length; i++) {
+        try {
+            eval(scripts[i].innerText);
+        } catch (e) {
+            console.error("Script error:", e);
+        }
+    }
+
+                // ✅ LOAD PROFILE PREVIEW
+                loadProfilePreview(window.profileFileFromJsp,window.userIdFromJsp,window.transactionIdFromJsp);
+                // ✅ NOW VARIABLE WILL EXIST
+                if (window.additionalFileMapFromJsp) {
+                    renderAdditionalDocuments(window.additionalFileMapFromJsp);
+                } 
+               /* else {
+                    console.log("Map still not found");
+                }*/
+
+            }, 200);
+        }
+    };
+
+    xhr.open("GET", "/CWFM/contractworkmen/getDraftDetails/" + transactionId, true);
+    xhr.send();
+}
 											function searchRenew() {
 											var principalEmployerId = $('#principalEmployerId').val();
 
@@ -3695,7 +3859,7 @@ function validatePfForm11Requirement() {
   
 
 
-let cameraStream = null;
+var cameraStream = null;
 
 function previewImage(event, inputId, fileNameSpanId) {
     const input = document.getElementById(inputId);
@@ -5581,4 +5745,45 @@ function getZones(unitId) {
     };
 
     xhr.send();
+}
+function openFile(inputId) {
+    document.getElementById(inputId).click();
+}
+
+function renderAdditionalDocuments(map) {
+
+    console.log("Rendering Additional Docs:", map);
+
+    $("#additionalDoc").empty();
+
+    if (map && Object.keys(map).length > 0) {
+
+        Object.entries(map).forEach(([key, value]) => {
+
+            let formattedType =
+                key.charAt(0).toUpperCase() + key.slice(1);
+
+            additionalDocUpload(formattedType, value);
+        });
+    }
+}
+function loadProfilePreview(profileFileName, userId, transactionId) {
+
+    console.log("Profile:", profileFileName);
+
+    if (!profileFileName || profileFileName === "null" || profileFileName === "") {
+        return;
+    }
+
+    // ✅ ENCODE FILE NAME (fix for spaces/special chars)
+    var imagePath = "/CWFM/contractworkmen/getProfileImage?userId=" + userId +
+                    "&transactionId=" + transactionId +
+                    "&fileName=" + encodeURIComponent(profileFileName);
+
+    let previewDiv = document.getElementById("preview");
+
+    if (previewDiv) {
+        previewDiv.innerHTML =
+            '<img src="' + imagePath + '" style="width:100%; height:100%; object-fit:cover;" />';
+    }
 }

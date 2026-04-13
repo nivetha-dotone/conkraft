@@ -1060,6 +1060,7 @@ textarea {
                     <tr>
                 		<td style="color:black"><spring:message code="label.profilePhoto"/></td>
                 <td>
+                  <%--  <a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','${GatePassObj.photoName }')">Download Photo</a> --%>
                    <a href="#" onclick="viewDoc('${GatePassObj.transactionId}','${GatePassObj.createdBy }','${GatePassObj.photoName }')">Download Photo</a>
                 </td>
             		</tr> 

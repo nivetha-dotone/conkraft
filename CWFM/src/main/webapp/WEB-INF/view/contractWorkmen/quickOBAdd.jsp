@@ -653,6 +653,8 @@ label {
     flex-shrink: 0;
      overflow: hidden;
 }
+
+
     </style>
      <%
     MasterUser user = (MasterUser) session.getAttribute("loginuser");
@@ -771,8 +773,8 @@ label {
            maxDate: today,
            yearRange: `${sixMonthsAgo.getFullYear()}:${today.getFullYear()}`
        });
-       </script>
        
+</script>
 </head>
 <body>
         <!-- <div >
@@ -1701,8 +1703,9 @@ class="btn btn-default"
   </div>
 
   <!-- File Name Display -->
-  <span id="imageFileName" style="margin-left: 10px; color: black;"></span>
-
+<span id="imageFileName" style="margin-left: 10px; color: black;">
+    <c:out value="${fileMap['profile']}" default=""/>
+</span>
   <!-- Webcam Stream -->
   <video id="webcam" autoplay playsinline style="width: 200px; display: none; border: 1px solid gray; margin-top: 10px;"></video>
 
@@ -1718,39 +1721,44 @@ class="btn btn-default"
   <!-- Error Display -->
   <div id="profilePcError"></div>
 </td></tr>
-<tr>
-
-						
-                		<td>
-                		 	<label for="aadharFile"><span class="required-field">*</span><spring:message code="label.uploadAadharCard"/></label>
-       					 	<input type="file" id="aadharFile" name="aadharFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('aadharFile', 'aadharFileName')">
-       					 	  <span id="aadharFileName" style="margin-left: 10px;color:black;"></span> 
-        					<div id="aadharError"></div> <!-- Error message for Aadhar file -->
-                		</td>
+           
+                <tr>
+                	<td>
+                        <label for="aadharFile"><span class="required-field">*</span><spring:message code="label.uploadAadharCard"/></label>
+                         <input type="file" id="aadharFile" name="aadharFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('aadharFile','aadharFileName')" />
+                            <span id="aadharFileName" style="margin-left:10px;color:black;">
+                                   <c:out value="${fileMap['aadhar']}" default=""/>
+                            </span>
+                        <div id="aadharError"></div> 
+                   </td>
                 		<td>
                 		 	<label for="appointmentFile"><span class="required-field">*</span><spring:message code="label.uploadappointmentCard"/></label>
        					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
-       					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;"></span> 
+       					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;">
+       					 	   <c:out value="${fileMap['appointment']}" default=""/>
+       					 	   </span> 
         					<div id="appointmentError"></div> <!-- Error message for Aadhar file -->
                 		</td>
-                </tr>  		
-           <tr>
+                </tr>  	
+               <tr>
                 	  <td>
                 			<label for="policeFile"><span class="required-field">*</span><spring:message code="label.uploadPoliceVerificationReport"/></label> 
                 			<input type="file"	id="policeFile" name="policeFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('policeFile', 'policeFileName')">
-                			  <span id="policeFileName" style="margin-left: 10px;color:black;"></span> 
+                			  <span id="policeFileName" style="margin-left: 10px;color:black;">
+                			  <c:out value="${fileMap['police']}" default=""/>
+                			  </span> 
 							<div id="policeError"></div> <!-- Error message for Police file -->
 						</td>
 						
 					
                          <td><label for="policeDate"><span class="required-field">*</span><spring:message code="label.policeVerificationDate"/></label>
-                        <input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  >
-                        	<%-- <c:if test="${ empty GatePassObj.policeVerificationDate }">
+                        <!-- <input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  > --> 
+                        	 <c:if test="${ empty GatePassObj.policeVerificationDate }">
                         		<input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  >
                         	</c:if>    				
     						<c:if test="${ not empty GatePassObj.policeVerificationDate }">
                         		<input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"    value="${ GatePassObj.policeVerificationDate}" autocomplete="off">
-                        	</c:if> --%>
+                        	</c:if> 
                         	<!-- <div style="text-align:center;">
                                     <span style="color: #666; font-size: 11px;">Within Last 1 Year from Today</span>
                                 </div> -->
@@ -1760,13 +1768,16 @@ class="btn btn-default"
             		</tr>
             		
             		
-            		<tr><td>
+            		 <tr><td>
             		<a href="#" id="add_field_button" onclick="additionalDocUpload()"><spring:message code="label.addDocument"/></a>
             		<label>You can add a maximum of 7 additional documents.</label>
             		<div id="form11-error-message" style="color: red; display: none; margin-top: 5px; font-weight: bold "></div>
             		
             		</td>
-            		<td><div id="additionalDoc" ></div></td></tr>
+            		<td><div id="additionalDoc" ></div>
+            		</td></tr> 
+ 
+
       		
         
         <tr>
@@ -1888,8 +1899,22 @@ String token = (String) request.getAttribute("token");
 
     </div>
   </div>
+  <script>
+    window.profileFileFromJsp = "<c:out value='${fileMap.profile}' default=''/>";
+    window.userIdFromJsp = "<c:out value='${sessionScope.loginuser.userId}'/>";
+    window.transactionIdFromJsp = "<c:out value='${transactionId}'/>";
+</script>
+  <script>
+    window.additionalFileMapFromJsp = {};
 
+    <c:if test="${not empty additionalFileMap}">
+        <c:forEach var="entry" items="${additionalFileMap}">
+            window.additionalFileMapFromJsp["${entry.key}"] = "${entry.value}";
+        </c:forEach>
+    </c:if>
 
+    console.log("JSP Map Loaded:", window.additionalFileMapFromJsp);
+</script>
 <style>
         p {
             margin: 0

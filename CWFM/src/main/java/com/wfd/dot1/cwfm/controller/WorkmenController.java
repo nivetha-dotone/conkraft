@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -23,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -378,57 +381,112 @@ public class WorkmenController {
     
     private static final String ROOT_DIRECTORY = "D:/wfd_cwfm/ep_docs/";
 
-    public String uploadDocuments( MultipartFile aadharFile,
-                                         MultipartFile policeFile,
-                                         MultipartFile profilePic,
-                                         MultipartFile appointmentFile,
-                                         String userId,
-                                         String gatePassId) {
+//    public String uploadDocuments( MultipartFile aadharFile,
+//                                         MultipartFile policeFile,
+//                                         MultipartFile profilePic,
+//                                         MultipartFile appointmentFile,
+//                                         String userId,
+//                                         String gatePassId) {
+//
+//        // Create directory path
+//        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
+//        
+//        try {
+//            // Ensure the directory exists, if not create it
+//            Path path = Paths.get(directoryPath);
+//            if (!Files.exists(path)) {
+//                Files.createDirectories(path);
+//            }
+//
+//            // Save Aadhar PDF
+//            if (!aadharFile.isEmpty()) {
+//            	  String ext = getExtension(aadharFile);
+//                String aadharFilePath = directoryPath + "aadhar"+ext;
+//                saveFile(aadharFile, aadharFilePath);
+//            }
+//
+//            // Save Police Verification PDF
+//            if (!policeFile.isEmpty()) {
+//            	String ext = getExtension(policeFile);
+//                String policeFilePath = directoryPath + "police"+ext;
+//                saveFile(policeFile, policeFilePath);
+//            }
+//            
+//            // Save Profile Pic
+//            if(!profilePic.isEmpty()) {
+//            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
+//            	saveFile(profilePic,profilePicPath);
+//            }
+//            //Save appointment PDF
+//            if (!appointmentFile.isEmpty()) {
+//            	String ext = getExtension(appointmentFile);
+//                String appointmentFilePath = directoryPath + "appointment"+ext;
+//                saveFile(appointmentFile, appointmentFilePath);
+//            }
+//
+//            // Return success message
+//            return "success";
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "failed";
+//        }
+//    }
+    public String uploadDocuments(MultipartFile aadharFile,
+            MultipartFile policeFile,
+            MultipartFile profilePic,
+            MultipartFile appointmentFile,
+            String userId,
+            String gatePassId) {
 
-        // Create directory path
-        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
-        
-        try {
-            // Ensure the directory exists, if not create it
-            Path path = Paths.get(directoryPath);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
-            }
+String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
 
-            // Save Aadhar PDF
-            if (!aadharFile.isEmpty()) {
-            	  String ext = getExtension(aadharFile);
-                String aadharFilePath = directoryPath + "aadhar"+ext;
-                saveFile(aadharFile, aadharFilePath);
-            }
+try {
+Path path = Paths.get(directoryPath);
+if (!Files.exists(path)) {
+Files.createDirectories(path);
+}
 
-            // Save Police Verification PDF
-            if (!policeFile.isEmpty()) {
-            	String ext = getExtension(policeFile);
-                String policeFilePath = directoryPath + "police"+ext;
-                saveFile(policeFile, policeFilePath);
-            }
-            
-            // Save Profile Pic
-            if(!profilePic.isEmpty()) {
-            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
-            	saveFile(profilePic,profilePicPath);
-            }
-            //Save appointment PDF
-            if (!appointmentFile.isEmpty()) {
-            	String ext = getExtension(appointmentFile);
-                String appointmentFilePath = directoryPath + "appointment"+ext;
-                saveFile(appointmentFile, appointmentFilePath);
-            }
+// ✅ AADHAR
+if (aadharFile != null && !aadharFile.isEmpty()) {
+deleteExistingFile(directoryPath, "aadhar");  // 🔥 KEY FIX
+String ext = getExtension(aadharFile);
+saveFile(aadharFile, directoryPath + "aadhar" + ext);
+}
 
-            // Return success message
-            return "success";
+// ✅ POLICE
+if (policeFile != null && !policeFile.isEmpty()) {
+deleteExistingFile(directoryPath, "police");
+String ext = getExtension(policeFile);
+saveFile(policeFile, directoryPath + "police" + ext);
+}
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "failed";
-        }
-    }
+// ✅ PROFILE PIC
+//if (profilePic != null && !profilePic.isEmpty()) {
+//deleteExistingFile(directoryPath, "profile");
+//String ext = getExtension(profilePic);
+//saveFile(profilePic, directoryPath + "profile" + ext);
+//}
+
+if(profilePic != null && !profilePic.isEmpty()) {
+	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
+	saveFile(profilePic,profilePicPath);
+}
+
+// ✅ APPOINTMENT
+if (appointmentFile != null && !appointmentFile.isEmpty()) {
+deleteExistingFile(directoryPath, "appointment");
+String ext = getExtension(appointmentFile);
+saveFile(appointmentFile, directoryPath + "appointment" + ext);
+}
+
+return "success";
+
+} catch (IOException e) {
+e.printStackTrace();
+return "failed";
+}
+}
 
     // Utility method to save file
     private void saveFile(MultipartFile file, String path) throws IOException {
@@ -455,6 +513,7 @@ public class WorkmenController {
             @RequestParam(value = "appointmentFile", required = false) MultipartFile appointmentFile,
             @RequestParam(value = "additionalFiles", required = false) List<MultipartFile> additionalFiles,
             @RequestParam(value = "documentTypes", required = false) List<String> documentTypes,
+            @RequestParam("remainingDocTypes") String remainingDocTypesJson,
             HttpServletRequest request, HttpServletResponse response) {
     	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
@@ -466,15 +525,26 @@ public class WorkmenController {
             // Convert the JSON string back to the GatePassMain object
             ObjectMapper objectMapper = new ObjectMapper();
             gatePassMain = objectMapper.readValue(jsonData, GatePassMain.class);
-            
+            List<String> remainingDocTypes = objectMapper.readValue(remainingDocTypesJson, List.class);
+            GatePassMain existing = workmenService.getIndividualContractWorkmenDraftDetails(gatePassMain.getTransactionId());
             // Log the received GatePassMain object
             log.info("Received GatePassMain: {}", gatePassMain);
 
             gatePassMain.setCreatedBy(String.valueOf(user.getUserId()));
-            gatePassMain.setAadharDocName(aadharFile != null && !aadharFile.isEmpty() ? "aadhar":"");
-            gatePassMain.setPoliceVerificationDocName(policeFile!=null && !policeFile.isEmpty() ? "police":"");
-            gatePassMain.setPhotoName(profilePic!=null && !profilePic.isEmpty()?profilePic.getOriginalFilename():"");
-            gatePassMain.setAppointmentDocName(appointmentFile!=null && !appointmentFile.isEmpty() ? "appointment":"");
+            gatePassMain.setAadharDocName((aadharFile != null && !aadharFile.isEmpty()) ? "aadhar": existing != null ? existing.getAadharDocName() : "");
+
+            gatePassMain.setPoliceVerificationDocName((policeFile != null && !policeFile.isEmpty()) ? "police": existing != null ? existing.getPoliceVerificationDocName() : "");
+
+            gatePassMain.setAppointmentDocName((appointmentFile != null && !appointmentFile.isEmpty()) ? "appointment": existing != null ? existing.getAppointmentDocName() : "");
+
+            // ✅ PROFILE (ORIGINAL FILENAME)
+            if (profilePic != null && !profilePic.isEmpty()) {
+                gatePassMain.setPhotoName(profilePic.getOriginalFilename());
+            } else if (existing != null) {
+                gatePassMain.setPhotoName(existing.getPhotoName());
+            } else {
+                gatePassMain.setPhotoName("");
+            }
          // Mapping document types to their corresponding setter methods
             Map<String, Consumer<String>> docTypeSetterMap = new HashMap<>();
             docTypeSetterMap.put("Bank", gatePassMain::setBankDocName);
@@ -484,17 +554,57 @@ public class WorkmenController {
             docTypeSetterMap.put("Education", gatePassMain::setEducationDocName);
             docTypeSetterMap.put("Training", gatePassMain::setTrainingDocName);
             docTypeSetterMap.put("Form11", gatePassMain::setForm11DocName);
-            if(additionalFiles != null && !additionalFiles.isEmpty()) {
-            // Set document names based on additionalFiles and documentTypes
-            for (int i = 0; i < additionalFiles.size(); i++) {
-                String docType = documentTypes.get(i);
-                if (docType != null) {
-                    Consumer<String> setter = docTypeSetterMap.get(docType);
-                    if (setter != null) {
-                        setter.accept(docType);
+            Map<String, Consumer<String>> setterMap = new HashMap<>();
+            setterMap.put("bank", gatePassMain::setBankDocName);
+            setterMap.put("id2", gatePassMain::setIdProof2DocName);
+            setterMap.put("other", gatePassMain::setOtherDocName);
+            setterMap.put("medical", gatePassMain::setMedicalDocName);
+            setterMap.put("education", gatePassMain::setEducationDocName);
+            setterMap.put("training", gatePassMain::setTrainingDocName);
+            setterMap.put("form11", gatePassMain::setForm11DocName);
+
+            // ✅ STEP 3: Existing values map
+            Map<String, String> existingMap = new HashMap<>();
+            if (existing  != null) {
+                existingMap.put("bank", existing .getBankDocName());
+                existingMap.put("id2", existing .getIdProof2DocName());
+                existingMap.put("other", existing .getOtherDocName());
+                existingMap.put("medical", existing .getMedicalDocName());
+                existingMap.put("education", existing .getEducationDocName());
+                existingMap.put("training", existing .getTrainingDocName());
+                existingMap.put("form11", existing .getForm11DocName());
+            }
+
+            // ✅ STEP 4: Track newly uploaded
+            Set<String> uploadedNow = new HashSet<>();
+
+            if (additionalFiles != null && documentTypes != null) {
+                for (int i = 0; i < additionalFiles.size(); i++) {
+                    MultipartFile file = additionalFiles.get(i);
+                    String docType = documentTypes.get(i).toLowerCase();
+
+                    if (file != null && !file.isEmpty()) {
+                        setterMap.get(docType).accept(docType);
+                        uploadedNow.add(docType);
                     }
                 }
             }
+
+            // ✅ STEP 5: Final decision (MOST IMPORTANT)
+            for (String docType : setterMap.keySet()) {
+
+                if (uploadedNow.contains(docType)) {
+                    // ✅ Already handled
+                    continue;
+                }
+
+                if (remainingDocTypes.contains(docType)) {
+                    // ✅ Keep existing
+                    setterMap.get(docType).accept(existingMap.get(docType));
+                } else {
+                    // ❌ Removed → clear DB
+                    setterMap.get(docType).accept(null);
+                }
             }
             
             if("project".equals(gatePassMain.getOnboardingType())) {
@@ -517,13 +627,13 @@ public class WorkmenController {
                      //       .status(HttpStatus.BAD_REQUEST)
                      //       .body(new ObjectMapper().writeValueAsString(errorResponse));
                 }else {
-                if (aadharFile != null && !aadharFile.isEmpty() && policeFile!=null && !policeFile.isEmpty()) {
+                	 if ((aadharFile != null && !aadharFile.isEmpty()) ||(policeFile != null && !policeFile.isEmpty()) ||(appointmentFile != null && !appointmentFile.isEmpty()) ||(profilePic != null && !profilePic.isEmpty())) {
                     uploadDocuments(aadharFile, policeFile,profilePic,appointmentFile ,String.valueOf(user.getUserId()), transactionId);
                 }
                 // Upload additional files
-                if (additionalFiles != null && documentTypes != null) {
-                    uploadAdditionalDocuments(additionalFiles, documentTypes, String.valueOf(user.getUserId()), transactionId);
-                }
+                //if (additionalFiles != null && documentTypes != null) {
+                	 uploadDraftAdditionalDocuments(additionalFiles, documentTypes,remainingDocTypes, String.valueOf(user.getUserId()), transactionId,existing );
+               // }
                 return new ResponseEntity<>("contractWorkmen/list", HttpStatus.OK);
             	}
             }
@@ -796,50 +906,225 @@ public class WorkmenController {
 
 //
 //
+//    private String uploadAdditionalDocuments(List<MultipartFile> additionalFiles,
+//    		List<String> documentTypes,
+//    		String userId,
+//    		String gatePassId) {
+//    	// Create directory path
+//    	String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+//
+//    	try {
+//    		// Ensure the directory exists, if not create it
+//    		Path path = Paths.get(directoryPath);
+//    		if (!Files.exists(path)) {
+//    			Files.createDirectories(path);
+//    		}
+//
+//    		for (int i = 0; i < additionalFiles.size(); i++) {
+//    			MultipartFile file = additionalFiles.get(i);
+//    			String docType = documentTypes.get(i);
+//    			 docType = docType.toLowerCase();
+//    			 String originalFileName = file.getOriginalFilename();
+//
+//                 // ✅ Extract extension (.pdf, .jpg, .png)
+//                 String extension = "";
+//                 if (originalFileName != null && originalFileName.contains(".")) {
+//                     extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+//                 }
+//
+//                 // ✅ Create new file name
+//                 String fileName = docType + extension;
+//                 String filePath = directoryPath + fileName;
+//
+//    			// Save the file
+//    			if (!file.isEmpty()) {
+//    				saveFile(file, filePath);
+//    			}
+//    		}
+//
+//    		return "success";
+//
+//    	} catch (IOException e) {
+//    		log.error("Failed to save additional documents: ", e);
+//    		return "failed";
+//    	}
+//    }
     private String uploadAdditionalDocuments(List<MultipartFile> additionalFiles,
-    		List<String> documentTypes,
-    		String userId,
-    		String gatePassId) {
-    	// Create directory path
-    	String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+            List<String> documentTypes,
+            String userId,
+            String gatePassId) {
 
-    	try {
-    		// Ensure the directory exists, if not create it
-    		Path path = Paths.get(directoryPath);
-    		if (!Files.exists(path)) {
-    			Files.createDirectories(path);
-    		}
+String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
 
-    		for (int i = 0; i < additionalFiles.size(); i++) {
-    			MultipartFile file = additionalFiles.get(i);
-    			String docType = documentTypes.get(i);
-    			 docType = docType.toLowerCase();
-    			 String originalFileName = file.getOriginalFilename();
+try {
+Path path = Paths.get(directoryPath);
+if (!Files.exists(path)) {
+Files.createDirectories(path);
+}
 
-                 // ✅ Extract extension (.pdf, .jpg, .png)
-                 String extension = "";
-                 if (originalFileName != null && originalFileName.contains(".")) {
-                     extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-                 }
+for (int i = 0; i < additionalFiles.size(); i++) {
 
-                 // ✅ Create new file name
-                 String fileName = docType + extension;
-                 String filePath = directoryPath + fileName;
+MultipartFile file = additionalFiles.get(i);
+String docType = documentTypes.get(i);
 
-    			// Save the file
-    			if (!file.isEmpty()) {
-    				saveFile(file, filePath);
-    			}
-    		}
+if (file == null || file.isEmpty() || docType == null || docType.trim().isEmpty()) {
+continue; // skip invalid entries
+}
 
-    		return "success";
+docType = docType.toLowerCase().trim();
 
-    	} catch (IOException e) {
-    		log.error("Failed to save additional documents: ", e);
-    		return "failed";
-    	}
+// ✅ DELETE OLD FILE (CRITICAL FIX)
+deleteExistingFile(directoryPath, docType);
+
+// ✅ Extract extension
+String originalFileName = file.getOriginalFilename();
+String extension = "";
+
+if (originalFileName != null && originalFileName.contains(".")) {
+extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+}
+
+// ✅ Save with fixed name
+String fileName = docType + extension;
+String filePath = directoryPath + fileName;
+
+saveFile(file, filePath);
+}
+
+return "success";
+
+} catch (IOException e) {
+log.error("Failed to save additional documents: ", e);
+return "failed";
+}
+}
+    private String uploadDraftAdditionalDocuments(
+            List<MultipartFile> additionalFiles,
+            List<String> documentTypes,
+            List<String> remainingDocTypes,
+            String userId,
+            String gatePassId,
+            GatePassMain existingRecord) {
+
+        String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+
+        try {
+            File folder = new File(directoryPath);
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // ✅ STEP 1: Normalize UI doc types
+            Set<String> uiDocs = new HashSet<>();
+            if (remainingDocTypes != null) {
+                uiDocs = remainingDocTypes.stream()
+                        .filter(Objects::nonNull)
+                        .map(s -> s.trim().toLowerCase())
+                        .collect(Collectors.toSet());
+            }
+
+            // ✅ STEP 2: Track uploaded now
+            Set<String> uploadedNow = new HashSet<>();
+            if (additionalFiles != null && documentTypes != null) {
+                for (int i = 0; i < additionalFiles.size(); i++) {
+                    MultipartFile file = additionalFiles.get(i);
+                    String docType = documentTypes.get(i);
+
+                    if (file != null && !file.isEmpty() && docType != null) {
+                        uploadedNow.add(docType.toLowerCase().trim());
+                    }
+                }
+            }
+
+            // ✅ STEP 3: Profile filename (SAFE)
+            String profileFileName = (existingRecord != null && existingRecord.getPhotoName() != null)
+                    ? existingRecord.getPhotoName().trim()
+                    : null;
+
+            // ✅ STEP 4: Allowed additional doc types
+            Set<String> validDocTypes = new HashSet<>(Arrays.asList(
+                    "bank", "id2", "other", "medical", "education", "training", "form11"
+            ));
+
+            // ==========================================
+            // ✅ STEP 5: DELETE LOGIC (SAFE)
+            // ==========================================
+            File[] files = folder.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+
+                    String fileName = file.getName();
+                    String lowerName = fileName.toLowerCase().trim();
+
+                    // 🚫 Skip main docs
+                    if (lowerName.startsWith("aadhar") ||
+                        lowerName.startsWith("police") ||
+                        lowerName.startsWith("appointment")) {
+                        continue;
+                    }
+
+                    // 🚫 Skip profile (VERY IMPORTANT)
+                    if (profileFileName != null &&
+                            fileName.equalsIgnoreCase(profileFileName)) {
+                        continue;
+                    }
+
+                    // Extract docType
+                    int dotIndex = lowerName.lastIndexOf(".");
+                    if (dotIndex == -1) continue;
+
+                    String docType = lowerName.substring(0, dotIndex).trim();
+
+                    // 🚫 Skip unknown files (protect profile & others)
+                    if (!validDocTypes.contains(docType)) {
+                        continue;
+                    }
+
+                    // ❌ Case 1: Removed in UI → DELETE
+                    if (!uiDocs.contains(docType)) {
+                        file.delete();
+                        continue;
+                    }
+
+                    // 🔁 Case 2: Re-upload → DELETE old first
+                    if (uploadedNow.contains(docType)) {
+                        file.delete();
+                    }
+                }
+            }
+
+            // ==========================================
+            // ✅ STEP 6: SAVE NEW FILES
+            // ==========================================
+            if (additionalFiles != null && documentTypes != null) {
+
+                for (int i = 0; i < additionalFiles.size(); i++) {
+
+                    MultipartFile file = additionalFiles.get(i);
+                    String docType = documentTypes.get(i);
+
+                    if (file != null && !file.isEmpty() && docType != null) {
+
+                        String normalizedDocType = docType.toLowerCase().trim();
+
+                        String extension = getExtension(file);
+
+                        Path filePath = Paths.get(directoryPath + normalizedDocType + extension);
+
+                        Files.write(filePath, file.getBytes());
+                    }
+                }
+            }
+
+            return "success";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "failed";
+        }
     }
-    
     
     @PostMapping("/lostDamagegatePassAction")
     public ResponseEntity<String> lostgatePassAction(@RequestBody GatePassActionDto dto,HttpServletRequest request,HttpServletResponse response) {
@@ -1967,6 +2252,7 @@ public class WorkmenController {
             @RequestParam(value = "appointmentFile", required = false) MultipartFile appointmentFile,
             @RequestParam(value = "additionalFiles", required = false) List<MultipartFile> additionalFiles,
             @RequestParam(value = "documentTypes", required = false) List<String> documentTypes,
+            @RequestParam("remainingDocTypes") String remainingDocTypesJson,
             HttpServletRequest request, HttpServletResponse response) {
     	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
@@ -1978,15 +2264,28 @@ public class WorkmenController {
             // Convert the JSON string back to the GatePassMain object
             ObjectMapper objectMapper = new ObjectMapper();
             gatePassMain = objectMapper.readValue(jsonData, GatePassMain.class);
-            
+            List<String> remainingDocTypes = objectMapper.readValue(remainingDocTypesJson, List.class);
             // Log the received GatePassMain object
             log.info("Received GatePassMain: {}", gatePassMain);
-
+            
+            GatePassMain existing = workmenService.getIndividualContractWorkmenDraftDetails(gatePassMain.getTransactionId());
+            
             gatePassMain.setCreatedBy(String.valueOf(user.getUserId()));
-            gatePassMain.setAadharDocName(aadharFile != null && !aadharFile.isEmpty() ? "aadhar":"");
-            gatePassMain.setPoliceVerificationDocName(policeFile!=null && !policeFile.isEmpty() ? "police":"");
-            gatePassMain.setPhotoName(profilePic!=null && !profilePic.isEmpty()?profilePic.getOriginalFilename():"");
-            gatePassMain.setAppointmentDocName(appointmentFile!=null && !appointmentFile.isEmpty() ? "appointment":"");
+            gatePassMain.setAadharDocName((aadharFile != null && !aadharFile.isEmpty()) ? "aadhar": existing != null ? existing.getAadharDocName() : "");
+
+            gatePassMain.setPoliceVerificationDocName((policeFile != null && !policeFile.isEmpty()) ? "police": existing != null ? existing.getPoliceVerificationDocName() : "");
+
+            gatePassMain.setAppointmentDocName((appointmentFile != null && !appointmentFile.isEmpty()) ? "appointment": existing != null ? existing.getAppointmentDocName() : "");
+
+            // ✅ PROFILE (ORIGINAL FILENAME)
+            if (profilePic != null && !profilePic.isEmpty()) {
+                gatePassMain.setPhotoName(profilePic.getOriginalFilename());
+            } else if (existing != null) {
+                gatePassMain.setPhotoName(existing.getPhotoName());
+            } else {
+                gatePassMain.setPhotoName("");
+            }
+
             // Mapping document types to their corresponding setter methods
             Map<String, Consumer<String>> docTypeSetterMap = new HashMap<>();
             docTypeSetterMap.put("Bank", gatePassMain::setBankDocName);
@@ -1996,28 +2295,70 @@ public class WorkmenController {
             docTypeSetterMap.put("Education", gatePassMain::setEducationDocName);
             docTypeSetterMap.put("Training", gatePassMain::setTrainingDocName);
             docTypeSetterMap.put("Form11", gatePassMain::setForm11DocName);
-            if(additionalFiles != null && !additionalFiles.isEmpty()) {
-            // Set document names based on additionalFiles and documentTypes
-            for (int i = 0; i < additionalFiles.size(); i++) {
-                String docType = documentTypes.get(i);
-                if (docType != null) {
-                    Consumer<String> setter = docTypeSetterMap.get(docType);
-                    if (setter != null) {
-                        setter.accept(docType);
+
+            // ✅ STEP 2: Map setters
+            Map<String, Consumer<String>> setterMap = new HashMap<>();
+            setterMap.put("bank", gatePassMain::setBankDocName);
+            setterMap.put("id2", gatePassMain::setIdProof2DocName);
+            setterMap.put("other", gatePassMain::setOtherDocName);
+            setterMap.put("medical", gatePassMain::setMedicalDocName);
+            setterMap.put("education", gatePassMain::setEducationDocName);
+            setterMap.put("training", gatePassMain::setTrainingDocName);
+            setterMap.put("form11", gatePassMain::setForm11DocName);
+
+            // ✅ STEP 3: Existing values map
+            Map<String, String> existingMap = new HashMap<>();
+            if (existing  != null) {
+                existingMap.put("bank", existing .getBankDocName());
+                existingMap.put("id2", existing .getIdProof2DocName());
+                existingMap.put("other", existing .getOtherDocName());
+                existingMap.put("medical", existing .getMedicalDocName());
+                existingMap.put("education", existing .getEducationDocName());
+                existingMap.put("training", existing .getTrainingDocName());
+                existingMap.put("form11", existing .getForm11DocName());
+            }
+
+            // ✅ STEP 4: Track newly uploaded
+            Set<String> uploadedNow = new HashSet<>();
+
+            if (additionalFiles != null && documentTypes != null) {
+                for (int i = 0; i < additionalFiles.size(); i++) {
+                    MultipartFile file = additionalFiles.get(i);
+                    String docType = documentTypes.get(i).toLowerCase();
+
+                    if (file != null && !file.isEmpty()) {
+                        setterMap.get(docType).accept(docType);
+                        uploadedNow.add(docType);
                     }
                 }
             }
+
+            // ✅ STEP 5: Final decision (MOST IMPORTANT)
+            for (String docType : setterMap.keySet()) {
+
+                if (uploadedNow.contains(docType)) {
+                    // ✅ Already handled
+                    continue;
+                }
+
+                if (remainingDocTypes.contains(docType)) {
+                    // ✅ Keep existing
+                    setterMap.get(docType).accept(existingMap.get(docType));
+                } else {
+                    // ❌ Removed → clear DB
+                    setterMap.get(docType).accept(null);
+                }
             }
             transactionId = workmenService.draftGatePass(gatePassMain);
 
             if (transactionId != null) {
-//                if (aadharFile != null && !aadharFile.isEmpty() && policeFile!=null && !policeFile.isEmpty()) {
-//                    uploadDocuments(aadharFile, policeFile,profilePic, String.valueOf(user.getUserId()), gatePassId);
-//                }
-//                // Upload additional files
-//                if (additionalFiles != null && documentTypes != null) {
-//                    uploadAdditionalDocuments(additionalFiles, documentTypes, String.valueOf(user.getUserId()), gatePassId);
-//                }
+            	if ((aadharFile != null && !aadharFile.isEmpty()) || (policeFile != null && !policeFile.isEmpty()) || (appointmentFile != null && !appointmentFile.isEmpty()) || (profilePic != null && !profilePic.isEmpty())) {
+                    uploadDocuments(aadharFile, policeFile,profilePic, appointmentFile, String.valueOf(user.getUserId()), transactionId);
+                }
+                // Upload additional files
+                //if (additionalFiles != null && documentTypes != null) {
+                    uploadDraftAdditionalDocuments(additionalFiles, documentTypes,remainingDocTypes, String.valueOf(user.getUserId()), transactionId,existing );
+                //}
             	request.setAttribute("SUCCESS_MSG", "Gatepass drafted sucessfully.");
                 return new ResponseEntity<>("contractWorkmen/list", HttpStatus.OK);
             }
@@ -2152,6 +2493,43 @@ public class WorkmenController {
 
 	 request.setAttribute("Subdept", subdepSet);
 	 
+	 Map<String, String> fileMap = getUploadedFiles(
+			 gatePassMainObj.getTransactionId(),
+			 gatePassMainObj.getCreatedBy()
+		);
+	 fileMap.put("profile", gatePassMainObj.getPhotoName());
+	 request.setAttribute("fileMap", fileMap);
+
+	 String folderPath = ROOT_DIRECTORY + user.getUserId()+ "/" + transactionId + "/";
+	 Map<String, String> additionalFileMap = new HashMap<>();
+
+	 File folder = new File(folderPath);
+
+	 // ✅ Allowed additional doc types ONLY
+	 Set<String> validDocTypes = new HashSet<>(Arrays.asList(
+	         "bank", "id2", "other", "medical", "education", "training", "form11"
+	 ));
+
+	 if (folder.exists()) {
+	     for (File file : folder.listFiles()) {
+
+	         String name = file.getName().toLowerCase().trim();
+
+	         int dotIndex = name.lastIndexOf(".");
+	         if (dotIndex == -1) continue;
+
+	         String docType = name.substring(0, dotIndex);
+
+	         // ✅ ONLY allow additional docs
+	         if (validDocTypes.contains(docType)) {
+	             additionalFileMap.put(docType, file.getName());
+	         }
+	     }
+	 }
+
+	 request.setAttribute("additionalFileMap", additionalFileMap);
+	 System.out.println(additionalFileMap);
+		
     return "contractWorkmen/quickOBAdd";
 }
     
@@ -3582,5 +3960,94 @@ public class WorkmenController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     	}
     
+    }
+    public Map<String, String> getUploadedFiles(String transactionId, String userId) {
+
+        String folderPath = ROOT_DIRECTORY + userId + File.separator + transactionId + File.separator;
+        File folder = new File(folderPath);
+
+        Map<String, String> fileMap = new HashMap<>();
+
+        // Your file types
+        String[] types = {"aadhar", "profile","police", "bank", "appointment" ,"bank","training","other","id2","medical","education","form11"};
+
+        // Initialize empty
+        for (String type : types) {
+            fileMap.put(type, null);
+        }
+
+        if (folder.exists() && folder.isDirectory()) {
+
+            File[] files = folder.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+
+                    String fileName = file.getName().toLowerCase();
+
+                    for (String type : types) {
+
+                        // since you save like aadhar.jpeg
+                        if (fileName.startsWith(type + ".")) {
+                            fileMap.put(type, file.getName());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return fileMap;
+    }
+    private void deleteExistingFile(String directoryPath, String fileType) {
+        File folder = new File(directoryPath);
+
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.getName().toLowerCase().startsWith(fileType.toLowerCase() + ".")) {
+                        file.delete(); // 🔥 DELETE OLD FILE
+                    }
+                }
+            }
+        }
+    }
+    @GetMapping("/getProfileImage")
+    public ResponseEntity<byte[]> getProfileImage(
+            @RequestParam("userId") String userId,
+            @RequestParam("transactionId") String transactionId,
+            @RequestParam("fileName") String fileName) {
+
+        try {
+            String directoryPath = ROOT_DIRECTORY + userId + "/" + transactionId + "/";
+
+            File file = new File(directoryPath + fileName);
+
+            // 🔴 DEBUG (very important)
+            System.out.println("Fetching file from: " + file.getAbsolutePath());
+
+            if (!file.exists()) {
+                System.out.println("❌ File NOT found!");
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] imageBytes = Files.readAllBytes(file.toPath());
+
+            // ✅ Detect content type
+            String contentType = Files.probeContentType(file.toPath());
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, contentType)
+                    .body(imageBytes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
     }

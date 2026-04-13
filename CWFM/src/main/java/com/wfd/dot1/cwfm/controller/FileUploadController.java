@@ -130,7 +130,7 @@ public class FileUploadController {
             List<Map<String, String>> fields = new ArrayList<>();
             fields.add(Map.of("name", "GM Name", "type", "Text", "example", "B.Tech"));
             fields.add(Map.of("name", "GM Description", "type", "Text", "example", "B.Tech"));
-            fields.add(Map.of("name", "GM TypeID", "type", "Number", "example", "1"));
+            fields.add(Map.of("name", "GM Type", "type", "Text", "example", "Academics"));
             
             templateInfo.put("fields", fields);
         }else if("Data-Minimum Wage".equals(templateType)){

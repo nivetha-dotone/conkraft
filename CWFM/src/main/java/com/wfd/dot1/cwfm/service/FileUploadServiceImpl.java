@@ -114,7 +114,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
         switch (templateType) {
             case "Data-General Master":
-                if (!headerLine.equalsIgnoreCase("GM Name,GM Description,GM Type ID")) {
+                if (!headerLine.equalsIgnoreCase("GM Name,GM Description,GM Type")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processGeneralMaster(reader);
@@ -486,9 +486,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 
          String line;
          int rowNum = 0;
-         String[] fieldNames = {"gmName", "gmDescription", "gmTypeId"};
+         String[] fieldNames = {"gmName", "gmDescription", "gmType"};
                 
-         Set<String> mandatoryFields = Set.of("gmName", "gmDescription", "gmTypeId");
+         Set<String> mandatoryFields = Set.of("gmName", "gmDescription", "gmType");
 
              while ((line = reader.readLine()) != null) {
                  rowNum++;
@@ -520,31 +520,39 @@ public class FileUploadServiceImpl implements FileUploadService {
                      errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
                      continue;
                  }
-                 try {
-                	 String gmName = fields[0];
-                     String gmDescription = fields[1];
-                     
-                	// Duplicate check for isGmNameGmDescriptionExists
-                     if (fileUploadDao.isGmNameGmDescriptionExists(gmName,gmDescription)) {
-                         errorData.add(Map.of(
-                             "row", rowNum,
-                             "error", "Duplicate GMName: " + gmName + " and GMDescription: "+ gmDescription +" already exists"
-                         ));
-                         continue;
-                     }
-                     
+                 String gmName = toTitleCase(fields[0]);
+                 String gmDescription = toTitleCase(fields[1]);
+                 String gmType = fields[2];
+                 
+                 //find gmtypeId
+                  Integer gmTypeId = fileUploadDao.getGmTypeId(gmType);
+                  if(gmTypeId == null || gmTypeId ==0) {
+                	  errorData.add(Map.of("row", rowNum,"error", "GMType: " + gmType + " is not Found"));
+                          continue;
+                  }
+            	// Duplicate check for isGmNameGmDescriptionExists
+                 if (fileUploadDao.isGmNameGmTypeExists(gmName,gmTypeId)) {
+                     errorData.add(Map.of("row", rowNum,"error", "Duplicate GMName: " + gmName + " Found for: "+ gmType));
+                     continue;
+                 }
+                 if (!fieldErrors.isEmpty()) {
+                     errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+                     continue;
+                 }
+                 
+             try {  
                 	 CmsGeneralMaster gm = new CmsGeneralMaster();
                 	 gm.setGmName(gmName);
                 	 gm.setGmDescription(gmDescription);
-                	 gm.setGmTypeId(Integer.parseInt((fields[2])));
+                	 gm.setGmTypeId(gmTypeId);
                 	 
                     fileUploadDao.saveGeneralMaster(gm);
 
             // Map each POJO to a simple map for JSON-friendly structure
             Map<String, Object> map = new HashMap<>();
-            map.put("gmName", gm.getGmName());
-            map.put("gmDescription", gm.getGmDescription());
-            map.put("gmTypeId", gm.getGmTypeId());
+            map.put("gmName", gmName);
+            map.put("gmDescription", gmDescription);
+            map.put("gmType",gmType);
             
             successData.add(map);
 
@@ -559,7 +567,35 @@ public class FileUploadServiceImpl implements FileUploadService {
              return result;
     }
     
+    private String toTitleCase(String input) {
+        if (input == null || input.isBlank()) {
+            return input;
+        }
+        // If already ALL CAPS, return as-is
+        if (input.equals(input.toUpperCase())) {
+            return input;
+        }
+        StringBuilder result = new StringBuilder();
+        String[] words = input.toLowerCase().split("\\s+");
 
+        for (String word : words) {
+
+            // Split by both '-' and '_' while keeping delimiters
+            String[] parts = word.split("(?=[-_])|(?<=[-_])");
+
+            for (String part : parts) {
+                if (part.equals("-") || part.equals("_")) {
+                    result.append(part); // keep delimiter as-is
+                } else if (!part.isEmpty()) {
+                    result.append(Character.toUpperCase(part.charAt(0)))
+                          .append(part.substring(1));
+                }
+            }
+            result.append(" ");
+        }
+
+        return result.toString().trim();
+    }
     
     private Map<String, Object> processMinimumWage(BufferedReader reader) throws IOException {
     	  List<Map<String, Object>> successData = new ArrayList<>();
