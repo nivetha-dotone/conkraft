@@ -335,8 +335,40 @@ public class WfdEmployeeService {
         }
     }
 
+    public String getISSANDORPOC() {
+        return QueryFileWatcher.getQuery("ISSAND");
+    }
+    public String getcheckHost() {
+        try {
+            String issandorpoc = getISSANDORPOC();
+
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+                return QueryFileWatcher.getQuery("HostName");
+            } else if ("no".equalsIgnoreCase(issandorpoc)) {
+                return QueryFileWatcher.getQuery("HostNamePOC");
+            } else {
+                throw new IllegalArgumentException("Invalid value for ISSAND in query properties file : " + issandorpoc);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getAuthToken(){
+        try{
+           return wfdAuthService.getAccessToken();
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getHostName() {
-        return QueryFileWatcher.getQuery("HostName");
+        return getcheckHost();
     }
 
     public String getFindPersonKey() {

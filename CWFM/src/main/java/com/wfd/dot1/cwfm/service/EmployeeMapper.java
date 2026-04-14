@@ -399,7 +399,14 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
+public String getTokenCheck(){
+        try{
+          return  wfdEmployeeService.getAuthToken();
 
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+}
     public EmployeeRequestDTO gatePassEmpDto(String GatePassId) {
         try {
             GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnId(GatePassId);
@@ -673,12 +680,39 @@ public class EmployeeMapper {
                     }
                 }
                 System.out.println(labor.getLaborCategoryName() +" :- final set json");
-                String var10000 = individualOnBoardDetailsByTrnId.getLocation();
-                String orgPath = var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
+
+
+                String issandorpoc = getISSANDORPOC();
+                String orgPath = "";
+                if (issandorpoc != null) {
+                    issandorpoc = issandorpoc.trim();
+
+                }
+
+                if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+                    String var10000 = individualOnBoardDetailsByTrnId.getLocation();
+
+
+
+                    orgPath= var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
+
+
+
+                } else if ("no".equalsIgnoreCase(issandorpoc)) {
+
+
+                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() +"/Team Lead";
+//                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+individualOnBoardDetailsByTrnId.getSkill();
+
+
+
+                }else{
+
+                }
 
                 labor.setOrganizationPath(
-                resolveOrganizationPath(orgPath)
-
+                        resolveOrganizationPath1(orgPath)
                 );
                 job.setPrimaryLaborAccounts(Arrays.asList(labor));
                 dto.setJobAssignment(job);
@@ -698,6 +732,37 @@ public class EmployeeMapper {
         }
     }
 
+    public String getISSANDORPOC() {
+        return QueryFileWatcher.getQuery("ISSAND");
+    }
+
+    public String resolveOrganizationPath1(String orgPath) {
+        try {
+            String issandorpoc = getISSANDORPOC();
+
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+                return resolveOrganizationPath(orgPath);
+            } else if ("no".equalsIgnoreCase(issandorpoc)) {
+                return resolveOrganizationPathPOC(orgPath);
+            }else {
+                throw  new IllegalArgumentException(
+                        "Invalid value for ISSAND in query properties file: while creating bs" + issandorpoc
+                );
+            }
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
+
 
     public String resolveOrganizationPath(String orgPath) {
 
@@ -711,6 +776,28 @@ public class EmployeeMapper {
         }
 
         gatePassToOnBoardService.createBusinessStructure(orgPath);
+
+        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            return orgPath;
+        }
+
+        throw new RuntimeException("Failed to resolve orgPath: " + orgPath);
+    }
+
+
+    public String resolveOrganizationPathPOC(String orgPath) {
+
+        if (gatePassToOnBoardService.checkLocationPath(orgPath)) {
+            return orgPath;
+        }
+
+        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            return orgPath;
+        }
+
+        gatePassToOnBoardService.createBusinessStructurePOC(orgPath);
 
         if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
             gatePassToOnBoardService.storeHierarchyInDB(orgPath);

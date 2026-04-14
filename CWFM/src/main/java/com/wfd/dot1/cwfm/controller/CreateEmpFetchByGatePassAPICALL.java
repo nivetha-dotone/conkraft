@@ -119,6 +119,17 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+    @GetMapping({"/getAccessTokenOnly"})
+    public ResponseEntity<?> getAccessTokenOnly() {
+        try {
+            String gatePassEmpDtoDynamic = this.employeeMapper.getTokenCheck();
+            return gatePassEmpDtoDynamic != null ? new ResponseEntity(gatePassEmpDtoDynamic, HttpStatus.OK) : new ResponseEntity(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     @PostMapping({"/postSkillInWFD/{gmId}"})
     public ResponseEntity<?> postSkills(@PathVariable Integer gmId) {
         try {

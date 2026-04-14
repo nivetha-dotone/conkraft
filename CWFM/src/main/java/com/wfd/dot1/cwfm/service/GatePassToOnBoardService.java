@@ -809,31 +809,40 @@ public class GatePassToOnBoardService {
     }
 
 
-    public String findValidParent(String fullPath) {
+    public void createBusinessStructurePOC(String fullPath) {
 
-        String parent = fullPath;
+        String[] parts = fullPath.split("/");
 
-        while (true) {
+        String currentPath = "";
 
-            parent = removeLastNode(parent);
+        for (int i = 0; i < parts.length; i++) {
 
-            if (parent == null) {
-                throw new RuntimeException("No valid parent found in UKG");
-            }
+            String nodeName = parts[i];
 
-            if (wfdEmployeeService.checkLocationInUKG(parent)) {
-                return parent;
+            // Build path step-by-step
+            currentPath = currentPath.isEmpty() ? nodeName : currentPath + "/" + nodeName;
+
+            boolean exists = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+            if (!exists) {
+
+                String parentPath = (i == 0) ? "/" : currentPath.substring(0, currentPath.lastIndexOf("/"));
+
+                String type = getLocationTypePOC(i);
+
+                wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
+                System.out.println("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+                log.info("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+
+                // 🔁 Optional: verify after create
+                boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+                if (!created) {
+                    throw new RuntimeException("Failed to create node: " + currentPath);
+                }
             }
         }
     }
-
-
-    private String removeLastNode(String path) {
-        int index = path.lastIndexOf("/");
-        if (index == -1) return null;
-        return path.substring(0, index);
-    }
-
 
     public String getLocationType(int level) {
 
@@ -846,6 +855,19 @@ public class GatePassToOnBoardService {
             case 5: return "Product";
             case 6: return "Contractor";
             case 7: return "Job";
+            default: return "Job";
+        }
+    }
+
+    public String getLocationTypePOC(int level) {
+
+        switch (level) {
+            case 0: return "Business Entity";
+            case 1: return "Location";
+            case 2: return "Department";
+            case 3: return "Area";
+            case 4: return "Contractor";
+            case 5: return "Job";
             default: return "Job";
         }
     }
