@@ -81,7 +81,7 @@ public interface FileUploadDao {
 	Integer getTradeIdByName(String tradeName);
 
     // Get Workmen Wage Category ID by name
-    Integer getWCECId(String ECNumber, Integer unitId, Integer contractorId);
+    Integer getWCECId(String ECNumber, Integer unitId, Integer contractorId, String workorderNumber);
 
     // Get GMID (Generic Master ID) by GMNAME and master type (like skill, dept, access area, etc.)
     Integer getGeneralMasterId(String gmName);
@@ -101,7 +101,7 @@ public interface FileUploadDao {
 	
 	void updateRecordStatusByTransactionId(int txnId, String combinedErrors);
 
-	Integer getLlNumber(String LLNumber, Integer unitId, Integer contractorId);
+	Integer getLlNumber(String LLNumber, Integer unitId, Integer contractorId, String workorderNumber);
 
 	boolean isAadharNumberExists(String aadharNumber);
 
@@ -235,4 +235,13 @@ public interface FileUploadDao {
 	Integer getGmTypeId(String gmType);
 
 	boolean isGmNameGmTypeExists(String gmName, Integer gmTypeId);
+
+	boolean activeGatepassExists(String gatepassNumber);
+
+	Map<String, Object> workorderExistsForPlantAndContractor(String workorderNumber, Integer contractorId,
+			Integer unitId);
+
+	Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber);
+
+	Integer getWorkorderIdBasedonPE(String string, Integer unitId);
 }

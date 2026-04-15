@@ -765,11 +765,11 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 
 	 @Override
-	 public Integer getWCECId(String ECNumber, Integer unitId, Integer contractorId) {
+	 public Integer getWCECId(String ECNumber, Integer unitId, Integer contractorId,String workorderNumber) {
 		    if (ECNumber == null || ECNumber.trim().isEmpty()) return null;
 		    String sql=getWCECId();
 		    //String sql = "SELECT WCID FROM CMSCONTRACTOR_WC WHERE WC_CODE =? and UNITID=? and CONTRACTORID=?  and (LICENCE_TYPE='WC' or LICENCE_TYPE='ESIC')";
-		    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, ECNumber.trim(),unitId,contractorId);
+		    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, ECNumber.trim(),unitId,contractorId,workorderNumber);
 		    return result.isEmpty() ? null : result.get(0);
 		}
 
@@ -801,11 +801,11 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 
 		@Override
-		public Integer getLlNumber(String LLNumber, Integer unitId, Integer contractorId) {
+		public Integer getLlNumber(String LLNumber, Integer unitId, Integer contractorId,String workorderNumber) {
 		    if (LLNumber == null || LLNumber.trim().isEmpty()) return null;
 		    String sql=getLlNumber();
 		    //String sql = "SELECT WCID FROM CMSCONTRACTOR_WC WHERE WC_CODE =? and UNITID=? and CONTRACTORID=?  and LICENCE_TYPE='LL'";
-		    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, LLNumber.trim(),unitId,contractorId);
+		    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, LLNumber.trim(),unitId,contractorId,workorderNumber);
 		    return result.isEmpty() ? null : result.get(0);
 		}
 		
@@ -2317,5 +2317,40 @@ public class FileUploadDaoImpl implements FileUploadDao {
 				// String sql = "select count (*) from CMSGENERALMASTER where GMNAME=? and GMTYPEID =?";
 				    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gmName,gmTypeId);
 				    return count != null && count > 0;
+			}
+		 @Override
+			public boolean activeGatepassExists(String gatepassNumber) {
+				String sql="select count(*) from GATEPASSMAIN where GatePassId=? and GatePassTypeId in (1,2) and GatePassStatus=4";
+				//String sql=gatepassNumberExists();
+				  Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gatepassNumber);
+				    return count != null && count > 0;
+				}
+		 
+		 @Override
+			public Map<String, Object>  workorderExistsForPlantAndContractor(String workorderNumber, Integer contractorId,Integer unitId){
+
+			    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? AND CONTRACTORID=? and UNITID=?";
+
+			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, contractorId,unitId);
+
+			    return list.isEmpty() ? null : list.get(0);
+			}
+		 @Override
+			public Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber){
+
+			    String sql = "select wo.workorderid, wc.WC_TO_DTM,wc.LICENCE_TYPE from CMSWORKORDER wojoin CMSWORKORDER_LLWC llwc on llwc.WONUMBER=wo.SAP_WORKORDER_NUM"
+			    		+ "join CMSCONTRACTOR_WC wc on  wc.wcCode=llwc.LICENSE_NUMBER where wo.SAP_WORKORDER_NUM=? and wc.WC_CODE=?";
+
+			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, wcesicNumber);
+
+			    return list.isEmpty() ? null : list.get(0);
+			}
+		 @Override
+			public Integer getWorkorderIdBasedonPE(String workorderNumber,Integer unitId) {
+			    if (workorderNumber == null || workorderNumber.trim().isEmpty()) return null;
+			    //String sql=getWorkorderId();
+			    String sql = "SELECT WORKORDERID FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM = ? and UNITID=?";
+			    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, workorderNumber.trim(),unitId);
+			    return result.isEmpty() ? null : result.get(0);
 			}
 	}

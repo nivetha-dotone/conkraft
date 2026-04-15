@@ -1660,8 +1660,9 @@ public class FileUploadServiceImpl implements FileUploadService {
             Integer bloodGroupId = fileUploadDao.getGeneralMasterId(fields[19]);
             Integer areaId = fileUploadDao.getAreaByDeptID(unitId,departmentId,fields[13]);
             Integer academicId = fileUploadDao.getGeneralMasterId(fields[18]);
-            Integer wcecId = fileUploadDao.getWCECId(fields[32],unitId,contractorId);
-            Integer workorderId = fileUploadDao.getWorkorderId(fields[14],unitId,contractorId);
+            Integer wcecId = fileUploadDao.getWCECId(fields[32],unitId,contractorId,fields[14]);
+            //Integer workorderId = fileUploadDao.getWorkorderId(fields[14],unitId,contractorId);
+            Integer workorderId = fileUploadDao.getWorkorderIdBasedonPE(fields[14],unitId);
             //Integer maritalStatusId = fileUploadDao.getGeneralMasterId(fields[16]);
             Integer genderId = fileUploadDao.getGeneralMasterId(fields[10]);
             Integer eicId = fileUploadDao.geteicId(fields[12],unitId,fields[31]);
@@ -1689,7 +1690,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         	        : "";
 
          if (!llValue.isBlank()) {
-             llNumber = fileUploadDao.getLlNumber(llValue, unitId, contractorId);
+             llNumber = fileUploadDao.getLlNumber(llValue, unitId, contractorId,fields[14]);
 
              if (llNumber == null) {
                  fieldErrors.put("llNumber", "Invalid or not found");
@@ -1707,7 +1708,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             //if (maritalStatusId == null) fieldErrors.put("maritalStatus", "Invalid or not found");
             if (genderId == null) fieldErrors.put("Gender", "Invalid or not found");
             if (eicId == null) fieldErrors.put("EIC", "Invalid or not found");
-           // if (LlNumber == null) fieldErrors.put("LlNumber", "Invalid or not found");
+            if (workorderId == null) fieldErrors.put("workorderId", "No Workorrder Mapped with Principal Employeer");
             if (wcecId == null) fieldErrors.put("WCESIC", "Invalid or not found");
             if (unitId == null) fieldErrors.put("unitCode", "Invalid or not found");
             if (contractorId == null) fieldErrors.put("vendorCode", "Invalid or not found");
@@ -1867,13 +1868,14 @@ public class FileUploadServiceImpl implements FileUploadService {
             Integer bloodGroupId = fileUploadDao.getGeneralMasterId(fields[19]);
             Integer areaId = fileUploadDao.getAreaByDeptID(unitId,departmentId,fields[13]);
             Integer academicId = fileUploadDao.getGeneralMasterId(fields[18]);
-            Integer wcecId = fileUploadDao.getWCECId(fields[32],unitId,contractorId);
-            Integer workorderId = fileUploadDao.getWorkorderId(fields[14],unitId,contractorId);
+            Integer wcecId = fileUploadDao.getWCECId(fields[32],unitId,contractorId,fields[14]);
+            //Integer workorderId = fileUploadDao.getWorkorderId(fields[14],unitId,contractorId);
+            Integer workorderId = fileUploadDao.getWorkorderIdBasedonPE(fields[14],unitId);
             //Integer zoneId = fileUploadDao.getGeneralMasterId(fields[40]);
             Integer zoneId = fileUploadDao.getZoneIdFromMinimumWage(fields[40],unitId);
             Integer genderId = fileUploadDao.getGeneralMasterId(fields[10]);
             Integer eicId = fileUploadDao.geteicId(fields[12],unitId,fields[31]);
-            Integer LLNumber = fileUploadDao.getLlNumber(fields[38],unitId,contractorId);
+            Integer LLNumber = fileUploadDao.getLlNumber(fields[38],unitId,contractorId,fields[14]);
 
           
             	Integer trade = !fields[4].isBlank()&& unitId != null ? fileUploadDao.getTradeIdByUnitId(unitId,fields[4]) : null;
@@ -1888,8 +1890,8 @@ public class FileUploadServiceImpl implements FileUploadService {
                 Integer area = !fields[13].isBlank()&& unitId != null&& departmentId != null ? fileUploadDao.getAreaByDeptID(unitId,departmentId,fields[13]) : null;
                 if (!fields[13].isBlank() && area == null) fieldErrors.put("department", "Mapping not Found for Department with Principal Employeer");
              
-                Integer ll = (!fields[38].isBlank() && unitId != null && contractorId != null)
-                        ? fileUploadDao.getLlNumber(fields[38], unitId, contractorId)
+                Integer ll = (!fields[38].isBlank() && unitId != null && contractorId != null && !fields[14].isBlank())
+                        ? fileUploadDao.getLlNumber(fields[38], unitId, contractorId,fields[14])
                         : null;
                     if (!fields[38].isBlank() && ll == null) fieldErrors.put("LL", "Invalid or not found");
 
@@ -1898,13 +1900,13 @@ public class FileUploadServiceImpl implements FileUploadService {
                     : null;
                 if (!fields[31].isBlank() && eic == null) fieldErrors.put("EIC", "Invalid or not found");
 
-                Integer workorder = (!fields[14].isBlank() && unitId != null && contractorId != null)
-                        ? fileUploadDao.getWorkorderId(fields[14], unitId, contractorId)
+                Integer workorder = (!fields[14].isBlank() && unitId != null)
+                        ? fileUploadDao.getWorkorderIdBasedonPE(fields[14], unitId)
                         : null;
-                    if (!fields[14].isBlank() && workorder == null) fieldErrors.put("workorder", "Invalid or not found");
+                    if (!fields[14].isBlank() && workorder == null) fieldErrors.put("workorder", "No Workorrder Mapped with Principal Employeer");
 
-                Integer wcec = (!fields[32].isBlank() && unitId != null && contractorId != null)
-                        ? fileUploadDao.getWCECId(fields[32], unitId, contractorId)
+                Integer wcec = (!fields[32].isBlank() && unitId != null && contractorId != null && fields[14]!=null)
+                        ? fileUploadDao.getWCECId(fields[32], unitId, contractorId,fields[14])
                         : null;
                     if (!fields[32].isBlank() && wcec == null) fieldErrors.put("WCEC", "Invalid or not found");
 
@@ -2055,7 +2057,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 		     try {
 		            record.setUnitCode(String.valueOf(fileUploadDao.getUnitIdByName(record.getUnitCode())));
 		            record.setVendorCode(String.valueOf(fileUploadDao.getContractorIdByName(record.getVendorCode())));
-		            record.setWorkorderNumber(String.valueOf(fileUploadDao.getWorkorderId(record.getWorkorderNumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()))));
+		            record.setWorkorderNumber(String.valueOf(fileUploadDao.getWorkorderIdBasedonPE(record.getWorkorderNumber(),Integer.parseInt(record.getUnitCode()))));
 		            record.setTrade(String.valueOf(fileUploadDao.getTradeIdByName(record.getTrade())));
 		            record.setSkill(String.valueOf(fileUploadDao.getSkillIdByName(record.getSkill())));
 		           // record.setDepartment(String.valueOf(fileUploadDao.getGeneralMasterId(record.getDepartment())));
@@ -2063,7 +2065,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 		            record.setAccessArea(String.valueOf(fileUploadDao.getGeneralMasterId(record.getAccessArea())));
 		            record.setBloodGroup(String.valueOf(fileUploadDao.getGeneralMasterId(record.getBloodGroup())));
 		            record.setAcademic(String.valueOf(fileUploadDao.getGeneralMasterId(record.getAcademic())));
-		            record.setECnumber(String.valueOf(fileUploadDao.getWCECId(record.getECnumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()))));
+		            record.setECnumber(String.valueOf(fileUploadDao.getWCECId(record.getECnumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()),record.getWorkorderNumber())));
 		            record.setZone(String.valueOf(fileUploadDao.getGeneralMasterId(record.getZone())));
 		            record.setGender(String.valueOf(fileUploadDao.getGeneralMasterId(record.getGender())));
 		            record.setEICNumber(String.valueOf(fileUploadDao.geteicId(record.getDepartment(),Integer.parseInt(record.getUnitCode()),record.getEICNumber())));

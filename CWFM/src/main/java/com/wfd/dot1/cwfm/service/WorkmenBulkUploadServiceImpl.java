@@ -220,7 +220,6 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 		     try {
 		            record.setUnitCode(String.valueOf(fileUploadDao.getUnitIdByName(record.getUnitCode())));
 		            record.setVendorCode(String.valueOf(fileUploadDao.getContractorIdByName(record.getVendorCode())));
-		            record.setWorkorderNumber(String.valueOf(fileUploadDao.getWorkorderId(record.getWorkorderNumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()))));
 		            record.setTrade(String.valueOf(fileUploadDao.getTradeIdByUnitId(Integer.parseInt(record.getUnitCode()),record.getTrade())));
 		            record.setSkill(String.valueOf(fileUploadDao.getSkillIdByTradeId(Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getTrade()),record.getSkill())));
 		           // record.setDepartment(String.valueOf(fileUploadDao.getGeneralMasterId(record.getDepartment())));
@@ -228,13 +227,14 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 		            record.setAccessArea(String.valueOf(fileUploadDao.getGeneralMasterId(record.getAccessArea())));
 		            record.setBloodGroup(String.valueOf(fileUploadDao.getGeneralMasterId(record.getBloodGroup())));
 		            record.setAcademic(String.valueOf(fileUploadDao.getGeneralMasterId(record.getAcademic())));
-		            record.setECnumber(String.valueOf(fileUploadDao.getWCECId(record.getECnumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()))));
+		            record.setECnumber(String.valueOf(fileUploadDao.getWCECId(record.getECnumber(),Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getVendorCode()),record.getWorkorderNumber())));
 		           // record.setZone(String.valueOf(fileUploadDao.getGeneralMasterId(record.getZone())));
 		            record.setGender(String.valueOf(fileUploadDao.getGeneralMasterId(record.getGender())));
 		            record.setEICNumber(String.valueOf(fileUploadDao.geteicId(record.getDepartment(),Integer.parseInt(record.getUnitCode()),record.getEICNumber())));
 		            record.setDepartment(String.valueOf(fileUploadDao.getdepartmentIdByUnitId(Integer.parseInt(record.getUnitCode()),record.getDepartment())));
 		           // record.setLLnumber(String.valueOf(fileUploadDao.getLlNumber(record.getLLnumber())));
 		            record.setArea(String.valueOf(fileUploadDao.getAreaByDeptID(Integer.parseInt(record.getUnitCode()),Integer.parseInt(record.getDepartment()),record.getArea())));
+		            record.setWorkorderNumber(String.valueOf(fileUploadDao.getWorkorderIdBasedonPE(record.getWorkorderNumber(),Integer.parseInt(record.getUnitCode()))));
 		        } catch (Exception e) {
 		            fieldErrors.put("IDMapping", "Failed to resolve IDs: " + e.getMessage());
 		        }
@@ -328,6 +328,11 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	        	gatePassMain.setForm11DocName("");
 	        	gatePassMain.setTrainingDocName("");
 	        	gatePassMain.setOtherDocName("");
+	        	gatePassMain.setAppointmentDocName("");
+	        	gatePassMain.setDisability("");
+	        	gatePassMain.setWorkmenType("");
+	        	gatePassMain.setProficiency("");
+	        	
 
 	        	// ---- Workflow ----
 	        	gatePassMain.setGatePassStatus("4");          // 
@@ -366,6 +371,10 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            else if (saveResult.equals("WC/ESIC exceeded")) {
 	                errorData.add(Map.of("transactionId", txnId, "error", "WC/ESIC exceeded"));
 	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "WC/ESIC exceeded");
+	            }
+	            else if (saveResult.equals("Plant maximum contract workmen count exceeded")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "Plant maximum contract workmen count exceeded"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Plant maximum contract workmen count exceeded");
 	            }
 	            else {
 	                successData.add(Map.of("transactionId", saveResult));

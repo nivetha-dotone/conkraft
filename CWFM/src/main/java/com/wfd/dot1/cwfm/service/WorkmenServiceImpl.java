@@ -1253,7 +1253,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		String transactionId =null;
 		
 		try {
-	
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			if(ALLOW.equals(allowPlantOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId =gatePassMain.getWorkFlowType();
@@ -1302,6 +1303,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowOnboarding;
+			}}else {
+				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
 			
