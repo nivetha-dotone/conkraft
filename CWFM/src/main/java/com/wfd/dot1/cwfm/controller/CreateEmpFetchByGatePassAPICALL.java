@@ -5,6 +5,7 @@ package com.wfd.dot1.cwfm.controller;
 import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
 import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
+import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
 import java.util.List;
@@ -12,12 +13,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping({"/WFDjson"})
@@ -120,9 +116,12 @@ public class CreateEmpFetchByGatePassAPICALL {
     }
 
     @GetMapping({"/getAccessTokenOnly"})
-    public ResponseEntity<?> getAccessTokenOnly() {
+
+    public ResponseEntity<?> getAccessTokenOnly(@RequestParam String username,
+                                                @RequestParam String password) {
         try {
-            String gatePassEmpDtoDynamic = this.employeeMapper.getTokenCheck();
+            String gatePassEmpDtoDynamic = this.employeeMapper.getTokenCheck( username,  password);
+
             return gatePassEmpDtoDynamic != null ? new ResponseEntity(gatePassEmpDtoDynamic, HttpStatus.OK) : new ResponseEntity(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -130,10 +129,46 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     }
 
+
+    @GetMapping("/check-authentication")
+    public ResponseEntity<?> getAccessAuthentication(
+            @RequestParam String username,
+            @RequestParam String password) {
+        try {
+            Object authCheckup = employeeMapper.getAuthCheckup(username, password);
+
+            if (authCheckup instanceof MasterUser) {
+                return ResponseEntity.ok(authCheckup);
+            }
+
+            // ✅ now this will truly be null
+            return ResponseEntity.ok(null);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
     @PostMapping({"/postSkillInWFD/{gmId}"})
     public ResponseEntity<?> postSkills(@PathVariable Integer gmId) {
         try {
             String individualOnBoardDetailsByTrnId = this.employeeMapper.postSkillTowfd(gmId);
+            if (individualOnBoardDetailsByTrnId != null && individualOnBoardDetailsByTrnId.equals("already in the WFD")) {
+                return new ResponseEntity("already in the WFD", HttpStatus.BAD_REQUEST);
+            } else {
+                return individualOnBoardDetailsByTrnId != null ? new ResponseEntity(individualOnBoardDetailsByTrnId, HttpStatus.OK) : new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping({"/postJobInWFD/{gmId}"})
+    public ResponseEntity<?> postJobs(@PathVariable Integer gmId) {
+        try {
+            String individualOnBoardDetailsByTrnId = this.employeeMapper.postJobTowfd(gmId);
             if (individualOnBoardDetailsByTrnId != null && individualOnBoardDetailsByTrnId.equals("already in the WFD")) {
                 return new ResponseEntity("already in the WFD", HttpStatus.BAD_REQUEST);
             } else {

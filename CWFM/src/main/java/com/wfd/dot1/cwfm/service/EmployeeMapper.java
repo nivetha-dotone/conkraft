@@ -7,6 +7,7 @@ import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
+import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -133,7 +134,21 @@ public class EmployeeMapper {
     public String postSkillTowfd(Integer gmId) {
         try {
             PostSkillWfd skills = this.gatePassToOnBoardService.createSkills(gmId);
+            String issandorpoc = getISSANDORPOC();
+            String orgPath = "";
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+
+            }
             boolean b = this.wfdEmployeeService.verifySkillsInWFD(skills.getName());
+
+            if ("no".equalsIgnoreCase(issandorpoc)) {
+                boolean checkJob = this.wfdEmployeeService.verifyJobInWFD(skills.getName(),"1999-01-01");
+                if(!checkJob){
+                    postJobTowfd(gmId);
+                }
+
+            }
             if (skills == null) {
                 return "Skill is not present";
             } else if (b) {
@@ -143,6 +158,25 @@ public class EmployeeMapper {
                 return skillsInWFD;
             } else {
                 return "Skill is not present";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String postJobTowfd(Integer gmId) {
+        try {
+            PostJobWfd skills = this.gatePassToOnBoardService.createJob(gmId);
+            boolean b = this.wfdEmployeeService.verifyJobInWFD(skills.getName(),skills.getEffectiveDate());
+            if (skills == null) {
+                return "Job is not present";
+            } else if (b) {
+                return "already in the WFD";
+            } else if (skills != null) {
+                String skillsInWFD = this.wfdEmployeeService.createJobInWFD(skills);
+                return skillsInWFD;
+            } else {
+                return "Job is not present";
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -399,19 +433,35 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
-public String getTokenCheck(){
+
+public String getTokenCheck(String username, String password){
         try{
-          return  wfdEmployeeService.getAuthToken();
+          return  wfdEmployeeService.getAuthToken( username,  password);
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 }
-    public EmployeeRequestDTO gatePassEmpDto(String GatePassId) {
+
+   
+
+    public Object getAuthCheckup(String username, String password) {
+
         try {
-            GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnId(GatePassId);
-            if (individualOnBoardDetailsByTrnId != null) {
-                EmployeeRequestDTO dto = new EmployeeRequestDTO();
+            return wfdEmployeeService.getAuthCheck(username, password);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+
+                public EmployeeRequestDTO gatePassEmpDto(String GatePassId) {
+                    try {
+                        GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnId(GatePassId);
+                        if (individualOnBoardDetailsByTrnId != null) {
+                            EmployeeRequestDTO dto = new EmployeeRequestDTO();
                 EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
                 EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
                 access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
@@ -670,14 +720,18 @@ public String getTokenCheck(){
                     }
 
                 }else{
+                    System.out.println(individualOnBoardDetailsByTrnId.getCategory() +"going for create workorder");
                     PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
                     String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
+                    System.out.println(laborCatInWFD +"check that successfull or not");
                     if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
                             labor.setLaborCategoryName(category + ",,,,,");
+                            System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
                         }
                     }
+
                 }
                 System.out.println(labor.getLaborCategoryName() +" :- final set json");
 
@@ -702,14 +756,27 @@ public String getTokenCheck(){
                 } else if ("no".equalsIgnoreCase(issandorpoc)) {
 
 
-                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() +"/Team Lead";
-//                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+individualOnBoardDetailsByTrnId.getSkill();
+                    String skill = individualOnBoardDetailsByTrnId.getSkill();
+                    boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                    if(!checkJob){
+                        PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
+                        String jobInWFD = this.wfdEmployeeService.createJobInWFD(jobByname);
+
+
+                    }
+
+
+                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+
 
 
 
                 }else{
 
                 }
+
+                System.out.println(orgPath);
+
 
                 labor.setOrganizationPath(
                         resolveOrganizationPath1(orgPath)

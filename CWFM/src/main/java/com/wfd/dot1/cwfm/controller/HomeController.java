@@ -3,9 +3,12 @@ package com.wfd.dot1.cwfm.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.wfd.dot1.cwfm.dao.UserDAOImpl;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,77 +54,155 @@ public class HomeController {
 	 
 	 @Autowired
 		WorkmenService workmenService;
+	 @Autowired
+		private CreateEmpFetchByGatePassAPICALL apicall;
+	 @Autowired
+	 	private UserDAOImpl UserDAOImplDao;
 
 		
 		@Autowired
 		PrincipalEmployerService peService;
+
+
+	public String getAuthCWFM() {
+		return QueryFileWatcher.getQuery("AuthCWFM");
+	}
+
+
 	@SuppressWarnings("null")
 	@RequestMapping(path = "/userlogin", method = RequestMethod.POST)
-	public String login(@RequestParam("email") String em, @RequestParam("password") String pwd, HttpSession session) {
-		String encoded = passwordEncoder.encode("nivetha");
-		 MasterUser user = masterUserService.findMasterUserDetailsByUserName(em);
-			
-		   if (user != null) {
-		        String storedPassword = user.getPassword();
+	public String login(@RequestParam("email") String em,
+						@RequestParam("password") String pwd,
+						HttpSession session) {
 
-		        // Validate the stored password before checking
-		        if (storedPassword != null && !storedPassword.isEmpty() && BCrypt.checkpw(pwd, storedPassword)) {
-		            // Generate initials
-		            String initials = Stream.of(user.getFirstName(), user.getLastName())
-		                                    .map(name -> String.valueOf(name.charAt(0)))  // Get the first character
-		                                    .reduce("", (a, b) -> a + b);
+		String issandorpoc = getAuthCWFM();
+		if (issandorpoc != null) {
+			issandorpoc = issandorpoc.trim();
+		}
 
-		            // Set session attributes
-		            session.setAttribute("userInitials", initials);
-		            session.setAttribute("loginuser", user);
-		            System.out.println("user.getUserId() -- "+user.getUserId());
-		            List<CmsGeneralMaster> roles = commonService.getRolesByUserId(user.getUserId());
-		            session.setAttribute("roles", roles);
-		            session.setAttribute("selectedRole", "");
-		            if (roles==null) {
-		                session.setAttribute("msg", "No roles assigned to the user.");
-		                return "redirect:/UserLogin.jsp"; // Redirect to error page
-		            } else if (roles.size() == 1) {
-		                // Single role: Fetch pages and redirect to welcome page
-		            	CmsGeneralMaster role = roles.get(0); // Get the role
-		                List<CmsGeneralMaster> pages;
-		                
-		                // If the role is Admin, fetch all pages
-		                if ("System Admin".equals(role.getGmName())) {  // Use the role name
-		                    pages = commonService.getAllPages();  // Fetch all pages for Admin
-		                    
-		                } else {
-		                    // Fetch pages specific to the roleId
-		                    pages = commonService.getPagesByRoleId(role.getGmId());
-		                }
-		              //  List<CmsGeneralMaster> pages = commonService.getPagesByRoleId(roles.get(0).getGmId());
-		                session.setAttribute("pages", pages);
-		                session.setAttribute("selectedRole", role.getGmName());
-		                System.out.println("Selected role in session: " + session.getAttribute("selectedRole"));
-		                System.out.println("Role name: " + role.getGmName());
-		                session.setAttribute("roles", roles);
-		                return "WelcomePage"; // Redirect to welcome page
-		            } else {
-		                // Multiple roles: Redirect to role selection page
-		            	//CmsGeneralMaster defaultRole = roles.get(0);
-		                session.setAttribute("roles", roles);
-		              //  session.setAttribute("selectedRole", defaultRole.getGmName());
-		                System.out.println("Default selected role in session: " + session.getAttribute("selectedRole"));
+		try {
 
-		                return "WelcomePage"; // Redirect to role selection JSP
-		            }
-		            //return "WelcomePage";
-		        }
-		    } 
-		   session.setAttribute("msg", "invalid email and password");
-		    return "redirect:/UserLogin.jsp";
-//		   else {
-//		        // Set error message
-//		        session.setAttribute("msg", "invalid email and password");
-//		        return "redirect:/UserLogin.jsp";
-//		    }
+			// ================== CWFM Auth = YES ==================
+			if ("yes".equalsIgnoreCase(issandorpoc)) {
 
+				MasterUser user = masterUserService.findMasterUserDetailsByUserName(em);
+
+				if (user != null && user.getPassword() != null &&
+						BCrypt.checkpw(pwd, user.getPassword())) {
+
+					return handleLoginSuccess(user, session);
+				}
+
+				return handleInvalid(session);
+			}
+
+			// ================== UKG Auth = YES ==================
+			else if ("no".equalsIgnoreCase(issandorpoc)) {
+
+				ResponseEntity<?> response = apicall.getAccessAuthentication(em, pwd);
+
+				MasterUser apiUser = null;
+				if (response.getBody() instanceof MasterUser) {
+					apiUser = (MasterUser) response.getBody();
+				}
+
+				if (apiUser == null || apiUser.getUserAccount() == null) {
+					return handleInvalid(session);
+				}
+
+				String userAccount = apiUser.getUserAccount();
+
+				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+
+				// 👉 If user not present → create
+				if (user == null) {
+					apiUser.setPassword(pwd);
+					UserDAOImplDao.saveUserUkgPost(apiUser);
+
+					user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+				}
+
+				// 👉 Validate user
+				if (user != null && user.getPassword() != null) {
+					return handleLoginSuccess(user, session);
+				}
+
+				return handleInvalid(session);
+			}
+
+			// ================== INVALID CONFIG ==================
+			else {
+				throw new IllegalArgumentException(
+						"Invalid value for AuthSAND: " + issandorpoc
+				);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			session.setAttribute("msg", "Something went wrong");
+			return "redirect:/UserLogin.jsp";
+		}
 	}
+
+
+	private String handleLoginSuccess(MasterUser user, HttpSession session) {
+
+		String initials = Stream.of(user.getFirstName(), user.getLastName())
+				.filter(Objects::nonNull)
+				.map(name -> String.valueOf(name.charAt(0)))
+				.reduce("", String::concat);
+
+
+		session.setAttribute("userInitials", initials);
+		session.setAttribute("loginuser", user);
+		System.out.println("user.getUserId() -- "+user.getUserId());
+		List<CmsGeneralMaster> roles = commonService.getRolesByUserId(user.getUserId());
+		session.setAttribute("roles", roles);
+		session.setAttribute("selectedRole", "");
+		if (roles==null) {
+			session.setAttribute("msg", "No roles assigned to the user.");
+			return "redirect:/UserLogin.jsp"; // Redirect to error page
+		} else if (roles.size() == 1) {
+			// Single role: Fetch pages and redirect to welcome page
+			CmsGeneralMaster role = roles.get(0); // Get the role
+			List<CmsGeneralMaster> pages;
+
+			// If the role is Admin, fetch all pages
+			if ("System Admin".equals(role.getGmName())) {  // Use the role name
+
+				pages = commonService.getAllPages();  // Fetch all pages for Admin
+
+			} else {
+				// Fetch pages specific to the roleId
+				pages = commonService.getPagesByRoleId(role.getGmId());
+			}
+			//  List<CmsGeneralMaster> pages = commonService.getPagesByRoleId(roles.get(0).getGmId());
+			session.setAttribute("pages", pages);
+			session.setAttribute("selectedRole", role.getGmName());
+			System.out.println("Selected role in session: " + session.getAttribute("selectedRole"));
+			System.out.println("Role name: " + role.getGmName());
+			session.setAttribute("roles", roles);
+			return "WelcomePage"; // Redirect to welcome page
+
+		}else {
+			// Multiple roles: Redirect to role selection page
+			//CmsGeneralMaster defaultRole = roles.get(0);
+			session.setAttribute("roles", roles);
+			//  session.setAttribute("selectedRole", defaultRole.getGmName());
+			System.out.println("Default selected role in session: " + session.getAttribute("selectedRole"));
+
+			return "WelcomePage"; // Redirect to role selection JSP
+		}
+
+    }
+
+	private String handleInvalid(HttpSession session) {
+		session.setAttribute("msg", "invalid email and password");
+		return "redirect:/UserLogin.jsp";
+	}
+
+
+
 	@RequestMapping(path = "/updateRole", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<?> updateRole(@RequestBody Map<String, String> payload, HttpSession session) {

@@ -132,6 +132,9 @@ public class GatePassToOnBoardService {
     public String getSkillQuery() {
         return QueryFileWatcher.getQuery("getSkillQuery");
     }
+    public String getISSAND() {
+        return QueryFileWatcher.getQuery("ISSAND");
+    }
     public String getCSMWorkOrderNumber() {
         return QueryFileWatcher.getQuery("getCMSWorkOrder");
     }
@@ -151,7 +154,7 @@ public class GatePassToOnBoardService {
             PostSkillWfd postSkillWfd = null;
             if (sqlRowSet.next()) {
                 postSkillWfd = new PostSkillWfd();
-                postSkillWfd.setName(sqlRowSet.getString("GMDESCRIPTION"));
+                postSkillWfd.setName(sqlRowSet.getString("GMNAME"));
                 String gmname = sqlRowSet.getString("GMNAME");
                 gmname.trim().charAt(4);
             }
@@ -161,6 +164,84 @@ public class GatePassToOnBoardService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    public PostJobWfd createJob(Integer id) {
+        try{
+
+            String issandorpoc = getISSAND();
+
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+            } else if ("no".equalsIgnoreCase(issandorpoc)) {
+                log.info("Fetching Skill for job URL");
+                String skillQuery = this.getSkillQuery();
+                SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(skillQuery, new Object[]{id});
+                PostJobWfd postSkillWfd = null;
+                if (sqlRowSet.next()) {
+                    postSkillWfd = new PostJobWfd();
+                    postSkillWfd.setName(sqlRowSet.getString("GMNAME"));
+                    postSkillWfd.setEffectiveDate("1900-01-01");
+                    postSkillWfd.setExpirationDate("3000-01-01");
+                }
+
+                log.info("Exit from create  job method");
+                return postSkillWfd;
+
+            }else {
+
+            }
+
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
+    }
+
+
+    public PostJobWfd createJobByname(String id) {
+        try{
+
+            String issandorpoc = getISSAND();
+
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+            } else if ("no".equalsIgnoreCase(issandorpoc)) {
+                log.info("Fetching Skill for job URL");
+               PostJobWfd postSkillWfd = null;
+                if (id!=null && !id.isEmpty()) {
+                    postSkillWfd = new PostJobWfd();
+                    postSkillWfd.setName(id);
+                    postSkillWfd.setEffectiveDate("1900-01-01");
+                    postSkillWfd.setExpirationDate("3000-01-01");
+                }
+
+                log.info("Exit from create  job method");
+                return postSkillWfd;
+
+            }else {
+
+            }
+
+
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return null;
     }
 
     public PostLaborCatDTO createLaborCategory(String id) {

@@ -194,6 +194,37 @@ public class UserDAOImpl implements UserDAO {
 
     }
 
+    public void saveUserUkgPost(MasterUser user) {
+        String query=saveusers();
+        String query1=insertrolemapping();
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        // Encrypt password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Insert the user and retrieve the generated key
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(query, new String[] {"UserId"});
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getEmailId());
+            ps.setString(4, user.getContactNumber());
+            ps.setString(5, user.getPassword());
+            ps.setString(6, user.getUserAccount());
+            return ps;
+        }, keyHolder);
+//        // Set the generated UserId in the user object
+//        int userId = keyHolder.getKey().intValue();
+//        user.setUserId(userId);
+//        // Save role mappings if provided
+//        if (roleIds != null) {
+//            for (Long roleId : roleIds) {
+//               // String insertRoleMappingQuery = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
+//                jdbcTemplate.update(query1, user.getUserId(), roleId);
+//            }
+//        }
+
+    }
+
 
     @Override
     public boolean changeUserPassword(ChangePasswordDTO changePasswordDTO) {
