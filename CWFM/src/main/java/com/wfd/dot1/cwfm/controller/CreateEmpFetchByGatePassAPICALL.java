@@ -130,6 +130,21 @@ public class CreateEmpFetchByGatePassAPICALL {
     }
 
 
+    @GetMapping({"/getVerifyLaborCat"})
+
+    public ResponseEntity<?> verifyLaborCate(@RequestParam String Workorder
+                                               ) {
+        try {
+            String gatePassEmpDtoDynamic = this.employeeMapper.getVerifyLabor( Workorder);
+
+            return gatePassEmpDtoDynamic != null ? new ResponseEntity(gatePassEmpDtoDynamic, HttpStatus.OK) : new ResponseEntity(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+
     @GetMapping("/check-authentication")
     public ResponseEntity<?> getAccessAuthentication(
             @RequestParam String username,

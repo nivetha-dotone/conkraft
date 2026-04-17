@@ -30,7 +30,23 @@ public class GatePassToOnBoardService {
     }
 
     public String getGTByTrnsId() {
-        return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY");
+        String issandorpoc = getISSAND();
+
+        if (issandorpoc != null) {
+            issandorpoc = issandorpoc.trim();
+        }
+
+        if ("yes".equalsIgnoreCase(issandorpoc)) {
+            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY");
+
+        } else if ("no".equalsIgnoreCase(issandorpoc)) {
+            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYPOC");
+
+        }else{
+            return null;
+        }
+
+
     }
 
     public String getListOfTrEmpStatus() {

@@ -153,8 +153,7 @@ public class WfdEmployeeService {
             String jsonBody = "{\n" +
                     "  \"where\": {\n" +
                     "    \"entries\": {\n" +
-                    "      \"key\": \"qualifiers\",\n" +
-                    "      \"values\": [\"" + name + "\"]\n" +
+                    "      \"qualifiers\": [\"" + name + "\"]\n" +
                     "    }\n" +
                     "  }\n" +
                     "}";
@@ -167,29 +166,27 @@ public class WfdEmployeeService {
 
             String url = this.getHostName() + this.getfindLaborCatUrl();
 
-            ResponseEntity<String> response = this.restTemplate.exchange(
+            ResponseEntity<String> response = restTemplate.exchange(
                     url,
                     HttpMethod.POST,
                     entity,
                     String.class
             );
 
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return true;
+            String responseBody = response.getBody();
+
+            // ✅ Check error inside response
+            if (responseBody != null && responseBody.contains("laborcategory-common:107")) {
+                return false; // Not found
             }
 
-            return false;
-
-        } catch (HttpClientErrorException ex) {
-            if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                return false;
-            }
-            return false;
+            return true; // Found
 
         } catch (Exception ex) {
             return false;
         }
     }
+
 
     public String createSkillsInWFD(PostSkillWfd dto) {
         try {
