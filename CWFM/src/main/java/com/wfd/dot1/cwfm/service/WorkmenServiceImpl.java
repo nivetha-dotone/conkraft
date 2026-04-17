@@ -628,6 +628,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 				if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus()) || dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())) {
 					 workmenDao.updateGatePassMainStatusAndType(dto.getGatePassId(),dto.getGatePassStatus(),GatePassType.CREATE.getStatus());
 					 gatePassMain.setWorkorder(gatePassMain.getWoId());
+					 gatePassMain.setLlNo(gatePassMain.getLlId());
+					 gatePassMain.setWcEsicNo(gatePassMain.getWcEsicId());
 					 String dot=this.getDOT(gatePassMain);
 					 gatePassMain.setDot(dot);
 					 boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
