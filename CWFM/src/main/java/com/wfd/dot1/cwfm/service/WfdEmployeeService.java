@@ -433,6 +433,28 @@ public class WfdEmployeeService {
         }
     }
 
+    public Object getDeatilsPersonViaUKGAUTH(String username) {
+        try {
+            String authCheck = "successful";
+
+            if ("successful".equalsIgnoreCase(authCheck)) {
+
+                Integer personKey = getPersonKeyBasedonUserName(username);
+
+                if (personKey != null) {
+                    return getUserDetailsByPersonKey(personKey);
+                }
+
+                return null;
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     public MasterUser getUserDetailsByPersonKey(Integer personKey) {
         try {

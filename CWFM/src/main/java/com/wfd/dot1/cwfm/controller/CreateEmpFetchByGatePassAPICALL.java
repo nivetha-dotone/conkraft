@@ -163,6 +163,23 @@ public class CreateEmpFetchByGatePassAPICALL {
             throw new RuntimeException(e);
         }
     }
+    @GetMapping("/personCheckViaUKGAUTH")
+    public ResponseEntity<?> getDetailsofPerson(
+            @RequestParam String username) {
+        try {
+            Object authCheckup = employeeMapper.getDetailsPerson(username);
+
+            if (authCheckup instanceof MasterUser) {
+                return ResponseEntity.ok(authCheckup);
+            }
+
+            // ✅ now this will truly be null
+            return ResponseEntity.ok(null);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 

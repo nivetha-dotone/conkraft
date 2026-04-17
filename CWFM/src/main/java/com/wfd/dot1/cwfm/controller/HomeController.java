@@ -145,6 +145,67 @@ public class HomeController {
 	}
 
 
+
+
+	@RequestMapping(path = "/userloginViaUKG", method = RequestMethod.GET)
+	public String loginviaUKG(@RequestParam("userId") String userId,
+						HttpSession session) {
+		try {
+
+			String issandorpoc = getAuthCWFM();
+			if (issandorpoc != null) {
+				issandorpoc = issandorpoc.trim();
+			}
+
+			// ================== UKG Auth = YES ==================
+			 if ("no".equalsIgnoreCase(issandorpoc)) {
+
+				ResponseEntity<?> response = apicall.getDetailsofPerson(userId);
+
+				MasterUser apiUser = null;
+				if (response.getBody() instanceof MasterUser) {
+					apiUser = (MasterUser) response.getBody();
+				}
+
+				if (apiUser == null || apiUser.getUserAccount() == null) {
+					return handleInvalid(session);
+				}
+
+				String userAccount = apiUser.getUserAccount();
+
+				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+
+				// 👉 If user not present → create
+				if (user == null) {
+					apiUser.setPassword("Admin@123");
+					UserDAOImplDao.saveUserUkgPost(apiUser);
+
+					user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+				}
+
+				// 👉 Validate user
+				if (user != null && user.getPassword() != null) {
+					return handleLoginSuccess(user, session);
+				}
+
+				return handleInvalid(session);
+			}
+
+			// ================== INVALID CONFIG ==================
+			else {
+				throw new IllegalArgumentException(
+						"Invalid value for AuthSAND: " + issandorpoc
+				);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			session.setAttribute("msg", "Something went wrong");
+			return "redirect:/UserLogin.jsp";
+		}
+	}
+
+
 	private String handleLoginSuccess(MasterUser user, HttpSession session) {
 
 		String initials = Stream.of(user.getFirstName(), user.getLastName())
@@ -182,7 +243,8 @@ public class HomeController {
 			System.out.println("Selected role in session: " + session.getAttribute("selectedRole"));
 			System.out.println("Role name: " + role.getGmName());
 			session.setAttribute("roles", roles);
-			return "WelcomePage"; // Redirect to welcome page
+			return "redirect:/userlogin";
+			//			return "WelcomePage"; // Redirect to welcome page
 
 		}else {
 			// Multiple roles: Redirect to role selection page
@@ -191,7 +253,8 @@ public class HomeController {
 			//  session.setAttribute("selectedRole", defaultRole.getGmName());
 			System.out.println("Default selected role in session: " + session.getAttribute("selectedRole"));
 
-			return "WelcomePage"; // Redirect to role selection JSP
+			return "redirect:/userlogin";// Redirect to role selection JSP
+//			return "WelcomePage"; // Redirect to role selection JSP
 		}
 
     }
@@ -200,7 +263,10 @@ public class HomeController {
 		session.setAttribute("msg", "invalid email and password");
 		return "redirect:/UserLogin.jsp";
 	}
-
+	@RequestMapping(path = "/userlogin", method = RequestMethod.GET)
+	public String showAfterLoginPage(HttpSession session) {
+		return "WelcomePage"; // your JSP
+	}
 
 
 	@RequestMapping(path = "/updateRole", method = RequestMethod.POST)
