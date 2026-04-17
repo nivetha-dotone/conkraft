@@ -641,7 +641,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 				//rollback status and type to create
 				}else {
 					String gatePassId=dto.getGatePassId();
+					gatePassMain.setWorkorder(gatePassMain.getWoId());
+					gatePassMain.setLlNo(gatePassMain.getLlId());
+					gatePassMain.setWcEsicNo(gatePassMain.getWcEsicId());
 					 String dot=this.getDOT(gatePassMain);
+					 
 					 gatePassMain.setDot(dot);
 					 boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
 		            

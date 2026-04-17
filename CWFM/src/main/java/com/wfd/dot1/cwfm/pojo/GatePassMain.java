@@ -632,4 +632,19 @@ public void setProficiency(String proficiency) {
 	Proficiency = proficiency;
 }
 
+private String llId;
+private String wcEsicId;
+public String getLlId() {
+	return llId;
+}
+public void setLlId(String llId) {
+	this.llId = llId;
+}
+public String getWcEsicId() {
+	return wcEsicId;
+}
+public void setWcEsicId(String wcEsicId) {
+	this.wcEsicId = wcEsicId;
+}
+
 }

@@ -1966,6 +1966,8 @@ public GatePassMain getIndividualContractWorkmenDetailsByGatePassId(String gateP
 		dto.setAttachmentOfReference(rs.getString("AttachmentOfReference"));		
 		dto.setWoId(rs.getString("woId"));
 		dto.setProficiency(rs.getString("Proficiency"));
+		dto.setLlId(rs.getString("llid"));
+		dto.setWcEsicId(rs.getString("wcesicid"));
 	}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+gatePassId);
 	return dto;
