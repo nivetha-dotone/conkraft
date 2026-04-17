@@ -193,7 +193,7 @@ table.ControlLayout td {
         </tr>
         <tr>
              <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.emailAddress"/></label></th>
-        <td style="color: black;"><input type="email" name="emailId" style="height: 20px;" size="30" maxlength="30" autocomplete="off"/>
+        <td style="color: black;"><input type="email" name="emailId" style="height: 20px;" size="30" maxlength="50" autocomplete="off"/>
         <div style="text-align: left;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.emailAddressRegax"/></span>
        </div>
@@ -218,7 +218,7 @@ table.ControlLayout td {
             <span id="passwordError" class="error-message"></span>
             </td>
             
-            <th><label class="custom-label"><span class="required-field">*</span>User Account:</label></th>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.Name"/></label></th>
             <td><input type="text" name="userAccount" style="height: 20px;" size="30" maxlength="30" autocomplete="new-userAccount"/>
             <div style="text-align:right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.userAccountRegax"/></span>

@@ -1485,6 +1485,10 @@ public class FileUploadServiceImpl implements FileUploadService {
                 }
             }
 
+            if (!fieldErrors.isEmpty()) {
+                errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+                continue;
+            }
             // Check numeric fields
            // for (int i = 0; i < fieldNames.length; i++) {
              //   if (numericFields.contains(fieldNames[i]) && !fields[i].isBlank()) {
@@ -1495,7 +1499,15 @@ public class FileUploadServiceImpl implements FileUploadService {
                 //    }
                 //}
            // }
-
+            String contractorCode = fields[8];
+            String workOrder = fields[0];
+            
+            Integer workorderExistsForOtherContractor =fileUploadDao.IsWorkorderExistsForOtherContractor(workOrder,contractorCode);
+            if (workorderExistsForOtherContractor != null) {
+            	 errorData.add(Map.of("row", rowNum, "error", "Workorder: " + workOrder + " already Mapped to Other Contractor"));
+                 continue;
+            }
+            
             if (!fieldErrors.isEmpty()) {
                 errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
                 continue;
@@ -1503,8 +1515,6 @@ public class FileUploadServiceImpl implements FileUploadService {
             
             try {
             	String plantCode = fields[15];
-                String contractorCode = fields[8];
-                String workOrder = fields[0];
                 String item = fields[1];
                 String lines = fields[2];
                 String lineNumber = fields[3];

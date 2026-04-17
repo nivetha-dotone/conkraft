@@ -2345,12 +2345,27 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 			    return list.isEmpty() ? null : list.get(0);
 			}
+		 public String getWorkorderIdBasedonPE() {
+			    return QueryFileWatcher.getQuery("GET_WORKORDER_BASED_ON_PE");
+		    }
+		public String IsWorkorderExistsForOtherContractor() {
+			    return QueryFileWatcher.getQuery("IS_WORKORDER_EXISTS_FOR_OTHER_CONTRACTOR");
+		    }
+			
 		 @Override
 			public Integer getWorkorderIdBasedonPE(String workorderNumber,Integer unitId) {
 			    if (workorderNumber == null || workorderNumber.trim().isEmpty()) return null;
-			    //String sql=getWorkorderId();
-			    String sql = "SELECT WORKORDERID FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM = ? and UNITID=?";
+			    String sql=getWorkorderIdBasedonPE();
+			    //String sql = "SELECT WORKORDERID FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM = ? and UNITID=?";
 			    List<Integer> result = jdbcTemplate.queryForList(sql, Integer.class, workorderNumber.trim(),unitId);
 			    return result.isEmpty() ? null : result.get(0);
 			}
+		@Override
+		public Integer IsWorkorderExistsForOtherContractor(String workOrder, String contractorCode) {
+			String sql=IsWorkorderExistsForOtherContractor();
+			//String sql = "select WORKORDERID from CMSWORKORDER cwo join CMSCONTRACTOR cmsc on cmsc.CONTRACTORID=cwo.CONTRACTORID where cwo.SAP_WORKORDER_NUM=? and cmsc.CODE <> ?";
+			 List<Integer> result = jdbcTemplate.query(sql, new Object[]{workOrder,contractorCode},
+				        (rs, rowNum) -> rs.getInt("WORKORDERID"));
+				    return result.isEmpty() ? null : result.get(0);
+		}
 	}

@@ -244,4 +244,6 @@ public interface FileUploadDao {
 	Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber);
 
 	Integer getWorkorderIdBasedonPE(String string, Integer unitId);
+
+	Integer IsWorkorderExistsForOtherContractor(String workOrder, String contractorCode);
 }

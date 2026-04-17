@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.WorkmenBulkUpload;
 import com.wfd.dot1.cwfm.service.CommonService;
@@ -57,6 +59,20 @@ public class WorkmenBulkUploadController {
     public String getAllWorkmenUploadList(HttpServletRequest request,HttpServletResponse response,Model model) {
     	 HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
          MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+         request.setAttribute("userId", user.getUserId());
+    		request.setAttribute("roleId", user.getRoleId());
+    		request.setAttribute("roleName", user.getRoleName());
+ 		
+ 		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+     	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+     			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+     	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+     	
+     	List<Long> unitIds = peList.stream()
+     	        .map(pe -> Long.parseLong(pe.getId()))
+     	        .collect(Collectors.toList());
+    System.out.println("unitids:"+unitIds);
+     	List<WorkmenBulkUpload> wbu = workmenuploadService.getWorkmenDataByUnitIds(unitIds);
          List<PrincipalEmployer> listDto =new ArrayList<PrincipalEmployer>();
          CMSRoleRights rr =new CMSRoleRights();
          if(user!=null) {
@@ -76,7 +92,7 @@ public class WorkmenBulkUploadController {
     		//request.setAttribute("cmSPRINCIPALEMPLOYERs", listDto);
     		request.setAttribute("UserPermission", rr);
     		
-    		List<WorkmenBulkUpload> wbu = workmenuploadService.getAllWorkmenBulkUploadData();
+    		//List<WorkmenBulkUpload> wbu = workmenuploadService.getAllWorkmenBulkUploadData();
     	   	 model.addAttribute("wbudata", wbu);
     	return "contractWorkmenBulkUpload/workmenBulkUpload";
     }

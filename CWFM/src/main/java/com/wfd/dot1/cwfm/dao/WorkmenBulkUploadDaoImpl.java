@@ -4,12 +4,15 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -53,7 +56,36 @@ public class WorkmenBulkUploadDaoImpl implements WorkmenBulkUploadDao{
 	 public String workorderValidityCheck() {
 		    return QueryFileWatcher.getQuery("WORKORDER_VALIDITY_CHECK");
 		}
+	 @Override
+	 public List<WorkmenBulkUpload> getWorkmenDataByUnitIds(List<Long> unitIds) {
 
+	     if (unitIds == null || unitIds.isEmpty()) {
+	         return Collections.emptyList(); // avoid SQL error
+	     }
+
+	     // 🔹 Create ?, ?, ? dynamically
+	     String inSql = unitIds.stream()
+	             .map(id -> "?")
+	             .collect(Collectors.joining(","));
+
+	     String sql = "SELECT cribu.TransactionID, cribu.FirstName, cribu.LastName, " +
+	             "cgm.GMNAME as Gender, cribu.DOB, cribu.AadharNumber, " +
+	             "cmsc.NAME AS vendorcode, cpe.NAME AS unitcode, cribu.RecordStatus " +
+	             "FROM CMSRequestItemBulkUpload cribu " +
+	             "LEFT JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UnitId = TRY_CAST(cribu.UnitId AS BIGINT) " +
+	             "LEFT JOIN CMSGENERALMASTER cgm ON cgm.GMID = TRY_CAST(cribu.Gender AS BIGINT) " +
+	             "LEFT JOIN CMSCONTRACTOR cmsc ON cmsc.ContractorId = TRY_CAST(cribu.ContractorId AS BIGINT) " +
+	             "LEFT JOIN CMSWORKORDER cwo ON cwo.WorkorderId = TRY_CAST(cribu.WorkorderId AS BIGINT) " +
+	             "WHERE cribu.RecordProcessed='N' " +
+	             "AND cribu.UpdatedDate >= CAST(DATEADD(DAY, -3, GETDATE()) AS DATE) " +
+	             "AND TRY_CAST(cribu.UnitId AS BIGINT) IN (" + inSql + ")";
+
+	     // 🔹 Convert List → Object[]
+	     Object[] params = unitIds.toArray();
+
+	     return jdbcTemplate.query(sql, params, new BeanPropertyRowMapper<>(WorkmenBulkUpload.class));
+	 }
+	 
 	@Override
 	public List<WorkmenBulkUpload> getAllWorkmenBulkUploadData() {
 	List<WorkmenBulkUpload> peList= new ArrayList<WorkmenBulkUpload>();

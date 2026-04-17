@@ -5520,6 +5520,7 @@ document.addEventListener('click', function () {
         window.location.href = downloadUrl;
     }
     function saveSelectedRows() {
+    	showLoader();
         const selected = [];
         document.querySelectorAll('input[type="checkbox"][name="selectedWOs"]:checked').forEach(cb => {
             selected.push(parseInt(cb.value)); // Ensure it's an integer
@@ -5538,6 +5539,7 @@ document.addEventListener('click', function () {
             errorDiv.innerText = "Please select at least one row to save.";
             errorDiv.style.display = "block";
             setTimeout(() => errorDiv.style.display = "none", 5000);
+            hideLoader();
             return;
         }
 
@@ -5548,6 +5550,7 @@ document.addEventListener('click', function () {
         })
         .then(res => res.json())
         .then(result => {
+        	hideLoader();
             if (result.status === "success") {
                 successDiv.innerText = result.message;
                 successDiv.style.display = "block";
@@ -5567,12 +5570,14 @@ document.addEventListener('click', function () {
             }, 5000);
         })
         .catch(err => {
+        	hideLoader();
             console.error("Save error:", err);
             errorDiv.innerText = "An unexpected error occurred.";
             errorDiv.style.display = "block";
 
             // Auto-hide error and reload after 5 seconds
             setTimeout(() => {
+            	hideLoader();
                 errorDiv.style.display = "none";
                 loadCommonList('/workmenBulkUpload/list', 'Workmen Bulk Upload');
             }, 5000);
@@ -5790,7 +5795,13 @@ function loadDashboardFromHome() {
     })
     .catch(err => console.error(err));
 }
+function showLoader() {
+    document.getElementById("loaderOverlay").style.display = "flex";
+}
 
+function hideLoader() {
+    document.getElementById("loaderOverlay").style.display = "none";
+}
 </script>
 </body>
 

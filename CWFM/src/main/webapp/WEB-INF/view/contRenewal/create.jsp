@@ -409,7 +409,7 @@ label {
              <tr>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.emailAddress"/></label></th>
                 <td>
-                	<input id="emailId" name="email" style="width: 100%;height: 20px;" type="text" size="30" maxlength="30" autocomplete="off">
+                	<input id="emailId" name="email" style="width: 100%;height: 20px;" type="text" size="30" maxlength="50" autocomplete="off">
                 	<div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.emailAddressRegax"/></span>
        </div>

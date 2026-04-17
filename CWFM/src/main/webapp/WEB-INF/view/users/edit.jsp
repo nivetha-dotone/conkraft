@@ -170,21 +170,21 @@ table.ControlLayout td {
         <!-- Form fields -->
        <input type="hidden" name="userId" id="userId" value="${user.userId}" />
         <tr>
-            <th><label class="custom-label"><span class="required-field">*</span>First Name:</label></th>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.firstName"/></label></th>
             <td><input type="text" name="firstName" style="height: 20px;text-transform: capitalize;" size="30" maxlength="30" value="${user.firstName}" autocomplete="off"  oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g,'')"/></td>
-            <th><label class="custom-label"><span class="required-field">*</span>Last Name:</label></th>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.lastName"/></label></th>
             <td><input type="text" name="lastName" style="height: 20px;text-transform: capitalize;" size="30" maxlength="30" value="${user.lastName}" autocomplete="off"  oninput="this.value = this.value.replace(/[^a-zA-Z\s]/g,'')"/></td>
         </tr>
         <tr>
-             <th><label class="custom-label"><span class="required-field">*</span>Email:</label></th>
-        <td><input type="email" name="emailId" style="height: 20px;" size="30" maxlength="30" value="${user.emailId}" autocomplete="off"/></td>
-            <th><label class="custom-label"><span class="required-field">*</span>Contact Number:</label></th>
+             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.emailAddress"/></label></th>
+        <td><input type="email" name="emailId" style="height: 20px;" size="30" maxlength="50" value="${user.emailId}" autocomplete="off"/></td>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contactNumber"/></label></th>
             <td><input type="text" name="contactNumber" style="height: 20px;" size="30" maxlength="10" value="${user.contactNumber}" autocomplete="off"  oninput="this.value = this.value.replace(/[^0-9]/g,'');if (this.value.length > 0 && !/^[6-9]/.test(this.value)) {this.value = '';}this.value = this.value.slice(0,10);"pattern="^[6-9][0-9]{9}$"/></td>
         </tr>
         <tr>
-            <th><label class="custom-label"><span class="required-field">*</span>Password:</label></th>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.password"/></label></th>
             <td><input type="password" name="password" style="height: 20px;" size="30" maxlength="30" value="${user.password}" autocomplete="off" readonly/></td>
-            <th><label class="custom-label"><span class="required-field">*</span>User Account:</label></th>
+            <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.Name"/></label></th>
             <td><input type="text" name="userAccount" style="height: 20px;" size="30" maxlength="30" value="${user.userAccount}" autocomplete="off" readonly/></td>
         </tr>
        <tr> 

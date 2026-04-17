@@ -52,6 +52,10 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 		return workmenUploadDao.getAllWorkmenBulkUploadData();
 	}
 	@Override
+	public List<WorkmenBulkUpload> getWorkmenDataByUnitIds(List<Long> unitIds) {
+	    return workmenUploadDao.getWorkmenDataByUnitIds(unitIds);
+	}
+	@Override
 	public Map<String, Object> validateAndSaveSelectedWorkmen(List<Integer> transactionIds,String createdBy) {
 	    List<Map<String, Object>> successData = new ArrayList<>();
 	    List<Map<String, Object>> errorData = new ArrayList<>();

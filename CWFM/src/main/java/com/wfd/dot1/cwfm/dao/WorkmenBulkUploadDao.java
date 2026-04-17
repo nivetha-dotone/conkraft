@@ -25,4 +25,6 @@ public interface WorkmenBulkUploadDao {
 
 	String getNextTransactionId();
 
+	List<WorkmenBulkUpload> getWorkmenDataByUnitIds(List<Long> unitIds);
+
 }

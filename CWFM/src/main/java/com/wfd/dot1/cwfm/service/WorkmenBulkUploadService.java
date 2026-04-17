@@ -14,4 +14,6 @@ public interface WorkmenBulkUploadService {
 	
 	Map<String, Object> validateAndSaveSelectedWorkmen(List<Integer> transactionIds, String createdBy);
 
+	List<WorkmenBulkUpload> getWorkmenDataByUnitIds(List<Long> unitIds);
+
 }
