@@ -1786,7 +1786,7 @@ public List<GatePassListingDto> getRenewListingDetails(String userId,String gate
 	List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
 	String query =getAllRenewForContractor();
 	log.info("Query to getRenewListingDetails "+query);
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId,userId,gatePassTypeId,gatePassStatus,deptId,deptId,unitId);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId,gatePassTypeId,gatePassStatus,deptId,deptId,unitId);
 	while(rs.next()) {
 		GatePassListingDto dto = new GatePassListingDto();
 		dto.setTransactionId(rs.getString("TransactionId"));
