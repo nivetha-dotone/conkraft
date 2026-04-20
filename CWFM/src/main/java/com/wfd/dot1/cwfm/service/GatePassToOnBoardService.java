@@ -648,6 +648,11 @@ public class GatePassToOnBoardService {
                 dto.setUserAccountName(rs.getString("userAccountName"));
                 dto.setUserAccountStatus(rs.getString("userAccountStatus"));
                 dto.setUserPassword(rs.getString("userPassword"));
+                dto.setOnboardingType(rs.getString("OnboardingType"));
+                dto.setAccommodation(rs.getString("Accommodation"));
+                dto.setESICIPNumber(rs.getString("ESICIPNumber"));
+
+
             }
 
             log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");

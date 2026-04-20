@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.wfd.dot1.cwfm.dao.UserDAOImpl;
+import com.wfd.dot1.cwfm.util.AESUtil;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -69,6 +70,13 @@ public class HomeController {
 	}
 
 
+	public String AuthCWFMSYSEM() {
+		return QueryFileWatcher.getQuery("AuthCWFMSYSEM");
+	}
+
+
+
+
 	@SuppressWarnings("null")
 	@RequestMapping(path = "/userlogin", method = RequestMethod.POST)
 	public String login(@RequestParam("email") String em,
@@ -80,10 +88,16 @@ public class HomeController {
 			issandorpoc = issandorpoc.trim();
 		}
 
+		String systemUser = AuthCWFMSYSEM();
+		if (systemUser != null) {
+			systemUser = systemUser.trim();
+		}
+
 		try {
 
-			// ================== CWFM Auth = YES ==================
-			if ("yes".equalsIgnoreCase(issandorpoc)) {
+			// ================== CWFM Auth (FORCE FOR SYSTEM USER) ==================
+			if ("yes".equalsIgnoreCase(issandorpoc) ||
+					(systemUser != null && systemUser.equalsIgnoreCase(em))) {
 
 				MasterUser user = masterUserService.findMasterUserDetailsByUserName(em);
 
@@ -94,9 +108,10 @@ public class HomeController {
 				}
 
 				return handleInvalid(session);
+
 			}
 
-			// ================== UKG Auth = YES ==================
+			// ================== UKG Auth ==================
 			else if ("no".equalsIgnoreCase(issandorpoc)) {
 
 				ResponseEntity<?> response = apicall.getAccessAuthentication(em, pwd);
@@ -114,7 +129,6 @@ public class HomeController {
 
 				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 
-				// 👉 If user not present → create
 				if (user == null) {
 					apiUser.setPassword(pwd);
 					UserDAOImplDao.saveUserUkgPost(apiUser);
@@ -122,7 +136,6 @@ public class HomeController {
 					user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 				}
 
-				// 👉 Validate user
 				if (user != null && user.getPassword() != null) {
 					return handleLoginSuccess(user, session);
 				}
@@ -146,19 +159,21 @@ public class HomeController {
 
 
 
-
 	@RequestMapping(path = "/userloginViaUKG", method = RequestMethod.GET)
-	public String loginviaUKG(@RequestParam("userId") String userId,
+	public String loginviaUKG(@RequestParam("userId") String encryptedUserId,
 						HttpSession session) {
 		try {
 
-			String issandorpoc = getAuthCWFM();
-			if (issandorpoc != null) {
-				issandorpoc = issandorpoc.trim();
-			}
+//			String issandorpoc = getAuthCWFM();
+//			if (issandorpoc != null) {
+//				issandorpoc = issandorpoc.trim();
+//			}
+// ================== UKG Auth = YES ==================
+//			 if ("no".equalsIgnoreCase(issandorpoc)) {
 
-			// ================== UKG Auth = YES ==================
-			 if ("no".equalsIgnoreCase(issandorpoc)) {
+			String userId = AESUtil.decrypt(encryptedUserId);
+
+			System.out.println("Decrypted UserId: " + userId);
 
 				ResponseEntity<?> response = apicall.getDetailsofPerson(userId);
 
@@ -172,7 +187,6 @@ public class HomeController {
 				}
 
 				String userAccount = apiUser.getUserAccount();
-
 				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 
 				// 👉 If user not present → create
@@ -189,14 +203,13 @@ public class HomeController {
 				}
 
 				return handleInvalid(session);
-			}
-
-			// ================== INVALID CONFIG ==================
-			else {
-				throw new IllegalArgumentException(
-						"Invalid value for AuthSAND: " + issandorpoc
-				);
-			}
+//			}
+// ================== INVALID CONFIG ==================
+//			else {
+//				throw new IllegalArgumentException(
+//						"Invalid value for AuthSAND: " + issandorpoc
+//				);
+//			}
 
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -104,5 +104,7 @@ public class GatePassToOnBoard {
     private String cert4;
     private String cert4StartDate;
     private String cert4EndDate;
+    private String onboardingType;
+    private String accommodation;
+    private String eSICIPNumber;
 }
-

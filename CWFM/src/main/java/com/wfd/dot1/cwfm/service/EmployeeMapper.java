@@ -649,14 +649,27 @@ public String getTokenCheck(String username, String password){
                 if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Onboarding Type");
-                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
                     addCustomeList.add(permanentDistrict);
                 }
 
                 if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("ESIC IP Number");
-                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getESICIPNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Accommodation");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccommodation());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Identification Mark");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
                     addCustomeList.add(permanentDistrict);
                 }
 
@@ -701,6 +714,12 @@ public String getTokenCheck(String username, String password){
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIfscCode());
                     addCustomeList.add(permanentDistrict);
                 }
+//                if (individualOnBoardDetailsByTrnId.getOnboardingType() != null && !individualOnBoardDetailsByTrnId.getOnboardingType().isEmpty()) {
+//                    EmployeeRequestDTO.CustomDataDTO onboardingType = new EmployeeRequestDTO.CustomDataDTO();
+//                    onboardingType.setCustomDataTypeName("IFSC Code");
+//                    onboardingType.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
+//                    addCustomeList.add(onboardingType);
+//                }
 
                 personInfo.setCustomDataList(addCustomeList);
                 EmployeeRequestDTO.PersonAuthenticationType auth = new EmployeeRequestDTO.PersonAuthenticationType();
@@ -715,23 +734,13 @@ public String getTokenCheck(String username, String password){
                 licenseAbsence.setLicenseTypeName("Absence");
                 EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                if (!String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) && !String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())) {
-                    if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
-                        licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
-                    }
-                } else {
-                    licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-                }
-
+                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
                 EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
                 licenseScheduling.setLicenseTypeName("Advanced Scheduling");
-
                 EmployeeRequestDTO.PersonLicenseType licenseAnalytics = new EmployeeRequestDTO.PersonLicenseType();
                 licenseAnalytics.setActiveFlag(true);
                 licenseAnalytics.setLicenseTypeName("Analytics");
-
-
                 personInfo.setPersonLicenseTypes(Arrays.asList(licenseEmployee, licenseAbsence, licensehourlyTimekeeping, licenseScheduling,licenseAnalytics));
                 EmployeeRequestDTO.UserAccountStatus userStatus = new EmployeeRequestDTO.UserAccountStatus();
                 userStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
@@ -1270,12 +1279,10 @@ public String getTokenCheck(String username, String password){
                                     PostSkillWfd postSkill = new PostSkillWfd();
                                     postSkill.setName(skillName);
                                     this.wfdEmployeeService.createSkillsInWFD(postSkill);
-                                    if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
-                                        return "STATUS:400\nSkill creation failed";
-                                    }
                                 }
 
                                 if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
+                                    System.out.println("going for create Prof"+profName);
                                     ProficiencyDTO profDto = new ProficiencyDTO();
                                     profDto.setId(329);
                                     profDto.setActive(true);
@@ -1283,9 +1290,6 @@ public String getTokenCheck(String username, String password){
                                     profDto.setVersion(0);
                                     profDto.setName(profName);
                                     this.wfdEmployeeService.createProfInWFD(profDto);
-                                    if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
-                                        return "STATUS:400\nProficiency creation failed";
-                                    }
                                 }
 
                                 this.wfdEmployeeService.addPersonSkill(skillData.getPersonNumber(), skillName, profName, skillData.getEffectiveDate());

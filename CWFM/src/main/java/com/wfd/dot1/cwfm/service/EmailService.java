@@ -35,6 +35,7 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
             helper.setFrom("dot1track-noreply@dot1.in");
+            helper.setCc("shashikant.shukla@dot1.in");
             mailSender.send(message);
 
         } catch (Exception e) {

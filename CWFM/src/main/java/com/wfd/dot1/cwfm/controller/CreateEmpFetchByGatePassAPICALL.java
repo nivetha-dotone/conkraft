@@ -8,8 +8,12 @@ import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.wfd.dot1.cwfm.util.AESUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +68,26 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
 
     }
+
+    @PostMapping("/encryptUserId")
+    @ResponseBody
+    public ResponseEntity<?> encryptUserId(@RequestParam("userId") String userId) {
+        try {
+            String encrypted = AESUtil.encrypt(userId);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("plainUserId", userId);
+            response.put("encryptedUserId", encrypted);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Encryption failed");
+        }
+    }
+
 
     @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
