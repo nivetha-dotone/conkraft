@@ -1,7 +1,7 @@
 package com.wfd.dot1.cwfm.dao;
 
+
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
@@ -13,6 +13,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import com.wfd.dot1.cwfm.dao.ReconciliationDao;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 
@@ -23,27 +24,45 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<WorkmenReconciliationDTO> getContractorWorkmenList(Long contractorId) {
+    public List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId) {
 
-    	 String sql =
-    	            "SELECT \r\n"
-    	            + "               GPM.GatePassId AS gatePassId, \r\n"
-    	            + "             CONCAT(COALESCE(GPM.FirstName, ''), ' ', COALESCE(GPM.LastName, '')) AS workmenName, \r\n"
-    	            + "              ISNULL(GPM.PFNumber,'') AS pfNumber, \r\n"
-    	            + "              ISNULL(GPM.ESICNumber,'') AS esicNumber, \r\n"
-    	            + "              '1000' AS pfPrice, \r\n"
-    	            + "              '2000' AS esicPrice \r\n"
-    	            + "           FROM GATEPASSMAIN GPM            \r\n"
-    	            + "           WHERE GPM.updatedBy = ?\r\n"
-    	            + "             AND GPM.GatePassStatus IN (4) \r\n"
-    	            + "             AND GPM.GatePassTypeId IN (1,2,12,15) \r\n"
-    	            + "           ORDER BY GPM.GatePassId DESC";
+        String sql =
+            "SELECT " +
+            "   GPM.GatePassId AS gatePassId, " +
+             "             CONCAT(COALESCE(GPM.FirstName, ''), ' ', COALESCE(GPM.LastName, '')) AS workmenName, \r\n"
+            +"   ISNULL(GPM.UANNumber,'') AS uanNumber, " +
+            "   ISNULL(GPM.PFNumber,'') AS pfNumber, " +
+            "   '1000' AS pfAmount " +
+            "FROM GATEPASSMAIN GPM " +
+            "WHERE GPM.updatedBy = ? " +
+            "  AND GPM.GatePassStatus IN (4) " +
+            "  AND GPM.GatePassTypeId IN (1,2,12,15) " +
+            "ORDER BY GPM.GatePassId DESC";
 
-        return jdbcTemplate.query(
-                sql,
-                new BeanPropertyRowMapper<WorkmenReconciliationDTO>(WorkmenReconciliationDTO.class),
-                contractorId
-        );
+        return jdbcTemplate.query(sql,
+                new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
+                contractorId);
+    }
+
+    @Override
+    public List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId) {
+
+
+        String sql =
+            "SELECT " +
+            "   GPM.GatePassId AS gatePassId, " +
+            "             CONCAT(COALESCE(GPM.FirstName, ''), ' ', COALESCE(GPM.LastName, '')) AS workmenName, \r\n"+
+            "   ISNULL(GPM.ESICNumber,'') AS esicNumber, " +
+            "   '2000' AS esicAmount " +
+            "FROM GATEPASSMAIN GPM " +
+            "WHERE GPM.updatedBy = ? " +
+            "  AND GPM.GatePassStatus IN (4) " +
+            "  AND GPM.GatePassTypeId IN (1,2,12,15) " +
+            "ORDER BY GPM.GatePassId DESC";
+
+        return jdbcTemplate.query(sql,
+                new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
+                contractorId);
     }
 
     @Override
@@ -51,10 +70,9 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
                                  String overallStatus, int totalCount, int verifiedCount, int unverifiedCount,
                                  String uploadedBy) {
 
-        String sql =
-            "INSERT INTO RECONCILIATION_UPLOAD " +
-            "(CONTRACTOR_ID, RECON_TYPE, FILE_NAME, FILE_PATH, OVERALL_STATUS, TOTAL_COUNT, VERIFIED_COUNT, UNVERIFIED_COUNT, UPLOADED_BY, UPLOADED_DATE) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO RECONCILIATION_UPLOAD " +
+                     "(CONTRACTOR_ID, RECON_TYPE, FILE_NAME, FILE_PATH, OVERALL_STATUS, TOTAL_COUNT, VERIFIED_COUNT, UNVERIFIED_COUNT, UPLOADED_BY, UPLOADED_DATE) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -76,19 +94,16 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     }
 
     @Override
-    public void saveMismatchList(Long uploadId, final List<ReconciliationMismatchDTO> mismatchList) {
+    public void saveMismatchList(Long uploadId, List<ReconciliationMismatchDTO> mismatchList) {
 
-        String sql =
-            "INSERT INTO RECONCILIATION_MISMATCH " +
-            "(UPLOAD_ID, GATEPASS_ID, WORKMEN_NAME, DB_NUMBER, DOC_NUMBER, DB_AMOUNT, DOC_AMOUNT, MISMATCH_REASON, RECON_TYPE, CREATED_DATE) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO RECONCILIATION_MISMATCH " +
+                     "(UPLOAD_ID, GATEPASS_ID, WORKMEN_NAME, DB_NUMBER, DOC_NUMBER, DB_AMOUNT, DOC_AMOUNT, MISMATCH_REASON, RECON_TYPE, CREATED_DATE) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
             @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
+            public void setValues(PreparedStatement ps, int i) throws java.sql.SQLException {
                 ReconciliationMismatchDTO dto = mismatchList.get(i);
-
                 ps.setLong(1, uploadId);
                 ps.setString(2, dto.getGatePassId());
                 ps.setString(3, dto.getWorkmenName());

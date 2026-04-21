@@ -30,21 +30,18 @@ public class ReconciliationController {
 
     @GetMapping("/reconciliation")
     public ModelAndView loadReconciliationScreen(HttpSession session) {
+
         ModelAndView mv = new ModelAndView("contractors/reconciliation");
         MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-    	
         Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
-        List<WorkmenReconciliationDTO> workmenList = reconciliationService.getContractorWorkmenList(contractorId);
 
-        mv.addObject("workmenList", workmenList);
+        List<WorkmenReconciliationDTO> pfList = reconciliationService.getPfReconciliationList(contractorId);
+        List<WorkmenReconciliationDTO> esicList = reconciliationService.getEsicReconciliationList(contractorId);
+
+        mv.addObject("pfList", pfList);
+        mv.addObject("esicList", esicList);
+
         return mv;
-    }
-
-    @GetMapping("/reconciliation/workmen")
-    @ResponseBody
-    public List<WorkmenReconciliationDTO> getContractorWorkmen(HttpSession session) {
-        Long contractorId = Long.parseLong(String.valueOf(session.getAttribute("contractorId")));
-        return reconciliationService.getContractorWorkmenList(contractorId);
     }
 
     @PostMapping("/reconciliation/upload")

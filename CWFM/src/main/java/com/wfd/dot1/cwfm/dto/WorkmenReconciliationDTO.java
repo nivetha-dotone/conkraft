@@ -1,17 +1,19 @@
 package com.wfd.dot1.cwfm.dto;
 
+
 import java.math.BigDecimal;
-
-
 
 public class WorkmenReconciliationDTO {
 
     private String gatePassId;
     private String workmenName;
+
+    private String uanNumber;
     private String pfNumber;
+    private BigDecimal pfAmount;
+
     private String esicNumber;
-    private BigDecimal pfPrice;
-    private BigDecimal esicPrice;
+    private BigDecimal esicAmount;
 
     public String getGatePassId() {
         return gatePassId;
@@ -29,12 +31,28 @@ public class WorkmenReconciliationDTO {
         this.workmenName = workmenName;
     }
 
+    public String getUanNumber() {
+        return uanNumber;
+    }
+
+    public void setUanNumber(String uanNumber) {
+        this.uanNumber = uanNumber;
+    }
+
     public String getPfNumber() {
         return pfNumber;
     }
 
     public void setPfNumber(String pfNumber) {
         this.pfNumber = pfNumber;
+    }
+
+    public BigDecimal getPfAmount() {
+        return pfAmount;
+    }
+
+    public void setPfAmount(BigDecimal pfAmount) {
+        this.pfAmount = pfAmount;
     }
 
     public String getEsicNumber() {
@@ -45,19 +63,11 @@ public class WorkmenReconciliationDTO {
         this.esicNumber = esicNumber;
     }
 
-    public BigDecimal getPfPrice() {
-        return pfPrice;
+    public BigDecimal getEsicAmount() {
+        return esicAmount;
     }
 
-    public void setPfPrice(BigDecimal pfPrice) {
-        this.pfPrice = pfPrice;
-    }
-
-    public BigDecimal getEsicPrice() {
-        return esicPrice;
-    }
-
-    public void setEsicPrice(BigDecimal esicPrice) {
-        this.esicPrice = esicPrice;
+    public void setEsicAmount(BigDecimal esicAmount) {
+        this.esicAmount = esicAmount;
     }
 }

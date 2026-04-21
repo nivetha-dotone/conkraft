@@ -2,11 +2,13 @@ package com.wfd.dot1.cwfm.dto;
 
 
 
+
 import java.math.BigDecimal;
 
 public class ChallanEmployeeDTO {
 
     private String workmenName;
+    private String uanNumber;
     private String pfNumber;
     private String esicNumber;
     private BigDecimal amount;
@@ -17,6 +19,14 @@ public class ChallanEmployeeDTO {
 
     public void setWorkmenName(String workmenName) {
         this.workmenName = workmenName;
+    }
+
+    public String getUanNumber() {
+        return uanNumber;
+    }
+
+    public void setUanNumber(String uanNumber) {
+        this.uanNumber = uanNumber;
     }
 
     public String getPfNumber() {

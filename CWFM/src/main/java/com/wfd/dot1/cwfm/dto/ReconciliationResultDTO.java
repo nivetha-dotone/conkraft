@@ -1,7 +1,5 @@
 package com.wfd.dot1.cwfm.dto;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 
