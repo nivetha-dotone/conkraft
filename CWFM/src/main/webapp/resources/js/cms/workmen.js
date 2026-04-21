@@ -511,13 +511,27 @@ function initializeDatePicker() {
     }else{
 		$("#error-disability").hide();
 	}
-	const address=$("#address").val().trim();
+	/*const address=$("#address").val().trim();
 	const addressRegex=/^[A-Za-z0-9\s,.'-]{5,}$/;
 	if (!addressRegex.test(address)) {
                  $("#error-address").show();
         			isValid = false;
      }else{
 		 $("#error-address").hide();
+	 }*/
+	 const address = $("#address").val().replace(/\s+/g, " ").trim();
+
+	 if (address === "") {
+	     $("#error-address").text("Address is required").show();
+	     isValid = false;
+	 } else if (address.length < 5) {
+	     $("#error-address").text("Address is too short").show();
+	     isValid = false;
+	 } else if (/[<>]/.test(address)) {
+	     $("#error-address").text("Invalid characters in address").show();
+	     isValid = false;
+	 } else {
+	     $("#error-address").hide();
 	 }
 console.log(isValid);
     return isValid && aadharCheckPassed;
