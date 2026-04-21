@@ -1337,6 +1337,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 			gatePassMain.setGatePassAction(GatePassType.PROJECT.getStatus());
 			if(workFlowTypeId == WorkFlowType.AUTO.getWorkFlowTypeId()) {
 				gatePassMain.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        String today = LocalDate.now().format(formatter);
+		        gatePassMain.setDoj(today);
 				 transactionId = workmenDao.saveGatePass(gatePassMain);
 
 				 String gatePassId = workmenDao.updateGatePassIdByTransactionId(transactionId);
