@@ -193,7 +193,7 @@
        <%--  <option value="${principalEmployer.unitId}" ${principalEmployer.unitId == selectedPrincipalEmployerId ? 'selected' : ''}>
             ${principalEmployer.name}
         </option> --%>
-        <option value="${c.id}" <c:if test="${Contr.size() == 1}">selected</c:if>>${c.description}</option>
+        <option value="${c.id}" >${c.description}</option>
     </c:forEach>
 </select>
 <input type="hidden" id="deptId" name="deptId">
@@ -258,12 +258,12 @@
 			</tbody>
 		</table>
 		</div>
-		<c:if test="${principalEmployers.size() == 1 && Contr.size() == 1}">
+		<%-- <c:if test="${principalEmployers.size() == 1 && Contr.size() == 1}">
     <script>
         setTimeout(function () {
         	searchContRenewBasedOnPE();
         }, 10); // Delay ensures DOM is rendered after innerHTML
     </script>
-    </c:if>
+    </c:if> --%>
 </body>
 </html>
