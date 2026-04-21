@@ -5801,3 +5801,121 @@ function loadProfilePreview(profileFileName, userId, transactionId) {
             '<img src="' + imagePath + '" style="width:100%; height:100%; object-fit:cover;" />';
     }
 }
+function uploadChallan() {
+    var reconType = $("#reconType").val();
+    var fileInput = $("#challanFile")[0];
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showMessage("Please select a challan file.", "danger");
+        return;
+    }
+
+    var file = fileInput.files[0];
+    var formData = new FormData();
+    formData.append("reconType", reconType);
+    formData.append("file", file);
+
+    $.ajax({
+        url: "/CWFM/contractor/reconciliation/upload",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            if (response.status === "success") {
+                var data = response.data;
+
+                $("#summaryBlock").show();
+                $("#overallStatus").text(nullSafe(data.status));
+                $("#totalCount").text(nullSafe(data.totalCount));
+                $("#verifiedCount").text(nullSafe(data.verifiedCount));
+                $("#unverifiedCount").text(nullSafe(data.unverifiedCount));
+
+                if (data.status === "VERIFIED") {
+                    showMessage(reconType + " reconciliation verified successfully.", "success");
+                    $("#mismatchSection").hide();
+                    $("#mismatchTbody").html("");
+                } else {
+                    showMessage(reconType + " reconciliation completed with mismatches.", "warning");
+                    renderMismatchTable(data.mismatchList);
+                }
+            } else {
+                showMessage(nullSafe(response.message), "danger");
+            }
+        },
+        error: function(xhr) {
+            showMessage("Error while uploading and verifying challan.", "danger");
+        }
+    });
+}
+
+function reloadWorkmenList() {
+    $.ajax({
+        url: "/CWFM/contractor/reconciliation/workmen",
+        type: "GET",
+        success: function(data) {
+            var html = "";
+
+            if (data && data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    var row = data[i];
+                    html += "<tr>"
+                         + "<td>" + nullSafe(row.gatePassId) + "</td>"
+                         + "<td>" + nullSafe(row.workmenName) + "</td>"
+                         + "<td>" + nullSafe(row.pfNumber) + "</td>"
+                         + "<td>" + nullSafe(row.esicNumber) + "</td>"
+                         + "<td>" + nullSafe(row.pfPrice) + "</td>"
+                         + "<td>" + nullSafe(row.esicPrice) + "</td>"
+                         + "</tr>";
+                }
+            } else {
+                html = "<tr><td colspan='6' class='text-center'>No records found</td></tr>";
+            }
+
+            $("#workmenTableBody").html(html);
+            showMessage("Workmen list refreshed successfully.", "success");
+        },
+        error: function() {
+            showMessage("Unable to refresh workmen list.", "danger");
+        }
+    });
+}
+
+function renderMismatchTable(mismatchList) {
+    var html = "";
+
+    if (mismatchList && mismatchList.length > 0) {
+        for (var i = 0; i < mismatchList.length; i++) {
+            var m = mismatchList[i];
+
+            html += "<tr>"
+                 + "<td>" + nullSafe(m.gatePassId) + "</td>"
+                 + "<td>" + nullSafe(m.workmenName) + "</td>"
+                 + "<td>" + nullSafe(m.dbNumber) + "</td>"
+                 + "<td>" + nullSafe(m.docNumber) + "</td>"
+                 + "<td>" + nullSafe(m.dbAmount) + "</td>"
+                 + "<td>" + nullSafe(m.docAmount) + "</td>"
+                 + "<td>" + nullSafe(m.mismatchReason) + "</td>"
+                 + "<td>" + nullSafe(m.reconType) + "</td>"
+                 + "</tr>";
+        }
+
+        $("#mismatchTbody").html(html);
+        $("#mismatchSection").show();
+    } else {
+        $("#mismatchTbody").html("");
+        $("#mismatchSection").hide();
+    }
+}
+
+function showMessage(message, type) {
+    $("#messageDiv")
+        .removeClass()
+        .addClass("alert alert-" + type)
+        .html(message)
+        .show();
+}
+
+function nullSafe(val) {
+    return (val === null || val === undefined) ? "" : val;
+}
