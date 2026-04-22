@@ -260,7 +260,7 @@ th label {
 </div>
 
 <div class="section">
-    <div class="section-header" onclick="toggleSection('section2')">Kronos Reports:</div>
+    <div class="section-header" onclick="toggleSection('section2')">Attendance / Wage Reports:</div>
     <div id="section2Content" class="section-content">
        <table class="ControlLayout" cellspacing="0" cellpadding="0">
 		<tbody>

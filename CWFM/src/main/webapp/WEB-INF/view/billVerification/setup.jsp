@@ -225,7 +225,7 @@
         <div class="accordion">
 
             <!-- Kronos Reports -->
-            <h3 onclick="toggleSection('kronosSection')" style="background-color: #DDF3FF;font-size: 0.75rem;font-weight: bold;">Kronos Reports</h3>
+            <h3 onclick="toggleSection('kronosSection')" style="background-color: #DDF3FF;font-size: 0.75rem;font-weight: bold;">Attendance / Wage Reports</h3>
             <div class="accordion-content" id="kronosSection">
                 <div id="kronosReportsContainer">
                     <c:forEach var="report" items="${kronosReports}">
@@ -235,7 +235,7 @@
                         </div>
                     </c:forEach>
                 </div><br>
-                <button type="button" onclick="addReportRow('kronos')" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Add Kronos Report</button>
+                <button type="button" onclick="addReportRow('kronos')" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Add Attendance / Wage Report</button>
             </div>
 
             <!-- Statutory Reports -->
