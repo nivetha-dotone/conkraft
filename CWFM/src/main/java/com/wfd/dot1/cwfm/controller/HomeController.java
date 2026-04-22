@@ -192,6 +192,7 @@ public class HomeController {
 				// 👉 If user not present → create
 				if (user == null) {
 					apiUser.setPassword("Admin@123");
+
 					UserDAOImplDao.saveUserUkgPost(apiUser);
 
 					user = masterUserService.findMasterUserDetailsByUserName(userAccount);

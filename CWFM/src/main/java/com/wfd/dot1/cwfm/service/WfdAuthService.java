@@ -1,6 +1,7 @@
 package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wfd.dot1.cwfm.dto.TokenResponse;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -101,7 +102,7 @@ public class WfdAuthService {
             if ("yes".equalsIgnoreCase(issandorpoc)) {
                 return getAccessTokenSand();
             } else if ("no".equalsIgnoreCase(issandorpoc)) {
-                return getAccessOthPOC();
+                return getValidAccessToken();
             } else {
                 throw new IllegalArgumentException(
                         "Invalid value for ISSAND in query properties file:  while creating Access token" + issandorpoc
@@ -234,7 +235,31 @@ public class WfdAuthService {
         throw new RuntimeException("Failed to fetch access token");
     }
 
-    public String getAccessOthPOC() {
+
+    private String cachedToken;
+    private long tokenExpiryTime = 0;
+
+    public synchronized String getValidAccessToken() {
+
+        long currentTime = System.currentTimeMillis();
+
+        // ✅ reuse token if valid
+        if (cachedToken != null && currentTime < tokenExpiryTime) {
+            return cachedToken;
+        }
+
+        // ❗ call API
+        TokenResponse tokenResponse = getAccessOthPOC();
+
+        cachedToken = tokenResponse.getToken();
+
+        // ✅ dynamic expiry with buffer
+        tokenExpiryTime = currentTime + ((tokenResponse.getExpiresIn() - 60) * 1000);
+
+        return cachedToken;
+    }
+
+    public TokenResponse getAccessOthPOC() {
 
         String host = getHostAuthPoc();
 
@@ -244,7 +269,7 @@ public class WfdAuthService {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("username", getUserNamePoc());
         form.add("password", getPasswordPoc());
-        form.add("client_id",getClientIdPoc());
+        form.add("client_id", getClientIdPoc());
         form.add("client_secret", getClientSPoc());
         form.add("grant_type", getGrantTypePoc());
         form.add("realm", getRealmPoc());
@@ -255,12 +280,17 @@ public class WfdAuthService {
         ResponseEntity<Map> response = restTemplate.postForEntity(host, request, Map.class);
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-            return (String) response.getBody().get("access_token");
+
+            String token = (String) response.getBody().get("access_token");
+
+            // safer handling (Integer or Long)
+            Number expiresIn = (Number) response.getBody().get("expires_in");
+
+            return new TokenResponse(token, expiresIn.longValue());
         }
 
         throw new RuntimeException("Failed to fetch access token");
     }
-
 
 
 

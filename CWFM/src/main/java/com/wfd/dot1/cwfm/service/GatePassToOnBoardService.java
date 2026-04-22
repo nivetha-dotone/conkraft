@@ -590,6 +590,7 @@ public class GatePassToOnBoardService {
                 dto.setFirstName(rs.getString("FirstName"));
                 dto.setLastName(rs.getString("LastName"));
                 dto.setLastName(rs.getString("LastName"));
+                dto.setShortName(rs.getString("shortName"));
                 dto.setAccessProfileName(rs.getString("accessProfileName"));
                 dto.setPreferenceProfileName(rs.getString("preferenceProfileName"));
                 dto.setProfessionalPayCodeName(rs.getString("professionalPayCodeName"));
@@ -865,6 +866,27 @@ public class GatePassToOnBoardService {
 
                 String locationName = parts[i - 1];
                 String locationType = getLocationType(i - 1);
+
+                jdbcTemplate.update(
+                        queryCreateLocation,
+                        path, locationType
+                );
+            }
+        }
+    }
+
+    public void storeHierarchyInDBPOC(String fullPath) {
+
+        String[] parts = fullPath.split("/");
+        String queryCreateLocation = getQueryCreateLocation();
+        for (int i = parts.length; i > 0; i--) {
+
+            String path = String.join("/", Arrays.copyOfRange(parts, 0, i));
+
+            if (!checkLocationPath(path)) {
+
+                String locationName = parts[i - 1];
+                String locationType = getLocationTypePOC(i - 1);
 
                 jdbcTemplate.update(
                         queryCreateLocation,

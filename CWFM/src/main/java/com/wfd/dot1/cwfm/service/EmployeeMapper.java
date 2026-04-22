@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmployeeMapper {
@@ -223,30 +224,33 @@ public class EmployeeMapper {
     @Scheduled(
             cron = "0 */15 * * * *"
     )
-    public void gatePassEmpDtoSchedular() {
+    @Transactional
+    public synchronized void gatePassEmpDtoSchedular() {
         try {
             List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListOfTrReScheduleOnb();
             if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
                 return;
             }
 
-            for(String gpTransactionId : listOfTrReScheduleOnb) {
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+                System.out.println("Processing: " + gpTransactionId);
+
                 String result = this.gatePassEmpDtoDynamic(gpTransactionId);
+
                 if (result == null) {
                     this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), 404, "Transaction Id Not Found", 1);
+
                 } else if (result.matches("\\d+")) {
                     Long personKey = Long.parseLong(result);
                     this.gatePassToOnBoardService.updateSuccessTrace(Long.valueOf(gpTransactionId), personKey, 200, true);
+
                 } else if (result.startsWith("STATUS:")) {
                     String[] parts = result.split("\n", 2);
                     int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
                     String body = parts.length > 1 ? parts[1] : "";
-                    Integer flag = 0;
-                    if (body.contains("WCO-101520") && body.contains("ID already exists")) {
-                        flag = 1;
-                    } else if (body.contains("Transaction Id Not Found")) {
-                        flag = 1;
-                    }
+
+                    Integer flag = (body.contains("WCO-101520") && body.contains("ID already exists")) ||
+                            body.contains("Transaction Id Not Found") ? 1 : 0;
 
                     this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), statusCode, body, flag);
                 }
@@ -254,7 +258,6 @@ public class EmployeeMapper {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public String postCertificTowfd(Integer gmId) {
@@ -532,7 +535,7 @@ public String getTokenCheck(String username, String password){
                     shortName = firstName + " " + lastName.substring(0, 1);
                 }
 
-                person.setShortName(shortName);
+                person.setShortName(individualOnBoardDetailsByTrnId.getShortName());
                 personInfo.setPerson(person);
                 ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
                 if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
@@ -781,8 +784,9 @@ public String getTokenCheck(String username, String password){
                     PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
                     String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
                     System.out.println(laborCatInWFD +"check that successfull or not");
-                    if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
-                        String category = individualOnBoardDetailsByTrnId.getCategory();
+                    if (laborCatInWFD != null &&
+                            (laborCatInWFD.startsWith("SUCCESS") || laborCatInWFD.contains("This name is already")))
+                    {  String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
 //                            labor.setLaborCategoryName(category + ",,,,,");
                             labor.setLaborCategoryName(category);
@@ -794,46 +798,23 @@ public String getTokenCheck(String username, String password){
                 System.out.println(labor.getLaborCategoryName() +" :- final set json");
 
 
-                String issandorpoc = getISSANDORPOC();
-                String orgPath = "";
-                if (issandorpoc != null) {
-                    issandorpoc = issandorpoc.trim();
-
-                }
-
-                if ("yes".equalsIgnoreCase(issandorpoc)) {
-
-                    String var10000 = individualOnBoardDetailsByTrnId.getLocation();
-
-
-
-                    orgPath= var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
-
-
-
-                } else if ("no".equalsIgnoreCase(issandorpoc)) {
 
 
                     String skill = individualOnBoardDetailsByTrnId.getSkill();
                     boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                System.out.println("check job found or not - "+ checkJob);
+
                     if(!checkJob){
                         PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
-                        String jobInWFD = this.wfdEmployeeService.createJobInWFD(jobByname);
-
-
+                         this.wfdEmployeeService.createJobInWFD(jobByname);
+                        System.out.println("created job - "+ checkJob);
                     }
+                boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                System.out.println("job check again found or not -"+checkJob);
 
 
-                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
-
-
-
-
-                }else{
-
-                }
-
-                System.out.println(orgPath);
+                  String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+                  System.out.println(orgPath);
 
 
                 labor.setOrganizationPath(
@@ -1235,14 +1216,14 @@ public String getTokenCheck(String username, String password){
         }
 
         if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
-            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            gatePassToOnBoardService.storeHierarchyInDBPOC(orgPath);
             return orgPath;
         }
 
         gatePassToOnBoardService.createBusinessStructurePOC(orgPath);
 
-        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
-            gatePassToOnBoardService.storeHierarchyInDB(orgPath);
+            if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+            gatePassToOnBoardService.storeHierarchyInDBPOC(orgPath);
             return orgPath;
         }
 
