@@ -1,4 +1,4 @@
-package com.wfd.dot1.cwfm.service;
+package com.wfd.dot1.cwfm.service.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -82,6 +82,18 @@ public class ReconciliationServiceImpl implements ReconciliationService {
                         : reconciliationDao.getEsicReconciliationList(contractorId);
 
         List<ChallanEmployeeDTO> documentList = parseChallanDocument(dest, reconType);
+
+        System.out.println("Reconciliation Type = " + reconType);
+        System.out.println("DB rows count = " + dbList.size());
+        System.out.println("Document parsed rows count = " + documentList.size());
+
+        for (ChallanEmployeeDTO dto : documentList) {
+            System.out.println("Parsed Row -> UAN=" + dto.getUanNumber()
+                    + ", ESIC=" + dto.getEsicNumber()
+                    + ", Name=" + dto.getWorkmenName()
+                    + ", Amount=" + dto.getAmount());
+        }
+
         List<ReconciliationMismatchDTO> mismatchList = compareData(dbList, documentList, reconType);
 
         int totalCount = dbList.size();
@@ -137,6 +149,36 @@ public class ReconciliationServiceImpl implements ReconciliationService {
                     ? safeAmount(db.getPfAmount())
                     : safeAmount(db.getEsicAmount());
 
+            System.out.println("Comparing DB Key = " + dbKey + " against document map");
+
+            if ("PF".equalsIgnoreCase(reconType) && safe(dbKey).isEmpty()) {
+                ReconciliationMismatchDTO mm = new ReconciliationMismatchDTO();
+                mm.setGatePassId(db.getGatePassId());
+                mm.setWorkmenName(db.getWorkmenName());
+                mm.setDbNumber(dbKey);
+                mm.setDocNumber(null);
+                mm.setDbAmount(dbAmount);
+                mm.setDocAmount(null);
+                mm.setMismatchReason("UAN number missing in system");
+                mm.setReconType(reconType);
+                mismatchList.add(mm);
+                continue;
+            }
+
+            if ("ESIC".equalsIgnoreCase(reconType) && safe(dbKey).isEmpty()) {
+                ReconciliationMismatchDTO mm = new ReconciliationMismatchDTO();
+                mm.setGatePassId(db.getGatePassId());
+                mm.setWorkmenName(db.getWorkmenName());
+                mm.setDbNumber(dbKey);
+                mm.setDocNumber(null);
+                mm.setDbAmount(dbAmount);
+                mm.setDocAmount(null);
+                mm.setMismatchReason("ESIC number missing in system");
+                mm.setReconType(reconType);
+                mismatchList.add(mm);
+                continue;
+            }
+
             ChallanEmployeeDTO doc = documentMap.get(dbKey);
 
             if (doc == null) {
@@ -147,14 +189,20 @@ public class ReconciliationServiceImpl implements ReconciliationService {
                 mm.setDocNumber(null);
                 mm.setDbAmount(dbAmount);
                 mm.setDocAmount(null);
-                mm.setMismatchReason(reconType + " number not found in uploaded challan");
+                mm.setMismatchReason("PF".equalsIgnoreCase(reconType)
+                        ? "UAN number not found in uploaded challan"
+                        : "ESIC number not found in uploaded challan");
                 mm.setReconType(reconType);
                 mismatchList.add(mm);
                 continue;
             }
 
             boolean amountMismatch = dbAmount.compareTo(safeAmount(doc.getAmount())) != 0;
-            boolean nameMismatch = !normalizeName(db.getWorkmenName()).equalsIgnoreCase(normalizeName(doc.getWorkmenName()));
+            boolean nameMismatch = !normalizeName(db.getWorkmenName())
+                    .replaceAll(" ", "")
+                    .equalsIgnoreCase(
+                        normalizeName(doc.getWorkmenName()).replaceAll(" ", "")
+                    );
 
             if (amountMismatch || nameMismatch) {
                 ReconciliationMismatchDTO mm = new ReconciliationMismatchDTO();
@@ -187,20 +235,14 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
     private String buildDbKey(WorkmenReconciliationDTO db, String reconType) {
         if ("PF".equalsIgnoreCase(reconType)) {
-            if (!safe(db.getUanNumber()).isEmpty()) {
-                return safe(db.getUanNumber());
-            }
-            return safe(db.getPfNumber());
+            return safe(db.getUanNumber());
         }
         return safe(db.getEsicNumber());
     }
 
     private String buildDocumentKey(ChallanEmployeeDTO dto, String reconType) {
         if ("PF".equalsIgnoreCase(reconType)) {
-            if (!safe(dto.getUanNumber()).isEmpty()) {
-                return safe(dto.getUanNumber());
-            }
-            return safe(dto.getPfNumber());
+            return safe(dto.getUanNumber());
         }
         return safe(dto.getEsicNumber());
     }
@@ -239,7 +281,6 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
             Integer nameCol = findColumn(columnMap, "name", "employee name", "member name", "workmen name");
             Integer uanCol = findColumn(columnMap, "uan", "uan number");
-            Integer pfCol = findColumn(columnMap, "pf number", "pfno", "pf");
             Integer esicCol = findColumn(columnMap, "esic number", "esicno", "esic", "ip number", "employee ip number");
             Integer amountCol = findColumn(columnMap, "amount", "pf amount", "esic amount", "ee", "ip contribution", "price", "total contribution");
 
@@ -251,11 +292,18 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
                 ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
 
-                if (nameCol != null) dto.setWorkmenName(getCellStringValue(row.getCell(nameCol)));
-                if (uanCol != null) dto.setUanNumber(cleanString(getCellStringValue(row.getCell(uanCol))));
-                if (pfCol != null) dto.setPfNumber(cleanString(getCellStringValue(row.getCell(pfCol))));
-                if (esicCol != null) dto.setEsicNumber(cleanString(getCellStringValue(row.getCell(esicCol))));
-                if (amountCol != null) dto.setAmount(parseBigDecimal(getCellStringValue(row.getCell(amountCol))));
+                if (nameCol != null) {
+                    dto.setWorkmenName(getCellStringValue(row.getCell(nameCol)));
+                }
+                if (uanCol != null) {
+                    dto.setUanNumber(cleanString(getCellStringValue(row.getCell(uanCol))));
+                }
+                if (esicCol != null) {
+                    dto.setEsicNumber(cleanString(getCellStringValue(row.getCell(esicCol))));
+                }
+                if (amountCol != null) {
+                    dto.setAmount(parseBigDecimal(getCellStringValue(row.getCell(amountCol))));
+                }
 
                 if (isValidChallanRow(dto, reconType)) {
                     list.add(dto);
@@ -285,7 +333,6 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
             Integer nameCol = findColumn(columnMap, "name", "employee name", "member name", "workmen name");
             Integer uanCol = findColumn(columnMap, "uan", "uan number");
-            Integer pfCol = findColumn(columnMap, "pf number", "pfno", "pf");
             Integer esicCol = findColumn(columnMap, "esic number", "esicno", "esic", "ip number", "employee ip number");
             Integer amountCol = findColumn(columnMap, "amount", "pf amount", "esic amount", "ee", "ip contribution", "price", "total contribution");
 
@@ -298,11 +345,18 @@ public class ReconciliationServiceImpl implements ReconciliationService {
                 String[] values = splitCsvLine(line);
                 ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
 
-                if (nameCol != null && nameCol < values.length) dto.setWorkmenName(values[nameCol].trim());
-                if (uanCol != null && uanCol < values.length) dto.setUanNumber(cleanString(values[uanCol]));
-                if (pfCol != null && pfCol < values.length) dto.setPfNumber(cleanString(values[pfCol]));
-                if (esicCol != null && esicCol < values.length) dto.setEsicNumber(cleanString(values[esicCol]));
-                if (amountCol != null && amountCol < values.length) dto.setAmount(parseBigDecimal(values[amountCol]));
+                if (nameCol != null && nameCol < values.length) {
+                    dto.setWorkmenName(values[nameCol].trim());
+                }
+                if (uanCol != null && uanCol < values.length) {
+                    dto.setUanNumber(cleanString(values[uanCol]));
+                }
+                if (esicCol != null && esicCol < values.length) {
+                    dto.setEsicNumber(cleanString(values[esicCol]));
+                }
+                if (amountCol != null && amountCol < values.length) {
+                    dto.setAmount(parseBigDecimal(values[amountCol]));
+                }
 
                 if (isValidChallanRow(dto, reconType)) {
                     list.add(dto);
@@ -323,25 +377,53 @@ public class ReconciliationServiceImpl implements ReconciliationService {
         try (PDDocument document = PDDocument.load(file)) {
             PDFTextStripper stripper = new PDFTextStripper();
             String text = stripper.getText(document);
-            String[] lines = text.split("\\r?\\n");
 
-            Pattern p = Pattern.compile("^\\s*\\d+\\s+(\\d{10,15})\\s+(.+?)\\s+.+?\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+(\\d+)\\s+(\\d+)\\s*$");
+            if (text == null || text.trim().isEmpty()) {
+                return list;
+            }
 
-            for (String raw : lines) {
-                String line = raw == null ? "" : raw.replaceAll("\\s+", " ").trim();
-                if (line.isEmpty()) {
-                    continue;
-                }
+            String normalizedText = text.replaceAll("\\s+", " ").trim();
 
-                Matcher m = p.matcher(line);
-                if (m.find()) {
-                    ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
-                    dto.setUanNumber(cleanString(m.group(1)));
-                    dto.setWorkmenName(extractPfName(m.group(2)));
-                    dto.setAmount(parseBigDecimal(m.group(6))); // EE contribution
+            Pattern pattern = Pattern.compile(
+                "(\\d{1,3})\\s+" +                  // Sl No
+                "(\\d{10,15})\\s+" +                // UAN
+                "([A-Z][A-Z\\s\\.]+?)\\s+" +        // Name as per Return
+                "([A-Z][A-Z\\s\\.]+?)\\s+" +        // Name as per UAN Repository
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // Gross
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // EPF
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // EPS
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // EDLI
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // EE
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // EPS Contribution Remitted
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // ER
+                "(\\d+(?:\\.\\d{1,2})?)\\s+" +     // Refund
+                "(\\d{1,3})"                       // NCP Days
+            );
+
+            Matcher matcher = pattern.matcher(normalizedText);
+
+            while (matcher.find()) {
+                ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
+
+                String uan = cleanString(matcher.group(2));
+                String returnName = normalizeName(matcher.group(3));
+                BigDecimal eeContribution = parseBigDecimal(matcher.group(9));
+
+                dto.setUanNumber(uan);
+                dto.setWorkmenName(returnName);
+                dto.setAmount(eeContribution);
+
+                if (!safe(dto.getUanNumber()).isEmpty()) {
                     list.add(dto);
                 }
             }
+        }
+
+        System.out.println("Parsed PF rows count = " + list.size());
+        for (ChallanEmployeeDTO dto : list) {
+            System.out.println("Parsed PF -> UAN=" + dto.getUanNumber()
+                    + ", Name=" + dto.getWorkmenName()
+                    + ", Amount=" + dto.getAmount());
         }
 
         return list;
@@ -356,41 +438,65 @@ public class ReconciliationServiceImpl implements ReconciliationService {
             text = text.replace("\uFFFE", " ");
             String[] lines = text.split("\\r?\\n");
 
-            Pattern p = Pattern.compile("^\\s*\\d+\\s+(\\d{8,15})\\s+([A-Z ]+?)\\s+(\\d+)\\s+(\\d+(?:\\.\\d{1,2})?)\\s+-\\s+-\\s+(\\d+(?:\\.\\d{1,2})?)\\s*$");
-
             for (String raw : lines) {
                 String line = raw == null ? "" : raw.replaceAll("\\s+", " ").trim();
                 if (line.isEmpty()) {
                     continue;
                 }
 
-                Matcher m = p.matcher(line);
-                if (m.find()) {
-                    ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
-                    dto.setEsicNumber(cleanString(m.group(1)));
-                    dto.setWorkmenName(normalizeName(m.group(2)));
-                    dto.setAmount(parseBigDecimal(m.group(4))); // IP contribution
+                if (!line.matches("^\\d+\\s+\\d{8,15}.*")) {
+                    continue;
+                }
+
+                String[] parts = line.split("\\s+");
+                if (parts.length < 7) {
+                    continue;
+                }
+
+                String esicNumber = parts[1];
+
+                String maybeIpContribution = parts[parts.length - 1];
+                String maybeDash2 = parts[parts.length - 2];
+                String maybeDash1 = parts[parts.length - 3];
+                String maybeMonthlyWages = parts[parts.length - 4];
+                String maybeDaysWorked = parts[parts.length - 5];
+
+                if (!maybeIpContribution.matches("^\\d+(?:\\.\\d{1,2})?$")) {
+                    continue;
+                }
+                if (!"-".equals(maybeDash1) || !"-".equals(maybeDash2)) {
+                    continue;
+                }
+                if (!maybeMonthlyWages.matches("^\\d+(?:\\.\\d{1,2})?$")) {
+                    continue;
+                }
+                if (!maybeDaysWorked.matches("^\\d+$")) {
+                    continue;
+                }
+
+                int nameStart = 2;
+                int nameEndExclusive = parts.length - 5;
+
+                StringBuilder nameBuilder = new StringBuilder();
+                for (int i = nameStart; i < nameEndExclusive; i++) {
+                    if (i > nameStart) {
+                        nameBuilder.append(" ");
+                    }
+                    nameBuilder.append(parts[i]);
+                }
+
+                ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
+                dto.setEsicNumber(cleanString(esicNumber));
+                dto.setWorkmenName(normalizeName(nameBuilder.toString().trim()));
+                dto.setAmount(parseBigDecimal(maybeIpContribution));
+
+                if (dto.getEsicNumber() != null && !dto.getEsicNumber().isEmpty()) {
                     list.add(dto);
                 }
             }
         }
 
         return list;
-    }
-
-    private String extractPfName(String combinedName) {
-        String[] words = combinedName.trim().split("\\s+");
-        if (words.length <= 1) {
-            return normalizeName(combinedName);
-        }
-
-        int half = words.length / 2;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < half; i++) {
-            if (i > 0) sb.append(" ");
-            sb.append(words[i]);
-        }
-        return normalizeName(sb.toString());
     }
 
     private Map<String, Integer> buildColumnIndexMap(Row headerRow) {
@@ -416,12 +522,16 @@ public class ReconciliationServiceImpl implements ReconciliationService {
     }
 
     private String normalizeHeader(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
         return value.trim().toLowerCase().replaceAll("[^a-z0-9]", " ").replaceAll("\\s+", " ").trim();
     }
 
     private String getCellStringValue(Cell cell) {
-        if (cell == null) return "";
+        if (cell == null) {
+            return "";
+        }
 
         switch (cell.getCellType()) {
             case STRING:
@@ -451,7 +561,9 @@ public class ReconciliationServiceImpl implements ReconciliationService {
     }
 
     private boolean isRowEmpty(Row row) {
-        if (row == null) return true;
+        if (row == null) {
+            return true;
+        }
         for (int i = row.getFirstCellNum(); i < row.getLastCellNum(); i++) {
             Cell cell = row.getCell(i);
             if (cell != null && !getCellStringValue(cell).trim().isEmpty()) {
@@ -478,10 +590,12 @@ public class ReconciliationServiceImpl implements ReconciliationService {
     }
 
     private boolean isValidChallanRow(ChallanEmployeeDTO dto, String reconType) {
-        if (dto == null) return false;
+        if (dto == null) {
+            return false;
+        }
 
         if ("PF".equalsIgnoreCase(reconType)) {
-            return !safe(dto.getUanNumber()).isEmpty() || !safe(dto.getPfNumber()).isEmpty();
+            return !safe(dto.getUanNumber()).isEmpty();
         } else if ("ESIC".equalsIgnoreCase(reconType)) {
             return !safe(dto.getEsicNumber()).isEmpty();
         }
@@ -502,7 +616,9 @@ public class ReconciliationServiceImpl implements ReconciliationService {
     }
 
     private String normalizeName(String name) {
-        if (name == null) return "";
+        if (name == null) {
+            return "";
+        }
         return name.trim().replaceAll("\\s+", " ").toUpperCase();
     }
 }

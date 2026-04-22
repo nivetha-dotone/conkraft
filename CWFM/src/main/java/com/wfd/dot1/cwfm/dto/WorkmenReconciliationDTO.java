@@ -1,6 +1,5 @@
 package com.wfd.dot1.cwfm.dto;
 
-
 import java.math.BigDecimal;
 
 public class WorkmenReconciliationDTO {

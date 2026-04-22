@@ -1,6 +1,5 @@
 package com.wfd.dot1.cwfm.dao;
 
-
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.wfd.dot1.cwfm.dao.ReconciliationDao;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 @Repository
 public class ReconciliationDaoImpl implements ReconciliationDao {
@@ -23,21 +23,22 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    
+    private String getPfQuery() {
+    	// TODO Auto-generated method stub
+    	return QueryFileWatcher.getQuery("PF_CHALLAN");
+    }
+    
+    private String getEsicQuery() {
+    	// TODO Auto-generated method stub
+    	return QueryFileWatcher.getQuery("ESIC_CHALLAN");
+    }
+    
     @Override
     public List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId) {
 
-        String sql =
-            "SELECT " +
-            "   GPM.GatePassId AS gatePassId, " +
-             "             CONCAT(COALESCE(GPM.FirstName, ''), ' ', COALESCE(GPM.LastName, '')) AS workmenName, \r\n"
-            +"   ISNULL(GPM.UANNumber,'') AS uanNumber, " +
-            "   ISNULL(GPM.PFNumber,'') AS pfNumber, " +
-            "   '1000' AS pfAmount " +
-            "FROM GATEPASSMAIN GPM " +
-            "WHERE GPM.updatedBy = ? " +
-            "  AND GPM.GatePassStatus IN (4) " +
-            "  AND GPM.GatePassTypeId IN (1,2,12,15) " +
-            "ORDER BY GPM.GatePassId DESC";
+    	 String sql =getPfQuery();
+    	            
 
         return jdbcTemplate.query(sql,
                 new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
@@ -47,18 +48,8 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     @Override
     public List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId) {
 
-
-        String sql =
-            "SELECT " +
-            "   GPM.GatePassId AS gatePassId, " +
-            "             CONCAT(COALESCE(GPM.FirstName, ''), ' ', COALESCE(GPM.LastName, '')) AS workmenName, \r\n"+
-            "   ISNULL(GPM.ESICNumber,'') AS esicNumber, " +
-            "   '2000' AS esicAmount " +
-            "FROM GATEPASSMAIN GPM " +
-            "WHERE GPM.updatedBy = ? " +
-            "  AND GPM.GatePassStatus IN (4) " +
-            "  AND GPM.GatePassTypeId IN (1,2,12,15) " +
-            "ORDER BY GPM.GatePassId DESC";
+    	 String sql =getEsicQuery();
+    	        
 
         return jdbcTemplate.query(sql,
                 new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),

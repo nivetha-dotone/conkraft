@@ -30,9 +30,10 @@ public class ReconciliationController {
 
     @GetMapping("/reconciliation")
     public ModelAndView loadReconciliationScreen(HttpSession session) {
-
         ModelAndView mv = new ModelAndView("contractors/reconciliation");
         MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+        
+        
         Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
 
         List<WorkmenReconciliationDTO> pfList = reconciliationService.getPfReconciliationList(contractorId);
@@ -52,7 +53,9 @@ public class ReconciliationController {
         Map<String, Object> response = new HashMap<>();
 
         try {
-        	 MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+        	MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+            
+            
             Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
             String uploadedBy = String.valueOf(contractorId);
 
