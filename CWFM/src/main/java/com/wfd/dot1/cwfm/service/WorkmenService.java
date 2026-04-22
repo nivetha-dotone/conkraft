@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wfd.dot1.cwfm.dto.AadharCheckDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectGatePassDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
+import com.wfd.dot1.cwfm.dto.ContractWorkmenReportDTO;
 import com.wfd.dot1.cwfm.dto.GatePassActionDto;
 import com.wfd.dot1.cwfm.dto.GatePassListingDto;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -156,6 +157,8 @@ public interface WorkmenService {
 	public List<Zone> getAllZonesBasedOnPE(String unitId);
 
 	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber);
+
+	List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId, String contractorId);
 
 	
 }	

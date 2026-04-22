@@ -10,6 +10,7 @@ import com.wfd.dot1.cwfm.dto.AadharCheckDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectGatePassDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSPerson;
+import com.wfd.dot1.cwfm.dto.ContractWorkmenReportDTO;
 import com.wfd.dot1.cwfm.dto.GatePassActionDto;
 import com.wfd.dot1.cwfm.dto.GatePassListingDto;
 import com.wfd.dot1.cwfm.dto.GatePassStatusLogDto;
@@ -250,4 +251,6 @@ public interface WorkmenDao {
 	public List<Zone> getAllZonesBasedOnPE(String unitId);
 
 	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber);
+
+	List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId, String contractorId);
 }

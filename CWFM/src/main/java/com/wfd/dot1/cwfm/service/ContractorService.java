@@ -100,6 +100,7 @@ public interface ContractorService {
 	public Contractor getAllContractorProfileDetailForReg(String unitId, String contractorId);
 
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId);
+
 	   
 	}
 

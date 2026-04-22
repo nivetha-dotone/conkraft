@@ -486,4 +486,5 @@ public class ContractorServiceImpl implements ContractorService{
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId) {
 		return contrDao.getContractorRenewComments(contractorRegId);
 	}
+	
 }

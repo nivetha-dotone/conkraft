@@ -35,6 +35,7 @@ import com.wfd.dot1.cwfm.dto.AadharCheckDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectGatePassDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSPerson;
+import com.wfd.dot1.cwfm.dto.ContractWorkmenReportDTO;
 import com.wfd.dot1.cwfm.dto.GatePassActionDto;
 import com.wfd.dot1.cwfm.dto.GatePassListingDto;
 import com.wfd.dot1.cwfm.dto.GatePassStatusLogDto;
@@ -1608,6 +1609,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 	@Override
 	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber) {
 	    return workmenDao.getWorkmenDetailsByAadhar(aadharNumber);
+	}
+	
+	@Override
+	public List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId,String contractorId) {
+		// TODO Auto-generated method stub
+		return workmenDao.getContractWorkmenReportData(unitId,contractorId);
 	}
 	}
 
