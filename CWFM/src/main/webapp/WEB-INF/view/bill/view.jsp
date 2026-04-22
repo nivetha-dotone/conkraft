@@ -393,7 +393,7 @@ label {
     <div class="tabs-container">
         <div class="tabs">
             <button class="active" data-target="tab1" onclick="showTabNew('tab1')">Basic Information</button>
-            <button data-target="tab2" onclick="showTabNew('tab2')">Kronos Reports</button> 
+            <button data-target="tab2" onclick="showTabNew('tab2')">Attendance / Wage Reports</button> 
             <button data-target="tab3" onclick="showTabNew('tab3')">Statuory Regulatory Attachments</button> 
             <button data-target="tab4" onclick="showTabNew('tab4')">Check List - HR Clearance</button> 
              <button data-target="tab5" onclick="showTabNew('tab5')">Comments</button> 

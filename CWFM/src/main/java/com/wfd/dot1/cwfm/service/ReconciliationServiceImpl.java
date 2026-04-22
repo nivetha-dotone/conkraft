@@ -1,4 +1,4 @@
-package com.wfd.dot1.cwfm.service.impl;
+package com.wfd.dot1.cwfm.service;
 
 import java.io.BufferedReader;
 import java.io.File;
