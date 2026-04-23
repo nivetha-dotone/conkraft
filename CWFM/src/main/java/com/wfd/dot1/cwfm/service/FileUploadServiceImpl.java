@@ -830,13 +830,16 @@ public class FileUploadServiceImpl implements FileUploadService {
             try {
                 String code = fields[1];
                 String stateName = fields[15];
-
+                String organization = fields[0];
+                String businessType = fields[6];
+                
                 // Duplicate plantCode check
-                if (fileUploadDao.isPrincipalEmployerCodeExists(code)) {
-                    errorData.add(Map.of("row", rowNum, "error", "Duplicate plantCode: " + code + " already exists"));
-                    continue;
-                }
-
+               //boolean unitid=  fileUploadDao.isPrincipalEmployerCodeExists(code);
+                   // errorData.add(Map.of("row", rowNum, "error", "Duplicate plantCode: " + code + " already exists"));
+                  //  continue;
+               // }
+                Long unitId = fileUploadDao.getPrincipalEmployerExists(code, organization,businessType);
+                log.info("fetch unitid"+unitId);
                 // Check if state exists in CMSSTATE table
                 Long stateId = fileUploadDao.getStateIdByName(stateName);
                 if (stateId == null) {
@@ -846,13 +849,13 @@ public class FileUploadServiceImpl implements FileUploadService {
 
                 // Save PrincipalEmployer
                 PrincipalEmployer p = new PrincipalEmployer();
-                p.setOrganization(fields[0]);
+                p.setOrganization(organization);
                 p.setCode(code);
                 p.setName(fields[2]);
                 p.setAddress(fields[3]);
                 p.setManagerName(fields[4]);
                 p.setManagerAddrs(fields[5]);
-                p.setBusinessType(fields[6]);
+                p.setBusinessType(businessType);
                 p.setMaxWorkmen(Integer.parseInt(fields[7]));
                 p.setMaxCntrWorkmen(Integer.parseInt(fields[8]));
                 p.setBocwApplicability(Integer.parseInt(fields[9]));
@@ -862,11 +865,20 @@ public class FileUploadServiceImpl implements FileUploadService {
                 p.setWcNumber(fields[13]);
                 p.setFactoryLicenseNumber(fields[14]);
                 p.setStateNM(String.valueOf(stateId));  // Save for display/reference
-
-                Long unitId = fileUploadDao.savePrincipalEmployer(p, createdBy);  // Save and get unitId
-
+                if(unitId == null || unitId == 0) {
+                 unitId = fileUploadDao.savePrincipalEmployer(p, createdBy);  // Save and get unitId
+                 log.info("insert into cmsprincipalemployer"+unitId);
+                }else {
+                	fileUploadDao.updatePrincipalEmployer(p, createdBy,unitId); 
+                	log.info("update into cmsprincipalemployer"+unitId);
+                }
                 // Save to CMSPrincipalEmployerState with unitId and stateId
-                fileUploadDao.savePEState(unitId, stateId);
+                
+               boolean PEStateExists = fileUploadDao.getPEStateExists(unitId, stateId);
+               if(!PEStateExists) {
+                   fileUploadDao.savePEState(unitId, stateId);
+               }
+               
                 peListForOrgEntry.add(p);
                 
                 // Prepare and add to success list
@@ -892,6 +904,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
             } catch (Exception e) {
                 errorData.add(Map.of("row", rowNum, "error", "Exception while processing row: " + e.getMessage()));
+                log.error("Error insertion/updation in  cmsprincipalemployer: ", e);
             }
 			/*
 			 * if (fields == null || fields.length == 0) { return null; } else {
@@ -2105,34 +2118,35 @@ public class FileUploadServiceImpl implements FileUploadService {
     public String getTemplateCSV(String templateType) {
         return fileUploadDao.getCSVHeaders(templateType);
     }
-
 	@Transactional
 	public boolean InsertPEOrgLevelEntry(List<PrincipalEmployer> list) {
 
-		 if (list == null || list.isEmpty()) {
-		        return true; // nothing to insert
-		    }
-		 
+	    if (list == null || list.isEmpty()) return true;
+
 	    try {
 	        long orgLevelDefId = fileUploadDao.getOrgLevelDefId("principal employer");
 
-	        if (!logAndCheck("ORGLEVELDEF", orgLevelDefId > 0)) {
-	            return false;
-	        }
+	        if (orgLevelDefId <= 0) return false;
 
-	        boolean saved = fileUploadDao.SavePEOrglevelEntry(list, orgLevelDefId);
+	        Set<String> existingCodes =
+	                fileUploadDao.getExistingPECodes(list, orgLevelDefId);
 
-	        if (!logAndCheck("ORGLEVELENTRY", saved)) {
-	            return false;
-	        }
+	        List<PrincipalEmployer> newList = list.stream()
+	                .filter(pe -> pe.getCode() != null &&
+	                        !existingCodes.contains(pe.getCode().trim().toUpperCase()))
+	                .toList();
 
-	        return true;
+	        if (newList.isEmpty()) return true;
+
+	        return fileUploadDao.SavePEOrglevelEntry(newList, orgLevelDefId);
 
 	    } catch (Exception e) {
-	        log.error("ORGLEVELENTRY Batch Insert FAILED : " + e.getMessage(), e);
+	        log.error("ORGLEVELENTRY insert failed", e);
 	        return false;
 	    }
 	}
+
+	
 //	@Transactional
 //	public boolean InsertContractorOrgLevelEntry(List<Contractor> list) {
 //
@@ -2160,6 +2174,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 //	        return false;
 //	    }
 //	}
+	@Transactional
 	public boolean InsertContractorOrgLevelEntry(List<Contractor> list) {
 
 	    if (list == null || list.isEmpty()) {

@@ -5,7 +5,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -349,6 +349,15 @@
         MasterUser user = (MasterUser) session.getAttribute("loginuser");
         String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
     %>
+   <script>
+function submitForm() {
+    var contractorId = document.getElementById("contractor").value;
+
+    if (!contractorId) return;
+
+    document.getElementById("reconForm").submit();
+}
+</script>
 </head>
 <body>
 
@@ -374,7 +383,23 @@
         <div class="loader"></div>
         <div class="loader-text">please wait...</div>
     </div>
+    
+<tr>
 
+<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractor"/></label></th>
+    <td>
+            <select id="contractor" name="contractorId" onchange="getReconciliationData()">
+                <option value="">Please select Contractor</option>
+
+                <c:forEach var="contr" items="${contList}">
+                    <option value="${contr.id}"
+                        ${contractorId eq contr.id ? 'selected="selected"' : ''}>
+                        ${contr.description}
+                    </option>
+                </c:forEach>
+            </select>
+    </td>
+</tr>
     <!-- PF TAB -->
     <div id="tab1" class="tab-content active">
 

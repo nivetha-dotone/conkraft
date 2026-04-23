@@ -5910,3 +5910,58 @@ function showMessage(message, type, reconType) {
 function nullSafe(val) {
     return (val === null || val === undefined) ? "" : val;
 }
+function getReconciliationData() {
+    var contractorId = document.getElementById("contractor").value;
+
+    if (!contractorId) return;
+
+    var contextPath = "/CWFM";
+
+    fetch(contextPath + "/contractor/getReconciliationData", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "contractorId=" + contractorId
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        // 🔥 PF TABLE UPDATE
+        var pfTable = $('#pfTable').DataTable();
+        pfTable.clear();
+
+        if (data.pfList && data.pfList.length > 0) {
+            data.pfList.forEach(function(w) {
+                pfTable.row.add([
+                    w.gatePassId || "",
+                    w.workmenName || "",
+                    w.uanNumber || "",
+                    w.pfNumber || "",
+                    w.pfAmount || ""
+                ]);
+            });
+        }
+
+        pfTable.draw();
+
+        // 🔥 ESIC TABLE UPDATE
+        var esicTable = $('#esicTable').DataTable();
+        esicTable.clear();
+
+        if (data.esicList && data.esicList.length > 0) {
+            data.esicList.forEach(function(w) {
+                esicTable.row.add([
+                    w.gatePassId || "",
+                    w.workmenName || "",
+                    w.esicNumber || "",
+                    w.esicAmount || ""
+                ]);
+            });
+        }
+
+        esicTable.draw();
+
+    })
+    .catch(error => console.error("Error:", error));
+}

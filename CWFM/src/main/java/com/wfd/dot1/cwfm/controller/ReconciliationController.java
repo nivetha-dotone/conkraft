@@ -1,9 +1,13 @@
 package com.wfd.dot1.cwfm.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,8 @@ import org.springframework.web.servlet.ModelAndView;
 import com.wfd.dot1.cwfm.dto.ReconciliationResultDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
+import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.ReconciliationService;
 
 @Controller
@@ -27,6 +33,9 @@ public class ReconciliationController {
 
     @Autowired
     private ReconciliationService reconciliationService;
+    
+    @Autowired
+    private CommonService commonService;
 
     @GetMapping("/reconciliation")
     public ModelAndView loadReconciliationScreen(HttpSession session) {
@@ -36,15 +45,43 @@ public class ReconciliationController {
         
         Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
 
-        List<WorkmenReconciliationDTO> pfList = reconciliationService.getPfReconciliationList(contractorId);
-        List<WorkmenReconciliationDTO> esicList = reconciliationService.getEsicReconciliationList(contractorId);
+        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        mv.addObject("contList", contList);
+        //List<WorkmenReconciliationDTO> pfList = reconciliationService.getPfReconciliationList(contractorId);
+        //List<WorkmenReconciliationDTO> esicList = reconciliationService.getEsicReconciliationList(contractorId);
+        List<WorkmenReconciliationDTO> pfList = new ArrayList<>();
+        	List<WorkmenReconciliationDTO> esicList = new ArrayList<>();
 
         mv.addObject("pfList", pfList);
         mv.addObject("esicList", esicList);
 
         return mv;
     }
+    
+    @PostMapping("/getReconciliationData")
+    @ResponseBody
+    public Map<String, Object> getReconciliationData(
+            @RequestParam("contractorId") Long contractorId) {
 
+        Map<String, Object> response = new HashMap<>();
+
+        List<WorkmenReconciliationDTO> pfList =
+                reconciliationService.getPfReconciliationList(contractorId);
+
+        List<WorkmenReconciliationDTO> esicList =
+                reconciliationService.getEsicReconciliationList(contractorId);
+
+        response.put("pfList", pfList);
+        response.put("esicList", esicList);
+
+        return response;
+    }
+    
     @PostMapping("/reconciliation/upload")
     @ResponseBody
     public Map<String, Object> uploadReconciliation(@RequestParam("reconType") String reconType,

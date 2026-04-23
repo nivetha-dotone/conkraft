@@ -1234,13 +1234,14 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        }
 	    }
 
-		
 		@Override
 		public boolean SavePEOrglevelEntry(List<PrincipalEmployer> list, long orgLevelDefId) {
+			
 			String sql=SavePEOrglevelEntry();
-		   // String sql = "INSERT INTO ORGLEVELENTRY " +
-		    //        "(ORGLEVELDEFID, NAME, DESCRIPTION, INACTIVE, UPDATE_DTM, UPDATEDBYUSRACCTID, VERSION) " +
-		   //         "VALUES (?, ?, ?, 1, getdate(), 0, NULL)";
+
+//		    String sql = "INSERT INTO ORGLEVELENTRY " +
+//		            "(ORGLEVELDEFID, NAME, DESCRIPTION, INACTIVE, UPDATE_DTM, UPDATEDBYUSRACCTID, VERSION) " +
+//		            "VALUES (?, ?, ?, 1, GETDATE(), 0, NULL)";
 
 		    jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -1249,8 +1250,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		            PrincipalEmployer pe = list.get(i);
 
 		            ps.setLong(1, orgLevelDefId);
-		            ps.setString(2, pe.getCode());
-		            ps.setString(3, pe.getName()); 
+		            ps.setString(2, pe.getCode().trim());     // ✅ normalized
+		            ps.setString(3, pe.getName().trim());
 		        }
 
 		        @Override
@@ -2368,4 +2369,116 @@ public class FileUploadDaoImpl implements FileUploadDao {
 				        (rs, rowNum) -> rs.getInt("WORKORDERID"));
 				    return result.isEmpty() ? null : result.get(0);
 		}
+		
+		public String getPrincipalEmployerExists() {
+		    return QueryFileWatcher.getQuery("GET_PRINCIPAL_EMPLOYER_EXISTS");
+	    }
+		public String updatePrincipalEmployer() {
+		    return QueryFileWatcher.getQuery("UPDATE_PRINCIPAL_EMPLOYER");
+	    }
+		
+		@Override
+		public Long getPrincipalEmployerExists(String code, String organization, String businessType){
+			String sql=getPrincipalEmployerExists();
+		    //String sql = "select unitid from CMSPRINCIPALEMPLOYER where code = ? and ORGANIZATION =? and BUSINESSTYPE=? and ISACTIVE=1";
+		    try {
+		        return jdbcTemplate.queryForObject(sql, new Object[]{code, organization,businessType}, Long.class);
+		    } catch (EmptyResultDataAccessException e) {
+		        return null;
+		    }
+		}
+		
+		@Override
+		public void updatePrincipalEmployer(PrincipalEmployer p, String createdBy, Long unitId) {
+
+			String sql=updatePrincipalEmployer();
+			
+//		    String sql = "UPDATE CMSPRINCIPALEMPLOYER SET " +
+//		            "NAME = ?, " +
+//		            "ADDRESS = ?, " +
+//		            "MANAGERNAME = ?, " +
+//		            "MANAGERADDRS = ?, " +
+//		            "MAXWORKMEN = ?, " +
+//		            "MAXCNTRWORKMEN = ?, " +
+//		            "BOCWAPPLICABILITY = ?, " +
+//		            "ISMWAPPLICABILITY = ?, " +
+//		            "LICENSENUMBER = ?, " +
+//		            "PFCODE = ?, " +
+//		            "WCNUMBER = ?, " +
+//		            "FACTORYLICENCENUMBER = ?, " +
+//		            "STATEID = ?, " +                 // 🔥 IMPORTANT (trigger uses this)
+//		            "UPDATEDBY = ?, " +
+//		            "UPDATEDTM = GETDATE() " +       // 🔥 MUST for audit
+//		            "WHERE UNITID = ?";
+
+		    jdbcTemplate.update(sql,
+		            p.getName(),
+		            p.getAddress(),
+		            p.getManagerName(),
+		            p.getManagerAddrs(),
+		            p.getMaxWorkmen(),
+		            p.getMaxCntrWorkmen(),
+		            p.getBocwApplicability(),
+		            p.getIsMwApplicability(),
+		            p.getLicenseNumber(),
+		            p.getPfCode(),
+		            p.getWcNumber(),
+		            p.getFactoryLicenseNumber(),
+		            Long.valueOf(p.getStateNM()),   // stateId
+		            createdBy,
+		            unitId
+		    );
+		}
+		
+		public String getPEStateExists() {
+		    return QueryFileWatcher.getQuery("GET_PE_STATE_EXISTS");
+	    }
+		
+		@Override
+		public boolean getPEStateExists(Long unitId, Long stateId) {
+		     String sql=getPEStateExists();
+	       // String sql = "select count(*) from CMSPESTATE where UNITID=? and STATEID=?";
+	        Long count = jdbcTemplate.queryForObject(sql, Long.class, unitId, stateId);
+	        return count != null && count > 0;
+		}
+		@Override
+		public Set<String> getExistingPECodes(List<PrincipalEmployer> list, long orgLevelDefId) {
+
+		    if (list == null || list.isEmpty()) {
+		        return Collections.emptySet();
+		    }
+
+		    List<String> peCodes = list.stream()
+		            .map(PrincipalEmployer::getCode)
+		            .filter(Objects::nonNull)
+		            .map(code -> code.trim().toUpperCase())   // ✅ normalize
+		            .distinct()
+		            .toList();
+
+		    if (peCodes.isEmpty()) {
+		        return Collections.emptySet();
+		    }
+
+		    String placeholders = peCodes.stream()
+		            .map(c -> "?")
+		            .collect(Collectors.joining(","));
+
+		    String sql =
+		        "SELECT UPPER(LTRIM(RTRIM(NAME))) FROM ORGLEVELENTRY " +
+		        "WHERE ORGLEVELDEFID = ? " +
+		        "AND UPPER(LTRIM(RTRIM(NAME))) IN (" + placeholders + ")";
+
+		    List<Object> params = new ArrayList<>();
+		    params.add(orgLevelDefId);
+		    params.addAll(peCodes);
+
+		    List<String> existing = jdbcTemplate.queryForList(
+		            sql,
+		            params.toArray(),
+		            String.class
+		    );
+
+		    return new HashSet<>(existing);
+		}
+	
 	}

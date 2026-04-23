@@ -417,7 +417,7 @@ label {
                 </td>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.mobileNumber"/></label></th>
                 <td>
-                	<input id="mobileId" name="mobile" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10" autocomplete="off">
+                	<input id="mobileId" name="mobile" style="width: 100%;height: 20px;" type="text" size="10" maxlength="10"  inputmode="numeric" pattern="[0-9]*" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"  autocomplete="off">
                 	<div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.mobileNumberRegax"/></span>
        </div>
@@ -429,7 +429,7 @@ label {
              <tr>
            	   <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractorAadhar"/></label></th>
                 <td>
-                	<input id="aadharId" name="aadhar" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" autocomplete="off">
+                	<input id="aadharId" name="aadhar" style="width: 100%;height: 20px;" type="text" size="30" maxlength="12" inputmode="numeric" pattern="[0-9]*" maxlength="12" oninput="this.value = this.value.replace(/[^0-9]/g, '')" autocomplete="off">
                 	<div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.aadharNumberRegax"/></span>
     </div>

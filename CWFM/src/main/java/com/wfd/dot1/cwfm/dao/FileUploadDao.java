@@ -246,4 +246,12 @@ public interface FileUploadDao {
 	Integer getWorkorderIdBasedonPE(String string, Integer unitId);
 
 	Integer IsWorkorderExistsForOtherContractor(String workOrder, String contractorCode);
+
+	void updatePrincipalEmployer(PrincipalEmployer p, String createdBy, Long unitId);
+
+	Long getPrincipalEmployerExists(String code, String organization, String businessType);
+
+	boolean getPEStateExists(Long unitId, Long stateId);
+
+	Set<String> getExistingPECodes(List<PrincipalEmployer> list, long orgLevelDefId);
 }
