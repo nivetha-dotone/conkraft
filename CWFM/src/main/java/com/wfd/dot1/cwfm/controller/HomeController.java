@@ -189,7 +189,6 @@ public class HomeController {
 				String userAccount = apiUser.getUserAccount();
 				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 
-				// 👉 If user not present → create
 				if (user == null) {
 					apiUser.setPassword("Admin@123");
 
@@ -198,7 +197,6 @@ public class HomeController {
 					user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 				}
 
-				// 👉 Validate user
 				if (user != null && user.getPassword() != null) {
 					return handleLoginSuccess(user, session);
 				}

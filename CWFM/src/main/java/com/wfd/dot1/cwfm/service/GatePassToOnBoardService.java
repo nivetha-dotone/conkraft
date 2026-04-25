@@ -936,7 +936,6 @@ public class GatePassToOnBoardService {
     public void createBusinessStructurePOC(String fullPath) {
 
         String[] parts = fullPath.split("/");
-
         String currentPath = "";
 
         for (int i = 0; i < parts.length; i++) {
@@ -947,27 +946,62 @@ public class GatePassToOnBoardService {
             currentPath = currentPath.isEmpty() ? nodeName : currentPath + "/" + nodeName;
 
             boolean exists = wfdEmployeeService.checkLocationInUKG(currentPath);
+            System.out.println(exists + " Build path ");
 
             if (!exists) {
 
-                String parentPath = (i == 0) ? "/" : currentPath.substring(0, currentPath.lastIndexOf("/"));
+                String parentPath = (i == 0)
+                        ? "/"
+                        : currentPath.substring(0, currentPath.lastIndexOf("/"));
 
                 String type = getLocationTypePOC(i);
 
-                wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
-                System.out.println("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
-                log.info("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+                boolean skipVerification = false;
 
-                // 🔁 Optional: verify after create
-                boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
+                try {
+                    wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
 
-                if (!created) {
-                    throw new RuntimeException("Failed to create node: " + currentPath);
+                    System.out.println("Creating Node → Parent: " + parentPath +
+                            " | Name: " + nodeName + " | Type: " + type);
+                    log.info("Creating Node → Parent: " + parentPath +
+                            " | Name: " + nodeName + " | Type: " + type);
+
+                } catch (Exception ex) {
+
+                    String errorMsg = ex.getMessage();
+                    System.out.println("Create Error: " + errorMsg);
+
+                    if (errorMsg != null &&
+                            errorMsg.contains("The system prohibits duplicate names for child nodes")) {
+                        System.out.println("Duplicate found → skipping verification for: " + currentPath);
+                        log.info("Duplicate found → skipping verification for: " + currentPath);
+
+                        if (!checkLocationPath(fullPath)) {
+                            storeHierarchyInDBPOC(fullPath);
+
+                        }
+                        skipVerification = true;
+                    } else {
+
+                        log.error("Error creating node: " + currentPath, ex);
+                        continue;
+                    }
+                }
+
+                if (!skipVerification) {
+
+                    boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+                    if (!created) {
+                        System.out.println("⚠ Failed to verify node: " + currentPath);
+                        log.warn("Failed to verify node: " + currentPath);
+
+                        continue;
+                    }
                 }
             }
         }
     }
-
     public String getLocationType(int level) {
 
         switch (level) {

@@ -140,7 +140,6 @@ public class CreateEmpFetchByGatePassAPICALL {
     }
 
     @GetMapping({"/getAccessTokenOnly"})
-
     public ResponseEntity<?> getAccessTokenOnly(@RequestParam String username,
                                                 @RequestParam String password) {
         try {
@@ -180,7 +179,7 @@ public class CreateEmpFetchByGatePassAPICALL {
                 return ResponseEntity.ok(authCheckup);
             }
 
-            // ✅ now this will truly be null
+
             return ResponseEntity.ok(null);
 
         } catch (Exception e) {

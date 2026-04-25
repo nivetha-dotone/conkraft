@@ -1214,6 +1214,8 @@ public String getTokenCheck(String username, String password){
         if (gatePassToOnBoardService.checkLocationPath(orgPath)) {
             return orgPath;
         }
+        boolean b = wfdEmployeeService.checkLocationInUKG(orgPath);
+        System.out.println(b +"Location check");
 
         if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
             gatePassToOnBoardService.storeHierarchyInDBPOC(orgPath);
@@ -1225,9 +1227,12 @@ public String getTokenCheck(String username, String password){
             if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
             gatePassToOnBoardService.storeHierarchyInDBPOC(orgPath);
             return orgPath;
-        }
+        }else{
+                return orgPath;
 
-        throw new RuntimeException("Failed to resolve orgPath: " + orgPath);
+            }
+
+//        throw new RuntimeException("Failed to resolve orgPath: " + orgPath);
     }
 
     public String gatePassEmpDtoDynamic(String gatePassId) {

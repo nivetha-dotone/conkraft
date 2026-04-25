@@ -19,6 +19,8 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -486,8 +488,51 @@ public class WfdEmployeeService {
             // ✅ firstName, lastName, fullName
             JsonNode personNode = root.path("personInformation").path("person");
 
-            user.setFirstName(personNode.path("firstName").asText(" "));
-            user.setLastName(personNode.path("lastName").asText(" "));
+            String rawName = personNode.path("lastName").asText("").trim();
+
+            if (rawName.isEmpty()) {
+                rawName = "NA";
+            }
+
+            String[] parts = rawName.split("\\s+");
+
+            String firstName = "";
+            String lastName = "";
+
+            if (parts.length == 1) {
+                // 🔹 1 word → split into 2 parts
+                String word = parts[0];
+
+                if (word.length() <= 3) {
+                    // very short name → keep as firstName only
+                    firstName = word;
+                    lastName = "";
+                } else {
+                    int mid = word.length() / 2;
+                    firstName = word.substring(0, mid);
+                    lastName = word.substring(mid);
+                }
+
+            } else if (parts.length == 2) {
+                // 🔹 2 words → direct mapping
+                firstName = parts[0];
+                lastName = parts[1];
+
+            } else {
+
+                firstName = parts[0] + " " + parts[1];
+
+                StringBuilder ln = new StringBuilder();
+                for (int i = 2; i < parts.length; i++) {
+                    ln.append(parts[i]).append(" ");
+                }
+                lastName = ln.toString().trim();
+            }
+
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setFullName((firstName + " " + lastName).trim());
+
             user.setFullName(personNode.path("fullName").asText(" "));
             user.setStatus("A");
             // ✅ contactNumber
@@ -681,27 +726,58 @@ public class WfdEmployeeService {
         }
     }
 
+
     public boolean checkLocationInUKG(String path) {
         try {
+
+            String encodedPath = path
+                    .replace(" ", "%20")
+                    .replace("&", "%26");
+
             String accessToken = this.wfdAuthService.getAccessToken();
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-            String var10000 = this.getHostName();
-            String url = var10000 + this.getCheckLocationUrl() + path + "&date=1900-01-01&context=ORG";
-            HttpEntity<String> entity = new HttpEntity(headers);
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.GET, entity, String.class, new Object[0]);
+
+            String url = this.getHostName()
+                    + this.getCheckLocationUrl()
+                    + encodedPath
+                    + "&date=1900-01-01&context=ORG";
+
+            System.out.println("Final URL: " + url);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    entity,
+                    String.class
+            );
+
             return response.getStatusCode().is2xxSuccessful();
-        } catch (HttpClientErrorException var7) {
-            if (var7.getStatusCode().value() == 400 && var7.getResponseBodyAsString().contains("does not exist")) {
-                return false;
-            } else {
-                throw var7;
+
+        } catch (HttpClientErrorException ex) {
+
+            String error = ex.getResponseBodyAsString();
+            System.out.println("Error: " + error);
+
+            if (ex.getStatusCode().value() == 400 && error != null) {
+
+                if (error.contains("does not exist")) {
+                    return false;
+                }
+
             }
+
+            return false;
+
         } catch (Exception e) {
             throw new RuntimeException("Error checking location in UKG", e);
         }
     }
+
     public void createNodeInUKG(String parentPath, String name, String type) {
 
         String accessToken = wfdAuthService.getAccessToken();
