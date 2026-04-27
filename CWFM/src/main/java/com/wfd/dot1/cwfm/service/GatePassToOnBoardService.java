@@ -917,16 +917,45 @@ public class GatePassToOnBoardService {
                 String parentPath = (i == 0) ? "/" : currentPath.substring(0, currentPath.lastIndexOf("/"));
 
                 String type = getLocationType(i);
+                boolean skipVerification = false;
 
-                wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
-                System.out.println("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
-                log.info("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+                try {
+                    wfdEmployeeService.createNodeInUKG(parentPath, nodeName, type);
 
-                // 🔁 Optional: verify after create
-                boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
 
-                if (!created) {
-                    throw new RuntimeException("Failed to create node: " + currentPath);
+                    System.out.println("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+                    log.info("Creating Node → Parent: " + parentPath + " | Name: " + nodeName + " | Type: " + type);
+
+                } catch (Exception ex) {
+
+                    String errorMsg = ex.getMessage();
+                    System.out.println("Create Error: " + errorMsg);
+
+                    if (errorMsg != null &&
+                            errorMsg.contains("is not unique")) {
+                        System.out.println("Duplicate found → skipping verification for: " + currentPath);
+                        log.info("Duplicate found → skipping verification for: " + currentPath);
+
+                        if (!checkLocationPath(fullPath)) {
+                            storeHierarchyInDB(fullPath);
+
+                        }
+                        skipVerification = true;
+                    } else {
+
+                        log.error("Error creating node: " + currentPath, ex);
+                        continue;
+                    }
+                }
+                if (!skipVerification) {
+
+                    boolean created = wfdEmployeeService.checkLocationInUKG(currentPath);
+
+                    if (!created) {
+                        System.out.println("⚠ Failed to verify node: " + currentPath);
+                        log.warn("Failed to verify node: " + currentPath);
+                    }
+
                 }
             }
         }
