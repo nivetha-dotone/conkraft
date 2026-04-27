@@ -731,7 +731,7 @@ public class WfdEmployeeService {
         try {
 
             String encodedPath = path
-                    .replace(" ", "%20")
+//                    .replace(" ", "%20")
                     .replace("&", "%26");
 
             String accessToken = this.wfdAuthService.getAccessToken();
