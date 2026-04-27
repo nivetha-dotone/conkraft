@@ -200,9 +200,76 @@ public class WorkflowDaoImpl implements WorkflowDao{
             		approver.getRoleId(), approver.getRoleName(),approver.getHierarchy());
         }
         }
+	}
         
+	@Override
+	public int getPendingGatePassCount(Long unitId, String actionName, String moduleId) {
+
+	    try {
+
+	    	String moduleNameQuery = "SELECT GMNAME FROM CMSGENERALMASTER WHERE GMID = ?";
+	        String moduleName = jdbcTemplate.queryForObject(moduleNameQuery, String.class, moduleId);
+
+	        if (moduleName == null || moduleName.trim().isEmpty()) {
+	            return 0;
+	        }
+
+	        // Normalize module name (remove spaces + lowercase)
+	        String normalizedModule = moduleName.replaceAll("\\s+", "").toLowerCase();
+
+	        String sql = null;
+	        Object[] params = null;
+
+	        switch (normalizedModule) {
+
+	            case "workmenonboarding":
+
+	                sql = "SELECT COUNT(*) " +
+	                      "FROM GATEPASSMAIN gpm " +
+	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = gpm.GatePassTypeId " +
+	                      "WHERE gpm.GatePassStatus = '3' " +
+	                      "AND gpm.UnitId = ? " +
+	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+
+	                params = new Object[]{unitId, actionName};
+	                break;
+
+
+	            case "contractorrenewal":
+
+	                sql = "SELECT COUNT(*) " +
+	                      "FROM CMSContractorRegistration cmsr " +
+	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = cmsr.ACTIONID " +
+	                      "WHERE cmsr.STATUS = '3' " +
+	                      "AND cmsr.UnitId = ? " +
+	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+
+	                params = new Object[]{unitId, actionName};
+	                break;
+	                
+	            case "billverification":
+
+	                sql = "select count(*) from CMSWageCostWorkFlow cmswc join GatePassTypeMaster gtm on gtm.TypeId=cmswc.ACTIONID \r\n"
+	                		+ "where cmswc.STATUS in (3) and cmswc.UnitId=? "
+	                     + "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+
+	                params = new Object[]{unitId, actionName};
+	                break;
+
+	            default:
+	                return 0;
+	        }
+
+	        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, params);
+
+	        return (count != null) ? count : 0;
+
+	    }  catch (Exception e) {
+	        //  Any unexpected error
+	    	 throw new RuntimeException("Error while checking pending records", e);
+	    }
+	}
     
     }
 
 
-}

@@ -176,7 +176,7 @@ public class ContractorDaoImpl implements ContractorDao{
             wo.setDepId(String.valueOf(rs.getInt("DEPID")));
             wo.setSecId(String.valueOf(rs.getInt("SECID")));
             wo.setStatus(String.valueOf(rs.getInt("STATUS")));
-            wo.setClassification(rs.getString("CLASSIFICATION"));
+            //wo.setClassification(rs.getString("CLASSIFICATION"));
          // ✅ DYNAMIC ACTIVE WORKMEN COUNT
             int activeCount = getWorkorderActiveWorkmenCount(
                     contractorId,
@@ -240,7 +240,17 @@ public class ContractorDaoImpl implements ContractorDao{
 	@Override
 	public List<CmsContractorWC> getMappingsByContractorIdAndUnitIdAndLicenseTypes(String contractorId,
 			String principalEmployerId, List<String> licenseTypes) {
-		StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM CMSContractor_WC WHERE CONTRACTORID = ? AND UNITID = ? AND LICENCE_TYPE IN (");
+		//StringBuilder sqlBuilder = new StringBuilder("SELECT * FROM CMSContractor_WC WHERE CONTRACTORID = ? AND UNITID = ? AND LICENCE_TYPE IN (");
+		  StringBuilder sqlBuilder = new StringBuilder(
+			        "SELECT wc.WC_CODE, wc.CONTRACTORID, wc.UNITID, " +
+			        "cpmm.NATUREOFWORK AS NATURE_OF_ID, " +
+			        "wc.WC_FROM_DTM, wc.WC_TO_DTM, wc.WC_TOTAL, wc.DELETE_SW, " +
+			        "wc.LICENCE_TYPE, wc.ISVERIFIED, wc.ATTACHMENTNM, wc.EXTENDTOSUBCONTRACTOR " +
+			        "FROM CMSContractor_WC wc " +
+			        "JOIN CMSCONTRPEMM cpmm ON cpmm.CONTRACTORID = wc.CONTRACTORID " +
+			        "AND cpmm.UNITID = wc.UNITID " +
+			        "WHERE wc.CONTRACTORID = ? AND wc.UNITID = ? AND wc.LICENCE_TYPE IN (");
+		  
 	    for (int i = 0; i < licenseTypes.size(); i++) {
 	        if (i != 0) {
 	            sqlBuilder.append(", ");
@@ -263,7 +273,7 @@ public class ContractorDaoImpl implements ContractorDao{
             // contr.setNatureOfId(rs.getInt("NATURE_OF_ID"));
              String natureOfJobStr = rs.getString("NATURE_OF_ID");
              if (natureOfJobStr != null && !natureOfJobStr.trim().isEmpty()) {
-                 contr.setNatureOfId(Integer.parseInt(natureOfJobStr));
+                 contr.setNatureOfWork(natureOfJobStr);
              }
              // contr.setWcFromDtm(rs.getString("WC_FROM_DTM"));
             // contr.setWcToDtm(rs.getString("WC_TO_DTM"));

@@ -7,8 +7,8 @@
 <html lang="en">
 
 <head>
-<title>Workflow</title>
-   <script src="resources/js/cms/workflow.js"></script>
+<title>Police verification Contract Export</title>
+   <script src="resources/js/cms/export.js"></script>
     <style>
         /* Add your styles here */
         .success {
@@ -136,16 +136,40 @@
         padding: 0; /* Remove padding if any */
     }
 
-    table {
-        width: 30%;
+   /*  table {
+        width: 100%;
         border-collapse: collapse;
-    }
+    } */
 
     th, td {
         padding: 10px;
         text-align: left;
         border: 1px solid #ddd;
         font-size: 0.875rem; /* Smaller text size matching the side nav bar */
+        color: grey;
+    }
+  td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+        font-size: 0.875rem; /* Smaller text size matching the side nav bar */
+         font-family: 'Noto Sans', sans-serif;
+         
+    color: #898989;/* Label text color */
+  padding: .2em .6em .3em;
+  font-size: 85%;
+  font-weight: 700;
+  line-height: 1;
+    white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25em;
+    }
+     th {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+        font-size: 0.875rem; /* Smaller text size matching the side nav bar */
+          font-weight: bold;
     }
 
     th {
@@ -210,11 +234,11 @@
         border-right: none; /* No right border */
         background-color: #DDF3FF; /* Light green background color */
         color: var(--zed_sys_color_tableHeader_text); /* Text color */
-        font-size: 0.75rem; /* Smaller font size */
+            font-size: 0.75rem;
         line-height: 1.2rem; /* Reduced line height */
         letter-spacing: normal; /* Letter spacing */
         font-family: 'Noto Sans', sans-serif; /* Font family */
-        font-weight: 400; /* Font weight */
+         font-weight: bold;
         text-align: center; /* Center align text */
         padding: 4px; /* Reduced padding for the table header */
         box-sizing: border-box; /* Include padding and border in element's total width and height */
@@ -232,144 +256,73 @@
     background-color: #ffe5e5;
     border-top: none;
 }
-     .page-header-buttons {
+  .page-header-buttons {
     margin-left: auto;      /* <<< THIS moves the buttons to the right */
     display: flex;
     gap: 10px;
-}
-    </style>
-  <script src="resources/js/cms/workflow.js"></script>
- <!--  <script>
-  function overrideActionsBasedOnModule() {
-	    const moduleDropdown = document.getElementById("module");
-	    const actionDropdown = document.getElementById("actionDropdown");
-
-	    const selectedModuleName = moduleDropdown.options[moduleDropdown.selectedIndex].text.trim();
-
-	    // Define manual override actions
-	    const moduleActionsMap = {
-	        "Workmen Onboarding": [
-	            "CREATE", "BLOCK", "UNBLOCK", "BLACKLIST",
-	            "DEBLACKLIST", "LOST DAMAGE", "RENEW", "CANCEL"
-	        ],
-	        "Contractor": ["Contractor Registration"],
-	        "Bill Verification": ["Bill Creation"]
-	    };
-
-	    // Clear and reset action dropdown in all cases
-	    actionDropdown.innerHTML = '<option value="">Please select Action</option>';
-
-	    // If a valid module is selected and it exists in the map, populate actions
-	    if (selectedModuleName && moduleActionsMap[selectedModuleName]) {
-	        const actions = moduleActionsMap[selectedModuleName];
-
-	        actions.forEach(action => {
-	            const option = document.createElement("option");
-	            option.value = action;
-	            option.text = action;
-	            actionDropdown.appendChild(option);
-	        });
-	    }
-
-	    // If no module is selected, the action dropdown remains empty (just the default option)
-	}
-
-  </script> -->
+}  
+    </style>	
+  <script src="resources/js/cms/export.js"></script>
+   <script src="resources/js/cms/workmen.js"></script>
 </head>
 <body>
 
    
-<div class="page-header" method="POST" onsubmit="return validateMasterValue()">
-    
-    <label for="gmTypeId" style="color: darkcyan;">Principal Employer:</label>
-        <select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getBusinessType(this.value)" required style="color:gray;padding:3px;">
+<div class="page-header">
+  <label for="principalEmployerId" style="color: darkcyan;">Principal Employer:</label> <select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value, '${sessionScope.loginuser.userAccount}')">
                                 <option value="">Please select Principal Employer</option>
+                                
+                                
+                                
 								<c:forEach var="pe" items="${PrincipalEmployer}">
-                					<option value="${pe.unitId}">${pe.name}</option>
-            					</c:forEach>
-                                </select>
-        
-       
-  
-    
-    
-       <!--  <label for="masterName" style="color: darkcyan;">Business Type</label>
-         <select class="custom-select" id="businessType" name="businessTypeId" required style="color:gray;padding:3px;">
-                                <option value="">Please select Business Type</option>
 								
-                                </select> -->
-       
-
-        <label for="masterValue" style="color: darkcyan;">Module:</label>
-         <select class="custom-select" id="module" name="moduleId"  onchange="overrideActionsBasedOnModule()" required style="color:gray;padding:3px;">
-                                <option value="">Please select Module</option>
-								<c:forEach var="pe" items="${Modules}">
-                					<option value="${pe.gmId}">${pe.gmName}</option>
+                					<option value="${pe.id}"
+									>
+									${pe.description}</option>
             					</c:forEach>
+							
                                 </select>
-                                <label for="masterValue" style="color: darkcyan;">Action:</label>
-                                  <select class="custom-select" name="action" id="actionDropdown" onchange="onModuleChange()"  required style="color:gray;padding:3px;">
-                        <option value="">Please select Action</option>
-                        <%-- <c:forEach var="pe" items="${Actions}">
-                            <option value="${pe.gmId}">${pe.gmName}</option>
-                        </c:forEach> --%>
-                    </select>
-<div class="page-header-buttons">
-        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportGMMasterCSV()">Export</button>
-         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="loadCommonList('/workflow/list','Workflow')">Cancel</button>
+                            
+                          <label for="deptId" style="color: darkcyan;">Contractor:</label>
+                            <select class="custom-select" id="contractor" name="contractorId" onchange="fetchPolicysExpiryReportData(this.value)">
+            						<option value="">Please select Contractor</option>
+									<c:forEach var="contr" items="${Contractors}">
+										
+                					<option value="${contr.contractorId}" >
+									${contr.contractorName}</option>
+            					</c:forEach>
+        						</select>
+        						
+        						<%-- <label id="error-contractor"style="color: red;display: none;">Contractor is required</label>
+        						
+        				<label for="deptId" style="color: darkcyan;">License Type:</label>
+                            <select class="custom-select" id="contractor" name="contractorId" onchange="fetchPolicysExpiryReportData(this.value)">
+            						<option value="">Please select Contractor</option>
+									<c:forEach var="contr" items="${Contractors}">
+										
+                					<option value="${contr.contractorId}" >
+									${contr.contractorName}</option>
+            					</c:forEach>
+        						</select>
+        						
+        						<label id="error-contractor"style="color: red;display: none;">Contractor is required</label> --%>
+        				
+    
+   <div class="page-header-buttons">
+       <button type="button" id="exportBtn"  class="btn btn-default process-footer-button-cancel ng-binding" onclick="policyExpiryReportModuleCSV()">Export</button> 
+         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick=" loadCommonList('/reports/policysExpiryWorkmenList', 'Policy Expiry Workmen Report');">Cancel</button>
+      </div>    
           <div id="formErrorMessage" class="error-message" style="display: none; color: red; font-weight: bold;"></div>
     </div>
-    </div>
 
-  <div style="padding:10px;">
-
-<div id="messageDiv" style="display:none; padding:10px; margin:10px 0; border-radius:5px;"></div>
-
-    <h3 style=" color: darkcyan;">Workflow Type</h3>
-    <label><input type="radio" name="workflowType" value="1" onchange="toggleHierarchyColumn()"> Auto</label>
-    <label><input type="radio" name="workflowType" value="2" onchange="toggleHierarchyColumn()"> Sequential</label>
-    <label><input type="radio" name="workflowType" value="3" onchange="toggleHierarchyColumn()"> Parallel</label>
-
-    <h3 style="color: darkcyan;">Approver Hierarchy</h3>
-    <button type="button" onclick="addRow()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Add New Row</button>
-    <button type="button" onclick="deleteSelected()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Delete Selected</button>
-    <br><br>
-
-    <table id="approverTable" border="1" class="no-dt">
-        <thead>
-            <tr>
-                <th>Select</th>
-                
-                <th>Role Name</th>
-                <th class="hierarchy-col">Hierarchy Index</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <!-- Hidden Template Row -->
-    <table style="display: none;" class="no-dt">
-        <tbody>
-            <tr id="templateRow">
-                <td><input type="checkbox" class="rowSelect"></td>
-                
-                <td>
-                    <select class="custom-select" name="role" required style="color:gray;padding:3px;">
-                        <option value="">Please select Role</option>
-                        <c:forEach var="pe" items="${Roles}">
-                            <option value="${pe.gmId}">${pe.gmName}</option>
-                        </c:forEach>
-                    </select>
-                </td>
-                <td class="hierarchy-col">
-                    <input type="number" name="hierarchyIndex" required autocomplete="off" style="color:gray;">
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <br>
-    <button type="button" onclick="saveWorkflow()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;" >Save Workflow</button>
-    </div>
+ <!-- Dynamic Table -->
+ <div class="table-container">
+<table id="dynamicTable"  style="margin-top: 20px;display:none;width:100px;">
+    <thead>
+        <tr id="tableHeader"></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+</div>
 </body>
 </html>

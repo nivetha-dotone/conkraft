@@ -243,8 +243,8 @@ public class EntrypassStatusDaoImpl implements EntrypassStatusDao {
 	public List<EntryPassStatusDto> getEntryPassStatusReport(String unitId) {
 		String sql = "select  ROW_NUMBER() OVER (\r\n"
 				+ "        ORDER BY TransactionId\r\n"
-				+ "    ) AS SNo,TransactionId,EntryPassNo,UnitId,PrincipalEmployer,ContractWorkmenCode,FirstName,LastName,Department,VendorCode,\r\n"
-				+ " VendorName,WorkOrder,EicNumber,EntryPassAction,EntryPassType,Status, LastApprovers,NextApprovers\r\n"
+				+ "    ) AS SNo,TransactionId,EntryPassNo,UnitId,PrincipalEmployer,FirstName,LastName,Department,VendorCode,\r\n"
+				+ " VendorName,WorkOrder,(userAccount + ' - ' + ISNULL(EICFirstName,'') + ' ' + ISNULL(EICLastName,'')) AS EicNumber,EntryPassAction,EntryPassType,Status, LastApprovers,NextApprovers\r\n"
 				+ " from VW_GATEPASS_APPROVAL_REPORT \r\n"
 				+ " where unitid=?";
 
@@ -258,7 +258,7 @@ public class EntrypassStatusDaoImpl implements EntrypassStatusDao {
 	   dto.setEntryPassNo(rs.getString("EntryPassNo"));
 	   dto.setUnitId(rs.getString("UnitId"));
 	   dto.setPrincipalEmployer(rs.getString("PrincipalEmployer"));
-	   dto.setContractWorkmenCode(rs.getString("ContractWorkmenCode"));
+	   //dto.setContractWorkmenCode(rs.getString("ContractWorkmenCode"));
 	   dto.setFirstName(rs.getString("FirstName"));
 	   dto.setLastName(rs.getString("LastName"));
 	   dto.setDepartment(rs.getString("Department"));

@@ -304,7 +304,7 @@ function saveWorkflow() {
 		actionId
     };
 
-    $.ajax({
+    /*$.ajax({
         type: "POST",
         url: "/CWFM/workflow/saveWorkflow",
         contentType: "application/json",
@@ -316,7 +316,29 @@ function saveWorkflow() {
         error: function () {
             alert("Error saving workflow.");
         }
-    });
+    });*/
+    $.ajax({
+    type: "POST",
+    url: "/CWFM/workflow/saveWorkflow",
+    contentType: "application/json",
+    data: JSON.stringify(payload),
+
+    success: function (response) {
+        // ✅ Backend success message
+        alert(response);
+       //sessionStorage.setItem("successMessage", response);
+        loadCommonList('/workflow/list', 'Workflow');
+    },
+
+    error: function (xhr) {
+        // ✅ IMPORTANT: show backend error message
+        if (xhr.responseText) {
+            alert(xhr.responseText);
+        } else {
+            alert("Error saving workflow.");
+        }
+    }
+});
 }
 
  function overrideActionsBasedOnModule() {

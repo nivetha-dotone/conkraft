@@ -256,7 +256,11 @@
     background-color: #ffe5e5;
     border-top: none;
 }
-    
+  .page-header-buttons {
+    margin-left: auto;      /* <<< THIS moves the buttons to the right */
+    display: flex;
+    gap: 10px;
+}  
     </style>	
   <script src="resources/js/cms/export.js"></script>
    <script src="resources/js/cms/workmen.js"></script>
@@ -292,9 +296,10 @@
         						<label id="error-contractor"style="color: red;display: none;">Contractor is required</label>
         				
     
-   
+   <div class="page-header-buttons">
        <button type="button" id="exportBtn"  class="btn btn-default process-footer-button-cancel ng-binding" onclick="reportModuleCSV()">Export</button> 
          <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick=" loadCommonList('/reports/list', 'Contract Workmen Report');">Cancel</button>
+     </div>     
           <div id="formErrorMessage" class="error-message" style="display: none; color: red; font-weight: bold;"></div>
     </div>
 

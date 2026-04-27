@@ -13,4 +13,6 @@ public interface WorkflowService {
 	public WorkflowResponseDto fetchWorkflow(String unitId, String businessType, String moduleId,String actionName);
 
 	public void saveWorkflow(WorkflowRequestDto request);
+
+	public int getPendingGatePassCount(Long unitId, String actionName, String modueId);
 }

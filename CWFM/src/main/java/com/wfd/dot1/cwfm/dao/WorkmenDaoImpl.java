@@ -4139,6 +4139,197 @@ private String getContractWorkmenReportQuery() {
 	// TODO Auto-generated method stub
 	return QueryFileWatcher.getQuery("WORKMEN_REPORT");
 }
+@Override
+public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId, String contractorId) {
+    String sql = "EXEC dbo.usp_GetInactiveGatePassExportDetails @UnitId = ?, @ContractorId = ?";
 
+    return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
+            new RowMapper<ContractWorkmenReportDTO>() {
+                @Override
+                public ContractWorkmenReportDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+                	ContractWorkmenReportDTO dto = new ContractWorkmenReportDTO();
 
+                    dto.setGatePassType(rs.getString("GatePassType"));
+                    dto.setGatePassId(rs.getString("GatePassId"));
+                    dto.setFirstName(rs.getString("FirstName"));
+                    dto.setLastName(rs.getString("LastName"));
+                    dto.setRelativeName(rs.getString("RelativeName"));
+                    dto.setDoj(rs.getString("doj"));
+                    dto.setBirthDate(rs.getString("birthDate"));
+                    dto.setPhone1(rs.getString("phone1"));
+                    dto.setAddress(rs.getString("Address"));
+                    dto.setEmploymentStatus(rs.getString("employmentStatus"));
+                    dto.setDot(rs.getString("DOT"));
+                    dto.setReasoning(rs.getString("reasoning"));
+                    dto.setUnitCode(rs.getString("unitCode"));
+                    dto.setUnitName(rs.getString("unitName"));
+                    dto.setMainContractorCode(rs.getString("MainContractorCode"));
+                    dto.setMainContractorName(rs.getString("mainContractorName"));
+                    dto.setSubContractorCode(rs.getString("subContractorCode"));
+                    dto.setSubContractorName(rs.getString("subContractorName"));
+                    dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
+                    dto.setDepartment(rs.getString("department"));
+                    dto.setSection(rs.getString("section"));
+                    dto.setTrade(rs.getString("trade"));
+                    dto.setSkill(rs.getString("skill"));
+                    dto.setAadharNumber(rs.getString("AadharNumber"));
+                    dto.setGender(rs.getString("gender"));
+                    dto.setMaritalStatus(rs.getString("MaritalStatus"));
+                    dto.setHazardousArea(rs.getString("HazardousArea"));
+                    dto.setAccessAreaId(rs.getString("AccessAreaId"));
+                    dto.setTechnical(rs.getString("Technical"));
+                    dto.setAcademic(rs.getString("academic"));
+                    dto.setBloodgroup(rs.getString("bloodgroup"));
+                    dto.setAccommodation(rs.getString("Accommodation"));
+                    dto.setBankbranch(rs.getString("bankbranch"));
+                    dto.setAccountNumber(rs.getString("AccountNumber"));
+                    dto.setMobileNumber(rs.getString("MobileNumber"));
+                    dto.setEicmanager(rs.getString("eicmanager"));
+                    dto.setInsuranceType(rs.getString("insuranceType"));
+                    dto.setWcesicno(rs.getString("wcesicno"));
+                    dto.setEsicNumber(rs.getString("EsicNumber"));
+                    dto.setLlNo(rs.getString("llNo"));
+                    dto.setPfapplicable(rs.getString("pfapplicable"));
+                    dto.setPfNumber(rs.getString("PfNumber"));
+                    dto.setUanNumber(rs.getString("UanNumber"));
+                    dto.setHealthCheckDate(rs.getString("HealthCheckDate"));
+                    dto.setZone(rs.getString("zone"));
+                    dto.setPvsDocType(rs.getString("pvsDocType"));
+                    dto.setEmergencyContactName(rs.getString("EmergencyContactName"));
+                    dto.setEmergencyContactNumber(rs.getString("EmergencyContactNumber"));
+
+                    return dto;
+                }
+            });
+}
+@Override
+public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId, String contractorId) {
+    String sql = "EXEC dbo.usp_GetPoliceverificationGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+
+    return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
+            new RowMapper<ContractWorkmenReportDTO>() {
+                @Override
+                public ContractWorkmenReportDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+                	ContractWorkmenReportDTO dto = new ContractWorkmenReportDTO();
+
+                    dto.setGatePassType(rs.getString("GatePassType"));
+                    dto.setGatePassId(rs.getString("GatePassId"));
+                    dto.setFirstName(rs.getString("FirstName"));
+                    dto.setLastName(rs.getString("LastName"));
+                    dto.setRelativeName(rs.getString("RelativeName"));
+                    dto.setDoj(rs.getString("doj"));
+                    dto.setBirthDate(rs.getString("birthDate"));
+                    dto.setPhone1(rs.getString("phone1"));
+                    dto.setAddress(rs.getString("Address"));
+                    dto.setEmploymentStatus(rs.getString("employmentStatus"));
+                    dto.setDot(rs.getString("DOT"));
+                    dto.setReasoning(rs.getString("reasoning"));
+                    dto.setUnitCode(rs.getString("unitCode"));
+                    dto.setUnitName(rs.getString("unitName"));
+                    dto.setMainContractorCode(rs.getString("MainContractorCode"));
+                    dto.setMainContractorName(rs.getString("mainContractorName"));
+                    dto.setSubContractorCode(rs.getString("subContractorCode"));
+                    dto.setSubContractorName(rs.getString("subContractorName"));
+                    dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
+                    dto.setDepartment(rs.getString("department"));
+                    dto.setSection(rs.getString("section"));
+                    dto.setTrade(rs.getString("trade"));
+                    dto.setSkill(rs.getString("skill"));
+                    dto.setAadharNumber(rs.getString("AadharNumber"));
+                    dto.setGender(rs.getString("gender"));
+                    dto.setMaritalStatus(rs.getString("MaritalStatus"));
+                    dto.setHazardousArea(rs.getString("HazardousArea"));
+                    dto.setAccessAreaId(rs.getString("AccessAreaId"));
+                    dto.setTechnical(rs.getString("Technical"));
+                    dto.setAcademic(rs.getString("academic"));
+                    dto.setBloodgroup(rs.getString("bloodgroup"));
+                    dto.setAccommodation(rs.getString("Accommodation"));
+                    dto.setBankbranch(rs.getString("bankbranch"));
+                    dto.setAccountNumber(rs.getString("AccountNumber"));
+                    dto.setMobileNumber(rs.getString("MobileNumber"));
+                    dto.setEicmanager(rs.getString("eicmanager"));
+                    dto.setInsuranceType(rs.getString("insuranceType"));
+                    dto.setWcesicno(rs.getString("wcesicno"));
+                    dto.setEsicNumber(rs.getString("EsicNumber"));
+                    dto.setLlNo(rs.getString("llNo"));
+                    dto.setPfapplicable(rs.getString("pfapplicable"));
+                    dto.setPfNumber(rs.getString("PfNumber"));
+                    dto.setUanNumber(rs.getString("UanNumber"));
+                    dto.setPoliceverificationDate(rs.getString("PoliceverificationDate"));
+                    dto.setHealthCheckDate(rs.getString("HealthCheckDate"));
+                    dto.setZone(rs.getString("zone"));
+                    dto.setPvsDocType(rs.getString("pvsDocType"));
+                    dto.setEmergencyContactName(rs.getString("EmergencyContactName"));
+                    dto.setEmergencyContactNumber(rs.getString("EmergencyContactNumber"));
+
+                    return dto;
+                }
+            });
+}
+@Override
+public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId) {
+    String sql = "EXEC dbo.usp_policyExpiryGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+
+    return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
+            new RowMapper<ContractWorkmenReportDTO>() {
+                @Override
+                public ContractWorkmenReportDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+                	ContractWorkmenReportDTO dto = new ContractWorkmenReportDTO();
+
+                    dto.setGatePassType(rs.getString("GatePassType"));
+                    dto.setGatePassId(rs.getString("GatePassId"));
+                    dto.setFirstName(rs.getString("FirstName"));
+                    dto.setLastName(rs.getString("LastName"));
+                    dto.setRelativeName(rs.getString("RelativeName"));
+                    dto.setDoj(rs.getString("doj"));
+                    dto.setBirthDate(rs.getString("birthDate"));
+                    dto.setPhone1(rs.getString("phone1"));
+                    dto.setAddress(rs.getString("Address"));
+                    dto.setEmploymentStatus(rs.getString("employmentStatus"));
+                    dto.setDot(rs.getString("DOT"));
+                    dto.setReasoning(rs.getString("reasoning"));
+                    dto.setUnitCode(rs.getString("unitCode"));
+                    dto.setUnitName(rs.getString("unitName"));
+                    dto.setMainContractorCode(rs.getString("MainContractorCode"));
+                    dto.setMainContractorName(rs.getString("mainContractorName"));
+                    dto.setSubContractorCode(rs.getString("subContractorCode"));
+                    dto.setSubContractorName(rs.getString("subContractorName"));
+                    dto.setSapWorkOrderNum(rs.getString("SAP_WORKORDER_NUM"));
+                    dto.setWorkorderExpiryDate(rs.getString("WOVALIDTO"));
+                    dto.setInsuranceType(rs.getString("insuranceType"));
+                    dto.setWcesicno(rs.getString("wcesicno"));
+                    dto.setWcesicExpiryDate(rs.getString("wcesiceTODate"));
+                    dto.setLlNo(rs.getString("llNo"));
+                    dto.setLicenseExpiryDate(rs.getString("licenseValidTo"));
+                    dto.setEsicNumber(rs.getString("EsicNumber"));
+                    dto.setDepartment(rs.getString("department"));
+                    dto.setSection(rs.getString("section"));
+                    dto.setTrade(rs.getString("trade"));
+                    dto.setSkill(rs.getString("skill"));
+                    dto.setAadharNumber(rs.getString("AadharNumber"));
+                    dto.setGender(rs.getString("gender"));
+                    dto.setMaritalStatus(rs.getString("MaritalStatus"));
+                    dto.setHazardousArea(rs.getString("HazardousArea"));
+                    dto.setAccessAreaId(rs.getString("AccessAreaId"));
+                    dto.setTechnical(rs.getString("Technical"));
+                    dto.setAcademic(rs.getString("academic"));
+                    dto.setBloodgroup(rs.getString("bloodgroup"));
+                    dto.setAccommodation(rs.getString("Accommodation"));
+                    dto.setBankbranch(rs.getString("bankbranch"));
+                    dto.setAccountNumber(rs.getString("AccountNumber"));
+                    dto.setMobileNumber(rs.getString("MobileNumber"));
+                    dto.setEicmanager(rs.getString("eicmanager"));
+                    dto.setPfapplicable(rs.getString("pfapplicable"));
+                    dto.setPfNumber(rs.getString("PfNumber"));
+                    dto.setUanNumber(rs.getString("UanNumber"));
+                    dto.setHealthCheckDate(rs.getString("HealthCheckDate"));
+                    dto.setZone(rs.getString("zone"));
+                    dto.setPvsDocType(rs.getString("pvsDocType"));
+                    dto.setEmergencyContactName(rs.getString("EmergencyContactName"));
+                    dto.setEmergencyContactNumber(rs.getString("EmergencyContactNumber"));
+
+                    return dto;
+                }
+            });
+}
 }

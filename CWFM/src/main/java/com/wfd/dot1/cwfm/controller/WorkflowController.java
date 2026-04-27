@@ -104,13 +104,48 @@ public class WorkflowController {
         return workflowService.fetchWorkflow(unitId, null,moduleId,actionName);
     }
 	
-	 @PostMapping("/saveWorkflow")
-	    @ResponseBody
-	    public String saveWorkflow(@RequestBody WorkflowRequestDto request,HttpServletRequest req, HttpServletResponse response) {
-	    	HttpSession session = req.getSession(false); // Use `false` to avoid creating a new session
-			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-			request.setUserId(String.valueOf(user.getUserId()));
-	        workflowService.saveWorkflow(request);
-	        return "Workflow saved successfully";
+//	 @PostMapping("/saveWorkflow")
+//	    @ResponseBody
+//	    public String saveWorkflow(@RequestBody WorkflowRequestDto request,HttpServletRequest req, HttpServletResponse response) {
+//	    	HttpSession session = req.getSession(false); // Use `false` to avoid creating a new session
+//			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+//			request.setUserId(String.valueOf(user.getUserId()));
+//	        workflowService.saveWorkflow(request);
+//	        return "Workflow saved successfully";
+//	    }
+	@PostMapping("/saveWorkflow")
+	@ResponseBody
+	public ResponseEntity<String> saveWorkflow(@RequestBody WorkflowRequestDto request,
+	                                           HttpServletRequest req,
+	                                           HttpServletResponse response) {
+try {
+	    HttpSession session = req.getSession(false);
+	    MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+
+	    request.setUserId(String.valueOf(user.getUserId()));
+
+	    // ✅ NEW: Check pending records
+	    int pendingCount = workflowService.getPendingGatePassCount(Long.valueOf(request.getUnitId()),request.getActionName(),request.getModuleId());
+
+	    if (pendingCount > 0) {
+	        return ResponseEntity.badRequest().body("selected type transaction is pending, kindly approve/reject before changing workflow");
 	    }
+
+	    // ✅ If no pending → save workflow
+	    workflowService.saveWorkflow(request);
+
+	    return ResponseEntity.ok("Workflow saved successfully");
+   }
+catch (NumberFormatException e) {
+    return ResponseEntity.badRequest().body("Invalid input data");
+
+} catch (RuntimeException e) {
+    return ResponseEntity.status(500)
+            .body("Unable to process request. Please try again later.");
+
+} catch (Exception e) {
+    return ResponseEntity.status(500)
+            .body("Unexpected error occurred");
+}
+	}
 }

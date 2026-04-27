@@ -227,7 +227,7 @@
                     <!-- Add more table headers for each column -->
                     <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.reportTransactionId"/><span id="sortIndicatorName" class="sort-indicator sort-asc"></span></th>
                     <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.reportEntryPassNo"/><span id="sortIndicatorName" class="sort-indicator sort-asc"></span></th>
-					<th class="header-text"  onclick="sortTable(2)"><spring:message code="label.reportContractWorkmenCode"/><span id="sortIndicatorAddress" class="sort-indicator sort-asc"></span></th>
+					<%-- <th class="header-text"  onclick="sortTable(2)"><spring:message code="label.reportContractWorkmenCode"/><span id="sortIndicatorAddress" class="sort-indicator sort-asc"></span></th> --%>
 					<th class="header-text"  onclick="sortTable(5)"><spring:message code="label.reportFirstName"/><span id="sortIndicatorBusinessType" class="sort-indicator sort-asc">&#x25B2;</span></th>
                      <th class="header-text"  onclick="sortTable(6)"><spring:message code="label.reportLastName"/><span id="sortIndicatorMaxWorkmen" class="sort-indicator sort-asc"></span></th>
                     <th class="header-text"  onclick="sortTable(7)"><spring:message code="label.reportDepartment"/><span id="sortIndicatorMaxCntrWorkmen" class="sort-indicator sort-asc"></span></th>

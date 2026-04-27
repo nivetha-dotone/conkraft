@@ -253,4 +253,10 @@ public interface WorkmenDao {
 	public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber);
 
 	List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId, String contractorId);
+
+	public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId, String contractorId);
+
+	public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId, String contractorId);
+
+	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId);
 }

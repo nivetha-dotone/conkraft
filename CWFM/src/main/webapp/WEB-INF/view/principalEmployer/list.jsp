@@ -168,6 +168,27 @@
     display: flex;
     gap: 10px;
 }
+.dt-top {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.dt-bottom {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.dataTables_filter {
+    margin-left: auto !important;
+    text-align: right !important;
+}
+
+.dataTables_paginate {
+    margin-left: auto !important;
+    text-align: right !important;
+}
 </style>
   
 <script>
@@ -183,6 +204,52 @@ function redirectToPEAdd() {
     };
     xhr.open("GET", "/CWFM/principalEmployer/add", true);
     xhr.send();
+}
+function reinitializeDataTable(tableId) {
+    if ($.fn.DataTable.isDataTable(tableId)) {
+        $(tableId).DataTable().destroy();
+    }
+
+    let dt = $(tableId).DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        info: true,
+
+        scrollX: true,
+        autoWidth: false,
+
+        dom: '<"dt-top"lf>rt<"dt-bottom"ip><"clear">',
+
+        initComplete: function () {
+            fixAlignment(tableId);
+        }
+    });
+
+    // 🔥 IMPORTANT FIX AFTER RENDER
+    setTimeout(function () {
+        dt.columns.adjust().draw();
+        fixAlignment(tableId);
+    }, 300);
+}
+
+function fixAlignment(tableId) {
+    var wrapper = $(tableId).closest('.dataTables_wrapper');
+
+    var hasScroll = $(tableId).parent().hasClass('dataTables_scrollBody');
+
+    if (hasScroll) {
+        wrapper.find('.dataTables_filter').css({
+            "margin-left": "auto",
+            "text-align": "right"
+        });
+
+        wrapper.find('.dataTables_paginate').css({
+            "margin-left": "auto",
+            "text-align": "right"
+        });
+    }
 }
 </script>
 </head>
@@ -234,7 +301,7 @@ function redirectToPEAdd() {
                     <th class="header-text" onclick="sortTable(19)"><spring:message code="label.isrcApplicable"/><span id="sortIndicatorIsrApp" class="sort-indicator sort-asc">&#x25B2;</span></th>
                     <th class="header-text" onclick="sortTable(20)"><spring:message code="label.rcNumber"/><span id="sortIndicatorRcNum" class="sort-indicator sort-asc">&#x25B2;</span></th>
                     <th class="header-text" onclick="sortTable(21)"><spring:message code="label.attachmentName"/><span id="sortIndicatorAttachment" class="sort-indicator sort-asc">&#x25B2;</span></th>
-                <th class="header-text" onclick="sortTable(22)"><spring:message code="label.stateId"/><span id="sortIndicatorStateId" class="sort-indicator sort-asc">&#x25B2;</span></th>
+                <th class="header-text" onclick="sortTable(22)"><spring:message code="label.state"/><span id="sortIndicatorStateId" class="sort-indicator sort-asc">&#x25B2;</span></th>
                 </tr>
             </thead>
             <tbody>
@@ -274,5 +341,10 @@ function redirectToPEAdd() {
         </table>
     </div>
 </form>
+<script>
+$(document).ready(function () {
+    reinitializeDataTable('#principalEmployerTable');
+});
+</script>
 </body>
 </html>

@@ -13,6 +13,8 @@ public class CmsContractorWC {
 	private int wcTotal;
 	
 	 private Integer natureOfId;
+	 private String natureOfWork;
+	 
 	    private String wcFromDtm;
 	    private String wcToDtm;
 	    private Integer deleteSw;
@@ -150,6 +152,14 @@ public class CmsContractorWC {
 
 	public void setActiveWorkmenCount(int activeCount) {
 		this.activeWorkmenCount = activeCount;
+	}
+
+	public String getNatureOfWork() {
+		return natureOfWork;
+	}
+
+	public void setNatureOfWork(String natureOfWork) {
+		this.natureOfWork = natureOfWork;
 	}
 	
 }

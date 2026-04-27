@@ -29,5 +29,8 @@ public class WorkflowServiceImpl implements WorkflowService{
 	public void saveWorkflow(WorkflowRequestDto request) {
 		workflowDao.saveWorkflow(request);
 	}
-
+	@Override
+	public int getPendingGatePassCount(Long unitId, String actionName,String moduleId) {
+	    return workflowDao.getPendingGatePassCount(unitId, actionName,moduleId);
+	}
 }

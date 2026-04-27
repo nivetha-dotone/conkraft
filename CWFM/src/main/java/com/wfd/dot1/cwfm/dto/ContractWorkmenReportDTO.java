@@ -50,8 +50,31 @@ public class ContractWorkmenReportDTO {
     private String pvsDocType;
     private String emergencyContactName;
     private String emergencyContactNumber;
+    private String policeverificationDate;
+    private String workorderExpiryDate;
+    private String wcesicExpiryDate;
+    private String licenseExpiryDate;
+    
 
-    public String getGatePassType() {
+    public String getWorkorderExpiryDate() {
+		return workorderExpiryDate;
+	}
+	public void setWorkorderExpiryDate(String workorderExpiryDate) {
+		this.workorderExpiryDate = workorderExpiryDate;
+	}
+	public String getWcesicExpiryDate() {
+		return wcesicExpiryDate;
+	}
+	public void setWcesicExpiryDate(String wcesicExpiryDate) {
+		this.wcesicExpiryDate = wcesicExpiryDate;
+	}
+	public String getLicenseExpiryDate() {
+		return licenseExpiryDate;
+	}
+	public void setLicenseExpiryDate(String licenseExpiryDate) {
+		this.licenseExpiryDate = licenseExpiryDate;
+	}
+	public String getGatePassType() {
         return gatePassType;
     }
     public void setGatePassType(String gatePassType) {
@@ -339,4 +362,10 @@ public class ContractWorkmenReportDTO {
     public void setEmergencyContactNumber(String emergencyContactNumber) {
         this.emergencyContactNumber = emergencyContactNumber;
     }
+	public String getPoliceverificationDate() {
+		return policeverificationDate;
+	}
+	public void setPoliceverificationDate(String policeverificationDate) {
+		this.policeverificationDate = policeverificationDate;
+	}
 }

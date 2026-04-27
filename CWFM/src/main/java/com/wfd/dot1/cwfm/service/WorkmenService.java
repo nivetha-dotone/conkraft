@@ -160,5 +160,11 @@ public interface WorkmenService {
 
 	List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId, String contractorId);
 
+	public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId, String contractorId);
+
+	public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId, String contractorId);
+
+	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId);
+
 	
 }	

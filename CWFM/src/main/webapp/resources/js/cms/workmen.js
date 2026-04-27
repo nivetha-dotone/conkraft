@@ -4477,7 +4477,7 @@ function searchGatePassReportBasedOnPE() {
 												'<td  ><input type="checkbox" name="selectedUnitIds" value="' + wo.transactionId + '"></td>'+
 												'<td  >' + wo.transactionId + '</td>' +
 												 '<td  >' + wo.entryPassNo + '</td>' +
-					                              '<td  >' + wo.contractWorkmenCode+'</td>' +
+					                             /* '<td  >' + wo.contractWorkmenCode+'</td>' +*/
 												   '<td  >' +wo.firstName + '</td>' +
 												  '<td  >' + wo.lastName + '</td>' +	
 												  '<td  >' + wo.department + '</td>' +	
@@ -4497,8 +4497,10 @@ function searchGatePassReportBasedOnPE() {
 					            } 								
 
 																	            // ✅ Always init after rows are drawn
-																	            initWorkmenTable("workmenTable");
+																	           // initWorkmenTable("workmenTable");
+																	           reinitializeDataTable('#workmenTable');
 																	        },
+																	        
 					       
 					        error: function(xhr, status, error) {
 					            console.error("Error fetching data:", error);

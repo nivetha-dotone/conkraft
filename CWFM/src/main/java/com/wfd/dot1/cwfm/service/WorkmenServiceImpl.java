@@ -1616,5 +1616,20 @@ public class WorkmenServiceImpl implements WorkmenService{
 		// TODO Auto-generated method stub
 		return workmenDao.getContractWorkmenReportData(unitId,contractorId);
 	}
+	@Override
+	public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId,String contractorId) {
+		// TODO Auto-generated method stub
+		return workmenDao.getInactiveWorkmenReportData(unitId,contractorId);
+	}
+	@Override
+	public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId,String contractorId) {
+		// TODO Auto-generated method stub
+		return workmenDao.getPoliceverificationWorkmenReportData(unitId,contractorId);
+	}
+	@Override
+	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId,String contractorId) {
+		// TODO Auto-generated method stub
+		return workmenDao.getPolicyExpiryWorkmenReportData(unitId,contractorId);
+	}
 	}
 

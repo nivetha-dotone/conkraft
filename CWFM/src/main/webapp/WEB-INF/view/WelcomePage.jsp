@@ -229,6 +229,8 @@ function loadCommonList(path, heading) {
                     const tables = mainContent.querySelectorAll("table");
                     tables.forEach(table => {
                     	if (!table.classList.contains("no-dt")) {  // ✅ Skip tables with class 'no-dt'
+                    	let hasScroll = table.scrollWidth > table.clientWidth;
+
                         $(table).DataTable({
                             paging: true,
                             searching: true,
@@ -5801,6 +5803,43 @@ function showLoader() {
 
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
+}
+function reinitializeDataTable(tableId) {
+    if ($.fn.DataTable.isDataTable(tableId)) {
+        $(tableId).DataTable().destroy(); // destroy old instance
+    }
+
+    $(tableId).DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        info: true,
+
+        // 🔥 IMPORTANT FIX
+        scrollX: true,   // handle horizontal scroll
+        autoWidth: false,
+
+        dom: '<"top"lf>rt<"bottom"ip><"clear">',
+
+        initComplete: function () {
+            var wrapper = $(tableId).closest('.dataTables_wrapper');
+
+            // Fix alignment ONLY when scroll exists
+            if ($(tableId).parent().hasClass('dataTables_scrollBody')) {
+                wrapper.find('.dataTables_filter').css({
+                    "float": "right",
+                    "text-align": "right",
+                    "margin-left": "auto"
+                });
+
+                wrapper.find('.dataTables_paginate').css({
+                    "float": "right",
+                    "text-align": "right"
+                });
+            }
+        }
+    });
 }
 </script>
 </body>

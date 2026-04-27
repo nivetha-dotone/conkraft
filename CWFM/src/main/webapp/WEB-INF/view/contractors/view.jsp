@@ -397,7 +397,7 @@ table.ControlLayout td {
                 <tr style=" border: 1px solid #ddd;background-color: #f9f9f9 ;">
                    <td style="color:black;">${contractorWCList.wcCode}</td>
                    <td style="color:black;">${contractorWCList.licenceType}</td>
-                   <td style="color:black;">${contractorWCList.natureOfId}</td>
+                   <td style="color:black;">${contractorWCList.natureOfWork}</td>
                    <td style="color:black;">${contractorWCList.wcFromDtm}</td>
                    <td style="color:black;">${contractorWCList.wcToDtm}</td>
                    <td style="color:black;">${contractorWCList.wcTotal}</td>
@@ -453,7 +453,7 @@ table.ControlLayout td {
 		<th style="color:gray;"><spring:message code="label.fromDate"/></th>
 		<th style="color:gray;"><spring:message code="label.toDate"/></th> 
 		<th style="color:gray;"><spring:message code="label.activeWorkmenCount"/></th>
-		<th style="color:gray;"><spring:message code="label.contractorClassification"/></th> 
+		<%-- <th style="color:gray;"><spring:message code="label.contractorClassification"/></th> --%> 
 	 </tr> 		
 	</thead>
 	<tbody >
@@ -463,7 +463,7 @@ table.ControlLayout td {
                       <td style="color:black;text-align:left">${workOrderList.validFrom}</td>
                       <td style="color:black;text-align:left">${workOrderList.validTo}</td>
                       <td style="color:black;text-align:left">${workOrderList.activeWorkmenCount}</td>
-                      <td style="color:black;text-align:left">${workOrderList.classification}</td>
+                      <%-- <td style="color:black;text-align:left">${workOrderList.classification}</td> --%>
             
                   <%--  <td>${workOrderList.wcTotal}
                    <c:if test="${item.cType == null}">
