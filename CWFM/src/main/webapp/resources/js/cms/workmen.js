@@ -2981,7 +2981,7 @@ function previewImage(event, inputId, displayId) {
 
 										    xhr.send();
 										}
-								function draftGatePass(userId) {
+								/*function draftGatePass(userId,type) {
 									showLoader();
 									 var aadharFile = $("#aadharFile").prop("files")[0];
                                      var policeFile = $("#policeFile").prop("files")[0];
@@ -2999,8 +2999,10 @@ function previewImage(event, inputId, displayId) {
                                           const firstName = toCapitalCase($("#firstName").val().trim());
                                           const lastName = toCapitalCase($("#lastName").val().trim());
                                           const relationName = toCapitalCase($("#relationName").val().trim());
+										 
                                           const natureOfJob = toCapitalCase($("#natureOfJob").val().trim());
                                           const emergencyName = toCapitalCase($("#emergencyName").val().trim());
+									
                                           const address = toCapitalCase($("#address").val().trim());
                                           const idMark = $("#idMark").val();
                                           const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
@@ -3062,6 +3064,7 @@ function previewImage(event, inputId, displayId) {
 			                                        disability:$("#disability").val(),
                                                     workmenType:$("#workmenType").val(),
                                                     proficiency: $("#proficiency").val(),
+													onboardingType:type,
 										        };
 
 										        // Serialize the JSON object to a string
@@ -3117,30 +3120,43 @@ function previewImage(event, inputId, displayId) {
 
 										        xhr.onload = function () {
 													hideLoader();
-										            if (xhr.status === 200) {
-										                console.log("Data saved successfully:", xhr.responseText);
-														sessionStorage.setItem("successMessage", "Gatepass drafted successfully!");
-										                loadCommonList('/contractworkmen/list', 'On-Boarding List');
-														//hideLoader();
-										            } else {
-										                console.error("Error saving data:", xhr.status, xhr.responseText);
-														sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
-														loadCommonList('/contractworkmen/list', 'On-Boarding List');
-														hideLoader();
-										            }
-										        };
+													if (xhr.status === 200) {
+													               console.log("Data saved successfully:", xhr.responseText);
+																sessionStorage.setItem("successMessage", "Gatepass drafted successfully!");
+													               if(type=== "regular"){
+													                   loadCommonList('/contractworkmen/list', 'On-Boarding List');
+													                   //hideLoader();
+													               }else if(type=== "quick"){
+													                   loadCommonList('/contractworkmen/quickOnboardingList', 'Quick Onboarding List');
+													                  // hideLoader();
+													               }else{
+																	loadCommonList('/contractworkmen/projectOnboardingList', 'Project Gatepass List');
+																	//hideLoader();
+																}
+													           }else if (xhr.status === 400) {  
+																       const msg = xhr.responseText.trim();
+																       console.error("Server validation failed: " + msg);
+																	   showLicenseError(msg);
+																       //alert(msg); // or show in UI better
+																       //sessionStorage.setItem("errorMessage", msg);
+																	   return;
+																   }
+																   else {
+																       console.error("Error saving data:", xhr.status, xhr.responseText);
+																       sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
+																   }
+																     };
 
-										        xhr.onerror = function () {
-													hideLoader();
-										            console.error("Request failed");
-													sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
-													loadCommonList('/contractworkmen/list', 'On-Boarding List');
-										        };
+													       xhr.onerror = function () {
+															//hideLoader();
+													           console.error("Request failed");
+															sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
+															 hideLoader();
+													       };
 
-										        // Send the FormData object
-										        xhr.send(data);
+													       xhr.send(data);
 										    } 
-											
+											*/
 												
 												/*function redirectToWorkmenEdit() {
 											    var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
@@ -3168,7 +3184,217 @@ function previewImage(event, inputId, displayId) {
 											    xhr.open("GET", "/CWFM/contractworkmen/getDraftDetails/" + transactionId, true);
 											    xhr.send();
 											}*/
-						function redirectToWorkmenEdit() {
+											
+											function draftGatePass(userId, type) {
+
+											    showLoader();
+
+											    function getVal(id) {
+											        var el = $("#" + id);
+
+											        if (el.length === 0) {
+											            console.warn("Missing field id:", id);
+											            return "";
+											        }
+
+											        var val = el.val();
+											        return val == null ? "" : val.toString().trim();
+											    }
+
+											    function getSelectVal(id) {
+											        var el = $("#" + id);
+
+											        if (el.length === 0) {
+											            console.warn("Missing select id:", id);
+											            return "";
+											        }
+
+											        var val = el.val();
+											        return val == null ? "" : val;
+											    }
+
+											    function toCapitalCase(str) {
+											        str = str == null ? "" : str.toString().trim();
+
+											        if (str === "") {
+											            return "";
+											        }
+
+											        return str
+											            .toLowerCase()
+											            .split(/\s+/)
+											            .map(function (word) {
+											                return word.charAt(0).toUpperCase() + word.slice(1);
+											            })
+											            .join(" ");
+											    }
+
+											    var aadharFile = $("#aadharFile").prop("files") ? $("#aadharFile").prop("files")[0] : null;
+											    var policeFile = $("#policeFile").prop("files") ? $("#policeFile").prop("files")[0] : null;
+											    var profilePic = $("#imageFile").prop("files") ? $("#imageFile").prop("files")[0] : null;
+											    var appointmentFile = $("#appointmentFile").prop("files") ? $("#appointmentFile").prop("files")[0] : null;
+
+											    var firstName = toCapitalCase(getVal("firstName"));
+											    var lastName = toCapitalCase(getVal("lastName"));
+											    var relationName = toCapitalCase(getVal("relationName"));
+											    var natureOfJob = toCapitalCase(getVal("natureOfJob"));
+											    var emergencyName = toCapitalCase(getVal("emergencyName"));
+											    var address = toCapitalCase(getVal("address"));
+
+											    var pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
+
+											    var data = new FormData();
+
+											    var jsonData = {
+											        transactionId: getVal("transactionId"),
+											        aadhaarNumber: getVal("aadharNumber"),
+											        firstName: firstName,
+											        lastName: lastName,
+											        dateOfBirth: getVal("dateOfBirth"),
+											        gender: getSelectVal("gender"),
+											        relationName: relationName,
+											        idMark: getVal("idMark"),
+											        mobileNumber: getVal("mobileNumber"),
+											        maritalStatus: getSelectVal("maritalStatus"),
+											        principalEmployer: getSelectVal("principalEmployer"),
+											        contractor: getSelectVal("contractor"),
+											        workorder: getSelectVal("workorder"),
+											        trade: getSelectVal("trade"),
+											        skill: getSelectVal("skill"),
+											        department: getSelectVal("department"),
+											        subdepartment: getSelectVal("subdepartment"),
+											        eic: getSelectVal("eic"),
+											        natureOfJob: natureOfJob,
+											        wcEsicNo: getSelectVal("wc"),
+											        llNo: getSelectVal("ll"),
+											        hazardousArea: getSelectVal("hazardousArea"),
+											        accessArea: getSelectVal("accessArea"),
+											        uanNumber: getVal("uanNumber"),
+											        healthCheckDate: getVal("healthCheckDate"),
+											        pfNumber: getVal("pfNumber"),
+											        esicNumber: getVal("esicNumber"),
+											        bloodGroup: getSelectVal("bloodGroup"),
+											        accommodation: getSelectVal("accommodation"),
+											        academic: getSelectVal("academic"),
+											        technical: getSelectVal("technical"),
+											        ifscCode: getVal("ifscCode"),
+											        accountNumber: getVal("accountNumber"),
+											        emergencyName: emergencyName,
+											        emergencyNumber: getVal("emergencyNumber"),
+											        wageCategory: getSelectVal("wageCategory"),
+											        bonusPayout: getSelectVal("bonusPayout"),
+											        pfCap: getSelectVal("pfCap"),
+											        zone: getSelectVal("zone"),
+											        basic: getVal("basic"),
+											        da: getVal("da"),
+											        hra: getVal("hra"),
+											        washingAllowance: getVal("washingAllowance"),
+											        otherAllowance: getVal("otherAllowance"),
+											        uniformAllowance: getVal("uniformAllowance"),
+											        userId: userId,
+											        gatePassAction: "save",
+											        comments: getVal("comments"),
+											        address: address,
+											        doj: getVal("doj"),
+											        pfApplicable: pfApplicable,
+											        policeVerificationDate: getVal("policeVerificationDate"),
+											        disability: getSelectVal("disability"),
+											        workmenType: getSelectVal("workmenType"),
+											        proficiency: getSelectVal("proficiency"),
+											        onboardingType: type
+											    };
+
+											    data.append("jsonData", JSON.stringify(jsonData));
+
+											    if (aadharFile) {
+											        data.append("aadharFile", aadharFile);
+											    }
+
+											    if (policeFile) {
+											        data.append("policeFile", policeFile);
+											    }
+
+											    if (profilePic) {
+											        data.append("profilePic", profilePic);
+											    }
+
+											    if (appointmentFile) {
+											        data.append("appointmentFile", appointmentFile);
+											    }
+
+											    var additionalFields = document.querySelectorAll(".document-field");
+
+											    additionalFields.forEach(function (field) {
+											        var docSelect = field.querySelector('select[name="documentType"]');
+											        var fileInput = field.querySelector('input[type="file"]');
+
+											        var docType = docSelect && docSelect.value ? docSelect.value.trim() : "";
+
+											        if (docType !== "" && fileInput && fileInput.files && fileInput.files[0]) {
+											            data.append("additionalFiles", fileInput.files[0]);
+											            data.append("documentTypes", docType);
+											        }
+											    });
+
+											    var remainingDocTypes = [];
+
+											    additionalFields.forEach(function (field) {
+											        var docSelect = field.querySelector('select[name="documentType"]');
+											        var docType = docSelect && docSelect.value ? docSelect.value.trim() : "";
+
+											        if (docType !== "") {
+											            remainingDocTypes.push(docType.toLowerCase());
+											        }
+											    });
+
+											    console.log("Remaining Doc Types:", remainingDocTypes);
+
+											    data.append("remainingDocTypes", JSON.stringify(remainingDocTypes));
+
+											    var xhr = new XMLHttpRequest();
+
+											    xhr.open("POST", "/CWFM/contractworkmen/draftGatePass", true);
+
+											    xhr.onload = function () {
+
+											        hideLoader();
+
+											        if (xhr.status === 200) {
+
+											            console.log("Data saved successfully:", xhr.responseText);
+											            sessionStorage.setItem("successMessage", "Gatepass drafted successfully!");
+
+											            if (type === "regular") {
+											                loadCommonList("/contractworkmen/list", "On-Boarding List");
+											            } else if (type === "quick") {
+											                loadCommonList("/contractworkmen/quickOnboardingList", "Quick Onboarding List");
+											            } else {
+											                loadCommonList("/contractworkmen/projectOnboardingList", "Project Gatepass List");
+											            }
+
+											        } else if (xhr.status === 400) {
+
+											            var msg = xhr.responseText ? xhr.responseText.trim() : "Validation failed.";
+											            console.error("Server validation failed: " + msg);
+											            showLicenseError(msg);
+											            return;
+
+											        } else {
+
+											            console.error("Error saving data:", xhr.status, xhr.responseText);
+											            sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
+											        }
+											    };
+
+											    xhr.onerror = function () {
+											        hideLoader();
+											        console.error("Request failed");
+											        sessionStorage.setItem("errorMessage", "Failed to draft Gatepass!");
+											    };
+
+											    xhr.send(data);
+											}
+						function redirectToWorkmenEdit(mode) {
 
     var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
 
@@ -3183,8 +3409,8 @@ function previewImage(event, inputId, displayId) {
     var gatePassType = selectedRow.cells[7].innerText.trim();
     var status = selectedRow.cells[9].innerText.trim();
 
-    if (gatePassType.toLowerCase() !== "create" || status.toLowerCase() !== "draft") {
-        alert("Edit is only allowed when Gate Pass Type is 'Create' and Status is 'Draft'.");
+    if ( status.toLowerCase() !== "draft") {
+        alert("Edit is only allowed when Status is 'Draft'.");
         return;
     }
 
@@ -3228,7 +3454,7 @@ function previewImage(event, inputId, displayId) {
         }
     };
 
-    xhr.open("GET", "/CWFM/contractworkmen/getDraftDetails/" + transactionId, true);
+ xhr.open("GET", "/CWFM/contractworkmen/getDraftDetails/" + transactionId + "/" + mode, true);
     xhr.send();
 }
 											function searchRenew() {

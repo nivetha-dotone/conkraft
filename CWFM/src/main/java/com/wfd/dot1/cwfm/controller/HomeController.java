@@ -83,6 +83,7 @@ public class HomeController {
 						@RequestParam("password") String pwd,
 						HttpSession session) {
 
+
 		String issandorpoc = getAuthCWFM();
 		if (issandorpoc != null) {
 			issandorpoc = issandorpoc.trim();

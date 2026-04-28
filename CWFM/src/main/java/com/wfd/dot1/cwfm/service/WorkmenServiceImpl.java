@@ -875,10 +875,13 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public String draftGatePass(GatePassMain gatePassMain) {
 		String transactionId =null;
 		try {
-			
+			 if("project".equals(gatePassMain.getOnboardingType())) {
+				 gatePassMain.setGatePassAction(GatePassType.PROJECT.getStatus());
+			 }else {
+				 gatePassMain.setGatePassAction(GatePassType.CREATE.getStatus());
+			 }
 				gatePassMain.setGatePassStatus(GatePassStatus.DRAFT.getStatus());
 				gatePassMain.setGatePassId(" ");
-				gatePassMain.setGatePassAction(GatePassType.CREATE.getStatus());
 				transactionId = workmenDao.draftGatePass(gatePassMain); 
 				return transactionId;
 		}catch(Exception e) {

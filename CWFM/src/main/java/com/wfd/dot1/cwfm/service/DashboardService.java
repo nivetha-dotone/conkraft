@@ -1,13 +1,14 @@
 package com.wfd.dot1.cwfm.service;
 
+import java.util.List;
+
+import com.wfd.dot1.cwfm.dto.DashboardDTO;
+import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 
 public interface DashboardService {
 
-	public int getGatePassListingDetails(String unitId,String deptId,String gatePassTypeId,String type);
-	public int getGatePassActionListingDetails(String unitId,String deptId, String gatePassTypeId) ;//supervisor gatepass action approval pending,approved,rejected
-	int getGatePassListingForApprovers(String unitId, String deptId, MasterUser user, String gatePassTypeId,
-			String type);
-	int getGatePassActionListingForApprovers(String unitId, String deptId, MasterUser user, String gatePassTypeId);
-		
+    DashboardDTO getDashboard(MasterUser user);
+
+    List<WorkOrderDTO> getWorkmenByWO(long woId, String contractorId);
 }

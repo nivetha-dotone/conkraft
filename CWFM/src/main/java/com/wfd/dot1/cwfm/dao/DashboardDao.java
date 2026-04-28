@@ -1,19 +1,16 @@
 package com.wfd.dot1.cwfm.dao;
 
+import java.util.List;
+
+import com.wfd.dot1.cwfm.dto.DashboardDTO;
+import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
+
 public interface DashboardDao {
 
-	int getGatePassListingDetails(String unitId, String deptId, String gatePassTypeId, String type);
+    DashboardDTO getDashboardData(String userId, String roleName,
+                                  List<PersonOrgLevel> peList,
+                                  List<PersonOrgLevel> contList);
 
-	int getGatePassActionListingDetails(String unitId, String deptId, String gatePassTypeId);
-
-	int getWorkFlowTYpeNew(String principalEmployer, String gatePassAction);
-
-	int getGatePassListingForApprovers(String roleId, int workFlowType, String gatePassTypeId, String deptId,
-			String unitId, String type);
-
-	int getGatePassActionListingForApprovers(String roleId, int workFlowType, String gatePassTypeId, String deptId,
-			String unitId);
-
-	int getWorkFlowTypeId(String unitId, String actionId);
-
+    List<WorkOrderDTO> getWorkmenByWO(long woId, String contractorId);
 }

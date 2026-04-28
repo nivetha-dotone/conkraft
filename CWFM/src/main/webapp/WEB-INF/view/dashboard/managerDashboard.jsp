@@ -162,111 +162,55 @@
 </div>
   <!-- ACTIVE WO -->
   <div class="sec-label">Active Work Orders</div>
-        <div class="card warn">
-            <div class="ct">
-                Active Work Orders per Plant
-                <span class="view-all" onclick="openCommonPopup('activeWOModal')">View All</span>
-            </div>
 
-            <table class="atbl">
-                <thead>
-                    <tr>
-                        <th>Plant</th>
-                        <th>WO Number</th>
-                        <th>Contractor</th>
-                        <th>Workmen</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:choose>
-                        <c:when test="${not empty dashboard.activeWOList}">
-                            <c:forEach var="wo" items="${dashboard.activeWOList}" begin="0" end="1">
-                                <tr>
-                                    <td>${wo.plantName}</td>
-                                    <td>${wo.woNumber}</td>
-                                    <td>${wo.contractorName}</td>
-                                    <td>${wo.workmenCount}</td>
-                                    <td>
-                                        <button type="button" onclick="openWO('${wo.woId}','${wo.contractorId}')">View</button>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <tr>
-                                <td colspan="5">No records found</td>
-                            </tr>
-                        </c:otherwise>
-                    </c:choose>
-                </tbody>
-            </table>
-        </div>
+  <div class="card info">
+    <table class="atbl">
+      <thead>
+        <tr>
+          <th>WO Number</th>
+          <th>Contractor</th>
+          <th>Workmen</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <c:forEach var="wo" items="${dashboard.activeWOList}">
+          <tr>
+            <td>${wo.woNumber}</td>
+            <td>${wo.contractorName}</td>
+            <td>${wo.workmenCount}</td>
+            <td>
+              <button onclick="openWO(${wo.woId},${wo.contractorId })">View</button>
+            </td>
+          </tr>
+        </c:forEach>
+      </tbody>
+    </table>
+  </div>
+
+</div>
 
 <!-- 🔥 POPUP -->
-<div id="woModal" class="modal-overlay child-modal" style="display:none;">
-    <div class="modal-box modal-md">
-        <div class="modal-header">
-            <span>Workmen List</span>
-            <span class="close-btn" onclick="closeWOModal()">✖</span>
-        </div>
+<div id="woModal" class="modal-box"
+     style="display:none; position:fixed; top:20%; left:30%; width:40%; z-index:1000;">
 
-        <div class="modal-body">
-            <table class="atbl">
-                <thead>
-                    <tr>
-                        <th>Gatepass Id</th>
-                        <th>Aadhar Number</th>
-                        <th>Name</th>
-                    </tr>
-                </thead>
-                <tbody id="workmenBody"></tbody>
-            </table>
-        </div>
+    <div class="modal-header">Workmen List  <span class="close-btn" onclick="$('#woModal').hide()">✖</span></div>
+
+    <div class="modal-body">
+    <table class="atbl">
+        <thead>
+            <tr>
+                <th>Gatepass Id</th>
+                <th>Aadhar Number</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody id="workmenBody"></tbody>
+        </table>
     </div>
-</div>
-<!-- ACTIVE WO MODAL -->
-<div id="activeWOModal" class="modal-overlay">
-    <div class="modal-box modal-lg">
-        <div class="modal-header">
-            <span>Active Work Orders</span>
-            <span class="close-btn" onclick="closeCommonPopup('activeWOModal')">✖</span>
-        </div>
-        <div class="modal-body">
-            <table class="atbl">
-                <thead>
-                    <tr>
-                        <th>Plant</th>
-                        <th>WO Number</th>
-                        <th>Contractor</th>
-                        <th>Workmen</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <c:choose>
-                        <c:when test="${not empty dashboard.activeWOList}">
-                            <c:forEach var="wo" items="${dashboard.activeWOList}">
-                                <tr>
-                                    <td>${wo.plantName}</td>
-                                    <td>${wo.woNumber}</td>
-                                    <td>${wo.contractorName}</td>
-                                    <td>${wo.workmenCount}</td>
-                                    <td>
-                                        <button type="button" onclick="openWO('${wo.woId}','${wo.contractorId}')">View</button>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <tr>
-                                <td colspan="5">No records found</td>
-                            </tr>
-                        </c:otherwise>
-                    </c:choose>
-                </tbody>
-            </table>
-        </div>
-    </div>
+
+    <!-- <button onclick="$('#woModal').hide()">Close</button> -->
+   
 </div>
 

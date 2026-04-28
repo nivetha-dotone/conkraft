@@ -31,6 +31,7 @@
     <script src="https://cdn.jsdelivr.net/gh/surepassio/surepass-digiboost-web-sdk@latest/index.min.js"></script>
     
  <link rel="stylesheet" type="text/css" href="resources/css/cms/dashboard.css" />  
+ <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
          <script src="resources/js/cms/requestorList.js"></script>
         <script src="resources/js/cms/plantZoneMappingList.js"></script>  
      <script src="resources/js/cms/requestorHRList.js"></script>
@@ -1952,7 +1953,7 @@ function changeRole(selectedRoleId, selectedRoleName) {
         	  
           //}else{
          // Fetch the role-based dashboard 
-            return fetch('/CWFM/dashboard/getOrgDetails', {
+            return fetch('/CWFM/dashboard/dashboardPage', {
                 method: 'GET'
             });
          //}
@@ -1960,6 +1961,7 @@ function changeRole(selectedRoleId, selectedRoleName) {
         .then(response => response.text())
         .then(html => {
             document.getElementById("mainContent").innerHTML = html;
+            initDashboardCharts(); 
         })
         .catch(error => {
             console.error("Error:", error);
@@ -5786,7 +5788,7 @@ function loadDashboardFromHome() {
         updateSidebar(data, roleName);
 
         // Now fetch the dashboard
-        return fetch('/CWFM/dashboard/getOrgDetails');
+        return fetch('/CWFM/dashboard/dashboardPage');
     })
     .then(res => res.text())
     .then(html => {
@@ -5794,6 +5796,7 @@ function loadDashboardFromHome() {
 
         document.querySelector(".heading").textContent =
             "Contract Labor Management System";
+        initDashboardCharts(); 
     })
     .catch(err => console.error(err));
 }
@@ -5801,9 +5804,11 @@ function showLoader() {
     document.getElementById("loaderOverlay").style.display = "flex";
 }
 
+
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
 }
+
 function reinitializeDataTable(tableId) {
     if ($.fn.DataTable.isDataTable(tableId)) {
         $(tableId).DataTable().destroy(); // destroy old instance
@@ -5841,6 +5846,194 @@ function reinitializeDataTable(tableId) {
         }
     });
 }
+
+
+let plantChartInstance;
+let statusChartInstance;
+
+/* CALL AFTER DASHBOARD LOAD */
+function initDashboardCharts() {
+    loadCharts();
+}
+
+/* LOAD CHART DATA */
+function loadCharts() {
+    $.ajax({
+        url: "/CWFM/dashboard/getDashboardCharts",
+        success: function (data) {
+            renderPlantChart(data);
+            renderStatusChart(data);
+        }
+    });
+}
+
+function renderPlantChart(data) {
+
+    const ctx = document.getElementById('plantChart');
+    if (!ctx) return;
+
+    if (plantChartInstance) {
+        plantChartInstance.destroy();
+    }
+
+    plantChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.plantLabels,
+            datasets: [{
+                data: data.plantData,
+                backgroundColor: '#1D9E75'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+/* DONUT CHART */
+function renderStatusChart(data) {
+
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+
+    if (statusChartInstance) {
+        statusChartInstance.destroy();
+    }
+
+    statusChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.statusLabels,
+            datasets: [{
+                data: data.statusData,
+                backgroundColor: [
+                    '#1D9E75',
+                    '#378ADD',
+                    '#e74c3c'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+/* POPUP */
+function openWO(woId,contractorId) {
+    $.ajax({
+        url: "/CWFM/dashboard/getWorkmenByWO",
+        data: { woId: woId,contractorId: contractorId },
+        success: function (data) {
+
+            let rows = "";
+
+            $.each(data, function (i, wm) {
+                rows += "<tr>"
+                    + "<td>" + wm.gatepassId + "</td>"
+                    + "<td>" + wm.aadharNumber + "</td>"
+                    + "<td>" + wm.fullname + "</td>"
+                    + "</tr>";
+            });
+
+            $("#workmenBody").html(rows);
+            $("#woModal").show();
+        }
+    });
+}
+/* let timer;
+
+$('.expiry-card').hover(
+  function() {
+    timer = setTimeout(() => {
+      $(this).find('.expiry-popup').fadeIn(200);
+    }, 200);
+  },
+  function() {
+    clearTimeout(timer);
+    $(this).find('.expiry-popup').fadeOut(200);
+  }
+); */
+
+function openExpiryPopup() {
+    $('#expiryModal').css('display', 'flex');
+}
+
+function closeExpiryPopup() {
+    $('#expiryModal').hide();
+}
+
+/* 🔥 Close on outside click */
+$(document).on('click', function(e) {
+    if ($(e.target).is('#expiryModal')) {
+        closeExpiryPopup();
+    }
+});
+
+function openCommonPopup(id) {
+    $("#" + id).fadeIn(150);
+}
+
+function closeCommonPopup(id) {
+    $("#" + id).fadeOut(150);
+}
+
+function closeWOModal() {
+    $("#woModal").fadeOut(150);
+}
+
+function openWO(woId, contractorId) {
+    $.ajax({
+        url: '${pageContext.request.contextPath}/dashboard/getWorkmenByWO',
+        type: 'GET',
+        data: {
+            woId: woId,
+            contractorId: contractorId
+        },
+        success: function (data) {
+            var html = "";
+
+            if (data && data.length > 0) {
+                $.each(data, function (i, item) {
+                    html += "<tr>";
+                    html += "<td>" + (item.gatepassId || '') + "</td>";
+                    html += "<td>" + (item.aadharNumber || '') + "</td>";
+                    html += "<td>" + (item.fullname || '') + "</td>";
+                    html += "</tr>";
+                });
+            } else {
+                html = "<tr><td colspan='3'>No workmen found</td></tr>";
+            }
+
+            $("#workmenBody").html(html);
+
+            // important: open above activeWOModal
+            $("#woModal").css("display", "block");
+        },
+        error: function () {
+            $("#workmenBody").html("<tr><td colspan='3'>Error loading workmen</td></tr>");
+            $("#woModal").css("display", "block");
+        }
+    });
+}
+
+window.onclick = function(event) {
+    $('.modal-overlay').each(function() {
+        if (event.target === this) {
+            this.style.display = 'none';
+        }
+    });
+};
+
+
 </script>
 </body>
 

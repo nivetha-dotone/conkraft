@@ -1441,7 +1441,7 @@ private Object[] prepareGatePassDraftParameters(String transId, GatePassMain gat
 	        gatePassMain.getPoliceVerificationDate()!=null?gatePassMain.getPoliceVerificationDate():" ",
 	        gatePassMain.getDot()!=null?gatePassMain.getDot():" ",
 	        gatePassMain.getUserId(),
-	        "regular",gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName()!=null?gatePassMain.getAppointmentDocName():" ",
+	       gatePassMain.getOnboardingType(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName()!=null?gatePassMain.getAppointmentDocName():" ",
 	        	gatePassMain.getDisability()!=null?gatePassMain.getDisability():" ",
 	        			gatePassMain.getWorkmenType()!=null?gatePassMain.getWorkmenType():" ",
 	        					gatePassMain.getProficiency()!=null?gatePassMain.getProficiency():" "

@@ -2375,8 +2375,8 @@ return "failed";
 
 
 
-    @GetMapping("/getDraftDetails/{transactionId}")
-    public String getDraftDetails(@PathVariable("transactionId") String transactionId,HttpServletRequest request,HttpServletResponse response) {
+    @GetMapping("/getDraftDetails/{transactionId}/{mode}")
+    public String getDraftDetails(@PathVariable("transactionId") String transactionId, @PathVariable("mode") String mode,HttpServletRequest request,HttpServletResponse response) {
     	log.info("Entered into viewIndividualContractWorkmenDetails: "+transactionId);
 
 	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
@@ -2529,8 +2529,15 @@ return "failed";
 
 	 request.setAttribute("additionalFileMap", additionalFileMap);
 	 System.out.println(additionalFileMap);
-		
-    return "contractWorkmen/quickOBAdd";
+	if(mode.equals("regular")){
+		return "contractWorkmen/quickOBAdd";
+	}else if(mode.equals("quick")) {
+		return "contractWorkmen/quickOnboardingCreate";
+	}else
+		return "contractWorkmen/projectOnboarding";
+    
+    
+   
 }
     
     @GetMapping("/renewFilter")
@@ -3642,6 +3649,7 @@ return "failed";
 //        else {
 //            result.put("status", "No Data Found");
 //        }
+
 
         return result;
     }
