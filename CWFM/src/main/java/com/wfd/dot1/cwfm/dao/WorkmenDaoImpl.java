@@ -967,6 +967,19 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 		return res;
 	}
 	
+	@Override
+	public synchronized boolean updateGatePassMainDOJ(String gatePassId, String doj) {
+		boolean res=false;
+		Object[] object=new Object[]{doj,gatePassId};
+		String query= "update gatepassmain set DOJ=? where GatePassId=?";
+		int i = jdbcTemplate.update(query,object);
+		if(i>0){
+			res=true;
+		}
+		return res;
+	}
+	
+	
 	public String getUpdateGatepassMainStatusByTransactionId() {
 		return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_STATUS_BY_TRANSACTION_ID");
 	}

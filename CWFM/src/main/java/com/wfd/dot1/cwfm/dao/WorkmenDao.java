@@ -260,4 +260,6 @@ public interface WorkmenDao {
 	public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId, String contractorId);
 
 	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId);
+
+	boolean updateGatePassMainDOJ(String gatePassId, String doj);
 }

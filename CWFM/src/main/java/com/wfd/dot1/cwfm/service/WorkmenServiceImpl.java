@@ -446,6 +446,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		        String today = LocalDate.now().format(formatter);
 		        gpm.setDoj(today);
+		        boolean dojUpdated  = workmenDao.updateGatePassMainDOJ(gatePassId,gpm.getDoj());
 		        boolean cmsDone = this.cmsPersonInsert(gpm);
 
 		        if (!cmsDone) {
