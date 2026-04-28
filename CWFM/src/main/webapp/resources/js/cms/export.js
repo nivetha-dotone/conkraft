@@ -141,12 +141,14 @@ function toggleExportSelectAll() {
 	   }
 	   
 	   function fetchReportData(module) {
-	       
+
 	       let unitId = $('#principalEmployer').val();
 	       let reportType = "contractWorkmenReport";
+
 	       if (!module) return;
-	   	// Get module name (selected option's text)
-	   	  let contractorId = $('#contractor option:selected').val();
+
+	       let contractorId = $('#contractor option:selected').val();
+
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
 	           method: 'GET',
@@ -156,52 +158,124 @@ function toggleExportSelectAll() {
 	               reportType: reportType
 	           },
 	           success: function (response) {
-	               let columns = response.columns;
-	               let rows = response.rows;
-	               let headerHtml = '<th><input type="checkbox" id="selectAll" onchange="toggleExportSelectAll()"/></th>';
-	               columns.forEach(col => { headerHtml += `<th>${col}</th>`; });
-	               $('#tableHeader').html(headerHtml);
 
-	               let bodyHtml = '';
+	               let table = $('#dynamicTable');
+	               let tableBody = $('#dynamicTable tbody');
+
+	               if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+	                   table.DataTable().clear().destroy();
+	               }
+
+	               tableBody.empty();
+
+	               let columns = response.columns || [];
+	               let rows = response.rows || [];
+
 	               rows.forEach(row => {
-	                   bodyHtml += '<tr><td><input type="checkbox" class="rowCheckbox" name="selectedUnitIds"  /></td>';
-	                   columns.forEach(col => { bodyHtml += `<td>${row[col]}</td>`; });
-	                   bodyHtml += '</tr>';
-	               });
-	               $('#tableBody').html(bodyHtml);
 
-	               $('#dynamicTable').show();
+	                   let gatePassId = row['Gate Pass Id'] || '';
+
+	                   let bodyHtml = `
+	                       <tr>
+	                           <td>
+	                               <input type="checkbox"
+	                                      class="bulk-check"
+	                                      name="selectedUnitIds"
+	                                      value="${gatePassId}">
+	                           </td>
+	                   `;
+
+	                   columns.forEach(col => {
+	                       bodyHtml += `<td>${row[col] == null ? '' : row[col]}</td>`;
+	                   });
+
+	                   bodyHtml += '</tr>';
+
+	                   tableBody.append(bodyHtml);
+	               });
+
+	               table.show();
+
+	               initTable("dynamicTable");
+
 	               $('#exportBtn').show();
+	           },
+	           error: function () {
+	               alert("Error while fetching report data.");
 	           }
 	       });
 	   }
-	   
-	   function reportModuleCSV() {
-	   	       
-	   	           // ✅ Default single CSV export for all other modules
-	   	           let headers = [];
-	   	           $('#dynamicTable thead th').each(function (index) {
-	   	               if (index === 0) return;
-	   	               headers.push($(this).text().trim());
-	   	           });
+	   function initTable(tablename) {
+	   	    const selector = '#' + tablename;
 
-	   	           let rows = [];
-	   	           $('#dynamicTable tbody tr').each(function () {
-	   	               if ($(this).find('.rowCheckbox').is(':checked')) {
-	   	                   let row = [];
-	   	                   $(this).find('td:not(:first-child)').each(function () {
-	   	                       row.push($(this).text().trim());
-	   	                   });
-	   	                   rows.push(row);
-	   	               }
-	   	           });
+	   	    if ($.fn.DataTable.isDataTable(selector)) {
+	   	        $(selector).DataTable().destroy();
+	   	    }
 
-	   	           if (rows.length > 0) {
-	   	               downloadCSV(headers, rows,   "Contractor Workmen Report.csv");
-	   	           } else {
-	   	               alert("No rows selected.");
-	   	           }
-	   	       }
+	   	    $(selector).DataTable({
+	   	        paging: true,
+	   	        searching: true,
+	   	        ordering: true
+	   	    });
+	   	}
+		function reportModuleCSV() {
+
+		    let headers = [];
+
+		    $('#dynamicTable thead th').each(function (index) {
+		        if (index === 0) return;
+		        headers.push($(this).text().trim());
+		    });
+
+		    let rows = [];
+
+		    if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+
+		        let dataTable = $('#dynamicTable').DataTable();
+
+		        dataTable.rows().every(function () {
+
+		            let rowNode = $(this.node());
+		            let checkbox = rowNode.find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                rowNode.find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+
+		    } else {
+
+		        $('#dynamicTable tbody tr').each(function () {
+
+		            let checkbox = $(this).find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                $(this).find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+		    }
+
+		    if (rows.length === 0) {
+		        alert("No rows selected.");
+		        return;
+		    }
+
+		    downloadCSV(headers, rows, "Contractor Workmen Report.csv");
+		}
 	   	     function inactiveReportModuleCSV() {
 	   	       
 	   	           // ✅ Default single CSV export for all other modules
