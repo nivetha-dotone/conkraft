@@ -1091,8 +1091,9 @@ label {
                 <table class="ControlLayout" cellspacing="0" cellpadding="0">
                     <tbody>
                         <tr>
+                        <input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.principalEmployer"/></label></th>
-                            <td><select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value, '${sessionScope.loginuser.userAccount}')">
+                            <td><select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value,document.getElementById('loggedInUserAccount').value)">
                                 <option value="">Please select Principal Employer</option>
                                 
                                 

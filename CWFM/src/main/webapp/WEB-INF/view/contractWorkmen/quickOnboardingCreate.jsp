@@ -826,6 +826,7 @@ label {
     </td>
 </tr> -->
 <tr>
+<input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
  <input id="gatePassType" name="gatePassType" style="width: 100%;height: 20px;" type="hidden" size="30" maxlength="12" value="regular" readonly>
 	<th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.transactionId"/></label></th>
     <td>
@@ -1092,7 +1093,7 @@ label {
                     <tbody>
                         <tr>
                             <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.principalEmployer"/></label></th>
-                            <td><select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value, '${sessionScope.loginuser.userAccount}')">
+                            <td><select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value,document.getElementById('loggedInUserAccount').value)">
                                 <option value="">Please select Principal Employer</option>
                                 
                                 
@@ -1728,7 +1729,7 @@ class="btn btn-default"
                          <input type="file" id="aadharFile" name="aadharFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('aadharFile','aadharFileName')" />
                             <span id="aadharFileName" style="margin-left:10px;color:black;">
                                    <c:out value="${fileMap['aadhar']}" default=""/>
-                            </span>
+                                    </span>
                         <div id="aadharError"></div> 
                    </td>
                 		<td>

@@ -91,6 +91,10 @@ function getContractors(unitId, userAccount) {
                 option.text = contractor.contractorName;
                 contractorSelect.appendChild(option);
             });
+			// after populating dropdown
+			autoSelectAndTrigger("contractor", function () {
+			    getWorkordersAndWC();
+			});
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -149,6 +153,9 @@ function getWorkorders(unitId,contractorId) {
                 option.text = workorder.name;
                 workorderSelect.appendChild(option);
             });
+			autoSelectAndTrigger("workorder", function () {
+			    getWC();
+			});
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -193,6 +200,9 @@ function getWC() {
 				                    wcSelect.appendChild(option);
 				                }
             });
+			autoSelectAndTrigger("wc", function (wc) {
+			    onWcChange(wcId);
+			});
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -228,6 +238,10 @@ function getTrades(unitId) {
                 option.text = trade.tradeName;
                 tradeSelect.appendChild(option);
             });
+			// after populating dropdown
+			autoSelectAndTrigger("trade", function () {
+			   getSkills();
+			});
         } else {
             console.error("Error fetching trades:", xhr.statusText);
         }
@@ -265,6 +279,8 @@ function getSkills(unitId,tradeId) {
                 option.text = skill.skill;
                 skillSelect.appendChild(option);
             });
+			// after populating dropdown
+						autoSelectAndTrigger("skill", null, false);
         } else {
             console.error("Error fetching skills:", xhr.statusText);
         }
@@ -299,6 +315,9 @@ function getDepartments(unitId) {
                 option.text = department.department;
                 departmentSelect.appendChild(option);
             });
+			autoSelectAndTrigger("department", function () {
+			   getAreabyDept();getEic();
+			});
         } else {
             console.error("Error fetching departments:", xhr.statusText);
         }
@@ -337,6 +356,7 @@ function getAreabyDept(unitId,departmentId) {
                 option.text = subdepartment.subDepartment;
                 subdepartmentSelect.appendChild(option);
             });
+			autoSelectAndTrigger("subdepartment", null, false);
         } else {
             console.error("Error fetching subdepartments:", xhr.statusText);
         }
@@ -2970,6 +2990,7 @@ function previewImage(event, inputId, displayId) {
 										                option.text = eiclist.fullName;
 										                eicSelect.appendChild(option);
 										            });
+													autoSelectAndTrigger("eic", null, false);
 										        } else {
 										            console.error("Error:", xhr.statusText);
 										        }
@@ -3424,6 +3445,7 @@ function previewImage(event, inputId, displayId) {
             document.getElementById("mainContent").innerHTML = xhr.responseText;
 
             setDateRange();
+			initializeAutoSelects();
 
             // 🔥 FORCE EXECUTION OF JSP SCRIPTS
            setTimeout(function () {
@@ -3952,6 +3974,7 @@ console.log("redirectToWorkmenQuickAdd called");
             // Update the mainContent element with the fetched content
             document.getElementById("mainContent").innerHTML = xhr.responseText;
 			setDateRange();
+			initializeAutoSelects();
         }
     };
     xhr.open("GET", "/CWFM/contractworkmen/quickOnboardingCreation", true);
@@ -3965,6 +3988,7 @@ function redirectToWorkmenAdd(){
 	            // Update the mainContent element with the fetched content
 	            document.getElementById("mainContent").innerHTML = xhr.responseText;
 				setDateRange();
+				initializeAutoSelects();
 	        }
 	    };
 	    xhr.open("GET", "/CWFM/contractworkmen/addQuickOB", true);
@@ -4785,6 +4809,7 @@ function searchGatePassReportBasedOnPE() {
 						               // Update the mainContent element with the fetched content
 						               document.getElementById("mainContent").innerHTML = xhr.responseText;
 						   			setDateRange();
+									initializeAutoSelects();									
 						           }
 						       };
 						       xhr.open("GET", "/CWFM/contractworkmen/projectOnboardingCreation", true);
@@ -5977,6 +6002,7 @@ function getZones(unitId) {
                 option.text = zone.zoneName;
                 zoneSelect.appendChild(option);
             });
+			autoSelectAndTrigger("zone", null, false);
         } else {
             console.error("Error fetching zones:", xhr.statusText);
         }
@@ -6192,4 +6218,32 @@ function getReconciliationData() {
 
     })
     .catch(error => console.error("Error:", error));
+}
+
+function initializeAutoSelects() {
+	const userAccount = $("#loggedInUserAccount").val();
+    autoSelectAndTrigger("principalEmployer", function (unitId) {
+        getContractorsAndTrades(unitId, userAccount);
+    });
+	autoSelectAndTrigger("accessArea", null, false);
+	
+	autoSelectAndTrigger("workmenType", null, false);
+}
+
+function autoSelectAndTrigger(selectId, callback, triggerChange = true) {
+    const $select = $("#" + selectId);
+    const options = $select.find("option[value!='']");
+
+    if (options.length === 1 && !$select.val()) {
+        const value = options.first().val();
+        $select.val(value);
+
+        if (callback) {
+            callback(value);
+        }
+
+        if (triggerChange) {
+            $select.trigger("change");
+        }
+    }
 }

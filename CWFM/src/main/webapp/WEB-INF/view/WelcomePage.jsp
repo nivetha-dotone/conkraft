@@ -214,7 +214,9 @@ function redirectToPEAdd() {
     xhttp.open("GET", url, true);
     xhttp.send();
 } */
-
+function initWorkmenScreen() {
+    initializeAutoSelects();
+}
 function loadCommonList(path, heading) {
     updateHeading(heading);
     var url = contextPath + path;
@@ -246,6 +248,7 @@ function loadCommonList(path, heading) {
           
 
 
+                    //initWorkmenScreen();
            // ✅ Run inline scripts
             const scripts = mainContent.querySelectorAll("script");
             scripts.forEach(script => {
@@ -280,6 +283,7 @@ function loadCommonList(path, heading) {
                     messageDiv.style.display = "none";
                 }, 5000);
             }
+            
 
             setDateRange();
             resetSessionTimer();
