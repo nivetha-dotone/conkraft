@@ -22,6 +22,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
@@ -53,7 +54,7 @@ public interface WorkmenDao {
 
 	public String saveGatePass(GatePassMain gatePassMain);
 
-	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String type);
+	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String type, List<PersonOrgLevel> contList);
 
 	public List<GatePassListingDto> getGatePassListingForApprovers(String userId,int workFlowType,String gatePassTypeId,String deptId,String unitId,String type);
 
@@ -81,7 +82,7 @@ public interface WorkmenDao {
 
 	public void saveGatePassStatusLog(GatePassStatusLogDto dto);
 
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction, List<PersonOrgLevel> contList);
 
 	public List<MasterUser> getApproversForGatePassAction(String createdBy,String gatepassAction);
 
@@ -108,7 +109,7 @@ public interface WorkmenDao {
 	GatePassMain getIndividualContractWorkmenDetailsByTransId(String transactionId);
 
 	List<GatePassListingDto> getRenewListingDetails(String userId, String gatePassTypeId, String gatePassStatus,
-			String deptId, String unitId);
+			String deptId, String unitId, List<PersonOrgLevel> contList);
 
 	String renewGatePass(GatePassMain gatePassMain);
 
@@ -204,7 +205,7 @@ public interface WorkmenDao {
 			String licenseId);
 
 	public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String unitId, String deptId, String userId,
-			String gatePassTypeId, String previousGatePassAction, String renewGatePassAction);
+			String gatePassTypeId, String previousGatePassAction, String renewGatePassAction, List<PersonOrgLevel> contList);
 
 	public String getAadharStatus(String aadharNumber);
 

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -53,6 +54,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
@@ -522,66 +524,120 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	}
 
 	@Override
-	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type) {
-		log.info("Entering into getGatePassListingDetails dao method ");
-		List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
-		String query =getAllGatePassForContractor();
-		log.info("Query to getGatePassListingDetails "+query);
-		//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,gatePassTypeId,deptId,unitId,type,userId,gatePassTypeId,type);
-		SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,type,gatePassTypeId,type);
-		while(rs.next()) {
-			GatePassListingDto dto = new GatePassListingDto();
-			dto.setTransactionId(rs.getString("TransactionId"));
-			dto.setGatePassId((rs.getString("GatePassId")));
-			dto.setFirstName(rs.getString("firstName"));
-			dto.setLastName(rs.getString("lastName"));
-			dto.setGender(rs.getString("GMNAME"));
-			dto.setDateOfBirth(rs.getString("DOB"));
-			dto.setAadhaarNumber(rs.getString("AadharNumber"));
-			dto.setContractorName(rs.getString("ContractorName"));
-			dto.setVendorCode(rs.getString("VendorCode"));
-			dto.setUnitName(rs.getString("UnitName"));
-			String gatePassType = rs.getString("GatePassTypeId");
-			if(gatePassType.equals(GatePassType.CREATE.getStatus())) {
-				dto.setGatePassType("Create");
-			}else if(gatePassType.equals(GatePassType.BLOCK.getStatus())) {
-				dto.setGatePassType("Block");
-			}
-			else if(gatePassType.equals(GatePassType.UNBLOCK.getStatus())) {
-				dto.setGatePassType("Unblock");
-			}else if(gatePassType.equals(GatePassType.BLACKLIST.getStatus())) {
-				dto.setGatePassType("Blacklist");
-			}else if(gatePassType.equals(GatePassType.DEBLACKLIST.getStatus())) {
-				dto.setGatePassType("Deblacklist");
-			}else if(gatePassType.equals(GatePassType.CANCEL.getStatus())) {
-				dto.setGatePassType("Cancel");
-			}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
-				dto.setGatePassType("Lost/Damage");
-			}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
-				dto.setGatePassType("Project Gatepass");
-			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
-				dto.setGatePassType("Bulk Cancel");
-			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
-				dto.setGatePassType("Bulk Renew");
-			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
-				dto.setGatePassType("Renew");
-			}
-			
-			String status =rs.getString("GatePassStatus");
-			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
-				dto.setStatus("Approval Pending");
-			}else if(status.equals(GatePassStatus.APPROVED.getStatus())) {
-				dto.setStatus("Approved");
-			}else if(status.equals(GatePassStatus.REJECTED.getStatus())) {
-				dto.setStatus("Rejected");
-			}else if(status.equals(GatePassStatus.DRAFT.getStatus())) {
-				dto.setStatus("Draft");
-			}
-			dto.setOnboardingType(type);
-			listDto.add(dto);
-		}
-		log.info("Exiting from getGatePassListingDetails dao method "+listDto.size());
-		return listDto;
+	public List<GatePassListingDto> getGatePassListingDetails(
+	        String unitId,
+	        String deptId,
+	        String userId,
+	        String gatePassTypeId,
+	        String type,
+	        List<PersonOrgLevel> contList) {
+
+	    log.info("Entering into getGatePassListingDetails dao method");
+
+	    List<GatePassListingDto> listDto = new ArrayList<>();
+
+	    String query = getAllGatePassForContractor();
+
+	    List<String> contractorIds = new ArrayList<>();
+
+	    if (contList != null && !contList.isEmpty()) {
+	        contractorIds = contList.stream()
+	                .map(PersonOrgLevel::getId) // change getter if needed
+	                .filter(Objects::nonNull)
+	                .map(String::valueOf)
+	                .distinct()
+	                .collect(Collectors.toList());
+	    }
+
+	    String contractorFilter = "";
+
+	    if (!contractorIds.isEmpty()) {
+	        String inClause = contractorIds.stream()
+	                .map(id -> "?")
+	                .collect(Collectors.joining(","));
+
+	        contractorFilter = " AND gpm.ContractorId IN (" + inClause + ") ";
+	    }
+
+	    query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+	    log.info("Query to getGatePassListingDetails {}", query);
+
+	    List<Object> params = new ArrayList<>();
+
+	    // first SELECT params
+	    params.add(gatePassTypeId);
+	    params.add(deptId);
+	    params.add(deptId);
+	    params.add(unitId);
+	    params.add(type);
+	    params.addAll(contractorIds);
+
+	    // UNION SELECT params
+	    params.add(gatePassTypeId);
+	    params.add(type);
+	    //params.addAll(contractorIds);
+
+	    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
+
+	    while (rs.next()) {
+	        GatePassListingDto dto = new GatePassListingDto();
+
+	        dto.setTransactionId(rs.getString("TransactionId"));
+	        dto.setGatePassId(rs.getString("GatePassId"));
+	        dto.setFirstName(rs.getString("FirstName"));
+	        dto.setLastName(rs.getString("LastName"));
+	        dto.setGender(rs.getString("GMNAME"));
+	        dto.setDateOfBirth(rs.getString("DOB"));
+	        dto.setAadhaarNumber(rs.getString("AadharNumber"));
+	        dto.setContractorName(rs.getString("ContractorName"));
+	        dto.setVendorCode(rs.getString("VendorCode"));
+	        dto.setUnitName(rs.getString("UnitName"));
+
+	        String gatePassType = rs.getString("GatePassTypeId");
+
+	        if (GatePassType.CREATE.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Create");
+	        } else if (GatePassType.BLOCK.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Block");
+	        } else if (GatePassType.UNBLOCK.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Unblock");
+	        } else if (GatePassType.BLACKLIST.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Blacklist");
+	        } else if (GatePassType.DEBLACKLIST.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Deblacklist");
+	        } else if (GatePassType.CANCEL.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Cancel");
+	        } else if (GatePassType.LOSTORDAMAGE.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Lost/Damage");
+	        } else if (GatePassType.PROJECT.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Project Gatepass");
+	        } else if (GatePassType.BULKCANCEL.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Bulk Cancel");
+	        } else if (GatePassType.BULKRENEW.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Bulk Renew");
+	        } else if (GatePassType.RENEW.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Renew");
+	        }
+
+	        String status = rs.getString("GatePassStatus");
+
+	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(status)) {
+	            dto.setStatus("Approval Pending");
+	        } else if (GatePassStatus.APPROVED.getStatus().equals(status)) {
+	            dto.setStatus("Approved");
+	        } else if (GatePassStatus.REJECTED.getStatus().equals(status)) {
+	            dto.setStatus("Rejected");
+	        } else if (GatePassStatus.DRAFT.getStatus().equals(status)) {
+	            dto.setStatus("Draft");
+	        }
+
+	        dto.setOnboardingType(type);
+	        listDto.add(dto);
+	    }
+
+	    log.info("Exiting from getGatePassListingDetails dao method {}", listDto.size());
+	    return listDto;
 	}
 	public String getWorkFlowTypeId() {
 		return QueryFileWatcher.getQuery("GET_WORKFLOWTYPEID");
@@ -1029,75 +1085,154 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 	}
 
 	@Override
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction) {
-		log.info("Entering into getGatePassListingDetails dao method ");
-		List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
-		String query = null;
-		log.info("Query to getGatePassListingDetails "+query);
-		SqlRowSet rs =null;
+	public List<GatePassListingDto> getGatePassActionListingDetails(
+	        String unitId,
+	        String deptId,
+	        String userId,
+	        String gatePassTypeId,
+	        String previousGatePassAction,
+	        String renewGatePassAction,
+	        String bulkRenewAction,
+	        List<PersonOrgLevel> contList) {
 
-		if(gatePassTypeId.equals(GatePassType.CANCEL.getStatus())) {
-			query = getCancelActionListingDetailsQuery();
-			String bulkcancel = GatePassType.BULKCANCEL.getStatus();
-			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,bulkcancel,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId,bulkcancel);
-		}else {
-			query=getGatePassActionListingDetailsQuery();
-			 rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,bulkRenewAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
-		}
-		
-		while(rs.next()) {
-			GatePassListingDto dto = new GatePassListingDto();
-			dto.setTransactionId(rs.getString("TransactionId"));
-			dto.setGatePassId((rs.getString("GatePassId")));
-			dto.setFirstName(rs.getString("firstName"));
-			dto.setLastName(rs.getString("lastName"));
-			dto.setGender(rs.getString("GMNAME"));
-			dto.setDateOfBirth(rs.getString("DOB"));
-			dto.setAadhaarNumber(rs.getString("AadharNumber"));
-			dto.setContractorName(rs.getString("ContractorName"));
-			dto.setVendorCode(rs.getString("VendorCode"));
-			dto.setUnitName(rs.getString("UnitName"));
-			String gatePassType = rs.getString("GatePassTypeId");
-			if(gatePassType.equals(GatePassType.CREATE.getStatus())) {
-				dto.setGatePassType("Create");
-			}else if(gatePassType.equals(GatePassType.BLOCK.getStatus())) {
-				dto.setGatePassType("Block");
-			}
-			else if(gatePassType.equals(GatePassType.UNBLOCK.getStatus())) {
-				dto.setGatePassType("Unblock");
-			}else if(gatePassType.equals(GatePassType.BLACKLIST.getStatus())) {
-				dto.setGatePassType("Blacklist");
-			}else if(gatePassType.equals(GatePassType.DEBLACKLIST.getStatus())) {
-				dto.setGatePassType("Deblacklist");
-			}else if(gatePassType.equals(GatePassType.CANCEL.getStatus())) {
-				dto.setGatePassType("Cancel");
-			}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
-				dto.setGatePassType("Lost/Damage");
-			}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
-				dto.setGatePassType("Renew");
-			}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
-				dto.setGatePassType("Bulk Cancel");
-			}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
-				dto.setGatePassType("Bulk Renew");
-			}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
-				dto.setGatePassType("Project");
-			}
-			
-			String status =rs.getString("GatePassStatus");
-			if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
-				dto.setStatus("Approval Pending");
-			}else if(status.equals(GatePassStatus.APPROVED.getStatus())) {
-				dto.setStatus("Approved");
-			}else if(status.equals(GatePassStatus.REJECTED.getStatus())) {
-				dto.setStatus("Rejected");
-			}else if(status.equals(GatePassStatus.DRAFT.getStatus())) {
-				dto.setStatus("Draft");
-			}
-			dto.setOnboardingType(rs.getString("OnboardingType"));
-			listDto.add(dto);
-		}
-		log.info("Exiting from getGatePassListingDetails dao method "+listDto.size());
-		return listDto;
+	    log.info("Entering into getGatePassActionListingDetails dao method");
+
+	    List<GatePassListingDto> listDto = new ArrayList<>();
+
+	    List<String> contractorIds = new ArrayList<>();
+
+	    if (contList != null && !contList.isEmpty()) {
+	        contractorIds = contList.stream()
+	                .map(PersonOrgLevel::getId) // change getter if required
+	                .filter(Objects::nonNull)
+	                .map(String::valueOf)
+	                .distinct()
+	                .collect(Collectors.toList());
+	    }
+
+	    String contractorFilter = "";
+
+	    if (!contractorIds.isEmpty()) {
+	        String inClause = contractorIds.stream()
+	                .map(id -> "?")
+	                .collect(Collectors.joining(","));
+
+	        contractorFilter = " AND gpm.ContractorId IN (" + inClause + ") ";
+	    }
+
+	    String query;
+	    List<Object> params = new ArrayList<>();
+
+	    if (GatePassType.CANCEL.getStatus().equals(gatePassTypeId)) {
+
+	        query = getCancelActionListingDetailsQuery();
+	        query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+	        String bulkCancel = GatePassType.BULKCANCEL.getStatus();
+
+	        params.add(gatePassTypeId);
+	        params.add(bulkCancel);
+
+	        params.add(deptId);
+	        params.add(deptId);
+	        params.add(unitId);
+
+	        params.add(previousGatePassAction);
+	        params.add(renewGatePassAction);
+	        params.add(bulkRenewAction);
+	        params.add(GatePassStatus.APPROVED.getStatus());
+
+	        params.add(gatePassTypeId);
+	        params.add(bulkCancel);
+
+	        params.addAll(contractorIds);
+
+	    } else {
+
+	        query = getGatePassActionListingDetailsQuery();
+	        query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+	        params.add(gatePassTypeId);
+
+	        params.add(deptId);
+	        params.add(deptId);
+	        params.add(unitId);
+
+	        params.add(previousGatePassAction);
+	        params.add(renewGatePassAction);
+	        params.add(bulkRenewAction);
+	        params.add(GatePassStatus.APPROVED.getStatus());
+
+	        params.add(gatePassTypeId);
+
+	        params.addAll(contractorIds);
+	    }
+
+	    log.info("Query to getGatePassActionListingDetails {}", query);
+
+	    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
+
+	    while (rs.next()) {
+
+	        GatePassListingDto dto = new GatePassListingDto();
+
+	        dto.setTransactionId(rs.getString("TransactionId"));
+	        dto.setGatePassId(rs.getString("GatePassId"));
+	        dto.setFirstName(rs.getString("FirstName"));
+	        dto.setLastName(rs.getString("LastName"));
+	        dto.setGender(rs.getString("GMNAME"));
+	        dto.setDateOfBirth(rs.getString("DOB"));
+	        dto.setAadhaarNumber(rs.getString("AadharNumber"));
+	        dto.setContractorName(rs.getString("ContractorName"));
+	        dto.setVendorCode(rs.getString("VendorCode"));
+	        dto.setUnitName(rs.getString("UnitName"));
+
+	        String gatePassType = rs.getString("GatePassTypeId");
+
+	        if (GatePassType.CREATE.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Create");
+	        } else if (GatePassType.BLOCK.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Block");
+	        } else if (GatePassType.UNBLOCK.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Unblock");
+	        } else if (GatePassType.BLACKLIST.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Blacklist");
+	        } else if (GatePassType.DEBLACKLIST.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Deblacklist");
+	        } else if (GatePassType.CANCEL.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Cancel");
+	        } else if (GatePassType.LOSTORDAMAGE.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Lost/Damage");
+	        } else if (GatePassType.RENEW.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Renew");
+	        } else if (GatePassType.BULKCANCEL.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Bulk Cancel");
+	        } else if (GatePassType.BULKRENEW.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Bulk Renew");
+	        } else if (GatePassType.PROJECT.getStatus().equals(gatePassType)) {
+	            dto.setGatePassType("Project");
+	        }
+
+	        String status = rs.getString("GatePassStatus");
+
+	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(status)) {
+	            dto.setStatus("Approval Pending");
+	        } else if (GatePassStatus.APPROVED.getStatus().equals(status)) {
+	            dto.setStatus("Approved");
+	        } else if (GatePassStatus.REJECTED.getStatus().equals(status)) {
+	            dto.setStatus("Rejected");
+	        } else if (GatePassStatus.DRAFT.getStatus().equals(status)) {
+	            dto.setStatus("Draft");
+	        }
+
+	        dto.setOnboardingType(rs.getString("OnboardingType"));
+
+	        listDto.add(dto);
+	    }
+
+	    log.info("Exiting from getGatePassActionListingDetails dao method {}", listDto.size());
+
+	    return listDto;
 	}
 	
 	@Override//not required anymore
@@ -1784,65 +1919,115 @@ public GatePassMain getIndividualContractWorkmenDetailsByTransId(String transact
 }
 
 @Override
-public List<GatePassListingDto> getRenewListingDetails(String userId,String gatePassTypeId,String gatePassStatus,String deptId,String unitId) {
-	log.info("Entering into getRenewListingDetails dao method ");
-	List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
-	String query =getAllRenewForContractor();
-	log.info("Query to getRenewListingDetails "+query);
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,unitId,gatePassTypeId,gatePassStatus,deptId,deptId,unitId);
-	while(rs.next()) {
-		GatePassListingDto dto = new GatePassListingDto();
-		dto.setTransactionId(rs.getString("TransactionId"));
-		dto.setGatePassId((rs.getString("GatePassId")));
-		dto.setFirstName(rs.getString("firstName"));
-		dto.setLastName(rs.getString("lastName"));
-		dto.setGender(rs.getString("GMNAME"));
-		dto.setDateOfBirth(rs.getString("DOB"));
-		dto.setAadhaarNumber(rs.getString("AadharNumber"));
-		dto.setContractorName(rs.getString("ContractorName"));
-		dto.setVendorCode(rs.getString("VendorCode"));
-		dto.setUnitName(rs.getString("UnitName"));
-		String gatePassType = rs.getString("GatePassTypeId");
-		if(gatePassType.equals(GatePassType.CREATE.getStatus())) {
-			dto.setGatePassType("Create");
-		}else if(gatePassType.equals(GatePassType.BLOCK.getStatus())) {
-			dto.setGatePassType("Block");
-		}
-		else if(gatePassType.equals(GatePassType.UNBLOCK.getStatus())) {
-			dto.setGatePassType("Unblock");
-		}else if(gatePassType.equals(GatePassType.BLACKLIST.getStatus())) {
-			dto.setGatePassType("Blacklist");
-		}else if(gatePassType.equals(GatePassType.DEBLACKLIST.getStatus())) {
-			dto.setGatePassType("Deblacklist");
-		}else if(gatePassType.equals(GatePassType.CANCEL.getStatus())) {
-			dto.setGatePassType("Cancel");
-		}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
-			dto.setGatePassType("Lost/Damage");
-		}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
-			dto.setGatePassType("Renew");
-		}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
-			dto.setGatePassType("Bulk Cancel");
-		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
-			dto.setGatePassType("Bulk Renew");
-		}else if(gatePassType.equals(GatePassType.PROJECT.getStatus())) {
-			dto.setGatePassType("Project");
-		}
-		
-		String status =rs.getString("GatePassStatus");
-		if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
-			dto.setStatus("Approval Pending");
-		}else if(status.equals(GatePassStatus.APPROVED.getStatus())) {
-			dto.setStatus("Approved");
-		}else if(status.equals(GatePassStatus.REJECTED.getStatus())) {
-			dto.setStatus("Rejected");
-		}else if(status.equals(GatePassStatus.DRAFT.getStatus())) {
-			dto.setStatus("Draft");
-		}
-		dto.setOnboardingType(rs.getString("OnboardingType"));
-		listDto.add(dto);
-	}
-	log.info("Exiting from getGatePassListingDetails dao method "+listDto.size());
-	return listDto;
+public List<GatePassListingDto> getRenewListingDetails(
+        String userId,
+        String gatePassTypeId,
+        String gatePassStatus,
+        String deptId,
+        String unitId,
+        List<PersonOrgLevel> contList) {
+
+    log.info("Entering into getRenewListingDetails dao method");
+
+    List<GatePassListingDto> listDto = new ArrayList<>();
+
+    String query = getAllRenewForContractor();
+
+    List<String> contractorIds = new ArrayList<>();
+
+    if (contList != null && !contList.isEmpty()) {
+        contractorIds = contList.stream()
+                .map(PersonOrgLevel::getId) // change if your getter is different
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    String contractorFilter = "";
+
+    if (!contractorIds.isEmpty()) {
+        String inClause = contractorIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        contractorFilter = " AND gpm.ContractorId IN (" + inClause + ") ";
+    }
+
+    query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+    log.info("Query to getRenewListingDetails {}", query);
+
+    List<Object> params = new ArrayList<>();
+
+    params.add(gatePassTypeId);
+    params.add(gatePassStatus);
+    params.addAll(contractorIds);
+    params.add(deptId);
+    params.add(deptId);
+    params.add(unitId);
+    
+
+    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
+
+    while (rs.next()) {
+        GatePassListingDto dto = new GatePassListingDto();
+
+        dto.setTransactionId(rs.getString("TransactionId"));
+        dto.setGatePassId(rs.getString("GatePassId"));
+        dto.setFirstName(rs.getString("FirstName"));
+        dto.setLastName(rs.getString("LastName"));
+        dto.setGender(rs.getString("GMNAME"));
+        dto.setDateOfBirth(rs.getString("DOB"));
+        dto.setAadhaarNumber(rs.getString("AadharNumber"));
+        dto.setContractorName(rs.getString("ContractorName"));
+        dto.setVendorCode(rs.getString("VendorCode"));
+        dto.setUnitName(rs.getString("UnitName"));
+
+        String gatePassType = rs.getString("GatePassTypeId");
+
+        if (GatePassType.CREATE.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Create");
+        } else if (GatePassType.BLOCK.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Block");
+        } else if (GatePassType.UNBLOCK.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Unblock");
+        } else if (GatePassType.BLACKLIST.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Blacklist");
+        } else if (GatePassType.DEBLACKLIST.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Deblacklist");
+        } else if (GatePassType.CANCEL.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Cancel");
+        } else if (GatePassType.LOSTORDAMAGE.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Lost/Damage");
+        } else if (GatePassType.RENEW.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Renew");
+        } else if (GatePassType.BULKCANCEL.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Bulk Cancel");
+        } else if (GatePassType.BULKRENEW.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Bulk Renew");
+        } else if (GatePassType.PROJECT.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Project");
+        }
+
+        String status = rs.getString("GatePassStatus");
+
+        if (GatePassStatus.APPROVALPENDING.getStatus().equals(status)) {
+            dto.setStatus("Approval Pending");
+        } else if (GatePassStatus.APPROVED.getStatus().equals(status)) {
+            dto.setStatus("Approved");
+        } else if (GatePassStatus.REJECTED.getStatus().equals(status)) {
+            dto.setStatus("Rejected");
+        } else if (GatePassStatus.DRAFT.getStatus().equals(status)) {
+            dto.setStatus("Draft");
+        }
+
+        dto.setOnboardingType(rs.getString("OnboardingType"));
+        listDto.add(dto);
+    }
+
+    log.info("Exiting from getRenewListingDetails dao method {}", listDto.size());
+    return listDto;
 }
 public String getUpdateRenewContractWorkmen() {
 	 return QueryFileWatcher.getQuery("UPDATE_RENEW_CONTRACT_WORKMEN"); 
@@ -3385,65 +3570,120 @@ private Object[] prepareRenewGatePassParameters1(String transId, GatePassMain ga
     };
 }
 @Override
-public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction) {
-	log.info("Entering into getGatePassListingDetails dao method ");
-	List<GatePassListingDto> listDto= new ArrayList<GatePassListingDto>();
-	String query = getGatePassUnblockDeblackListingDetailsQuery();
-	log.info("Query to getGatePassListingDetails "+query);
-	//SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId,deptId,unitId,previousGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
+public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(
+        String unitId,
+        String deptId,
+        String userId,
+        String gatePassTypeId,
+        String previousGatePassAction,
+        String renewGatePassAction,
+        List<PersonOrgLevel> contList) {
 
-	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassTypeId,deptId,deptId,unitId,previousGatePassAction,renewGatePassAction,GatePassStatus.APPROVED.getStatus(),gatePassTypeId);
-	while(rs.next()) {
-		GatePassListingDto dto = new GatePassListingDto();
-		dto.setTransactionId(rs.getString("TransactionId"));
-		dto.setGatePassId((rs.getString("GatePassId")));
-		dto.setFirstName(rs.getString("firstName"));
-		dto.setLastName(rs.getString("lastName"));
-		dto.setGender(rs.getString("GMNAME"));
-		dto.setDateOfBirth(rs.getString("DOB"));
-		dto.setAadhaarNumber(rs.getString("AadharNumber"));
-		dto.setContractorName(rs.getString("ContractorName"));
-		dto.setVendorCode(rs.getString("VendorCode"));
-		dto.setUnitName(rs.getString("UnitName"));
-		String gatePassType = rs.getString("GatePassTypeId");
-		if(gatePassType.equals(GatePassType.CREATE.getStatus())) {
-			dto.setGatePassType("Create");
-		}else if(gatePassType.equals(GatePassType.BLOCK.getStatus())) {
-			dto.setGatePassType("Block");
-		}
-		else if(gatePassType.equals(GatePassType.UNBLOCK.getStatus())) {
-			dto.setGatePassType("Unblock");
-		}else if(gatePassType.equals(GatePassType.BLACKLIST.getStatus())) {
-			dto.setGatePassType("Blacklist");
-		}else if(gatePassType.equals(GatePassType.DEBLACKLIST.getStatus())) {
-			dto.setGatePassType("Deblacklist");
-		}else if(gatePassType.equals(GatePassType.CANCEL.getStatus())) {
-			dto.setGatePassType("Cancel");
-		}else if(gatePassType.equals(GatePassType.LOSTORDAMAGE.getStatus())) {
-			dto.setGatePassType("Lost/Damage");
-		}else if(gatePassType.equals(GatePassType.RENEW.getStatus())) {
-			dto.setGatePassType("Renew");
-		}else if(gatePassType.equals(GatePassType.BULKCANCEL.getStatus())) {
-			dto.setGatePassType("Bulk Cancel");
-		}else if(gatePassType.equals(GatePassType.BULKRENEW.getStatus())) {
-			dto.setGatePassType("Bulk Renew");
-		}
-		
-		String status =rs.getString("GatePassStatus");
-		if(status.equals(GatePassStatus.APPROVALPENDING.getStatus())) {
-			dto.setStatus("Approval Pending");
-		}else if(status.equals(GatePassStatus.APPROVED.getStatus())) {
-			dto.setStatus("Approved");
-		}else if(status.equals(GatePassStatus.REJECTED.getStatus())) {
-			dto.setStatus("Rejected");
-		}else if(status.equals(GatePassStatus.DRAFT.getStatus())) {
-			dto.setStatus("Draft");
-		}
-		dto.setOnboardingType(rs.getString("OnboardingType"));
-		listDto.add(dto);
-	}
-	log.info("Exiting from getGatePassListingDetails dao method "+listDto.size());
-	return listDto;
+    log.info("Entering into getGatePassUnblockDeblackListingDetails dao method");
+
+    List<GatePassListingDto> listDto = new ArrayList<>();
+
+    String query = getGatePassUnblockDeblackListingDetailsQuery();
+
+    List<String> contractorIds = new ArrayList<>();
+
+    if (contList != null && !contList.isEmpty()) {
+        contractorIds = contList.stream()
+                .map(PersonOrgLevel::getId) // change getter if needed
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    String contractorFilter = "";
+
+    if (!contractorIds.isEmpty()) {
+        String inClause = contractorIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        contractorFilter = " AND gpm.ContractorId IN (" + inClause + ") ";
+    }
+
+    query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+    List<Object> params = new ArrayList<>();
+
+    params.add(gatePassTypeId);
+
+    params.add(deptId);
+    params.add(deptId);
+    params.add(unitId);
+
+    params.add(previousGatePassAction);
+    params.add(renewGatePassAction);
+    params.add(GatePassStatus.APPROVED.getStatus());
+
+    params.add(gatePassTypeId);
+
+    params.addAll(contractorIds);
+
+    log.info("Query to getGatePassUnblockDeblackListingDetails {}", query);
+
+    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
+
+    while (rs.next()) {
+        GatePassListingDto dto = new GatePassListingDto();
+
+        dto.setTransactionId(rs.getString("TransactionId"));
+        dto.setGatePassId(rs.getString("GatePassId"));
+        dto.setFirstName(rs.getString("FirstName"));
+        dto.setLastName(rs.getString("LastName"));
+        dto.setGender(rs.getString("GMNAME"));
+        dto.setDateOfBirth(rs.getString("DOB"));
+        dto.setAadhaarNumber(rs.getString("AadharNumber"));
+        dto.setContractorName(rs.getString("ContractorName"));
+        dto.setVendorCode(rs.getString("VendorCode"));
+        dto.setUnitName(rs.getString("UnitName"));
+
+        String gatePassType = rs.getString("GatePassTypeId");
+
+        if (GatePassType.CREATE.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Create");
+        } else if (GatePassType.BLOCK.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Block");
+        } else if (GatePassType.UNBLOCK.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Unblock");
+        } else if (GatePassType.BLACKLIST.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Blacklist");
+        } else if (GatePassType.DEBLACKLIST.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Deblacklist");
+        } else if (GatePassType.CANCEL.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Cancel");
+        } else if (GatePassType.LOSTORDAMAGE.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Lost/Damage");
+        } else if (GatePassType.RENEW.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Renew");
+        } else if (GatePassType.BULKCANCEL.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Bulk Cancel");
+        } else if (GatePassType.BULKRENEW.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Bulk Renew");
+        }
+
+        String status = rs.getString("GatePassStatus");
+
+        if (GatePassStatus.APPROVALPENDING.getStatus().equals(status)) {
+            dto.setStatus("Approval Pending");
+        } else if (GatePassStatus.APPROVED.getStatus().equals(status)) {
+            dto.setStatus("Approved");
+        } else if (GatePassStatus.REJECTED.getStatus().equals(status)) {
+            dto.setStatus("Rejected");
+        } else if (GatePassStatus.DRAFT.getStatus().equals(status)) {
+            dto.setStatus("Draft");
+        }
+
+        dto.setOnboardingType(rs.getString("OnboardingType"));
+        listDto.add(dto);
+    }
+
+    log.info("Exiting from getGatePassUnblockDeblackListingDetails dao method {}", listDto.size());
+    return listDto;
 }
 public String getTransactionIdByGatePassId() {
 	return QueryFileWatcher.getQuery("GET_TRANSACTIONID_BY_GATEPASSID");

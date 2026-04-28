@@ -688,11 +688,17 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
 				if("project".equals(type)) {
-					listDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.PROJECT.getStatus(),type);
+					listDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.PROJECT.getStatus(),type,contList);
 				}else {
-    			listDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type);
+    			listDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type,contList);
 				}
     		}else {	
     			if("project".equals(type)) {
@@ -1379,8 +1385,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLOCK.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus(),contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLOCK.getStatus());
@@ -1430,8 +1442,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.UNBLOCK.getStatus(),GatePassType.BLOCK.getStatus()," ");
+    			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.UNBLOCK.getStatus(),GatePassType.BLOCK.getStatus()," ",contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.UNBLOCK.getStatus());
@@ -1485,8 +1503,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLACKLIST.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.BLACKLIST.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus(),contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.BLACKLIST.getStatus());
@@ -1536,8 +1560,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.DEBLACKLIST.getStatus(),GatePassType.BLACKLIST.getStatus()," ");
+    			listDto= workmenService.getGatePassUnblockDeblackListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.DEBLACKLIST.getStatus(),GatePassType.BLACKLIST.getStatus()," ",contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.DEBLACKLIST.getStatus());
@@ -1587,8 +1617,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CANCEL.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CANCEL.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus(),contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.CANCEL.getStatus());
@@ -1636,8 +1672,14 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.LOSTORDAMAGE.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus());
+    			listDto= workmenService.getGatePassActionListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.LOSTORDAMAGE.getStatus(),GatePassType.CREATE.getStatus(),GatePassType.RENEW.getStatus(),GatePassType.BULKRENEW.getStatus(),contList);
         		
 			}else {	
 				listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.LOSTORDAMAGE.getStatus());
@@ -2577,9 +2619,15 @@ return "failed";
 			    deptId = null;
 			}
 			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
 			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
     		//write union for renewal pending and renewed
-				listDto= workmenService.getRenewListingDetails( String.valueOf(user.getUserId()), GatePassType.CREATE.getStatus(), GatePassStatus.APPROVED.getStatus(), deptId, principalEmployerId) ;
+				listDto= workmenService.getRenewListingDetails( String.valueOf(user.getUserId()), GatePassType.CREATE.getStatus(), GatePassStatus.APPROVED.getStatus(), deptId, principalEmployerId,contList) ;
     		}else {	
     			listDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.RENEW.getStatus());
     		}	
@@ -3148,7 +3196,7 @@ return "failed";
     	  
     	List<GatePassListingDto> gplistDto = new ArrayList<GatePassListingDto>();
 		if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-			gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type);
+			//gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type);
 		}else {	
 			gplistDto = workmenService.getGatePassListingForApprovers(principalEmployerId,deptId,user,GatePassType.CREATE.getStatus(),type);
 		}
@@ -3184,7 +3232,7 @@ return "failed";
     	  
     	List<GatePassListingDto> gplistDto = new ArrayList<GatePassListingDto>();
 		if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-			gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type);
+			//gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.CREATE.getStatus(),type);
 		}else {	
 			gplistDto = workmenService.getGatePassListingForApprovers(principalEmployerId,deptId,user,GatePassType.CREATE.getStatus(),type);
 		}
@@ -3268,7 +3316,7 @@ return "failed";
         	rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/renewFilter");
         	if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
         		//write union for renewal pending and renewed
-    				gplistDto= workmenService.getRenewListingDetails( String.valueOf(user.getUserId()), GatePassType.CREATE.getStatus(), GatePassStatus.APPROVED.getStatus(), deptId, principalEmployerId) ;
+    				//gplistDto= workmenService.getRenewListingDetails( String.valueOf(user.getUserId()), GatePassType.CREATE.getStatus(), GatePassStatus.APPROVED.getStatus(), deptId, principalEmployerId) ;
         		}else {	
         			gplistDto = workmenService.getGatePassActionListingForApprovers(principalEmployerId,deptId,user,GatePassType.RENEW.getStatus());
         		}	
@@ -3309,7 +3357,7 @@ return "failed";
     	  
     	List<GatePassListingDto> gplistDto = new ArrayList<GatePassListingDto>();
 		if(user1.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
-			gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user1.getUserId()),GatePassType.CREATE.getStatus(),type);
+			//gplistDto= workmenService.getGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user1.getUserId()),GatePassType.CREATE.getStatus(),type);
 		}else {	
 			gplistDto = workmenService.getGatePassListingForApprovers(principalEmployerId,deptId,user1,GatePassType.CREATE.getStatus(),type);
 		}

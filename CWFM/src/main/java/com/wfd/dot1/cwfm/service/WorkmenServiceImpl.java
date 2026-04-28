@@ -52,6 +52,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
@@ -278,8 +279,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 //	}
 
 	@Override
-	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type) {
-		return workmenDao.getGatePassListingDetails(unitId,deptId,userId,gatePassTypeId,type);
+	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type,List<PersonOrgLevel> contList) {
+		return workmenDao.getGatePassListingDetails(unitId,deptId,userId,gatePassTypeId,type,contList);
 	}
 	@Override
 	public List<GatePassListingDto> getGatePassListingForApprovers(String unitId ,String deptId,MasterUser user,String gatePassTypeId,String type) {
@@ -779,8 +780,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 		return result;
 	}
 	@Override
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction) {
-		return workmenDao.getGatePassActionListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction,bulkRenewAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction,List<PersonOrgLevel> contList) {
+		return workmenDao.getGatePassActionListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction,bulkRenewAction,contList);
 	}
 	@Override
 	public List<GatePassListingDto> getWorkmenDetailBasedOnId(String gatePassId) {
@@ -906,8 +907,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 	}
 
 	@Override
-	public List<GatePassListingDto> getRenewListingDetails(String userId,String gatePassTypeId,String gatePassStatus,String deptId,String unitId) {
-		return workmenDao.getRenewListingDetails( userId, gatePassTypeId, gatePassStatus, deptId, unitId) ;
+	public List<GatePassListingDto> getRenewListingDetails(String userId,String gatePassTypeId,String gatePassStatus,String deptId,String unitId,List<PersonOrgLevel> contList) {
+		return workmenDao.getRenewListingDetails( userId, gatePassTypeId, gatePassStatus, deptId, unitId,contList) ;
 	}
 	
 	@Override
@@ -1242,8 +1243,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 	     workmenDao.saveRenewedDocuments(transactionId, userId, aadharFile, policeFile, profilePic, additionalFiles, documentTypes, filePath);
 	 }
 	 @Override
-		public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction) {
-			return workmenDao.getGatePassUnblockDeblackListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction);
+		public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String unitId,String deptId,String userId, String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,List<PersonOrgLevel> contList) {
+			return workmenDao.getGatePassUnblockDeblackListingDetails(unitId,deptId,userId,gatePassTypeId,previousGatePassAction,renewGatePassAction,contList);
 		}
 	 @Override
 	 public String getAadharStatus(String aadharNumber) {

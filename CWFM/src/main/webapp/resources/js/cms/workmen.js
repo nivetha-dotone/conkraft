@@ -1224,7 +1224,11 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
         documentValid = false; // Stop the upload if validation fails
         hideLoader();
     }*/
-
+	 // Check if already file exists in UI (from folder)
+	var existingAadhar = $("#aadharFileName").text().trim();
+	var existingPolice = $("#policeFileName").text().trim();
+	var existingProfile = $("#imageFileName").text().trim();
+	var existingAppointment = $("#appointmentFileName").text().trim();
     if (!validateBasicData()) {
         basicValid = false;
     }
@@ -1233,7 +1237,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 		        employmentValid = false;
 		         hideLoader();
 		    }
-		    if (!validateProjectFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+		    if (!validateProjectFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
              documentValid = false; // Stop the upload if validation fails
         hideLoader();
     }
@@ -1246,11 +1250,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 	        documentValid = false;
 	         hideLoader();
 	    }
-	    // Check if already file exists in UI (from folder)
-var existingAadhar = $("#aadharFileName").text().trim();
-var existingPolice = $("#policeFileName").text().trim();
-var existingProfile = $("#imageFileName").text().trim();
-var existingAppointment = $("#appointmentFileName").text().trim();
+	   
 
 if (!validateFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
     documentValid = false;

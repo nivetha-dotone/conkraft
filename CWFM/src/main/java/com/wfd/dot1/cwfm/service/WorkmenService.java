@@ -18,6 +18,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Skill;
 import com.wfd.dot1.cwfm.pojo.Trade;
@@ -49,7 +50,7 @@ public interface WorkmenService {
 
 	public String saveGatePass(GatePassMain gatePassMain);
 
-	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type);
+	public List<GatePassListingDto> getGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type, List<PersonOrgLevel> contList);
 
 	public List<GatePassListingDto> getGatePassListingForApprovers(String unitId,String deptId,MasterUser user, String gatePassTypeId,String type);
 
@@ -61,7 +62,7 @@ public interface WorkmenService {
 
 	public String gatePassAction(GatePassActionDto dto);
 	
-	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction);
+	public List<GatePassListingDto> getGatePassActionListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String previousGatePassAction,String renewGatePassAction,String bulkRenewAction, List<PersonOrgLevel> contList);
 
 	public List<GatePassListingDto> getWorkmenDetailBasedOnId(String gatePassId);
 
@@ -78,7 +79,7 @@ public interface WorkmenService {
 	public int getWorkFlowTYpe(String principalEmployer);
 
 	List<GatePassListingDto> getRenewListingDetails(String userId, String gatePassTypeId, String gatePassStatus,
-			String deptId, String unitId);
+			String deptId, String unitId, List<PersonOrgLevel> contList);
 
 	String renewGatePass(GatePassMain gatePassMain);
 
@@ -130,7 +131,7 @@ public interface WorkmenService {
 			List<String> documentTypes,String filePath);
 
 	public List<GatePassListingDto> getGatePassUnblockDeblackListingDetails(String principalEmployerId, String deptId,
-			String roleId, String gatePassTypeId, String previousGatePassAction, String renewGatePassAction);
+			String roleId, String gatePassTypeId, String previousGatePassAction, String renewGatePassAction, List<PersonOrgLevel> contList);
 
 
 	public String getAadharStatus(String aadharNumber);
