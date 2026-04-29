@@ -330,7 +330,7 @@ public class ReportsController {
       	            "Insurance Type","WC ESIC Number","WC ESIC Expiry","LL Number","LL Expiry","ESIC Number","Department","Section",
       	            "Trade","Skill","Aadhar Number","Gender","Marital Status","Hazardous Area","Access Area","Technical","Academic","Blood Group","Accommodation",
       	            "Bank Branch","Account Number","Mobile Number","EIC Manager","PF Applicable","PF Number","UAN Number",
-      	            "Police Verification Date","Health Check Date","Zone","PVS Doc Type","Emergency Contact Name","Emergency Contact Number");
+      	            "Health Check Date","Zone","PVS Doc Type","Emergency Contact Name","Emergency Contact Number");
       	    for (ContractWorkmenReportDTO c : policyExpiryWorkmen) {
       	        Map<String, String> row = new LinkedHashMap<>();
 

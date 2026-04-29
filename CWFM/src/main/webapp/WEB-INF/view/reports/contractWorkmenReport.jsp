@@ -306,7 +306,7 @@
 
  <!-- Dynamic Table -->
  <div class="table-container">
-<table id="dynamicTable"  style="margin-top: 20px;width:100px;">
+<table id="dynamicTable"  style="margin-top: 20px;width:100%;">
    <thead>
 <tr>
     <th class="header-text">

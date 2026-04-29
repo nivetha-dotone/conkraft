@@ -197,6 +197,7 @@ function toggleExportSelectAll() {
 	               table.show();
 
 	               initTable("dynamicTable");
+	                //reinitializeDataTable('#dynamicTable');
 
 	               $('#exportBtn').show();
 	           },
@@ -277,188 +278,371 @@ function toggleExportSelectAll() {
 		    downloadCSV(headers, rows, "Contractor Workmen Report.csv");
 		}
 	   	     function inactiveReportModuleCSV() {
-	   	       
-	   	           // ✅ Default single CSV export for all other modules
-	   	           let headers = [];
-	   	           $('#dynamicTable thead th').each(function (index) {
-	   	               if (index === 0) return;
-	   	               headers.push($(this).text().trim());
-	   	           });
+	   	        let headers = [];
 
-	   	           let rows = [];
-	   	           $('#dynamicTable tbody tr').each(function () {
-	   	               if ($(this).find('.rowCheckbox').is(':checked')) {
-	   	                   let row = [];
-	   	                   $(this).find('td:not(:first-child)').each(function () {
-	   	                       row.push($(this).text().trim());
-	   	                   });
-	   	                   rows.push(row);
-	   	               }
-	   	           });
+		    $('#dynamicTable thead th').each(function (index) {
+		        if (index === 0) return;
+		        headers.push($(this).text().trim());
+		    });
 
-	   	           if (rows.length > 0) {
-	   	               downloadCSV(headers, rows,   "Inactive Workmen Report.csv");
-	   	           } else {
-	   	               alert("No rows selected.");
-	   	           }
+		    let rows = [];
+
+		    if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+
+		        let dataTable = $('#dynamicTable').DataTable();
+
+		        dataTable.rows().every(function () {
+
+		            let rowNode = $(this.node());
+		            let checkbox = rowNode.find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                rowNode.find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+
+		    } else {
+
+		        $('#dynamicTable tbody tr').each(function () {
+
+		            let checkbox = $(this).find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                $(this).find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+		    }
+
+		    if (rows.length === 0) {
+		        alert("No rows selected.");
+		        return;
+		    }
+
+		    downloadCSV(headers, rows, "Gatepass Expiry within 30 days Report.csv");
 	   	       }
 	   	         function policeverificationReportModuleCSV() {
 	   	       
-	   	           // ✅ Default single CSV export for all other modules
-	   	           let headers = [];
-	   	           $('#dynamicTable thead th').each(function (index) {
-	   	               if (index === 0) return;
-	   	               headers.push($(this).text().trim());
-	   	           });
+	   	          let headers = [];
 
-	   	           let rows = [];
-	   	           $('#dynamicTable tbody tr').each(function () {
-	   	               if ($(this).find('.rowCheckbox').is(':checked')) {
-	   	                   let row = [];
-	   	                   $(this).find('td:not(:first-child)').each(function () {
-	   	                       row.push($(this).text().trim());
-	   	                   });
-	   	                   rows.push(row);
-	   	               }
-	   	           });
+		    $('#dynamicTable thead th').each(function (index) {
+		        if (index === 0) return;
+		        headers.push($(this).text().trim());
+		    });
 
-	   	           if (rows.length > 0) {
-	   	               downloadCSV(headers, rows,   "Policeverification Workmen Report.csv");
-	   	           } else {
-	   	               alert("No rows selected.");
-	   	           }
+		    let rows = [];
+
+		    if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+
+		        let dataTable = $('#dynamicTable').DataTable();
+
+		        dataTable.rows().every(function () {
+
+		            let rowNode = $(this.node());
+		            let checkbox = rowNode.find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                rowNode.find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+
+		    } else {
+
+		        $('#dynamicTable tbody tr').each(function () {
+
+		            let checkbox = $(this).find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                $(this).find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+		    }
+
+		    if (rows.length === 0) {
+		        alert("No rows selected.");
+		        return;
+		    }
+
+		    downloadCSV(headers, rows, "Policeverification Expiry Report.csv");
 	   	       }
   function fetchPoliceReportData(module) {
 	       
 	       let unitId = $('#principalEmployer').val();
+	       let reportType = "policeVerificationWorkmenReport";
+
 	       if (!module) return;
-	   	// Get module name (selected option's text)
-	   	  let contractorId = $('#contractor option:selected').val();
-	   	  let reportType = "policeVerificationWorkmenReport";
-	   	  
+
+	       let contractorId = $('#contractor option:selected').val();
+
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
 	           method: 'GET',
 	           data: {
 	               contractorId: contractorId,
 	               unitId: unitId,
-	               reportType:reportType
+	               reportType: reportType
 	           },
 	           success: function (response) {
-	               let columns = response.columns;
-	               let rows = response.rows;
-	               let headerHtml = '<th><input type="checkbox" id="selectAll" onchange="toggleExportSelectAll()"/></th>';
-	               columns.forEach(col => { headerHtml += `<th>${col}</th>`; });
-	               $('#tableHeader').html(headerHtml);
 
-	               let bodyHtml = '';
+	               let table = $('#dynamicTable');
+	               let tableBody = $('#dynamicTable tbody');
+
+	               if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+	                   table.DataTable().clear().destroy();
+	               }
+
+	               tableBody.empty();
+
+	               let columns = response.columns || [];
+	               let rows = response.rows || [];
+
 	               rows.forEach(row => {
-	                   bodyHtml += '<tr><td><input type="checkbox" class="rowCheckbox" name="selectedUnitIds"  /></td>';
-	                   columns.forEach(col => { bodyHtml += `<td>${row[col]}</td>`; });
-	                   bodyHtml += '</tr>';
-	               });
-	               $('#tableBody').html(bodyHtml);
 
-	               $('#dynamicTable').show();
+	                   let gatePassId = row['Gate Pass Id'] || '';
+
+	                   let bodyHtml = `
+	                       <tr>
+	                           <td>
+	                               <input type="checkbox"
+	                                      class="bulk-check"
+	                                      name="selectedUnitIds"
+	                                      value="${gatePassId}">
+	                           </td>
+	                   `;
+
+	                   columns.forEach(col => {
+	                       bodyHtml += `<td>${row[col] == null ? '' : row[col]}</td>`;
+	                   });
+
+	                   bodyHtml += '</tr>';
+
+	                   tableBody.append(bodyHtml);
+	               });
+
+	               table.show();
+
+	               initTable("dynamicTable");
+
 	               $('#exportBtn').show();
+	           },
+	           error: function () {
+	               alert("Error while fetching report data.");
 	           }
 	       });
 	   }
 function fetchInactiveReportData(module) {
 	       
-	       let unitId = $('#principalEmployer').val();
+	        let unitId = $('#principalEmployer').val();
+	       let reportType = "inActiveWorkmenReport";
+
 	       if (!module) return;
-	   	// Get module name (selected option's text)
-	   	  let contractorId = $('#contractor option:selected').val();
-	   	  let reportType = "inActiveWorkmenReport";
-	   	  
+
+	       let contractorId = $('#contractor option:selected').val();
+
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
 	           method: 'GET',
 	           data: {
 	               contractorId: contractorId,
 	               unitId: unitId,
-	               reportType:reportType
+	               reportType: reportType
 	           },
 	           success: function (response) {
-	               let columns = response.columns;
-	               let rows = response.rows;
-	               let headerHtml = '<th><input type="checkbox" id="selectAll" onchange="toggleExportSelectAll()"/></th>';
-	               columns.forEach(col => { headerHtml += `<th>${col}</th>`; });
-	               $('#tableHeader').html(headerHtml);
 
-	               let bodyHtml = '';
+	               let table = $('#dynamicTable');
+	               let tableBody = $('#dynamicTable tbody');
+
+	               if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+	                   table.DataTable().clear().destroy();
+	               }
+
+	               tableBody.empty();
+
+	               let columns = response.columns || [];
+	               let rows = response.rows || [];
+
 	               rows.forEach(row => {
-	                   bodyHtml += '<tr><td><input type="checkbox" class="rowCheckbox" name="selectedUnitIds"  /></td>';
-	                   columns.forEach(col => { bodyHtml += `<td>${row[col]}</td>`; });
-	                   bodyHtml += '</tr>';
-	               });
-	               $('#tableBody').html(bodyHtml);
 
-	               $('#dynamicTable').show();
+	                   let gatePassId = row['Gate Pass Id'] || '';
+
+	                   let bodyHtml = `
+	                       <tr>
+	                           <td>
+	                               <input type="checkbox"
+	                                      class="bulk-check"
+	                                      name="selectedUnitIds"
+	                                      value="${gatePassId}">
+	                           </td>
+	                   `;
+
+	                   columns.forEach(col => {
+	                       bodyHtml += `<td>${row[col] == null ? '' : row[col]}</td>`;
+	                   });
+
+	                   bodyHtml += '</tr>';
+
+	                   tableBody.append(bodyHtml);
+	               });
+
+	               table.show();
+
+	               initTable("dynamicTable");
+
 	               $('#exportBtn').show();
+	           },
+	           error: function () {
+	               alert("Error while fetching report data.");
 	           }
 	       });
 	   }
 	   function fetchPolicysExpiryReportData(module) {
-	       
-	       let unitId = $('#principalEmployer').val();
+	        let unitId = $('#principalEmployer').val();
+	       let reportType = "policyExpiryWorkmenReport";
+
 	       if (!module) return;
-	   	// Get module name (selected option's text)
-	   	  let contractorId = $('#contractor option:selected').val();
-	   	  let reportType = "policyExpiryWorkmenReport";
-	   	  
+
+	       let contractorId = $('#contractor option:selected').val();
+
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
 	           method: 'GET',
 	           data: {
 	               contractorId: contractorId,
 	               unitId: unitId,
-	               reportType:reportType
+	               reportType: reportType
 	           },
 	           success: function (response) {
-	               let columns = response.columns;
-	               let rows = response.rows;
-	               let headerHtml = '<th><input type="checkbox" id="selectAll" onchange="toggleExportSelectAll()"/></th>';
-	               columns.forEach(col => { headerHtml += `<th>${col}</th>`; });
-	               $('#tableHeader').html(headerHtml);
 
-	               let bodyHtml = '';
+	               let table = $('#dynamicTable');
+	               let tableBody = $('#dynamicTable tbody');
+
+	               if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+	                   table.DataTable().clear().destroy();
+	               }
+
+	               tableBody.empty();
+
+	               let columns = response.columns || [];
+	               let rows = response.rows || [];
+
 	               rows.forEach(row => {
-	                   bodyHtml += '<tr><td><input type="checkbox" class="rowCheckbox" name="selectedUnitIds"  /></td>';
-	                   columns.forEach(col => { bodyHtml += `<td>${row[col]}</td>`; });
-	                   bodyHtml += '</tr>';
-	               });
-	               $('#tableBody').html(bodyHtml);
 
-	               $('#dynamicTable').show();
+	                   let gatePassId = row['Gate Pass Id'] || '';
+
+	                   let bodyHtml = `
+	                       <tr>
+	                           <td>
+	                               <input type="checkbox"
+	                                      class="bulk-check"
+	                                      name="selectedUnitIds"
+	                                      value="${gatePassId}">
+	                           </td>
+	                   `;
+
+	                   columns.forEach(col => {
+	                       bodyHtml += `<td>${row[col] == null ? '' : row[col]}</td>`;
+	                   });
+
+	                   bodyHtml += '</tr>';
+
+	                   tableBody.append(bodyHtml);
+	               });
+
+	               table.show();
+
+	               initTable("dynamicTable");
+
 	               $('#exportBtn').show();
+	           },
+	           error: function () {
+	               alert("Error while fetching report data.");
 	           }
 	       });
 	   }
+
  function policyExpiryReportModuleCSV() {
 	   	       
-	   	           // ✅ Default single CSV export for all other modules
-	   	           let headers = [];
-	   	           $('#dynamicTable thead th').each(function (index) {
-	   	               if (index === 0) return;
-	   	               headers.push($(this).text().trim());
-	   	           });
+	   	        let headers = [];
 
-	   	           let rows = [];
-	   	           $('#dynamicTable tbody tr').each(function () {
-	   	               if ($(this).find('.rowCheckbox').is(':checked')) {
-	   	                   let row = [];
-	   	                   $(this).find('td:not(:first-child)').each(function () {
-	   	                       row.push($(this).text().trim());
-	   	                   });
-	   	                   rows.push(row);
-	   	               }
-	   	           });
+		    $('#dynamicTable thead th').each(function (index) {
+		        if (index === 0) return;
+		        headers.push($(this).text().trim());
+		    });
 
-	   	           if (rows.length > 0) {
-	   	               downloadCSV(headers, rows,   "Policy Expiry Workmen Report.csv");
-	   	           } else {
-	   	               alert("No rows selected.");
-	   	           }
+		    let rows = [];
+
+		    if ($.fn.DataTable.isDataTable('#dynamicTable')) {
+
+		        let dataTable = $('#dynamicTable').DataTable();
+
+		        dataTable.rows().every(function () {
+
+		            let rowNode = $(this.node());
+		            let checkbox = rowNode.find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                rowNode.find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+
+		    } else {
+
+		        $('#dynamicTable tbody tr').each(function () {
+
+		            let checkbox = $(this).find('.bulk-check');
+
+		            if (checkbox.is(':checked')) {
+
+		                let row = [];
+
+		                $(this).find('td:not(:first-child)').each(function () {
+		                    row.push($(this).text().trim());
+		                });
+
+		                rows.push(row);
+		            }
+		        });
+		    }
+
+		    if (rows.length === 0) {
+		        alert("No rows selected.");
+		        return;
+		    }
+
+		    downloadCSV(headers, rows, "Policy Expiry Report.csv");
 	   	       }
+	   	       

@@ -7,8 +7,9 @@
 <html lang="en">
 
 <head>
-<title>Police verification Contract Export</title>
+<title>Export</title>
    <script src="resources/js/cms/export.js"></script>
+  
     <style>
         /* Add your styles here */
         .success {
@@ -261,7 +262,7 @@
     display: flex;
     gap: 10px;
 }  
-    </style>	
+    </style>		
   <script src="resources/js/cms/export.js"></script>
    <script src="resources/js/cms/workmen.js"></script>
 </head>
@@ -305,10 +306,64 @@
 
  <!-- Dynamic Table -->
  <div class="table-container">
-<table id="dynamicTable"  style="margin-top: 20px;display:none;width:100px;">
-    <thead>
-        <tr id="tableHeader"></tr>
-    </thead>
+<table id="dynamicTable"  style="margin-top: 20px;width:100%;">
+   <thead>
+<tr>
+    <th class="header-text">
+        <input type="checkbox" id="selectAllBlockCheckbox" onchange="toggleAll(this)">
+    </th>
+
+    <th class="header-text">Gate Pass Type</th>
+    <th class="header-text">Gate Pass Id</th>
+    <th class="header-text">First Name</th>
+    <th class="header-text">Last Name</th>
+    <th class="header-text">Relative Name</th>
+    <th class="header-text">DOJ</th>
+    <th class="header-text">Birth Date</th>
+    <th class="header-text">Phone 1</th>
+    <th class="header-text">Address</th>
+    <th class="header-text">Employment Status</th>
+    <th class="header-text">DOT</th>
+    <th class="header-text">Reasoning</th>
+    <th class="header-text">Unit Code</th>
+    <th class="header-text">Unit Name</th>
+    <th class="header-text">Main Contractor Code</th>
+    <th class="header-text">Main Contractor Name</th>
+    <th class="header-text">Sub Contractor Code</th>
+    <th class="header-text">Sub Contractor Name</th>
+    <th class="header-text">SAP Workorder Number</th>
+    <th class="header-text">Department</th>
+    <th class="header-text">Section</th>
+    <th class="header-text">Trade</th>
+    <th class="header-text">Skill</th>
+    <th class="header-text">Aadhar Number</th>
+    <th class="header-text">Gender</th>
+    <th class="header-text">Marital Status</th>
+    <th class="header-text">Hazardous Area</th>
+    <th class="header-text">Access Area</th>
+    <th class="header-text">Technical</th>
+    <th class="header-text">Academic</th>
+    <th class="header-text">Blood Group</th>
+    <th class="header-text">Accommodation</th>
+    <th class="header-text">Bank Branch</th>
+    <th class="header-text">Account Number</th>
+    <th class="header-text">Mobile Number</th>
+    <th class="header-text">EIC Manager</th>
+    <th class="header-text">Insurance Type</th>
+    <th class="header-text">WC ESIC Number</th>
+    <th class="header-text">ESIC Number</th>
+    <th class="header-text">LL Number</th>
+    <th class="header-text">PF Applicable</th>
+    <th class="header-text">PF Number</th>
+    <th class="header-text">UAN Number</th>
+    <th class="header-text">Police Verification Date</th>
+    <th class="header-text">Health Check Date</th>
+    <th class="header-text">Zone</th>
+    <th class="header-text">PVS Doc Type</th>
+    <th class="header-text">Emergency Contact Name</th>
+    <th class="header-text">Emergency Contact Number</th>
+</tr>
+</thead>
     <tbody id="tableBody"></tbody>
 </table>
 </div>
