@@ -4237,7 +4237,7 @@ function closeCamera() {
     }
 
     
-	function initWorkmenTable(tablename) {
+	/*function initWorkmenTable(tablename) {
 	    const selector = '#' + tablename;
 
 	    if ($.fn.DataTable.isDataTable(selector)) {
@@ -4250,7 +4250,28 @@ function closeCamera() {
 	        ordering: true
 	    });
 	}
+*/
+function initWorkmenTable(tableId) {
+    var selector = '#' + tableId;
 
+    if ($.fn.DataTable.isDataTable(selector)) {
+        $(selector).DataTable().destroy();
+    }
+
+    $(selector).DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        lengthChange: true,
+        info: true,
+        pageLength: 10,
+        language: {
+            emptyTable: "No records found",
+            zeroRecords: "No matching records found"
+        },
+        dom: '<"top"f>rt<"bottom"lip><"clear">'
+    });
+}
    function searchGatePassStatus() {
     const transactionId = $('#transactionId').val().trim();
     const gatepassId = $('#gatePassId').val().trim();

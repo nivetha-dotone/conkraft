@@ -38,6 +38,7 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.service.CommonService;
@@ -220,6 +221,30 @@ public class ContractorController {
 	        	List<Contractor> contractors=new ArrayList<Contractor>();
 	    			
 	    				contractors = contrService.getAllContractorForReg(unitId);
+	    			
+	            if (contractors.isEmpty()) {
+	                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	            }
+	            return new ResponseEntity<>(contractors, HttpStatus.OK);
+	        } catch (Exception e) {
+	            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+	        }
+	    }
+	 @GetMapping("/getAllContractorsForRenew")
+		public ResponseEntity<List<Contractor>> getAllContractorsForRenew(
+	            @RequestParam("unitId") String unitId, 
+	            HttpServletRequest request,HttpServletResponse response) {
+	        try {
+	        	List<Contractor> contractors=new ArrayList<Contractor>();
+	        	HttpSession session = request.getSession(false);
+	            MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+	        	List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	            Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                    .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	            List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());	
+	    				contractors = contrService.getAllContractorForRenew(unitId,contList);
 	    			
 	            if (contractors.isEmpty()) {
 	                return new ResponseEntity<>(HttpStatus.NO_CONTENT);

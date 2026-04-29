@@ -14,6 +14,7 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 
 public interface ContractorDao {
@@ -119,6 +120,8 @@ public interface ContractorDao {
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId);
 
 	public void saveCmsContractor(ContractorRegistration reg);
+
+	List<Contractor> getAllContractorForRenew(String unitId, List<PersonOrgLevel> contList);
 
 	   
 	}

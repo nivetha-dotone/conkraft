@@ -246,6 +246,8 @@
 <select id="deptId" name="deptId" style="color:gray;padding:3px;">
     <option value="">Select Department</option>
 </select>
+<input type="hidden" id="autoSearchFunction" value="searchCancel">
+<input type="hidden" id="autoSearchParam" value="">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="searchCancel()">Search</button>
   </div>
    <div>

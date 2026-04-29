@@ -21,12 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dao.BillVerificationDao;
 import com.wfd.dot1.cwfm.dao.ContractorDao;
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
-import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.RenewalDTO;
 import com.wfd.dot1.cwfm.dto.RenewalDocumentDTO;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.WorkFlowType;
-import com.wfd.dot1.cwfm.pojo.BillStatusLogDto;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -36,6 +34,7 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 @Service
 public class ContractorServiceImpl implements ContractorService{
@@ -157,6 +156,10 @@ public class ContractorServiceImpl implements ContractorService{
 	@Override
 	public List<Contractor> getAllContractorForReg(String unitId) {
 		return contrDao.getAllContractorForReg(unitId);
+	}
+	@Override
+	public List<Contractor> getAllContractorForRenew(String unitId,List<PersonOrgLevel> contList) {
+		return contrDao.getAllContractorForRenew(unitId,contList);
 	}
 	@Override
 	public Contractor getAllContractorDetailForReg(String unitId, String contractorId) {

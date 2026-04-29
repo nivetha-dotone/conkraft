@@ -69,9 +69,9 @@ function getAllContractorDetailForRenewal(contractorId) {
             setValueIfPresent("panId", contractors.pan);
             setValueIfPresent("gstId", contractors.gst);
             setValueIfPresent("addressId", contractors.address);
-            setValueIfPresent("contractTypeId", contractors.contractType);
-			const pfApplydate = contractors.pfApplyDate.split(" ")[0];
-			setValueIfPresent("pfApplyDateId", pfApplydate);
+           // setValueIfPresent("contractTypeId", contractors.contractType);
+			//const pfApplydate = contractors.pfApplyDate.split(" ")[0];
+			setValueIfPresent("pfApplyDateId", contractors.pfApplyDate);
 			
 			const availableBox = document.getElementById("availableWorkOrders");
 			            const selectedBox = document.getElementById("selectedWorkOrders");
@@ -564,45 +564,70 @@ function makeSelectReadOnly(selectId) {
 }
 
 function searchContRenewBasedOnPE() {
-					    var principalEmployerId = $('#principalEmployerId').val();
-					    
-						var deptId=$("#deptId").val();
-					    $.ajax({
-					        url: '/CWFM/renewal/list',
-					        type: 'POST',
-					        data: {
-					            principalEmployerId: principalEmployerId,
-								deptId:deptId
-					        },
-					        success: function(response) {
-					            var tableBody = $('#contractorlisttable tbody');
-								   if ($.fn.DataTable.isDataTable('#contractorlisttable')) {
-									$('#contractorlisttable').DataTable().destroy();
-								}
-					            tableBody.empty();
-					            if (response.length > 0) {
-					                $.each(response, function(index, wo) {
-					                    var row = '<tr  >' +
-												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.contractorregId + '"></td>'+
-												'<td  >' + wo.contractorregId + '</td>' +
-												 '<td  >' + wo.vendorCode + '</td>' +
-					                              '<td  >' + wo.contractorName + '</td>' +
-												  '<td  >' + wo.statusValue + '</td>' +	
-												  
-												  '<td  >' + wo.requestType + '</td>' +
-												 
-												 			                             
-					                              '</tr>';
-					                    tableBody.append(row);
-					                });
-					            } 								// ✅ Always init after rows are drawn
-									initWorkmenTable("contractorlisttable");
-					        },
-					        error: function(xhr, status, error) {
-					            console.error("Error fetching data:", error);
-					        }
-					    });
-					}  
+    var principalEmployerId = $('#peId').val();
+    var deptId = $("#deptId").val();
+
+    $.ajax({
+        url: '/CWFM/renewal/list',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            principalEmployerId: principalEmployerId,
+            deptId: deptId
+        },
+        success: function(response) {
+
+            var table = $('#contractorlisttable');
+            var tableBody = $('#contractorlisttable tbody');
+
+            if ($.fn.DataTable.isDataTable('#contractorlisttable')) {
+                table.DataTable().clear().destroy();
+            }
+
+            tableBody.empty();
+
+            var list = [];
+
+            if (Array.isArray(response)) {
+                list = response;
+            } else if (response && Array.isArray(response.data)) {
+                list = response.data;
+            }
+
+            if (list.length > 0) {
+                $.each(list, function(index, wo) {
+                    var row =
+                        '<tr>' +
+                            '<td><input type="checkbox" name="selectedWOs" value="' + (wo.contractorregId || '') + '"></td>' +
+                            '<td>' + (wo.contractorregId || '') + '</td>' +
+                            '<td>' + (wo.vendorCode || '') + '</td>' +
+                            '<td>' + (wo.contractorName || '') + '</td>' +
+                            '<td>' + (wo.statusValue || '') + '</td>' +
+                            '<td>' + (wo.requestType || '') + '</td>' +
+                        '</tr>';
+
+                    tableBody.append(row);
+                });
+            }
+
+            initWorkmenTable("contractorlisttable");
+        },
+        error: function(xhr, status, error) {
+            console.error("Error fetching data:", error);
+
+            var table = $('#contractorlisttable');
+            var tableBody = $('#contractorlisttable tbody');
+
+            if ($.fn.DataTable.isDataTable('#contractorlisttable')) {
+                table.DataTable().clear().destroy();
+            }
+
+            tableBody.empty();
+
+            initWorkmenTable("contractorlisttable");
+        }
+    });
+}
 					function approveRejectContRenew(status){
 											let isValid=true;
 										
@@ -655,4 +680,41 @@ function searchContRenewBasedOnPE() {
 											}
 											}//eofunc
 											
-															
+											function getAllContractorsForRenew(unitId) {
+												    var xhr = new XMLHttpRequest();
+												    var url = contextPath + "/contractor/getAllContractorsForRenew?unitId=" + unitId ;
+												    //alert("URL: " + url);
+												    xhr.open("GET", url, true);
+
+												    xhr.onload = function() {
+												        if (xhr.status === 200) {
+												            // Parse the response as a JSON array of contractor objects
+												            var contractors = JSON.parse(xhr.responseText);
+												            console.log("Response:", contractors);
+												            
+												            // Find the contractor select element
+												            var contractorSelect = document.getElementById("vendorCodeId");
+												            
+												            // Clear existing options
+												            contractorSelect.innerHTML = '<option value="">Please select Vendor Code</option>';
+												            
+												            // Populate the dropdown with the new list of contractors
+												            contractors.forEach(function(contractor) {
+												                var option = document.createElement("option");
+												                option.value = contractor.contractorId;
+												                option.text =contractor.contractorCode+" | "+ contractor.contractorName;
+																option.setAttribute("data-code", contractor.contractorCode);
+																option.setAttribute("data-name", contractor.contractorName);
+												                contractorSelect.appendChild(option);
+												            });
+												        } else {
+												            console.error("Error:", xhr.statusText);
+												        }
+												    };
+
+												    xhr.onerror = function() {
+												        console.error("Request failed");
+												    };
+
+												    xhr.send();
+												}														

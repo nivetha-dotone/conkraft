@@ -452,49 +452,74 @@ function showFileNameBill(input, id) {
         document.getElementById('statfileName_' + id).textContent = fileName;
     }
 	function searchBillBasedOnPE() {
-					    var principalEmployerId = $('#principalEmployerId').val();
-					    
-						var deptId=$("#deptId").val();
-					    $.ajax({
-					        url: '/CWFM/billVerification/list',
-					        type: 'POST',
-					        data: {
-					            principalEmployerId: principalEmployerId,
-								deptId:deptId
-					        },
-					        success: function(response) {
-					            var tableBody = $('#workmenTable tbody');
-								   if ($.fn.DataTable.isDataTable('#workmenTable')) {
-									$('#workmenTable').DataTable().destroy();
-								}
-					            tableBody.empty();
-					            if (response.length > 0) {
-					                $.each(response, function(index, wo) {
-					                    var row = '<tr  >' +
-												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.wcTransId + '"></td>'+
-												'<td  >' + wo.wcTransId + '</td>' +
-												 '<td  >' + wo.unitCode + '</td>' +
-					                              '<td  >' + wo.contractorCode + '</td>' +
-												  '<td  >' + wo.contractorName + '</td>' +	
-												  
-												  '<td  >' + wo.workOrderNumber + '</td>' +
-												  '<td  >' + wo.startDate + '</td>' +
-												  '<td  >' + wo.endDate + '</td>' +	
-												  '<td  >' + wo.statusValue + '</td>' +	
-												  '<td  >' +wo.services + '</td>' +	
-												 			                             
-					                              '</tr>';
-					                    tableBody.append(row);
-					                });
-					            } 								// ✅ Always init after rows are drawn
-									initWorkmenTable("workmenTable");
-					        },
-					        error: function(xhr, status, error) {
-					            console.error("Error fetching data:", error);
-					        }
-					    });
-					}  
-					
+	    var principalEmployerId = $('#peId').val();
+	    var deptId = $("#deptId").val();
+
+	    $.ajax({
+	        url: '/CWFM/billVerification/list',
+	        type: 'POST',
+	        dataType: 'json',
+	        data: {
+	            principalEmployerId: principalEmployerId,
+	            deptId: deptId
+	        },
+	        success: function(response) {
+
+	            var table = $('#workmenTable');
+	            var tableBody = $('#workmenTable tbody');
+
+	            if ($.fn.DataTable.isDataTable('#workmenTable')) {
+	                table.DataTable().clear().destroy();
+	            }
+
+	            tableBody.empty();
+
+	            var list = [];
+
+	            if (Array.isArray(response)) {
+	                list = response;
+	            } else if (response && Array.isArray(response.data)) {
+	                list = response.data;
+	            }
+
+	            if (list.length > 0) {
+	                $.each(list, function(index, wo) {
+	                    var row =
+	                        '<tr>' +
+	                            '<td><input type="checkbox" name="selectedWOs" value="' + (wo.wcTransId || '') + '"></td>' +
+	                            '<td>' + (wo.wcTransId || '') + '</td>' +
+	                            '<td>' + (wo.unitCode || '') + '</td>' +
+	                            '<td>' + (wo.contractorCode || '') + '</td>' +
+	                            '<td>' + (wo.contractorName || '') + '</td>' +
+	                            '<td>' + (wo.workOrderNumber || '') + '</td>' +
+	                            '<td>' + (wo.startDate || '') + '</td>' +
+	                            '<td>' + (wo.endDate || '') + '</td>' +
+	                            '<td>' + (wo.statusValue || '') + '</td>' +
+	                            '<td>' + (wo.services || '') + '</td>' +
+	                        '</tr>';
+
+	                    tableBody.append(row);
+	                });
+	            }
+
+	            initWorkmenTable("workmenTable");
+	        },
+	        error: function(xhr, status, error) {
+	            console.error("Error fetching data:", error);
+
+	            var table = $('#workmenTable');
+	            var tableBody = $('#workmenTable tbody');
+
+	            if ($.fn.DataTable.isDataTable('#workmenTable')) {
+	                table.DataTable().clear().destroy();
+	            }
+
+	            tableBody.empty();
+
+	            initWorkmenTable("workmenTable");
+	        }
+	    });
+	}
 
 					function openFile(reportType, transactionId, fileName) {
     const payload = {

@@ -174,7 +174,7 @@
 	<div class="page-header">
 	     <div>
    <label for="principalEmployerId" style=" color: darkcyan;"   >Principal Employer:</label>
-         <select id="principalEmployerId" name="principalEmployerId" style="color:gray;padding:3px;">
+         <select id="peId" name="peId" style="color:gray;padding:3px;">
          <option value="">Select Principal Employer</option>
     <c:forEach items="${principalEmployers}" var="pe">
        <%--  <option value="${principalEmployer.unitId}" ${principalEmployer.unitId == selectedPrincipalEmployerId ? 'selected' : ''}>
@@ -184,7 +184,7 @@
         <%-- <option value="${pe.id}"  <c:if test="${principalEmployers.size() == 1}">selected</c:if>>${pe.description}</option> --%>
     </c:forEach>
 </select>
-<input type="hidden" id="principalEmployerId" name="principalEmployerId">
+<input type="hidden" id="peId" name="peId">
 
 <label for="departmentId" style=" color: darkcyan;"   >Contractor:</label>
          <select id="deptId" name="deptId" style="color:gray;padding:3px;">
@@ -197,6 +197,8 @@
     </c:forEach>
 </select>
 <input type="hidden" id="deptId" name="deptId">
+<input type="hidden" id="autoSearchFunction" value="searchContRenewBasedOnPE">
+<input type="hidden" id="autoSearchParam" value="">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="searchContRenewBasedOnPE()">Search</button>
   </div>
 		  <div class="page-header-buttons">

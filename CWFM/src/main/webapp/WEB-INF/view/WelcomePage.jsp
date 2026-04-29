@@ -214,8 +214,75 @@ function redirectToPEAdd() {
     xhttp.open("GET", url, true);
     xhttp.send();
 } */
-function initWorkmenScreen() {
-    initializeAutoSelects();
+function initListingScreen() {
+    autoSelectAndTriggerListing("principalEmployerId", function (unitId) {
+        
+     setTimeout(function () {
+            callAutoSearchFunction();
+        }, 300);
+    }, false);
+}
+/* function initWOListingScreen() {
+	const userAccount = $("#loggedInUserAccount").val();
+    autoSelectAndTrigger("principalEmployerIds", function (unitId) {
+        getContractorsAndTrades(unitId, userAccount);
+    
+     setTimeout(function () {
+            callAutoSearchFunction();
+        }, 300);
+    }, false);
+} */
+function initOtherListingScreen() {
+	autoSelectOnly("peId");
+
+    autoSelectOnly("deptId");
+
+    if ($("#peId").val() && $("#deptId").val()) {
+        callAutoSearchFunction();
+    }
+}
+function autoSelectOnly(selectId) {
+    const $select = $("#" + selectId);
+    const options = $select.find("option[value!='']");
+
+    if (options.length === 1 && !$select.val()) {
+        $select.val(options.first().val());
+    }
+}
+function callAutoSearchFunction() {
+    const fnName = $("#autoSearchFunction").val();
+    const param = $("#autoSearchParam").val();
+
+    if (!fnName) return;
+
+    const fn = window[fnName];
+
+    if (typeof fn === "function") {
+        if (param) {
+            fn(param);
+        } else {
+            fn();
+        }
+    } else {
+        console.warn("Search function not found:", fnName);
+    }
+}
+function autoSelectAndTriggerListing(selectId, callback, triggerChange = true) {
+    const $select = $("#" + selectId);
+    const options = $select.find("option[value!='']");
+
+    if (options.length === 1 && !$select.val()) {
+        const value = options.first().val();
+        $select.val(value);
+
+        if (callback) {
+            callback(value);
+        }
+
+        if (triggerChange) {
+            $select.trigger("change");
+        }
+    }
 }
 function loadCommonList(path, heading) {
     updateHeading(heading);
@@ -248,7 +315,9 @@ function loadCommonList(path, heading) {
           
 
 
-                    //initWorkmenScreen();
+                    initListingScreen();
+                    initOtherListingScreen();
+                    initOWOListingScreen();
            // ✅ Run inline scripts
             const scripts = mainContent.querySelectorAll("script");
             scripts.forEach(script => {
@@ -1934,7 +2003,8 @@ function changeRole(selectedRoleId, selectedRoleName) {
     	        showOtherMenus();
     	    }
     	// Show loader
-         document.getElementById("loader").style.display = "flex"; // Show
+       const loader = document.getElementById("loader");
+    if (loader) loader.style.display = "flex";
         fetch('/CWFM/updateRole', {
             method: 'POST',
             headers: {
@@ -5781,6 +5851,8 @@ function loadDashboardFromHome() {
         return;
     }
 
+    const loader = document.getElementById("loader");
+    if (loader) loader.style.display = "flex";
     // First update sidebar exactly like changeRole()
     fetch('/CWFM/updateRole', {
         method: 'POST',

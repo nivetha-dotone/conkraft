@@ -6,7 +6,6 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
-import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -16,6 +15,7 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 
 public interface ContractorService {
@@ -100,6 +100,9 @@ public interface ContractorService {
 	public Contractor getAllContractorProfileDetailForReg(String unitId, String contractorId);
 
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId);
+
+	List<Contractor> getAllContractorForRenew(String unitId, List<PersonOrgLevel> contList);
+
 
 	   
 	}

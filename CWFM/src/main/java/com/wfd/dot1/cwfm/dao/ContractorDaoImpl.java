@@ -2,22 +2,25 @@ package com.wfd.dot1.cwfm.dao;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
-import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
-import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.WorkFlowType;
@@ -30,11 +33,10 @@ import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistrationPolicy;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.queries.ContractorQueryBank;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 
 @Repository
 public class ContractorDaoImpl implements ContractorDao{
@@ -43,6 +45,9 @@ public class ContractorDaoImpl implements ContractorDao{
 	
 	 @Autowired
 	 private JdbcTemplate jdbcTemplate;
+	 
+	 @Autowired
+	 private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	 
 	 public String getContractorByIdQuery() {
 		    return QueryFileWatcher.getQuery("GET_CONTRACOTR_BY_ID");
@@ -747,6 +752,46 @@ public class ContractorDaoImpl implements ContractorDao{
 		log.info("Exiting from getAllContractorForReg dao method "+contList.size());
 		return contList;
 	}
+	
+	public String getAllContractorForRenew() {
+	    return QueryFileWatcher.getQuery("GET_ALL_CONTRACTOR_FOR_RENEW");
+	}
+	@Override
+	public List<Contractor> getAllContractorForRenew(String unitId, List<PersonOrgLevel> conterList) {
+
+	    List<Contractor> contList = new ArrayList<>();
+
+	    if (conterList == null || conterList.isEmpty()) {
+	        return contList;
+	    }
+
+	    List<String> contractorIds = conterList.stream()
+	            .map(PersonOrgLevel::getId)
+	            .filter(Objects::nonNull)
+	            .distinct()
+	            .collect(Collectors.toList());
+
+	    if (contractorIds.isEmpty()) {
+	        return contList;
+	    }
+
+	    String sql=getAllContractorForRenew();
+
+	    MapSqlParameterSource params = new MapSqlParameterSource();
+	    params.addValue("unitId", unitId);
+	    params.addValue("contractorIds", contractorIds);
+
+	    return namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
+	        Contractor cont = new Contractor();
+	        cont.setContractorId(rs.getString("CONTRACTORID"));
+	        cont.setContractorName(rs.getString("NAME"));
+	        cont.setUnitId(rs.getString("UNITID"));
+	        cont.setContractorCode(rs.getString("CODE"));
+	        cont.setContractorAddress(rs.getString("ADDRESS"));
+	        return cont;
+	    });
+	}
+	
 	
 	public String getAllContractorDetailForReg() {
 	    return QueryFileWatcher.getQuery("GET_ALL_CONTRACTOR_DETAIL_FOR_REG");

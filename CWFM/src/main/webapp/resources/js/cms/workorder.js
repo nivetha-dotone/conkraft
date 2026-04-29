@@ -27,7 +27,7 @@
         
  
 function redirectToWOView() {
-	var principalEmployerId = document.getElementById("principalEmployerId").value;
+	var principalEmployerId = document.getElementById("principalEmployerIds").value;
 	 var contractorId = document.getElementById("contractorId").value;
     var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
     if (selectedCheckboxes.length !== 1) {

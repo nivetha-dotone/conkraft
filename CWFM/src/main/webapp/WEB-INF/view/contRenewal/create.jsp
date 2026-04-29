@@ -378,7 +378,7 @@ label {
                 	<label id="error-registrationid" style="color: red;display: none;">Registration ID is required</label>
                 </td>
                  <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.principalEmployer"/></label></th>
-				 <td><select class="custom-select" id="principalEmployerId" name="principalEmployer" onchange="getAllContractorsForReg(this.value)" style="width: 100%;height: 25px; ">
+				 <td><select class="custom-select" id="principalEmployerId" name="principalEmployer" onchange="getAllContractorsForRenew(this.value)" style="width: 100%;height: 25px; ">
                                 <option value="">Please select Principal Employer</option>
                                 <c:forEach var="pe" items="${PrincipalEmployer}">
                 					<option value="${pe.unitId}">${pe.name}</option>

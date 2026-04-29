@@ -3,9 +3,6 @@ var contextPath = "/CWFM"
 var pdfjsLib // Declare pdfjsLib variable
 var updateCharCount // Declare updateCharCount variable
 
-console.log("  Page loaded - requester.jsp initialized")
-console.log("  Context path:", contextPath)
-console.log("  Current URL:", window.location.href)
 
 function showLoading(text = "Processing your request...", subtext = "Please wait while we save your data") {
   console.log("  Showing loading overlay:", text)
@@ -652,20 +649,7 @@ function resetFormData() {
   console.log("  Form data reset successfully")
 }
 
-window.addEventListener("error", (e) => {
-  console.error("  ========== GLOBAL ERROR CAUGHT ==========")
-  console.error("  Error message:", e.message)
-  console.error("  Error filename:", e.filename)
-  console.error("  Error line:", e.lineno)
-  console.error("  Error column:", e.colno)
-  console.error("  Error object:", e.error)
-})
 
-window.addEventListener("unhandledrejection", (e) => {
-  console.error("  ========== UNHANDLED PROMISE REJECTION ==========")
-  console.error("  Reason:", e.reason)
-  console.error("  Promise:", e.promise)
-})
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("  DOM Content Loaded - Setting up input handlers")

@@ -243,6 +243,8 @@
 <select id="deptId" name="deptId" style="color:gray;padding:3px;">
     <option value="">Select Department</option>
 </select>
+<input type="hidden" id="autoSearchFunction" value="searchGatePassBasedOnPE">
+<input type="hidden" id="autoSearchParam" value="regular">
 
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="searchGatePassBasedOnPE('regular')">Search</button>
  <!-- Inline script placed immediately after dropdowns -->
