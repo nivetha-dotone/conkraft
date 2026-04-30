@@ -212,6 +212,7 @@ function redirectToBillAdd() {
             // Update the mainContent element with the fetched content
             document.getElementById("mainContent").innerHTML = xhr.responseText;
             setDateRange();
+            initializeBillAutoSelects();
         }
     };
     xhr.open("GET", "/CWFM/billVerification/createBill", true);
@@ -253,6 +254,8 @@ function getContractorsForBill(selectElement, userAccount) {
 				option.setAttribute("data-code", contractor.contractorCode); 
                 contractorSelect.appendChild(option);
             });
+            // after populating dropdown
+			  autoSelectAndTriggerBill("contractor");
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -313,6 +316,12 @@ function getWorkordersForBill(selectElement) {
 				option.setAttribute("data-toDate", validToFormatted);
                 workorderSelect.appendChild(option);
             });
+            // after populating dropdown
+			autoSelectAndTriggerBill("workorder", function () {
+				var workorderSelect = document.getElementById("workorder");
+			    setDates(workorderSelect);
+			});
+            //setDates
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -335,10 +344,45 @@ function setDates(selectElement){
 }
 
 function saveBtn() {
-	let basicValid = validateBillFormData();
-    if (!basicValid) return;
-   let filesValid = validateMandatoryFiles();
-    if (!filesValid) return;
+	
+	$("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    
+    let basicValid = true;
+    let filesValid = true;
+    let statutoryfilesValid = true;
+    
+     if (!validateBillFormData()) {
+        basicValid = false;
+    }
+     if (!validateMandatoryFiles()) {
+        filesValid = false;
+    }
+     if (!validateStatutoryMandatoryFiles()) {
+        statutoryfilesValid = false;
+    }
+    
+	
+    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
+
+    if (!basicValid) errorTabs.push("Basic");
+    if (!filesValid) errorTabs.push("Wage/Attadence");
+    if (!statutoryfilesValid) errorTabs.push("Statutory");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        hideLoader();
+        return;
+    }
+    
     const formData = new FormData();
 	const unitSelect = document.getElementById("unitId");
 		 const unitId = unitSelect?.value;
@@ -717,7 +761,7 @@ if (startDate && endDate) {
 	}
     return isValid;
 }				
-function validateMandatoryFiles() {
+/*function validateMandatoryFiles() {
 
     let isValid = true;
 
@@ -751,5 +795,110 @@ function validateMandatoryFiles() {
     }
 
     return isValid && statutoryValid;
+}*/
+function validateStatutoryMandatoryFiles() {
+
+    // Reset for statutory check
+    let statutoryValid = true;
+
+    // ===== Validate Statutory Files =====
+    $("input[type='file'][name^='statutoryFile_']").each(function () {
+        if (this.files.length === 0) {
+            statutoryValid = false;
+        }
+    });
+
+    if (!statutoryValid) {
+        $("#error-statutoryFile").show();
+    }
+    
+ $("#docTabGlobalError").hide();
+    return statutoryValid;
 }
-			
+function validateMandatoryFiles() {
+
+    let isValid = true;
+
+    $("#error-kronosFile").hide();
+
+    // ✅ Normalize bill type
+    const billType = ($('#billCategory option:selected').text() || "")
+                        .toLowerCase()
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+    let kronosMissing = false;
+
+    $("input[type='file'][name^='kronosFile_']").each(function () {
+
+        const reportName = ($(this).data("report-name") || "")
+                                .toLowerCase()
+                                .replace(/\s+/g, ' ')
+                                .trim();
+
+        // ✅ Correct skip condition
+        if (billType === 'sla with head count' && reportName === 'wage cost report') {
+            return true; // skip validation for this file
+        }
+
+        if (this.files.length === 0) {
+            kronosMissing = true;
+        }
+    });
+
+    if (kronosMissing) {
+
+        // ✅ Correct message
+        if (billType === 'sla with head count') {
+            $("#error-kronosFile").text("All Kronos reports are mandatory except Wage Cost Report");
+        } else {
+            $("#error-kronosFile").text("All Kronos reports are mandatory");
+        }
+
+        $("#error-kronosFile").show();
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+	function initializeBillAutoSelects() {
+    autoSelectAndTriggerBill("unitId");
+}		
+/*function autoSelectAndTriggerBill(selectId, callback, triggerChange = true) {
+    const $select = $("#" + selectId);
+    const options = $select.find("option[value!='']");
+
+    if (options.length === 1 && !$select.val()) {
+        const value = options.first().val();
+        $select.val(value);
+
+        if (callback) {
+            callback(value);
+        }
+
+        if (triggerChange) {
+            $select.trigger("change");
+        }
+    }
+}*/
+function autoSelectAndTriggerBill(selectId) {
+
+    const select = document.getElementById(selectId);
+
+    if (!select) return;
+
+    // Get only valid options (ignore placeholder "")
+    const validOptions = Array.from(select.options).filter(opt => opt.value !== "");
+
+    // Condition:
+    // ✔ Only ONE option
+    // ✔ Nothing already selected
+    if (validOptions.length === 1 && !select.value) {
+
+        select.value = validOptions[0].value;
+
+        // Trigger change so dependent dropdown loads
+        select.dispatchEvent(new Event("change"));
+    }
+}

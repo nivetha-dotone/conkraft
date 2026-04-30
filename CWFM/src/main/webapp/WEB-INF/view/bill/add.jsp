@@ -409,11 +409,13 @@ label {
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.transactioId"/></label></th>
                 <td><input type="text" id="transactionId" name="transactionId" value="${transactionId}" style="height: 20px;" size="30" maxlength="30" readonly /></td>
                  </tr>
+                  <input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
             <tr>
                 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.unitName"/></label></th>
                 <td>
                 
-                <select class="custom-select" id="unitId" name="unitId" onchange="getContractorsForBill(this, '${sessionScope.loginuser.userAccount}')">
+                <%-- <select class="custom-select" id="unitId" name="unitId" onchange="getContractorsForBill(this, '${sessionScope.loginuser.userAccount}')"> --%>
+                        <select class="custom-select" id="unitId" name="unitId" onchange="getContractorsForBill(this,document.getElementById('loggedInUserAccount').value)">         
                                 <option value="">Please select Unit Name</option>
                                 
 								<c:forEach var="pe" items="${peList}">
@@ -538,7 +540,7 @@ label {
         <tbody>
              <c:forEach var="report" items="${kronosReports}">
             <tr><td><label  style="font-size: 100%;font-weight: bold;padding;8px;color: #898989;"><span class="required-field">*</span>${report.reportName}</label></td>
-            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf" onchange="showFileNameBill(this, '${report.id}')"/>
+            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf"   data-report-name="${report.reportName}" onchange="showFileNameBill(this, '${report.id}')"/>
         	<span id="fileName_${report.id}" style="margin-left:10px;color: black;"></span></td></tr>
         </c:forEach>
             <label id="error-kronosFile" style="color:red; display:none; margin-top:8px;">All Kronos reports are mandatory</label>
@@ -597,6 +599,7 @@ label {
      </table>
     </div> 
   <div id="tab5" class="tab-content">
+   <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;"></div>
             <div class="Panel">
             
     </div>
