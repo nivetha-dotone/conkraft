@@ -331,7 +331,7 @@
     <label><input type="radio" name="workflowType" value="3" onchange="toggleHierarchyColumn()"> Parallel</label>
 
     <h3 style="color: darkcyan;">Approver Hierarchy</h3>
-    <button type="button" onclick="addRow()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Add New Row</button>
+    <button type="button" onclick="addRowWorkflow()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Add New Row</button>
     <button type="button" onclick="deleteSelected()" class="btn btn-default process-footer-button-cancel ng-binding" style="margin:6px;">Delete Selected</button>
     <br><br>
 

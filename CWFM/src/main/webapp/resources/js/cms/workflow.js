@@ -115,7 +115,7 @@ function createRowFromTemplate() {
     return clone;
 }
 
-function addRow() {
+function addRowWorkflow() {
     const tbody = document.querySelector("#approverTable tbody");
     const newRow = createRowFromTemplate();
     tbody.appendChild(newRow);
