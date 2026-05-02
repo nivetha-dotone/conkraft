@@ -837,7 +837,7 @@ function validateMandatoryFiles() {
                                 .trim();
 
         // ✅ Correct skip condition
-        if (billType === 'sla with head count' && reportName === 'wage cost report') {
+        if ((billType === 'sla with head count' || billType === 'sla without head count')  && reportName === 'wage cost report') {
             return true; // skip validation for this file
         }
 
@@ -849,7 +849,7 @@ function validateMandatoryFiles() {
     if (kronosMissing) {
 
         // ✅ Correct message
-        if (billType === 'sla with head count') {
+        if (billType === 'sla with head count' || billType === 'sla without head count') {
             $("#error-kronosFile").text("All Kronos reports are mandatory except Wage Cost Report");
         } else {
             $("#error-kronosFile").text("All Kronos reports are mandatory");

@@ -5,6 +5,7 @@ function redirectToContractorRenew() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             document.getElementById("mainContent").innerHTML = xhr.responseText;
             setDateRange();
+           initializeContractorRenewalAutoSelects(); 
         }
     };
     xhr.open("GET", "/CWFM/renewal/create", true);
@@ -89,6 +90,7 @@ function getAllContractorDetailForRenewal(contractorId) {
 			                    availableBox.add(option);
 			                }
 			            });
+			             autoSelectAndTriggerContractorRenewal(unitId, contractorId);
         } else {
             console.error("Error:", xhr.statusText);
         }
@@ -378,8 +380,40 @@ function validateDocumentsForRenewal() {
 }
 
 function saveTab2AndGoToTab3() {
-    if (!validateFormData()) return;
-    if (!validateDocumentsForRenewal()) return;
+	$("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    
+    let basicValid = true;
+    let otherFields = true;
+    
+     if (!validateFormData()) {
+        basicValid = false;
+    }
+     if (!validateDocumentsForRenewal()) {
+        otherFields = false;
+    }
+   
+   //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
+
+    if (!basicValid) errorTabs.push("Basic");
+    if (!otherFields) errorTabs.push("License");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        hideLoader();
+        return;
+    }
+
+    //if (!validateFormData()) return;
+    //if (!validateDocumentsForRenewal()) return;
 
     const data = new FormData();
     const aadharFile = $("#aadharDocId").prop("files")[0];
@@ -707,6 +741,18 @@ function searchContRenewBasedOnPE() {
 																option.setAttribute("data-name", contractor.contractorName);
 												                contractorSelect.appendChild(option);
 												            });
+												             // ✅ Auto-select if only one contractor
+            if (contractors.length === 1) {
+                contractorSelect.value = contractors[0].contractorId;
+            }
+
+            // ✅ Get selected contractorId
+            var selectedContractorId = contractorSelect.value;
+
+            if (selectedContractorId) {
+                getAllContractorDetailForRenewal(selectedContractorId);
+                autoSelectAndTriggerContractorRenewal(unitId, selectedContractorId);
+            }
 												        } else {
 												            console.error("Error:", xhr.statusText);
 												        }
@@ -718,3 +764,24 @@ function searchContRenewBasedOnPE() {
 
 												    xhr.send();
 												}														
+function initializeContractorRenewalAutoSelects() {
+    autoSelectAndTriggerContractorMaster("principalEmployerId");
+}     
+function autoSelectAndTriggerContractorRenewal(selectId) {
+
+    const select = document.getElementById(selectId);
+
+    if (!select) return;
+
+    // Get only valid options (ignore placeholder "")
+    const validOptions = Array.from(select.options).filter(opt => opt.value !== "");
+
+    
+    if (validOptions.length === 1 && !select.value) {
+
+        select.value = validOptions[0].value;
+
+        // Trigger change so dependent dropdown loads
+        select.dispatchEvent(new Event("change"));
+    }
+}

@@ -33,8 +33,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
+import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.UserRole;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
 import com.wfd.dot1.cwfm.pojo.CMSRoleRights;
@@ -148,6 +150,12 @@ public class BillVerificationController {
     		request.setAttribute("statutoryFiles", statReport);
     		 List<ChecklistItemDTO> checklistItems = billService.getChecklistByTransactionId(transactionId);
     	        request.setAttribute("checklistItems", checklistItems);
+    	        
+                List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
+	            
+	            approvers = workmenService.getApprovalDetails(transactionId,String.valueOf(dto.getUnitId()),GatePassType.BILLVERIFICATION.getStatus());
+	            request.setAttribute("approvers", approvers);
+	            
     	}catch(Exception e) {
     		
     	}

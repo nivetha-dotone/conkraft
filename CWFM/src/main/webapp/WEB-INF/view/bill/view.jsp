@@ -397,6 +397,7 @@ label {
             <button data-target="tab3" onclick="showTabNew('tab3')">Statuory Regulatory Attachments</button> 
             <button data-target="tab4" onclick="showTabNew('tab4')">Check List - HR Clearance</button> 
              <button data-target="tab5" onclick="showTabNew('tab5')">Comments</button> 
+             <button data-target="tab6" onclick="showTabNew('tab6')">Approval Status</button>
             
     </div>
    <div class="action-buttons" >
@@ -590,7 +591,40 @@ label {
 	
 </div>
 </div>	
+<div id="tab6" class="tab-content">
+            <div class="table-scroll-wrapper">
+    <table class="approval-table"
+           cellspacing="0"
+           cellpadding="0"
+           style="width:100%; border:1px solid #ddd; background-color:aliceblue;">
 
+        <thead>
+            <tr style="border:1px solid #ddd;">
+                <th><label class="custom-label"><spring:message code="label.role"/></label></th>
+                <th><label class="custom-label"><spring:message code="label.status"/></label></th>
+                <th><label class="custom-label"><spring:message code="label.comments"/></label></th>
+                <th><label class="custom-label"><spring:message code="label.timestamp"/></label></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <c:forEach var="approver" items="${approvers}" varStatus="status">
+                <tr style="border:1px solid #ddd;
+                           background-color:${status.index % 2 == 0 ? '#f9f9f9' : '#ffffff'};">
+                    <td style="color:black">${approver.userRole}</td>
+                    <td style="color:black">${approver.status}</td>
+                    <td style="color:black">${approver.comments}</td>
+                    <td style="color:black">
+                        ${approver.timestamp != null ? approver.timestamp : 'N/A'}
+                    </td>
+                </tr>
+            </c:forEach>
+        </tbody>
+
+    </table>
+</div>
+
+            </div>
 
             </div>  
                     

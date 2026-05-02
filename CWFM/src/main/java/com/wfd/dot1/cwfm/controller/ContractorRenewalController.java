@@ -20,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.WorkOrderInfoDTO;
+import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.UserRole;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
 import com.wfd.dot1.cwfm.pojo.CMSRoleRights;
@@ -298,6 +300,11 @@ public class ContractorRenewalController {
 	            
 	            ApproveRejectContRenewDto comments = contrService.getContractorRenewComments(contractorRegId);
 	            request.setAttribute("comments", comments);
+	            
+	            List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
+	            
+	            approvers = workmenService.getApprovalDetails(contractorRegId,String.valueOf(contractor.getUnitId()),GatePassType.CONTRACTORRENEWAL.getStatus());
+	            request.setAttribute("approvers", approvers);
 	         // ✅ Pass versioned documents to JSP
 	         //   List<Map<String, Object>> allVersionedDocs = contrService.getAllContractorVersionedDocuments(contractorRegId, user.getUserId(),contractor.getRequestType());
 	          //  request.setAttribute("PreviousDocuments", allVersionedDocs);

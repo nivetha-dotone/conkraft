@@ -580,6 +580,7 @@ label {
  </div>
  <div  class="tab-content "><spring:message code="label.additionalDocumets"/></div>
             <div id="tab2" class="tab-content  ">
+            <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;"></div>
             <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div>
             <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
                    
