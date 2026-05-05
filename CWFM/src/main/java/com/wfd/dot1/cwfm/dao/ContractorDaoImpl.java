@@ -21,9 +21,12 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.WorkFlowType;
+import com.wfd.dot1.cwfm.pojo.ApprovalStatus;
+import com.wfd.dot1.cwfm.pojo.ApproverInfo;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -1640,6 +1643,86 @@ public ApproveRejectContRenewDto getContractorRenewComments(String contractorReg
 		cont.setTransactionId(rs.getString("ContractorRegId"));
 	}
 	return cont;
+}
+
+
+@Override
+public List<ApproverStatusDTO> getContractorApprovalDetails(String transactionId,String unitId,String gatePassTypeId) {
+	 // Fetch approvers from GATEPASSAPPROVERINFO
+    List<ApproverInfo> approverList = this.getApproversByTransactionId(gatePassTypeId,unitId);
+
+    // Fetch approval statuses from GATEPASSAPPROVALSTATUS
+    List<ApprovalStatus> approvalStatuses = this.getApprovalStatusByContTransactionId(transactionId);
+
+    // Map to hold approval status by User ID
+    Map<String, ApprovalStatus> statusMap = approvalStatuses.stream()
+        .collect(Collectors.toMap(ApprovalStatus::getUserRole, status -> status));
+
+    // Prepare the DTO list
+    List<ApproverStatusDTO> approverStatusList = new ArrayList<>();
+    for (ApproverInfo approver : approverList) {
+        ApproverStatusDTO dto = new ApproverStatusDTO();
+       
+        dto.setUserRole(approver.getUserRole().toUpperCase());
+
+        if (statusMap.containsKey(approver.getUserRole())) {
+            ApprovalStatus status = statusMap.get(approver.getUserRole());
+            dto.setStatus(status.getStatus() == 4 ? "Approved" : "Rejected");
+            dto.setComments(status.getComments());
+            dto.setTimestamp(status.getLastUpdatedDate());
+        } else {
+            dto.setStatus("Pending");
+            dto.setComments("");
+            dto.setTimestamp(null);
+        }
+
+        approverStatusList.add(dto);
+    }
+
+    return approverStatusList;
+}
+public String getApproverHierarchy() {
+    return QueryFileWatcher.getQuery("GET_APPROVER_INFO_BY_GPTID");
+}
+
+private List<ApproverInfo> getApproversByTransactionId(String gatePassTypeId,String unitId) {
+	 SqlRowSet rs = jdbcTemplate.queryForRowSet(getApproverHierarchy(),gatePassTypeId,unitId);
+	 List<ApproverInfo> list = new ArrayList<ApproverInfo>();
+	 while(rs.next()) {
+		 ApproverInfo info=new ApproverInfo();
+		 info.setGatePassApproverInfoId(rs.getString("hierarchy_id"));
+		// info.setGatePassId(rs.getString("GatePassId"));
+		 info.setIndex(rs.getInt("Index"));
+		 info.setUserRole(rs.getString("Role_Name"));
+		 //info.setStatus(rs.getInt("Status"));
+		// info.setCreatedBy(rs.getString("CreatedBy"));
+		// info.setCreatedDate(rs.getString("CreatedDate"));
+		 list.add(info);
+	 }
+	 return list;
+}
+
+public  String getApprovalStatusOfCont() {
+	 return QueryFileWatcher.getQuery("GET_CONTRACTOR_APPROVAL_STATUS");
+	}
+		
+private List<ApprovalStatus> getApprovalStatusByContTransactionId(String transactionId) {
+	 SqlRowSet rs = jdbcTemplate.queryForRowSet(this.getApprovalStatusOfCont(),transactionId);
+	 List<ApprovalStatus> list = new ArrayList<ApprovalStatus>();
+	 while(rs.next()) {
+		 ApprovalStatus info=new ApprovalStatus();
+		 info.setGatePassApprovalStatusId(rs.getString("ContRenewApprovalStatusId"));
+		 info.setTransactionId(rs.getString("ContractorRegId"));
+		 //info.setGatePassId(rs.getString("GatePassId"));
+		 //info.setGatePassTypeId(rs.getInt("BillTypeId"));
+		 info.setUserRole(rs.getString("UserRole"));
+		 info.setUserId(rs.getString("UserId"));
+		 info.setStatus(rs.getInt("Status"));
+		 info.setComments(rs.getString("Comments"));
+		 info.setLastUpdatedDate(rs.getString("LastUpdatedDate"));
+		 list.add(info);
+	 }
+	 return list;
 }
 
 }

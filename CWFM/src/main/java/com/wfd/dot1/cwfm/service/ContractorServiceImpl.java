@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.dao.BillVerificationDao;
 import com.wfd.dot1.cwfm.dao.ContractorDao;
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.RenewalDTO;
 import com.wfd.dot1.cwfm.dto.RenewalDocumentDTO;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
@@ -489,5 +490,10 @@ public class ContractorServiceImpl implements ContractorService{
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId) {
 		return contrDao.getContractorRenewComments(contractorRegId);
 	}
-	
+	@Override
+	public List<ApproverStatusDTO> getContractorApprovalDetails(String transactionId,String unitId,String gatePassTypeId) {
+		// TODO Auto-generated method stub
+		return contrDao.getContractorApprovalDetails( transactionId,unitId,gatePassTypeId);
+		
+	}
 }

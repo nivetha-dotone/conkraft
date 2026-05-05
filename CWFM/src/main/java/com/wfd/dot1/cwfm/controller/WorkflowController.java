@@ -128,7 +128,7 @@ try {
 	    int pendingCount = workflowService.getPendingGatePassCount(Long.valueOf(request.getUnitId()),request.getActionName(),request.getModuleId());
 
 	    if (pendingCount > 0) {
-	        return ResponseEntity.badRequest().body("selected type transaction is pending, kindly approve/reject before changing workflow");
+	        return ResponseEntity.badRequest().body("Selected type transaction is pending, kindly approve/reject before changing workflow");
 	    }
 
 	    //  If no pending  save workflow

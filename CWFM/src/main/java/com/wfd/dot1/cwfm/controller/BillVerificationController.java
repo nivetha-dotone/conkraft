@@ -36,6 +36,7 @@ import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
 import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
+import com.wfd.dot1.cwfm.dto.LicenseDto;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.UserRole;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
@@ -153,7 +154,7 @@ public class BillVerificationController {
     	        
                 List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
 	            
-	            approvers = workmenService.getApprovalDetails(transactionId,String.valueOf(dto.getUnitId()),GatePassType.BILLVERIFICATION.getStatus());
+	            approvers = billService.getBillApprovalDetails(transactionId,String.valueOf(dto.getUnitId()),GatePassType.BILLVERIFICATION.getStatus());
 	            request.setAttribute("approvers", approvers);
 	            
     	}catch(Exception e) {
@@ -396,5 +397,17 @@ public class BillVerificationController {
                                   .body("Error saving data: " + e.getMessage());
          } 
     }
+    @GetMapping("/getLicenseNumbers")
+    @ResponseBody
+    public List<LicenseDto> getLicenseNumbers(@RequestParam String workOrder) {
+        return billService.getLicensesByWorkOrder(workOrder);
+    }
+    @ResponseBody
+    @GetMapping("/getLicenseValidDate")
+    public String getLicenseValidDate(@RequestParam String licenseNumber) {
 
+        String result = billService.getValidUptoByLicense(licenseNumber);
+        System.out.println("result");
+        return result;   // IMPORTANT: plain response, NOT view
+    }
 }

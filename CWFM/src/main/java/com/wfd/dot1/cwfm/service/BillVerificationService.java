@@ -13,8 +13,10 @@ import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
+import com.wfd.dot1.cwfm.dto.LicenseDto;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
 import com.wfd.dot1.cwfm.pojo.BillVerification;
 
@@ -53,5 +55,11 @@ public interface BillVerificationService {
 	List<ChecklistItemDTO> getChecklistByTransactionId(String wcTransId);
 
 	public String approveRejectBill(ApproveRejectBillDto dto);
+
+	public List<LicenseDto> getLicensesByWorkOrder(String workOrder);
+
+	public String getValidUptoByLicense(String licenseNumber);
+
+	public List<ApproverStatusDTO> getBillApprovalDetails(String transactionId, String unitId, String status);
 
 }

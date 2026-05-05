@@ -586,9 +586,19 @@ label {
                 					<option value="${status.gmId}">${status.gmName}</option>
             					</c:forEach>
                                 </select> </td>
-            	<td> <c:if test="${item.licenseRequired}">
+            	<%-- <td> <c:if test="${item.licenseRequired}">
                 <input type="text" name="licenseNumber_${item.id}" placeholder="Enter License Number" />
-            </c:if> </td>
+            </c:if> </td> --%>
+            <td>
+    <c:if test="${item.licenseRequired}">
+        <input type="text"
+               class="license-input"
+               data-checkpoint="${item.checkpointName}"
+               data-id="${item.id}"
+               name="licenseNumber_${item.id}"
+               placeholder="Enter License Number" />
+    </c:if>
+</td>
             	<td> <c:if test="${item.validUptoRequired}">
                 <input type="text" class="compliancedatetimepicker" name="validUpto_${item.id}"  />
             </c:if> </td>

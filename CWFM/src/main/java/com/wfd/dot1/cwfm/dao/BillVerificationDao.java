@@ -4,8 +4,10 @@ import java.util.List;
 
 import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
+import com.wfd.dot1.cwfm.dto.LicenseDto;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
 import com.wfd.dot1.cwfm.pojo.BillStatusLogDto;
 import com.wfd.dot1.cwfm.pojo.BillVerification;
@@ -59,6 +61,12 @@ public interface BillVerificationDao {
 	boolean isLastApproverForParallel(String transactionId, String roleId,String unitId);
 
 	boolean isLastApprover(String roleName,String unitId);
+
+	public List<LicenseDto> getLicensesByWorkOrder(String workOrder);
+
+	public String getValidUptoByLicense(String licenseNumber);
+
+	public List<ApproverStatusDTO> getBillApprovalDetails(String transactionId, String unitId, String gatePassTypeId);
 
 }
 

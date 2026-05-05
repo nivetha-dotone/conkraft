@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 
 import com.wfd.dot1.cwfm.dao.BillVerificationDao;
 import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
 import com.wfd.dot1.cwfm.dto.GatePassStatusLogDto;
+import com.wfd.dot1.cwfm.dto.LicenseDto;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.WorkFlowType;
@@ -167,5 +169,20 @@ public class BillVerificationServiceImpl implements BillVerificationService{
 		}
 
 		return result;
+	}
+	
+	@Override
+	public List<LicenseDto> getLicensesByWorkOrder(String workOrder){
+	    return billDao.getLicensesByWorkOrder(workOrder);
+	}
+	@Override
+	public String getValidUptoByLicense(String licenseNumber){
+	    return billDao.getValidUptoByLicense( licenseNumber);
+	}
+	@Override
+	public List<ApproverStatusDTO> getBillApprovalDetails(String transactionId,String unitId,String gatePassTypeId) {
+		// TODO Auto-generated method stub
+		return billDao.getBillApprovalDetails( transactionId,unitId,gatePassTypeId);
+		
 	}
 }

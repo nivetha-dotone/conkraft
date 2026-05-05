@@ -303,7 +303,7 @@ public class ContractorRenewalController {
 	            
 	            List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
 	            
-	            approvers = workmenService.getApprovalDetails(contractorRegId,String.valueOf(contractor.getUnitId()),GatePassType.CONTRACTORRENEWAL.getStatus());
+	            approvers = contrService.getContractorApprovalDetails(contractorRegId,String.valueOf(contractor.getUnitId()),GatePassType.CONTRACTORRENEWAL.getStatus());
 	            request.setAttribute("approvers", approvers);
 	         // ✅ Pass versioned documents to JSP
 	         //   List<Map<String, Object>> allVersionedDocs = contrService.getAllContractorVersionedDocuments(contractorRegId, user.getUserId(),contractor.getRequestType());

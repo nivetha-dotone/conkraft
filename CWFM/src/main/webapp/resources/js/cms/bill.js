@@ -436,7 +436,16 @@ function saveBtn() {
         const row = $(this);
         const id = row.find("input[type='hidden']").attr("name").split('_')[1];
         const statusValue = row.find("select[name='statusValue']").val();
-        const licenseNumber = row.find("input[name^='licenseNumber_']").val() || "";
+       // const licenseNumber =row.find("[name^='licenseNumber_']").val() || "";
+        let licenseNumber = "";
+
+    // ✅ If dropdown exists → take TEXT
+    if (row.find(".license-dropdown").length > 0) {
+        licenseNumber = row.find(".license-dropdown option:selected").text().trim();
+    } else {
+        // ✅ If textbox → take value
+        licenseNumber = row.find("input[name^='licenseNumber_']").val() || "";
+    }
         const validUpto = row.find("input[name^='validUpto_']").val() || "";
 
         checklist.push({
@@ -902,3 +911,127 @@ function autoSelectAndTriggerBill(selectId) {
         select.dispatchEvent(new Event("change"));
     }
 }
+$(document).on("change", "select[name='statusValue']", function () {
+
+    const row = $(this).closest("tr");
+    const statusText = $(this).find("option:selected").text().trim();
+    const licenseInput = row.find(".license-input");
+    const checkpointName = licenseInput.data("checkpoint");
+
+    const workOrder = $("#workorder option:selected").text().trim();
+
+const normalize = (str) =>
+    (str || "")
+        .toLowerCase()
+        .replace(/\./g, "")   // remove only dots
+        .trim();
+        
+    // TARGET CONDITION
+    if (
+    normalize(checkpointName) === normalize("Licence copy obtained by Vendor under Contract Labour Act 1970.")
+    && statusText.toLowerCase() === "yes"
+){
+
+        if (!workOrder) {
+            alert("Please select Work Order first.");
+            $(this).val(""); // reset
+            return;
+        }
+
+        // 🔁 Call API to get license numbers
+        $.ajax({
+            url: "/CWFM/billVerification/getLicenseNumbers",
+            method: "GET",
+            data: { workOrder: workOrder },
+
+            success: function (response) {
+
+                // Replace input with dropdown
+                let dropdown = `<select name="${licenseInput.attr("name")}" class="license-dropdown">
+                                    <option value="">Select License</option>`;
+
+                response.forEach(function (item) {
+                    dropdown += `<option value="${item.id}">${item.licenseNumber}</option>`;
+                });
+
+                dropdown += `</select>`;
+
+                licenseInput.replaceWith(dropdown);
+            },
+
+            error: function () {
+                alert("Failed to load license numbers");
+            }
+        });
+
+    } else {
+        // revert back to textbox if changed back
+        if (licenseInput.length === 0) {
+            const id = row.find("input[type='hidden']").attr("name").split('_')[1];
+
+            row.find("td:eq(2)").html(
+                `<input type="text" 
+                        class="license-input"
+                        data-checkpoint="Licence copy obtained by Vendor under Contract Labour Act 1970"
+                        name="licenseNumber_${id}"
+                        placeholder="Enter License Number" />`
+            );
+        }
+    }
+});
+
+
+$(document).on("change", ".license-dropdown", function () {
+
+    const row = $(this).closest("tr");
+
+    // ✅ IMPORTANT: send VALUE only if backend expects WC_CODE
+    const licenseNumber = $(this).find("option:selected").text().trim();
+
+    const validUptoInput = row.find("input[name^='validUpto_']");
+
+    if (!licenseNumber) {
+        validUptoInput.val("");
+        return;
+    }
+
+    $.ajax({
+        url: "/CWFM/billVerification/getLicenseValidDate",
+        type: "GET",
+        data: {
+            licenseNumber: licenseNumber
+        },
+
+        success: function (response) {
+
+            console.log("Response:", response);
+
+            if (response) {
+
+                // handle both string & object safely
+                let dateValue = "";
+
+                if (typeof response === "string") {
+                    dateValue = response;
+                } else if (response.wcToDtm) {
+                    dateValue = response.wcToDtm;
+                }
+
+                if (dateValue) {
+                    validUptoInput.val(dateValue.split(" ")[0]); // only date
+                } else {
+                    validUptoInput.val("");
+                }
+
+            } else {
+                validUptoInput.val("");
+            }
+        },
+
+        error: function (xhr) {
+            console.log("ERROR:", xhr.responseText);
+            alert("Error fetching valid upto date");
+            validUptoInput.val("");
+        }
+    });
+});

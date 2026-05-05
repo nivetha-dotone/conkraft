@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -102,6 +103,8 @@ public interface ContractorService {
 	public ApproveRejectContRenewDto getContractorRenewComments(String contractorRegId);
 
 	List<Contractor> getAllContractorForRenew(String unitId, List<PersonOrgLevel> contList);
+
+	public List<ApproverStatusDTO> getContractorApprovalDetails(String contractorRegId, String unitId, String status);
 
 
 	   

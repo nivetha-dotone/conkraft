@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.wfd.dot1.cwfm.dto.ApproveRejectContRenewDto;
+import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSContractorRegistrationLLWC;
@@ -122,6 +123,9 @@ public interface ContractorDao {
 	public void saveCmsContractor(ContractorRegistration reg);
 
 	List<Contractor> getAllContractorForRenew(String unitId, List<PersonOrgLevel> contList);
+
+	public List<ApproverStatusDTO> getContractorApprovalDetails(String transactionId, String unitId,
+			String gatePassTypeId);
 
 	   
 	}
