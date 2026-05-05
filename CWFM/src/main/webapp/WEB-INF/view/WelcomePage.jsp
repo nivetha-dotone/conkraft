@@ -222,16 +222,37 @@ function initListingScreen() {
         }, 300);
     }, false);
 }
-/* function initWOListingScreen() {
-	const userAccount = $("#loggedInUserAccount").val();
+function initWOListingScreen() {
+    const userAccount = $("#loggedInUserAccount").val();
+
     autoSelectAndTrigger("principalEmployerIds", function (unitId) {
-        getContractorsAndTrades(unitId, userAccount);
-    
-     setTimeout(function () {
-            callAutoSearchFunction();
-        }, 300);
+        getContractorsForWorkorder(unitId, userAccount, function () {
+
+            autoSelectOnly("contractorIds");
+
+            if ($("#principalEmployerIds").val() && $("#contractorIds").val()) {
+                callAutoSearchFunction();
+            }
+
+        });
     }, false);
-} */
+}
+function initReportsListingScreen() {
+    const userAccount = $("#loggedInUserAccount").val();
+
+    autoSelectAndTrigger("principalEmployers", function (unitId) {
+    	getContractorsForReports(unitId, userAccount, function () {
+
+            autoSelectOnly("contractors");
+
+            if ($("#principalEmployers").val() && $("#contractors").val()) {
+                callAutoSearchFunction();
+            }
+
+        });
+    }, false);
+}
+
 function initOtherListingScreen() {
 	autoSelectOnly("peId");
 
@@ -317,7 +338,7 @@ function loadCommonList(path, heading) {
 
                     initListingScreen();
                     initOtherListingScreen();
-                    initOWOListingScreen();
+                    initWOListingScreen();initReportsListingScreen();
            // ✅ Run inline scripts
             const scripts = mainContent.querySelectorAll("script");
             scripts.forEach(script => {

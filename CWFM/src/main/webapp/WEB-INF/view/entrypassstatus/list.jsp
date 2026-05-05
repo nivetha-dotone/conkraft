@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Entry Pass Status</title>
+    <title>Gate Pass Status</title>
     <script src="resources/js/cms/workmen.js"></script>
 
 
@@ -194,7 +194,7 @@
 <select id="principalEmployerId" name="principalEmployerId" style="color:gray;padding:3px;" onchange="loadDepartments(this.value)">
     <option value="">Select Principal Employer</option>
     <c:forEach items="${principalEmployers}" var="pe">
-        <option value="${pe.id}" <c:if test="${principalEmployers.size() == 1}">selected</c:if>>${pe.description}</option>
+        <option value="${pe.id}" >${pe.description}</option>
     </c:forEach>
 </select>
 

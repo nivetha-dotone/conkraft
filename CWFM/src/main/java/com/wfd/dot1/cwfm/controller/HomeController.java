@@ -83,7 +83,8 @@ public class HomeController {
 						@RequestParam("password") String pwd,
 						HttpSession session) {
 
-
+		String encoded = passwordEncoder.encode("Adani@2026");
+		System.out.println("poc password Adani@2026 is "+encoded);
 		String issandorpoc = getAuthCWFM();
 		if (issandorpoc != null) {
 			issandorpoc = issandorpoc.trim();

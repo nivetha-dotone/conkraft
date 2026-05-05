@@ -28,7 +28,7 @@
  
 function redirectToWOView() {
 	var principalEmployerId = document.getElementById("principalEmployerIds").value;
-	 var contractorId = document.getElementById("contractorId").value;
+	 var contractorId = document.getElementById("contractorIds").value;
     var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
     if (selectedCheckboxes.length !== 1) {
         alert("Please select exactly one row to view.");
@@ -119,8 +119,8 @@ function searchWithPEContractorInWO(contextPath) {
         }
 		
 		function searchWorkordersBasedOnPEAndContr() {
-					    var principalEmployerId = $('#principalEmployerId').val();
-					    var contractorId = $("#contractorId").val();
+					    var principalEmployerId = $('#principalEmployerIds').val();
+					    var contractorId = $("#contractorIds").val();
 
 					    $.ajax({
 					        url: '/CWFM/workorders/getAllWorkordersBasedOnPEAndContractor',
@@ -163,39 +163,34 @@ function searchWithPEContractorInWO(contextPath) {
 					    });
 					}
         
-					function getContractorsForWorkorder(unitId, userAccount) {
-					    var xhr = new XMLHttpRequest();
-					    var url = contextPath + "/contractworkmen/getAllContractors?unitId=" + unitId + "&userAccount=" + userAccount;
-					    //alert("URL: " + url);
-					    xhr.open("GET", url, true);
+					function getContractorsForWorkorder(unitId, userAccount, callback) {
+					    $.ajax({
+					        url:"/CWFM/contractworkmen/getAllContractors",
+					        type: "GET",
+					        data: {
+					            unitId: unitId,
+					            userAccount: userAccount
+					        },
+					        success: function (contractors) {
 
-					    xhr.onload = function() {
-					        if (xhr.status === 200) {
-					            // Parse the response as a JSON array of contractor objects
-					            var contractors = JSON.parse(xhr.responseText);
-					            console.log("Response:", contractors);
-					            
-					            // Find the contractor select element
-					            var contractorSelect = document.getElementById("contractorId");
-					            
-					            // Clear existing options
-					            contractorSelect.innerHTML = '<option value="">Please select Contractor</option>';
-					            
-					            // Populate the dropdown with the new list of contractors
-					            contractors.forEach(function(contractor) {
-					                var option = document.createElement("option");
-					                option.value = contractor.contractorId;
-					                option.text = contractor.contractorName;
-					                contractorSelect.appendChild(option);
+					            const $contractor = $("#contractorIds");
+					            $contractor.empty();
+					            $contractor.append('<option value="">Select Contractor</option>');
+
+					            $.each(contractors, function (index, contractor) {
+					                $contractor.append(
+					                    '<option value="' + contractor.contractorId + '">' +
+					                    contractor.contractorName +
+					                    '</option>'
+					                );
 					            });
-					        } else {
-					            console.error("Error:", xhr.statusText);
+
+					            if (typeof callback === "function") {
+					                callback();
+					            }
+					        },
+					        error: function () {
+					            console.error("Error loading contractors");
 					        }
-					    };
-
-					    xhr.onerror = function() {
-					        console.error("Request failed");
-					    };
-
-					    xhr.send();
+					    });
 					}

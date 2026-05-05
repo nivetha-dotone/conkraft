@@ -4768,8 +4768,8 @@ function searchGatePassReportBasedOnPE() {
 					            } 								
 
 																	            // ✅ Always init after rows are drawn
-																	           // initWorkmenTable("workmenTable");
-																	           reinitializeDataTable('#workmenTable');
+																	            initWorkmenTable("workmenTable");
+																	           //reinitializeDataTable('#workmenTable');
 																	        },
 																	        
 					       

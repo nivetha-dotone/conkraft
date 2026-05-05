@@ -169,6 +169,7 @@
 <div class="page-header">
    <!--  <form id="searchForm"> -->
    <div> 
+  
     <input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
    <label for="principalEmployerId" style=" color: darkcyan;"   >Principal Employer:</label>
          <select id="principalEmployerIds" name="principalEmployerIds"  style="color:gray;padding:3px;" onchange="getContractorsForWorkorder(this.value, document.getElementById('loggedInUserAccount').value)">
@@ -182,13 +183,13 @@
 <label for="contractorId" style=" color: darkcyan;" >Contractor:</label>
         
        
-<select class="custom-select" id="contractorId" name="contractorId"  style="color:gray;padding:3px;">
+<select class="custom-select" id="contractorIds" name="contractorIds"  style="color:gray;padding:3px;">
             						<option value="">Please select Contractor</option>
         						</select>
 
 <input type="hidden" id="principalEmployerId" name="principalEmployerId">
 <input type="hidden" id="contractorId" name="contractorId">
-<input type="hidden" id="autoSearchFunction" value="searchWorkordersBasedOnPEAndContr">
+ <input type="hidden" id="autoSearchFunction" value="searchWorkordersBasedOnPEAndContr">
 <input type="hidden" id="autoSearchParam" value="">
         <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="searchWorkordersBasedOnPEAndContr()">Search</button>
    </div> 
