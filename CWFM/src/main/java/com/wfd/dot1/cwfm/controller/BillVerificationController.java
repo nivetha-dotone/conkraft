@@ -407,7 +407,7 @@ public class BillVerificationController {
     public String getLicenseValidDate(@RequestParam String licenseNumber) {
 
         String result = billService.getValidUptoByLicense(licenseNumber);
-        System.out.println("result");
+        System.out.println(result);
         return result;   // IMPORTANT: plain response, NOT view
     }
 }

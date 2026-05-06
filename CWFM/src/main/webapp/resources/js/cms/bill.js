@@ -964,74 +964,79 @@ const normalize = (str) =>
             }
         });
 
-    } else {
-        // revert back to textbox if changed back
-        if (licenseInput.length === 0) {
-            const id = row.find("input[type='hidden']").attr("name").split('_')[1];
+    } 
+    else {
+    // revert back to textbox if changed back
+    if (licenseInput.length === 0) {
 
-            row.find("td:eq(2)").html(
-                `<input type="text" 
-                        class="license-input"
-                        data-checkpoint="Licence copy obtained by Vendor under Contract Labour Act 1970"
-                        name="licenseNumber_${id}"
-                        placeholder="Enter License Number" />`
-            );
-        }
+        const id = row.find("input[type='hidden']").attr("name").split('_')[1];
+
+        // ✅ Replace dropdown with textbox
+        row.find("td:eq(2)").html(
+            `<input type="text" 
+                class="license-input"
+                data-checkpoint="Licence copy obtained by Vendor under Contract Labour Act 1970"
+                name="licenseNumber_${id}"
+                placeholder="Enter License Number" />`
+        );
+
+        // ✅ RESET VALID UPTO FIELD (IMPORTANT FIX)
+        const validUptoInput = row.find("input[name^='validUpto_']");
+
+        validUptoInput.val("");                // clear old auto date
+        toggleCalendar(validUptoInput, false); // 🔓 enable calendar
     }
+}
 });
-
 
 $(document).on("change", ".license-dropdown", function () {
 
     const row = $(this).closest("tr");
-
-    // ✅ IMPORTANT: send VALUE only if backend expects WC_CODE
     const licenseNumber = $(this).find("option:selected").text().trim();
+    const input = row.find("input[name^='validUpto_']");
 
-    const validUptoInput = row.find("input[name^='validUpto_']");
+    if (!licenseNumber) return toggleCalendar(input, false);
 
-    if (!licenseNumber) {
-        validUptoInput.val("");
-        return;
-    }
+    $.get("/CWFM/billVerification/getLicenseValidDate", { licenseNumber })
+        .done(function (res) {
 
-    $.ajax({
-        url: "/CWFM/billVerification/getLicenseValidDate",
-        type: "GET",
-        data: {
-            licenseNumber: licenseNumber
-        },
+            let date = (typeof res === "string") ? res : res?.wcToDtm;
 
-        success: function (response) {
-
-            console.log("Response:", response);
-
-            if (response) {
-
-                // handle both string & object safely
-                let dateValue = "";
-
-                if (typeof response === "string") {
-                    dateValue = response;
-                } else if (response.wcToDtm) {
-                    dateValue = response.wcToDtm;
-                }
-
-                if (dateValue) {
-                    validUptoInput.val(dateValue.split(" ")[0]); // only date
-                } else {
-                    validUptoInput.val("");
-                }
-
+            if (date) {
+                input.val(date.split(" ")[0]);
+                toggleCalendar(input, true);  // 🔒 disable
             } else {
-                validUptoInput.val("");
+                toggleCalendar(input, false); // 🔓 enable
             }
-        },
+        })
+        .fail(() => toggleCalendar(input, false));
+});
+function toggleCalendar(input, disable) {
 
-        error: function (xhr) {
-            console.log("ERROR:", xhr.responseText);
-            alert("Error fetching valid upto date");
-            validUptoInput.val("");
+    if (disable) {
+        // 🔒 AUTO MODE
+        input.prop("readonly", true).attr("data-auto", "1");
+
+        if (input.hasClass("hasDatepicker")) {
+            input.datepicker("destroy");
         }
-    });
+
+    } else {
+        // 🔓 MANUAL MODE
+
+        // ✅ CLEAR OLD AUTO VALUE (THIS IS YOUR FIX)
+        if (input.attr("data-auto") === "1") {
+            input.val("");   // ← clears previous auto date
+        }
+
+        input.prop("readonly", false).removeAttr("data-auto");
+
+        if (!input.hasClass("hasDatepicker")) {
+            input.datepicker(); // re-enable calendar
+        }
+    }
+}
+$(document).on("focus", "input[name^='validUpto_'][data-auto='1']", function (e) {
+    e.preventDefault();
+    this.blur();
 });
