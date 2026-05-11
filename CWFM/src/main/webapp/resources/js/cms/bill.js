@@ -540,7 +540,15 @@ function showFileNameBill(input, id) {
 	                    var row =
 	                        '<tr>' +
 	                            '<td><input type="checkbox" name="selectedWOs" value="' + (wo.wcTransId || '') + '"></td>' +
-	                            '<td>' + (wo.wcTransId || '') + '</td>' +
+	                              // Transaction ID Hyperlink
+                            '<td>' +
+                                '<a href="javascript:void(0);" ' +
+                                   'onclick="redirectToBillViewById(\'' + wo.wcTransId + '\')">' +
+                                   wo.wcTransId +
+                                '</a>' +
+                            '</td>' +
+                            
+	                           // '<td>' + (wo.wcTransId || '') + '</td>' +
 	                            '<td>' + (wo.unitCode || '') + '</td>' +
 	                            '<td>' + (wo.contractorCode || '') + '</td>' +
 	                            '<td>' + (wo.contractorName || '') + '</td>' +
@@ -1040,3 +1048,19 @@ $(document).on("focus", "input[name^='validUpto_'][data-auto='1']", function (e)
     e.preventDefault();
     this.blur();
 });
+function redirectToBillViewById(transactionId) {
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+    xhr.open("GET", "/CWFM/billVerification/view/" + transactionId, true);
+
+    xhr.send();
+}
