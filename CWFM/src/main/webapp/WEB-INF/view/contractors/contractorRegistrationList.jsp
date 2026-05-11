@@ -218,7 +218,8 @@
 					<tr>
 						<td ><input type="checkbox"
 							name="selectedWOs" value="${wo.contractorregId}"></td>
-						<td  >${wo.contractorregId}</td>
+						<%-- <td  >${wo.contractorregId}</td> --%>
+						<td><a href="javascript:void(0);" onclick="redirectToContractorRegViewById('${wo.contractorregId}')">${wo.contractorregId}</a></td>
 						<%-- <td  >${wo.principalEmployer}</td> --%>
 						<td  >${wo.vendorCode}</td>
 						<td  >${wo.contractorName}</td>

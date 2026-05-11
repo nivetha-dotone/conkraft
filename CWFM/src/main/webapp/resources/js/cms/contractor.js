@@ -1491,3 +1491,21 @@ function autoSelectAndTriggerContractorMaster(selectId) {
         select.dispatchEvent(new Event("change"));
     }
 }
+function redirectToContractorRegViewById(contractorregId) {
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+    xhr.open("GET",
+        "/CWFM/contractor/contractorview/" + contractorregId,
+        true);
+
+    xhr.send();
+}

@@ -633,7 +633,9 @@ function searchContRenewBasedOnPE() {
                     var row =
                         '<tr>' +
                             '<td><input type="checkbox" name="selectedWOs" value="' + (wo.contractorregId || '') + '"></td>' +
-                            '<td>' + (wo.contractorregId || '') + '</td>' +
+                            //'<td>' + (wo.contractorregId || '') + '</td>' +
+                                   // Transaction ID Hyperlink
+                            '<td>' + '<a href="javascript:void(0);" ' + 'onclick="redirectToContractorRenewViewById(\'' + wo.contractorregId + '\')">' + wo.contractorregId + '</a>' + '</td>' +
                             '<td>' + (wo.vendorCode || '') + '</td>' +
                             '<td>' + (wo.contractorName || '') + '</td>' +
                             '<td>' + (wo.statusValue || '') + '</td>' +
@@ -784,4 +786,19 @@ function autoSelectAndTriggerContractorRenewal(selectId) {
         // Trigger change so dependent dropdown loads
         select.dispatchEvent(new Event("change"));
     }
+}
+function redirectToContractorRenewViewById(contractorregId) {
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+    xhr.open("GET", "/CWFM/renewal/view/" + contractorregId, true);
+    xhr.send();
 }
