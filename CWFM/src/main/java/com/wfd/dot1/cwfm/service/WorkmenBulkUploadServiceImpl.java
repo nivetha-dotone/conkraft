@@ -12,10 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
@@ -23,6 +27,7 @@ import com.wfd.dot1.cwfm.dao.CommonDao;
 import com.wfd.dot1.cwfm.dao.FileUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenBulkUploadDao;
 import com.wfd.dot1.cwfm.dao.WorkmenDao;
+import com.wfd.dot1.cwfm.dao.WorkmenDaoImpl;
 import com.wfd.dot1.cwfm.dto.GatePassStatusLogDto;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
@@ -34,6 +39,8 @@ import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 @Service
 public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
+	
+	private static final Logger log = LoggerFactory.getLogger(WorkmenBulkUploadServiceImpl.class.getName());
 	
 	@Autowired
     private WorkmenBulkUploadDao workmenUploadDao;
@@ -47,6 +54,14 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	@Autowired
     private FileUploadDao fileUploadDao;
 
+	@Autowired
+	private WorkmenBulkUploadDao self;
+	
+	  @Transactional(
+	            propagation = Propagation.REQUIRES_NEW,
+	            rollbackFor = Exception.class
+	    )
+	  
 	@Override
 	public List<WorkmenBulkUpload> getAllWorkmenBulkUploadData() {
 		return workmenUploadDao.getAllWorkmenBulkUploadData();
@@ -347,10 +362,12 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	        	gatePassMain.setUserId(createdBy);
 	        	gatePassMain.setComments("Workmen Bulk Upload"); 
 	        	gatePassMain.setOnboardingType("regular");
+	        try {
 	        	String saveResult = workmenService.saveWorkmenBulkUploadGatePass(gatePassMain);
 
 	            if (saveResult == null) {
 	                errorData.add(Map.of("transactionId", txnId, "error", "Save failed"));
+	                self.updateErrorStatus(txnId,"Save failed");
 	                continue;
 	            }
 
@@ -384,7 +401,16 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	                successData.add(Map.of("transactionId", saveResult));
 	                workmenUploadDao.updateRecordProcessedByTransactionId(txnId);
 	            }
-	        }
+	        }catch (Exception e) {
+
+	            String errorMessage =e.getMessage() != null? e.getMessage(): "Unexpected error occurred";
+
+	            errorData.add(Map.of("transactionId", txnId, "error", errorMessage));
+
+	            // IMPORTANT: separate transaction update
+	            workmenUploadDao.updateErrorStatus(txnId, errorMessage);
+	         }
+	       }
 	    }
 	    return Map.of("successData", successData, "errorData", errorData);
 	

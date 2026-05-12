@@ -26,5 +26,7 @@ public interface WorkmenBulkUploadDao {
 	String getNextTransactionId();
 
 	List<WorkmenBulkUpload> getWorkmenDataByUnitIds(List<Long> unitIds);
+	
+	void updateErrorStatus(int txnId,String errorMessage);
 
 }

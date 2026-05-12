@@ -1260,6 +1260,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public GatePassMain getIndividualContractWorkmenDetailsByGatePassIdRenew(String gatePassId) {
 		return workmenDao.getIndividualContractWorkmenDetailsByGatePassIdRenew(gatePassId);
 	}
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public String saveWorkmenBulkUploadGatePass(GatePassMain gatePassMain) {
 		String transactionId =null;
@@ -1283,14 +1284,24 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 				 transactionId = workmenDao.saveGatePass(gatePassMain);
 
+				 if (transactionId == null) {
+		                throw new RuntimeException("Failed to save GatePass");
+		            }
 //				EmployeeRequestDTO employeeDTO = employeeMapper.mapFromGatePass(gatePassMain);
 //				String wfdResponse = wfdEmployeeService.createEmployee(employeeDTO);
 //				log.info("WFD Response: {}", wfdResponse);
 
-
-
+				 //if(null!= gatePassMain.getGatePassId){
+				 //to updateGatePassIdByEmpCode(gatePassMain);
+			//}else{
+				 
 				 String gatePassId = workmenDao.updateGatePassIdByTransactionId(transactionId);
+				 if (gatePassId == null) {
+		                throw new RuntimeException("Failed to update GatePassId");
+		            }
+
 				gatePassMain.setGatePassId(gatePassId);
+			//}
 				GatePassStatusLogDto dto =new GatePassStatusLogDto();
 				dto.setTransactionId(transactionId);
 				dto.setGatePassId(gatePassId);
@@ -1300,7 +1311,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 				dto.setUpdatedBy(gatePassMain.getUserId());
 				workmenDao.saveGatePassStatusLog(dto);
 				
-				boolean cmsDone = this.cmsPersonInsert(gatePassMain);
+				boolean cmsDone = this.cmsWorkmenBulkUploadPersonInsert(gatePassMain);
 
 		        if (!cmsDone) {
 		            throw new RuntimeException("CMS Person Insert failed unexpectedly.");
@@ -1319,7 +1330,7 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
-			
+			 throw new RuntimeException(e.getMessage());
 		}
 		return transactionId;
 	}
@@ -1635,6 +1646,36 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId,String contractorId) {
 		// TODO Auto-generated method stub
 		return workmenDao.getPolicyExpiryWorkmenReportData(unitId,contractorId);
+	}
+	public boolean cmsWorkmenBulkUploadPersonInsert(GatePassMain gpm) {
+
+	    long personId = saveIntoCMSPerson(gpm);
+
+	    if (personId <= 0) {
+	        throw new RuntimeException("CMSPERSON insert failed");
+	    }
+
+	    boolean jobHist = saveIntoCMSPERSONJOBHIST(gpm, personId);
+
+	    if (!jobHist) {
+	        throw new RuntimeException("CMSPERSONJOBHIST insert failed");
+	    }
+
+	    boolean status =saveCMSPERSONSTATUSMM(gpm, personId);
+
+	    if (!status) {
+	        throw new RuntimeException("CMSPERSONSTATUSMM insert failed");
+	    }
+
+	    gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+
+	    boolean custom =saveCMSPERSONCUSTOMDATA(gpm, personId);
+
+	    if (!custom) {
+	        throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed");
+	    }
+
+	    return true;
 	}
 	}
 

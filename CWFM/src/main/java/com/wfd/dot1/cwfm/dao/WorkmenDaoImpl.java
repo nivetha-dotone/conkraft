@@ -31,6 +31,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.dto.AadharCheckDto;
@@ -381,7 +382,7 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	public String getSaveContractWorkmen() {
 		 return QueryFileWatcher.getQuery("SAVE_CONTRACT_WORKMEN"); 
 	}
-	
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public String saveGatePass(GatePassMain gatePassMain) {
 	    log.info("Entering into saveGatePass dao method");
@@ -424,10 +425,12 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	                log.info("GatePass saved successfully for transId: " + transId);
 	            } else {
 	                log.warn("Failed to save GatePass for transId: " + transId);
+	                throw new RuntimeException("Failed to save GatePass transId: " + transId);
 	            }
 	        } catch (Exception e) {
 	            log.error("Error saving GatePass for transId: " + transId, e);
-	            return null;
+	            //return null;
+	            throw new RuntimeException(e);
 	        }
 	    
 	    }
@@ -1086,13 +1089,21 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
         try {
         	String query = getSaveGatePassStatusLog();
             int result = jdbcTemplate.update(query,parameters );
-            if (result > 0) {
-                log.info("GatePass status log saved successfully for GatePassId: " + dto.getGatePassId());
-            } else {
-                log.warn("Failed to save GatePass status log for GatePassId: " + dto.getGatePassId());
+//            if (result > 0) {
+//                log.info("GatePass status log saved successfully for GatePassId: " + dto.getGatePassId());
+//            } else {
+//                log.warn("Failed to save GatePass status log for GatePassId: " + dto.getGatePassId());
+//            }
+            if (result <= 0) {
+            	log.warn("Failed to save GatePass status log for GatePassId: " + dto.getGatePassId());
+                throw new RuntimeException("Failed to save GatePass status log: " + dto.getGatePassId());
+            }else {
+            	log.info("GatePass status log saved successfully for GatePassId: " + dto.getGatePassId());
             }
+
         } catch (Exception e) {
             log.error("Error saving GatePass status log for GatePassId: " + dto.getGatePassId(), e);
+            throw new RuntimeException(e);
         }
 		log.info("Exiting from saveGatePassStatusLog for gatePassId: "+dto.getGatePassId() );
 	}
@@ -1830,12 +1841,18 @@ public synchronized String updateGatePassIdByTransactionId(String transactionId)
 		Object[] object=new Object[]{gatePassId,transactionId};
 		String query = getUpdateGatepassid();
 		int i = jdbcTemplate.update(query,object);
-		if(i>0){
-			return gatePassId;
-		}
-		
+//		if(i>0){
+//			return gatePassId;
+//		}
+//		
+//	}
+//	return null;
+		 if (i <= 0) {
+		        throw new RuntimeException(
+		                "Failed to update GatePassId");
+		    }
 	}
-	return null;
+		    return gatePassId;
 }
 public String getContractWorkmenDetailsByTransId() {
 	return QueryFileWatcher.getQuery("GET_CONTRACT_WORKMEN_DETAILS_BY_TRANSID");
@@ -2666,7 +2683,7 @@ public String getTransactionIdByGPId(String gatepassid,String gatepasstypeid) {
 	}
 	return transactionId;
 }
-
+@Transactional(rollbackFor = Exception.class)
 @Override
 public long saveIntoCMSPerson(CMSPerson person) {
 	String sql= saveIntoCMSPerson();
@@ -2735,6 +2752,7 @@ public long saveIntoCMSPerson(CMSPerson person) {
 public String saveIntoCMSPERSONJOBHIST() {
 	return QueryFileWatcher.getQuery("SAVE_CMSPERSONJOBHIST");
 }
+@Transactional(rollbackFor = Exception.class)
 @Override
 public boolean saveIntoCMSPERSONJOBHIST(GatePassMain gpm, long employeeId) {
 	boolean result = false;
@@ -2760,6 +2778,7 @@ public boolean saveIntoCMSPERSONJOBHIST(GatePassMain gpm, long employeeId) {
 public String saveCMSPERSONSTATUSMM() {
 	return QueryFileWatcher.getQuery("SAVE_CMSPERSONSTATUSMM");
 }
+@Transactional(rollbackFor = Exception.class)
 @Override
 public boolean saveCMSPERSONSTATUSMM(GatePassMain gpm, long employeeId) {
 	
@@ -4191,7 +4210,7 @@ public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, Multipa
         return false;
     }
 }
-
+@Transactional(rollbackFor = Exception.class)
 @Override
 public boolean saveCMSPERSONCUSTDATA(GatePassMain gp, long employeeId) {
 

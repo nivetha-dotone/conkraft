@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -15,6 +17,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
@@ -27,10 +31,17 @@ import com.wfd.dot1.cwfm.enums.WorkFlowType;
 @Repository
 public class WorkmenBulkUploadDaoImpl implements WorkmenBulkUploadDao{
 	
+	private static final Logger log = LoggerFactory.getLogger(WorkmenBulkUploadDaoImpl.class.getName());
+	
 	@Autowired
     private JdbcTemplate jdbcTemplate;
 	@Autowired
     private WorkmenBulkUploadDao workmenUploadDao;
+	 @Transactional(
+	            propagation = Propagation.REQUIRES_NEW,
+	            rollbackFor = Exception.class
+	    )
+	 
 	
 	 public String getAllWorkmenBulkUploadList() {
 		    return QueryFileWatcher.getQuery("GET_ALL_WORKMEN_BULK_UPLOAD_LIST");
@@ -68,9 +79,9 @@ public class WorkmenBulkUploadDaoImpl implements WorkmenBulkUploadDao{
 	             .map(id -> "?")
 	             .collect(Collectors.joining(","));
 
-	     String sql = "SELECT cribu.TransactionID, cribu.FirstName, cribu.LastName, " +
-	             "cgm.GMNAME as Gender, cribu.DOB, cribu.AadharNumber, " +
-	             "cmsc.NAME AS vendorcode, cpe.NAME AS unitcode, cribu.RecordStatus " +
+	     String sql = "SELECT cribu.TransactionID as transactionid, cribu.FirstName as firstName, cribu.LastName as lastName, " +
+	             "cgm.GMNAME as gender , cribu.DOB as dateOfBirth, cribu.AadharNumber as aadhaarNumber, " +
+	             "cmsc.NAME AS vendorCode, cpe.NAME AS unitCode, cribu.RecordStatus as recordstatus " +
 	             "FROM CMSRequestItemBulkUpload cribu " +
 	             "LEFT JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UnitId = TRY_CAST(cribu.UnitId AS BIGINT) " +
 	             "LEFT JOIN CMSGENERALMASTER cgm ON cgm.GMID = TRY_CAST(cribu.Gender AS BIGINT) " +
@@ -252,5 +263,22 @@ public class WorkmenBulkUploadDaoImpl implements WorkmenBulkUploadDao{
 	    return null;
 	}
 
+	 @Override
+	    public void updateErrorStatus(int txnId, String errorMessage) {
+	  try {
+                  workmenUploadDao.updateRecordStatusByTransactionId(txnId,errorMessage);
 
+//          if (updated <= 0) {
+//              throw new RuntimeException(
+//                      "Failed to update error status for txnId: " + txnId);
+//          }
+
+      } catch (Exception e) {
+
+          // log but DO NOT throw further unless you want outer handling
+          log.error("Error while updating error status for txnId: "+ txnId,e);
+
+          throw new RuntimeException(e);
+      }
+  }
 }
