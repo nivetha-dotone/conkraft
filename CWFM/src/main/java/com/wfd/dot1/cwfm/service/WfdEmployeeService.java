@@ -730,6 +730,7 @@ public class WfdEmployeeService {
     public boolean checkLocationInUKG(String path) {
         try {
 
+            
             String encodedPath = path
 //                    .replace(" ", "%20")
                     .replace("&", "%26");

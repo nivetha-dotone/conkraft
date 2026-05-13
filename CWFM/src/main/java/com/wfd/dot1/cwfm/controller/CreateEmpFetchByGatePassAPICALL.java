@@ -69,6 +69,16 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     }
 
+
+    @GetMapping({"/schedularUpdateON"})
+    public void upOnBoardingSchedular() {
+        try {
+            this.employeeMapper.gatePassEmpDtoSchedularUpdate();
+        } catch (Exception var2) {
+        }
+
+    }
+
     @PostMapping("/encryptUserId")
     @ResponseBody
     public ResponseEntity<?> encryptUserId(@RequestParam("userId") String userId) {
@@ -92,7 +102,6 @@ public class CreateEmpFetchByGatePassAPICALL {
     @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
         Long gpTransactionId = null;
-
         try {
             gpTransactionId = Long.parseLong(trnId);
             String result = this.employeeMapper.gatePassEmpDtoDynamic(trnId);
@@ -131,9 +140,34 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
+        Long gpTransactionId = null;
         try {
-            String gatePassEmpDtoDynamic = this.employeeMapper.updatePassEmpDtoDynamic(trendId);
-            return gatePassEmpDtoDynamic != null ? new ResponseEntity(gatePassEmpDtoDynamic, HttpStatus.OK) : new ResponseEntity(HttpStatus.NOT_FOUND);
+            gpTransactionId = Long.parseLong(trendId);
+            String result = this.employeeMapper.updatePassEmpDtoDynamic(trendId);
+            if (result == null) {
+                this.passToOnBoardService.saveErrorTraceTrNOTUpdate(gpTransactionId, 200, "Transaction Id Not Found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction Id Not Found");
+            } else if (result.matches("\\d+")) {
+                Long personKey = Long.parseLong(result);
+                this.passToOnBoardService.saveSuccessTraceUpdate(gpTransactionId, personKey, 200);
+                return ResponseEntity.ok(result);
+            } else if (result.startsWith("STATUS:")) {
+                String[] parts = result.split("\n", 2);
+                int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
+                String body = parts.length > 1 ? parts[1] : "";
+                if (body.contains("WCO-101520") && body.contains("ID already exists")) {
+                    this.passToOnBoardService.saveErrorTraceTrNOTUpdate(gpTransactionId, 200, body);
+                } else if (body.contains("Transaction Id Not Found")) {
+                    this.passToOnBoardService.saveErrorTraceTrNOTUpdate(gpTransactionId, 200, body);
+                } else {
+                    this.passToOnBoardService.saveErrorTraceUpdate(gpTransactionId, statusCode, body);
+                }
+
+                return ResponseEntity.status(statusCode).body(body);
+            } else {
+                this.passToOnBoardService.saveErrorTraceUpdate(gpTransactionId, 500, result);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -154,7 +188,6 @@ public class CreateEmpFetchByGatePassAPICALL {
 
 
     @GetMapping({"/getVerifyLaborCat"})
-
     public ResponseEntity<?> verifyLaborCate(@RequestParam String Workorder
                                                ) {
         try {
@@ -186,6 +219,8 @@ public class CreateEmpFetchByGatePassAPICALL {
             throw new RuntimeException(e);
         }
     }
+
+
     @GetMapping("/personCheckViaUKGAUTH")
     public ResponseEntity<?> getDetailsofPerson(
             @RequestParam String username) {
@@ -328,6 +363,16 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+    @PostMapping({"/updateEmpStatusTerScheduleTrace"})
+    public ResponseEntity<Object> updateEmpStatusTerScheduleTrace() {
+        try {
+            Map<String, List<String>> response = this.employeeMapper.updateEmpstatusTrScheduleTrace();
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
     @GetMapping({"/checkWorkOrderExMAil"})
     public ResponseEntity<String> workorderMail() {
         try {
@@ -347,4 +392,5 @@ public class CreateEmpFetchByGatePassAPICALL {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending LL expiry emails: " + e.getMessage());
         }
     }
+
 }

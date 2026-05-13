@@ -53,6 +53,10 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getALLWorkmenTerminated");
     }
 
+    public String getListOfTrEmpStatusTrace() {
+        return QueryFileWatcher.getQuery("getALLWorkmenTerminatedTrace");
+    }
+
     public String getGTByTrnsIdProject() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY_PROJ");
     }
@@ -61,28 +65,56 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOST");
     }
 
+    public String getQuerytoFetchListNOTPOSTUpdate() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOSTUp");
+    }
+
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
+    }
+
+    public String getQueryInsertSuccessEntyUpdate() {
+        return QueryFileWatcher.getQuery("getWFDLogOKUpdate");
     }
 
     public String getQueryInsertSuccessEntyTr() {
         return QueryFileWatcher.getQuery("getWFDLogOKTr");
     }
 
+    public String getQueryInsertSuccessEntyTrTrace() {
+        return QueryFileWatcher.getQuery("getWFDLogOKTrUPTR");
+    }
+
     public String getQueryUpdateWFDLogOK() {
         return QueryFileWatcher.getQuery("getupdateWFDLogOK");
+    }
+    public String getQueryUpdateWFDLogOKONUP() {
+        return QueryFileWatcher.getQuery("getupdateWFDLogOKONBO");
     }
 
     public String getQueryInsertNotSuccess() {
         return QueryFileWatcher.getQuery("getWFDFLognotOK");
     }
 
+
+    public String getQueryInsertNotSuccessUpdate() {
+        return QueryFileWatcher.getQuery("getWFDFLognotOKUpdate");
+    }
+
     public String getQueryInsertNotSuccessTr() {
         return QueryFileWatcher.getQuery("getWFDFLognotOKTr");
     }
 
+    public String getQueryInsertNotSuccessTrTrace() {
+        return QueryFileWatcher.getQuery("getWFDFLognotOKTrTrace");
+    }
+
     public String getQueryInsertNotSuccesstrNot() {
         return QueryFileWatcher.getQuery("getWFDLognotOKtrNot");
+    }
+
+    public String getQueryInsertNotSuccesstrNotUpdate() {
+        return QueryFileWatcher.getQuery("getWFDLognotOKtrNotUpdate");
     }
 
     public String getQueryInsertNotSuccesstrNotTr() {
@@ -91,6 +123,11 @@ public class GatePassToOnBoardService {
 
     public String getQueryUpdateWFDNotSuccess() {
         return QueryFileWatcher.getQuery("getupdateWFDLognotOK");
+    }
+
+
+    public String getQueryUpdateWFDNotSuccessUPON() {
+        return QueryFileWatcher.getQuery("getupdateWFDLognotOKUPON");
     }
 
     public String getSKILLSByTrnsId() {
@@ -330,13 +367,28 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
     }
 
+    public void saveSuccessTraceUpdate(Long gpTransactionId, Long personId, Integer statusNumber) {
+        String sql = this.getQueryInsertSuccessEntyUpdate();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
+    }
+
     public void saveSuccessTraceTr(String gpTransactionId, Integer statusNumber) {
         String sql = this.getQueryInsertSuccessEntyTr();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber});
     }
 
+    public void saveSuccessTraceTrTrace(String gpTransactionId, Integer statusNumber) {
+        String sql = this.getQueryInsertSuccessEntyTrTrace();
+        this.jdbcTemplate.update(sql, new Object[]{statusNumber,gpTransactionId});
+    }
+
     public void updateSuccessTrace(Long gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
         String sql = this.getQueryUpdateWFDLogOK();
+        this.jdbcTemplate.update(sql, new Object[]{personId, statusNumber, gpTransactionId});
+    }
+
+    public void updateSuccessTraceUPON(Long gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
+        String sql = this.getQueryUpdateWFDLogOKONUP();
         this.jdbcTemplate.update(sql, new Object[]{personId, statusNumber, gpTransactionId});
     }
 
@@ -345,8 +397,19 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse, flag, gpTransactionId});
     }
 
+
+
+    public void updateErrorTraceUpdateON(Long gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
+        String sql = this.getQueryUpdateWFDNotSuccessUPON();
+        this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse, flag, gpTransactionId});
+    }
+
     public void saveErrorTrace(Long gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccess();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
+    }
+    public void saveErrorTraceUpdate(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccessUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
 
@@ -355,8 +418,18 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
 
+    public void saveErrorTraceTrTrace(String gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccessTrTrace();
+        this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse,gpTransactionId});
+    }
+
     public void saveErrorTraceTrNOT(Long gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccesstrNot();
+        this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
+    }
+
+    public void saveErrorTraceTrNOTUpdate(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+        String sql = this.getQueryInsertNotSuccesstrNotUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
 
@@ -365,6 +438,27 @@ public class GatePassToOnBoardService {
             log.info("Fetching TranscationId list for reschedule to post ");
             List<String> dtoTrList = new LinkedList();
             String queryGetOnBdByTranId = this.getQuerytoFetchListNOTPOST();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+
+            while(sqlRowSet.next()) {
+                String trId = sqlRowSet.getString("GPTranscationId");
+                dtoTrList.add(trId);
+            }
+
+            log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+ public List<String> getListOfTrReScheduleOnbUpdate() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<String> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchListNOTPOSTUpdate();
             log.info("query to get onboardDetails " + queryGetOnBdByTranId);
             SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
 
@@ -489,13 +583,37 @@ public class GatePassToOnBoardService {
         }
     }
 
+
+   public List<ActiveEmpStatusDto> updateEmpStatusTrScheduleTrace() {
+        try {
+            String query = this.getListOfTrEmpStatusTrace();
+            if (query == null) {
+                return null;
+            } else {
+                SqlRowSet rowSet = this.jdbcTemplate.queryForRowSet(query);
+                List<ActiveEmpStatusDto> list = new ArrayList();
+
+                while(rowSet.next()) {
+                    ActiveEmpStatusDto dto = this.buildEmpStatusDtoSchedular(rowSet.getString("GatePassId"), rowSet.getString("DOT"));
+                    list.add(dto);
+                }
+
+                return list.isEmpty() ? null : list;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private ActiveEmpStatusDto buildEmpStatusDtoSchedular(String gpId, String effectiveDate) {
         ActiveEmpStatusDto dto = new ActiveEmpStatusDto();
         ActiveEmpStatusDto.PersonInformation personInfo = new ActiveEmpStatusDto.PersonInformation();
         String employmentName = "Terminated";
         personInfo.setEmploymentStatusList(List.of(this.buildEmploymentStatus(employmentName, effectiveDate)));
+        personInfo.setUserAccountStatusList(List.of(this.buildUserAccountStatus(employmentName)));
         personInfo.setPerson(this.buildPersonData(gpId));
-        personInfo.setPersonLicenseTypes(this.buildLicenseTypes());
+        personInfo.setPersonLicenseTypes(this.buildLicenseTypesCHECK());
+
         dto.setPersonInformation(personInfo);
         return dto;
     }
@@ -521,13 +639,30 @@ public class GatePassToOnBoardService {
     }
 
     private ActiveEmpStatusDto buildEmpStatusDto(EmployeeStatusType status, String effectiveDate) {
+
         ActiveEmpStatusDto dto = new ActiveEmpStatusDto();
         ActiveEmpStatusDto.PersonInformation personInfo = new ActiveEmpStatusDto.PersonInformation();
+
         personInfo.setCustomDataList(List.of(this.buildCustomData(status.name())));
-        String employmentName = status != EmployeeStatusType.DEBLACKLIST && status != EmployeeStatusType.UNBLOCK ? "Terminated" : "Active";
-        personInfo.setEmploymentStatusList(List.of(this.buildEmploymentStatus(employmentName, effectiveDate)));
-        personInfo.setPersonLicenseTypes(this.buildLicenseTypes());
+
+        String employmentName =
+                (status == EmployeeStatusType.UNBLOCK ||
+                        status == EmployeeStatusType.DEBLACKLIST)
+                        ? "Active"
+                        : "Terminated";
+
+        personInfo.setEmploymentStatusList(
+                List.of(this.buildEmploymentStatus(employmentName, effectiveDate))
+        );
+
+        personInfo.setPersonLicenseTypes(this.buildLicenseTypesCHECK());
+
+        personInfo.setUserAccountStatusList(
+                List.of(this.buildUserAccountStatus(employmentName))
+        );
+
         dto.setPersonInformation(personInfo);
+
         return dto;
     }
 
@@ -564,9 +699,34 @@ public class GatePassToOnBoardService {
         status.setEffectiveDate(date);
         return status;
     }
+    private ActiveEmpStatusDto.UserAccountStatus buildUserAccountStatus(String name) {
+        ActiveEmpStatusDto.UserAccountStatus status = new ActiveEmpStatusDto.UserAccountStatus();
+        status.setUserAccountStatusName(name);
+        return status;
+    }
 
+    private List<ActiveEmpStatusDto.PersonLicenseType> buildLicenseTypesCHECK() {
+        String issandorpoc1 = getISSAND();
+
+        if (issandorpoc1 != null) {
+            issandorpoc1 = issandorpoc1.trim();
+        }
+
+        if ( "no".equalsIgnoreCase(issandorpoc1)) {
+         return   buildLicenseTypesPOC();
+        } else if ("yes".equalsIgnoreCase(issandorpoc1)) {
+           return buildLicenseTypes();
+        }else{
+            return null;
+        }
+
+
+    }
     private List<ActiveEmpStatusDto.PersonLicenseType> buildLicenseTypes() {
         return List.of(this.buildLicense("Employee"), this.buildLicense("Absence"), this.buildLicense("Hourly Timekeeping"), this.buildLicense("Scheduling"));
+    }
+    private List<ActiveEmpStatusDto.PersonLicenseType> buildLicenseTypesPOC() {
+        return List.of(this.buildLicense("Employee"), this.buildLicense("Absence"), this.buildLicense("Hourly Timekeeping"), this.buildLicense("Advanced Scheduling"));
     }
 
     private ActiveEmpStatusDto.PersonLicenseType buildLicense(String name) {

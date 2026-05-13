@@ -100,11 +100,11 @@ public class EmployeeMapper {
             personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
             dto.setPersonInformation(personInfo);
             EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
-            EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
-            wage.setEffectiveDate("2025-08-15");
-            wage.setExpirationDate("3000-01-01");
-            wage.setHourlyRate(20.15);
-            job.setBaseWageRates(Arrays.asList(wage));
+//            EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
+//            wage.setEffectiveDate("2025-08-15");
+//            wage.setExpirationDate("3000-01-01");
+//            wage.setHourlyRate(20.15);
+//            job.setBaseWageRates(Arrays.asList(wage));
             EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
             jobDetails.setPayRuleName("CW BAR MALE PR");
             jobDetails.setSupervisorName("Bharthi");
@@ -221,9 +221,7 @@ public class EmployeeMapper {
         }
     }
 
-    @Scheduled(
-            cron = "0 */15 * * * *"
-    )
+    @Scheduled( cron = "0 */15 * * * *" )
     @Transactional
     public synchronized void gatePassEmpDtoSchedular() {
         try {
@@ -259,6 +257,51 @@ public class EmployeeMapper {
             e.printStackTrace();
         }
     }
+
+
+
+
+
+    @Scheduled(
+            cron = "0 */15 * * * *"
+    )
+    @Transactional
+    public synchronized void gatePassEmpDtoSchedularUpdate() {
+        try {
+            List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListOfTrReScheduleOnbUpdate();
+            if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
+                return;
+            }
+
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+                System.out.println("Processing: " + gpTransactionId);
+
+                String result = this.updatePassEmpDtoDynamic(gpTransactionId);
+
+                if (result == null) {
+                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(Long.valueOf(gpTransactionId), 404, "Transaction Id Not Found", 1);
+
+                } else if (result.matches("\\d+")) {
+                    Long personKey = Long.parseLong(result);
+                    this.gatePassToOnBoardService.updateSuccessTraceUPON(Long.valueOf(gpTransactionId), personKey, 200, true);
+
+                } else if (result.startsWith("STATUS:")) {
+                    String[] parts = result.split("\n", 2);
+                    int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
+                    String body = parts.length > 1 ? parts[1] : "";
+
+                    Integer flag = (body.contains("WCO-101520") && body.contains("ID already exists")) ||
+                            body.contains("Transaction Id Not Found") ? 1 : 0;
+
+                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(Long.valueOf(gpTransactionId), statusCode, body, flag);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     public String postCertificTowfd(Integer gmId) {
         try {
@@ -362,6 +405,7 @@ public class EmployeeMapper {
         return dto == null ? "Employment status not updated" : this.wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
     }
 
+
     @Scheduled(
             cron = "0 0 10 * * ?"
     )
@@ -388,6 +432,48 @@ public class EmployeeMapper {
                     failedList.add("GPID: " + gpId + " → Exception: " + e.getMessage());
                     if (gpId != null) {
                         this.gatePassToOnBoardService.saveErrorTraceTr(gpId, 500, e.getMessage());
+                    }
+                }
+            }
+
+            result.put("SUCCESS", successList);
+            result.put("FAILED", failedList);
+            return result;
+        } else {
+            failedList.add("No Employment records found");
+            result.put("FAILED", failedList);
+            return result;
+        }
+    }
+
+
+    @Scheduled(
+            cron = "0 */15 * * * *"
+    )
+    @Transactional
+    public synchronized Map<String, List<String>> updateEmpstatusTrScheduleTrace() {
+        List<ActiveEmpStatusDto> dtoList = this.gatePassToOnBoardService.updateEmpStatusTrScheduleTrace();
+        Map<String, List<String>> result = new HashMap();
+        List<String> successList = new ArrayList();
+        List<String> failedList = new ArrayList();
+        if (dtoList != null && !dtoList.isEmpty()) {
+            for(ActiveEmpStatusDto dt : dtoList) {
+                String gpId = dt.getPersonInformation().getPerson().getPersonNumber();
+                String gpTransactionId = gpId;
+
+                try {
+                    WfdResponse res = this.wfdEmployeeService.updateEmpStatusTarminateSch(dt, gpId);
+                    if (res.isSuccess()) {
+                        successList.add("GPID: " + gpId + " → Updated Successfully");
+                        this.gatePassToOnBoardService.saveSuccessTraceTrTrace(gpTransactionId, 200);
+                    } else {
+                        failedList.add("GPID: " + gpId + " → Failed: " + res.getMessage());
+                        this.gatePassToOnBoardService.saveErrorTraceTrTrace( gpTransactionId,500, res.getMessage());
+                    }
+                } catch (Exception e) {
+                    failedList.add("GPID: " + gpId + " → Exception: " + e.getMessage());
+                    if (gpId != null) {
+                        this.gatePassToOnBoardService.saveErrorTraceTrTrace(gpId,500, e.getMessage());
                     }
                 }
             }
@@ -752,11 +838,11 @@ public String getTokenCheck(String username, String password){
                 personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
                 dto.setPersonInformation(personInfo);
                 EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
-                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
-                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-                wage.setExpirationDate("3000-01-01");
-                wage.setHourlyRate(20.15);
-                job.setBaseWageRates(Arrays.asList(wage));
+//                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
+//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                wage.setExpirationDate("3000-01-01");
+//                wage.setHourlyRate(20.15);
+//                job.setBaseWageRates(Arrays.asList(wage));
                 EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
                 jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
                 jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName());
@@ -830,7 +916,11 @@ public String getTokenCheck(String username, String password){
                 user.setUserAccount(userAcc);
                 dto.setUser(user);
                 return dto != null ? dto : null;
-            } else if ("yes".equalsIgnoreCase(issandorpoc1) && individualOnBoardDetailsByTrnId != null)  {
+            }
+
+
+            else if ("yes".equalsIgnoreCase(issandorpoc1) && individualOnBoardDetailsByTrnId != null)
+            {
                 EmployeeRequestDTO dto = new EmployeeRequestDTO();
                 EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
                 EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
@@ -1062,11 +1152,11 @@ public String getTokenCheck(String username, String password){
                 personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
                 dto.setPersonInformation(personInfo);
                 EmployeeRequestDTO.JobAssignment job = new EmployeeRequestDTO.JobAssignment();
-                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
-                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-                wage.setExpirationDate("3000-01-01");
-                wage.setHourlyRate(20.15);
-                job.setBaseWageRates(Arrays.asList(wage));
+//                EmployeeRequestDTO.BaseWageRate wage = new EmployeeRequestDTO.BaseWageRate();
+//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                wage.setExpirationDate("3000-01-01");
+//                wage.setHourlyRate(20.15);
+//                job.setBaseWageRates(Arrays.asList(wage));
                 EmployeeRequestDTO.JobAssignmentDetails jobDetails = new EmployeeRequestDTO.JobAssignmentDetails();
                 jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
                 jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName());
@@ -1147,8 +1237,8 @@ public String getTokenCheck(String username, String password){
                 user.setUserAccount(userAcc);
                 dto.setUser(user);
                 return dto != null ? dto : null;
-            } else
-            {
+            }
+            else{
                 return null;
             }
         } catch (Exception e) {
@@ -1302,9 +1392,359 @@ public String getTokenCheck(String username, String password){
     }
 
     public UpdateEmployeeRequestDTO gatePassUpdateEmpDto(String GatePassId) {
+
+
+
         try {
             GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnId(GatePassId);
-            if (individualOnBoardDetailsByTrnId != null) {
+            String issandorpoc1 = getISSANDORPOC();
+
+            if (issandorpoc1 != null) {
+                issandorpoc1 = issandorpoc1.trim();
+            }
+
+
+            if (individualOnBoardDetailsByTrnId != null && "no".equalsIgnoreCase(issandorpoc1)) {
+                UpdateEmployeeRequestDTO dto = new UpdateEmployeeRequestDTO();
+                UpdateEmployeeRequestDTO.PersonInformation personInfo = new UpdateEmployeeRequestDTO.PersonInformation();
+                UpdateEmployeeRequestDTO.AccessAssignment access = new UpdateEmployeeRequestDTO.AccessAssignment();
+                access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
+                access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
+                access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
+                access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());
+                access.setShiftCodeName(individualOnBoardDetailsByTrnId.getShiftCodeName());
+                personInfo.setAccessAssignment(access);
+                UpdateEmployeeRequestDTO.EmailAddress email = new UpdateEmployeeRequestDTO.EmailAddress();
+                email.setAddress(individualOnBoardDetailsByTrnId.getAddressEmail());
+                email.setContactTypeName(individualOnBoardDetailsByTrnId.getContactTypeName());
+                email.setHasEmailNotificationDelivery(false);
+                personInfo.setEmailAddresses(Arrays.asList(email));
+                UpdateEmployeeRequestDTO.EmploymentStatus empStatus = new UpdateEmployeeRequestDTO.EmploymentStatus();
+                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
+                empStatus.setExpirationDate("3000-01-01");
+                personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
+                UpdateEmployeeRequestDTO.Person person = new UpdateEmployeeRequestDTO.Person();
+                person.setHireDate(individualOnBoardDetailsByTrnId.getHireDate());
+                person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
+                person.setBirthDate(individualOnBoardDetailsByTrnId.getBirthDate());
+                String firstName = individualOnBoardDetailsByTrnId.getFirstName() != null ? individualOnBoardDetailsByTrnId.getFirstName().trim() : "";
+                String lastName = individualOnBoardDetailsByTrnId.getLastName() != null ? individualOnBoardDetailsByTrnId.getLastName().trim() : "";
+                if (lastName.isEmpty()) {
+                    lastName = ".";
+                }
+
+                person.setFirstName(firstName);
+                person.setLastName(lastName);
+                String fullName = firstName;
+                if (!lastName.equals(".")) {
+                    fullName = firstName + " " + lastName;
+                }
+
+                person.setFullName(fullName);
+                String shortName = firstName;
+                if (!lastName.equals(".")) {
+                    shortName = firstName + " " + lastName.substring(0, 1);
+                }
+
+                person.setShortName(individualOnBoardDetailsByTrnId.getShortName());
+                personInfo.setPerson(person);
+                ArrayList<UpdateEmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
+                if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO gender = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    gender.setCustomDataTypeName("Gender");
+                    gender.setText(individualOnBoardDetailsByTrnId.getGender());
+                    addCustomeList.add(gender);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getAadharNumber() != null && !individualOnBoardDetailsByTrnId.getAadharNumber().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO aadharNumber = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    aadharNumber.setCustomDataTypeName("Aadhaar Number");
+                    aadharNumber.setText(individualOnBoardDetailsByTrnId.getAadharNumber());
+                    addCustomeList.add(aadharNumber);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getAadharName() != null && !individualOnBoardDetailsByTrnId.getAadharName().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO aadharName = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    aadharName.setCustomDataTypeName("Name as per Aadhaar");
+                    aadharName.setText(individualOnBoardDetailsByTrnId.getAadharName());
+                    addCustomeList.add(aadharName);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getRelativeName() != null && !individualOnBoardDetailsByTrnId.getRelativeName().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO relativeName = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    relativeName.setCustomDataTypeName("Father’s or Husband’s Name");
+                    relativeName.setText(individualOnBoardDetailsByTrnId.getRelativeName());
+                    addCustomeList.add(relativeName);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getAddress() != null && !individualOnBoardDetailsByTrnId.getAddress().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentAddress.setCustomDataTypeName("Permanent Address");
+                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getAddress());
+                    addCustomeList.add(permanentAddress);
+                }
+
+//                if (individualOnBoardDetailsByTrnId.getPermanentDistrict() != null && !individualOnBoardDetailsByTrnId.getPermanentDistrict().isEmpty()) {
+//                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent District");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentDistrict());
+//                    addCustomeList.add(permanentDistrict);
+//                }
+//
+//                if (individualOnBoardDetailsByTrnId.getPermanentState() != null && !individualOnBoardDetailsByTrnId.getPermanentState().isEmpty()) {
+//                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent State");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentState());
+//                    addCustomeList.add(permanentDistrict);
+//                }
+//
+//                if (individualOnBoardDetailsByTrnId.getPermanentPincode() != null && !individualOnBoardDetailsByTrnId.getPermanentPincode().isEmpty()) {
+//                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Permanent Pin code");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPermanentPincode());
+//                    addCustomeList.add(permanentDistrict);
+//                }
+
+                if (individualOnBoardDetailsByTrnId.getIdMark() != null && !individualOnBoardDetailsByTrnId.getIdMark().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Identification Mark");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getUanNumber() != null && !individualOnBoardDetailsByTrnId.getUanNumber().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("UAN Number");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getUanNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getMaritalStatus() != null && !individualOnBoardDetailsByTrnId.getMaritalStatus().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Marital Status");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getMaritalStatus());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getTechnical() != null && !individualOnBoardDetailsByTrnId.getTechnical().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Technical Qualification");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getTechnical());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getAcademic() != null && !individualOnBoardDetailsByTrnId.getAcademic().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Academic Qualification");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAcademic());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+//                if (individualOnBoardDetailsByTrnId.getShoeSize() != null && !individualOnBoardDetailsByTrnId.getShoeSize().isEmpty()) {
+//                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+//                    permanentDistrict.setCustomDataTypeName("Shoe Size");
+//                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getShoeSize());
+//                    addCustomeList.add(permanentDistrict);
+//                }
+
+                if (individualOnBoardDetailsByTrnId.getBloodGroup() != null && !individualOnBoardDetailsByTrnId.getBloodGroup().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Blood Group");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBloodGroup());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Workmen Type");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
+                    addCustomeList.add(permanentDistrict);
+                }
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Onboarding Type");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("ESIC IP Number");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getESICIPNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Accommodation");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccommodation());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Identification Mark");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getNatureOfJob() != null && !individualOnBoardDetailsByTrnId.getNatureOfJob().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Nature of Job OR Work");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getNatureOfJob());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getPanNumber() != null && !individualOnBoardDetailsByTrnId.getPanNumber().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("PAN Number");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPanNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getPfNumber() != null && !individualOnBoardDetailsByTrnId.getPfNumber().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("PF Number");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getPfNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getAccountNumber() != null && !individualOnBoardDetailsByTrnId.getAccountNumber().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Bank Account Number");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccountNumber());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getBankName() != null && !individualOnBoardDetailsByTrnId.getBankName().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("Bank Name");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getBankName());
+                    addCustomeList.add(permanentDistrict);
+                }
+
+                if (individualOnBoardDetailsByTrnId.getIfscCode() != null && !individualOnBoardDetailsByTrnId.getIfscCode().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentDistrict.setCustomDataTypeName("IFSC Code");
+                    permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIfscCode());
+                    addCustomeList.add(permanentDistrict);
+                }
+//                if (individualOnBoardDetailsByTrnId.getOnboardingType() != null && !individualOnBoardDetailsByTrnId.getOnboardingType().isEmpty()) {
+//                    UpdateEmployeeRequestDTO.CustomDataDTO onboardingType = new UpdateEmployeeRequestDTO.CustomDataDTO();
+//                    onboardingType.setCustomDataTypeName("IFSC Code");
+//                    onboardingType.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
+//                    addCustomeList.add(onboardingType);
+//                }
+
+                personInfo.setCustomDataList(addCustomeList);
+                UpdateEmployeeRequestDTO.PersonAuthenticationType auth = new UpdateEmployeeRequestDTO.PersonAuthenticationType();
+                auth.setActiveFlag(true);
+                auth.setAuthenticationTypeName("Basic");
+                personInfo.setPersonAuthenticationTypes(Arrays.asList(auth));
+                UpdateEmployeeRequestDTO.PersonLicenseType licenseEmployee = new UpdateEmployeeRequestDTO.PersonLicenseType();
+                licenseEmployee.setActiveFlag(true);
+                licenseEmployee.setLicenseTypeName("Employee");
+                UpdateEmployeeRequestDTO.PersonLicenseType licenseAbsence = new UpdateEmployeeRequestDTO.PersonLicenseType();
+                licenseAbsence.setActiveFlag(true);
+                licenseAbsence.setLicenseTypeName("Absence");
+                UpdateEmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new UpdateEmployeeRequestDTO.PersonLicenseType();
+                licensehourlyTimekeeping.setActiveFlag(true);
+                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+                UpdateEmployeeRequestDTO.PersonLicenseType licenseScheduling = new UpdateEmployeeRequestDTO.PersonLicenseType();
+                licenseScheduling.setActiveFlag(true);
+                licenseScheduling.setLicenseTypeName("Advanced Scheduling");
+                UpdateEmployeeRequestDTO.PersonLicenseType licenseAnalytics = new UpdateEmployeeRequestDTO.PersonLicenseType();
+                licenseAnalytics.setActiveFlag(true);
+                licenseAnalytics.setLicenseTypeName("Analytics");
+                personInfo.setPersonLicenseTypes(Arrays.asList(licenseEmployee, licenseAbsence, licensehourlyTimekeeping, licenseScheduling,licenseAnalytics));
+                UpdateEmployeeRequestDTO.UserAccountStatus userStatus = new UpdateEmployeeRequestDTO.UserAccountStatus();
+                userStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                userStatus.setExpirationDate("3000-01-01");
+                userStatus.setUserAccountStatusName(individualOnBoardDetailsByTrnId.getUserAccountStatus());
+                personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
+                dto.setPersonInformation(personInfo);
+                UpdateEmployeeRequestDTO.JobAssignment job = new UpdateEmployeeRequestDTO.JobAssignment();
+//                UpdateEmployeeRequestDTO.BaseWageRate wage = new UpdateEmployeeRequestDTO.BaseWageRate();
+//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                wage.setExpirationDate("3000-01-01");
+//                wage.setHourlyRate(20.15);
+//                job.setBaseWageRates(Arrays.asList(wage));
+                UpdateEmployeeRequestDTO.JobAssignmentDetails jobDetails = new UpdateEmployeeRequestDTO.JobAssignmentDetails();
+                jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
+                jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName());
+                jobDetails.setSupervisorPersonNumber(individualOnBoardDetailsByTrnId.getSupervisorPersonNumber());
+                jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
+                job.setJobAssignmentDetails(jobDetails);
+                UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
+                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                labor.setExpirationDate("3000-01-01");
+
+                boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
+                System.out.println(b +" :- avaiable to set");
+                if(b){
+
+                    String category = individualOnBoardDetailsByTrnId.getCategory();
+                    System.out.println(category +" get from query workorder");
+
+                    if (category != null && !category.isEmpty()) {
+                        labor.setLaborCategoryName(category);
+                        System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
+                    }
+
+                }else{
+                    System.out.println(individualOnBoardDetailsByTrnId.getCategory() +"going for create workorder");
+                    PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
+                    String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
+                    System.out.println(laborCatInWFD +"check that successfull or not");
+                    if (laborCatInWFD != null &&
+                            (laborCatInWFD.startsWith("SUCCESS") || laborCatInWFD.contains("This name is already")))
+                    {  String category = individualOnBoardDetailsByTrnId.getCategory();
+                        if (category != null && !category.isEmpty()) {
+//                            labor.setLaborCategoryName(category + ",,,,,");
+                            labor.setLaborCategoryName(category);
+                            System.out.println("format of to set labour category to post :- "+labor.getLaborCategoryName());
+                        }
+                    }
+
+                }
+                System.out.println(labor.getLaborCategoryName() +" :- final set json");
+
+
+
+
+                String skill = individualOnBoardDetailsByTrnId.getSkill();
+                boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                System.out.println("check job found or not - "+ checkJob);
+
+                if(!checkJob){
+                    PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
+                    this.wfdEmployeeService.createJobInWFD(jobByname);
+                    System.out.println("created job - "+ checkJob);
+                }
+                boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                System.out.println("job check again found or not -"+checkJob);
+
+
+                String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+                System.out.println(orgPath);
+
+
+                labor.setOrganizationPath(
+                        resolveOrganizationPath1(orgPath)
+                );
+                job.setPrimaryLaborAccounts(Arrays.asList(labor));
+                dto.setJobAssignment(job);
+                UpdateEmployeeRequestDTO.User user = new UpdateEmployeeRequestDTO.User();
+                UpdateEmployeeRequestDTO.UserAccount userAcc = new UpdateEmployeeRequestDTO.UserAccount();
+                userAcc.setLogonProfileName(individualOnBoardDetailsByTrnId.getLogonProfileName());
+                userAcc.setUserName(individualOnBoardDetailsByTrnId.getUserAccountName());
+                userAcc.setUserPassword(individualOnBoardDetailsByTrnId.getUserPassword());
+                user.setUserAccount(userAcc);
+                dto.setUser(user);
+                return dto != null ? dto : null;
+            }
+            else if ("yes".equalsIgnoreCase(issandorpoc1) && individualOnBoardDetailsByTrnId != null)
+            {
                 UpdateEmployeeRequestDTO dto = new UpdateEmployeeRequestDTO();
                 UpdateEmployeeRequestDTO.PersonInformation personInfo = new UpdateEmployeeRequestDTO.PersonInformation();
                 UpdateEmployeeRequestDTO.AccessAssignment access = new UpdateEmployeeRequestDTO.AccessAssignment();
@@ -1517,7 +1957,14 @@ public String getTokenCheck(String username, String password){
                 licenseAbsence.setLicenseTypeName("Absence");
                 UpdateEmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new UpdateEmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+                if (!String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) && !String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())) {
+                    if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
+                        licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
+                    }
+                } else {
+                    licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
+                }
+
                 UpdateEmployeeRequestDTO.PersonLicenseType licenseScheduling = new UpdateEmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
                 licenseScheduling.setLicenseTypeName("Scheduling");
@@ -1529,11 +1976,11 @@ public String getTokenCheck(String username, String password){
                 personInfo.setUserAccountStatusList(Arrays.asList(userStatus));
                 dto.setPersonInformation(personInfo);
                 UpdateEmployeeRequestDTO.JobAssignment job = new UpdateEmployeeRequestDTO.JobAssignment();
-                UpdateEmployeeRequestDTO.BaseWageRate wage = new UpdateEmployeeRequestDTO.BaseWageRate();
-                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
-                wage.setExpirationDate("3000-01-01");
-                wage.setHourlyRate(20.15);
-                job.setBaseWageRates(Arrays.asList(wage));
+//                UpdateEmployeeRequestDTO.BaseWageRate wage = new UpdateEmployeeRequestDTO.BaseWageRate();
+//                wage.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+//                wage.setExpirationDate("3000-01-01");
+//                wage.setHourlyRate(20.15);
+//                job.setBaseWageRates(Arrays.asList(wage));
                 UpdateEmployeeRequestDTO.JobAssignmentDetails jobDetails = new UpdateEmployeeRequestDTO.JobAssignmentDetails();
                 jobDetails.setPayRuleName(individualOnBoardDetailsByTrnId.getPayRuleName());
                 jobDetails.setSupervisorName(individualOnBoardDetailsByTrnId.getSupervisorName());
@@ -1543,7 +1990,67 @@ public String getTokenCheck(String username, String password){
                 UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
                 labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 labor.setExpirationDate("3000-01-01");
-                labor.setOrganizationPath("DOT1 Solutions Pvt Ltd/Banglore/Main Plant/IT/IT/General/Bravispach/Team Lead");
+
+                boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
+                System.out.println(b +" :- avaiable to set");
+                if(b){
+
+                    String category = individualOnBoardDetailsByTrnId.getCategory();
+                    System.out.println(category +" get from query workorder");
+
+                    if (category != null && !category.isEmpty()) {
+                        labor.setLaborCategoryName(category + ",,,,,");
+                        System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
+                    }
+
+                }else{
+                    System.out.println(individualOnBoardDetailsByTrnId.getCategory() +"going for create workorder");
+                    PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
+                    String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
+                    System.out.println(laborCatInWFD +"check that successfull or not");
+                    if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
+                        String category = individualOnBoardDetailsByTrnId.getCategory();
+                        if (category != null && !category.isEmpty()) {
+                            labor.setLaborCategoryName(category + ",,,,,");
+                            System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
+                        }
+                    }
+
+                }
+                System.out.println(labor.getLaborCategoryName() +" :- final set json");
+
+
+                String issandorpoc = getISSANDORPOC();
+                String orgPath = "";
+                if (issandorpoc != null) {
+                    issandorpoc = issandorpoc.trim();
+
+                }
+                if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+                    String var10000 = individualOnBoardDetailsByTrnId.getLocation();
+                    orgPath= var10000 + "/" + individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getPlantLocation() + "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" + individualOnBoardDetailsByTrnId.getSubSection() + "/" + individualOnBoardDetailsByTrnId.getContractorCode() + "/Team Lead";
+
+                } else if ("no".equalsIgnoreCase(issandorpoc)) {
+
+                    String skill = individualOnBoardDetailsByTrnId.getSkill();
+                    boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                    if(!checkJob){
+                        PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
+                        String jobInWFD = this.wfdEmployeeService.createJobInWFD(jobByname);
+
+
+                    }
+                    orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+
+                }else{
+
+                }
+                System.out.println(orgPath);
+
+                labor.setOrganizationPath(
+                        resolveOrganizationPath1(orgPath)
+                );
                 job.setPrimaryLaborAccounts(Arrays.asList(labor));
                 dto.setJobAssignment(job);
                 UpdateEmployeeRequestDTO.User user = new UpdateEmployeeRequestDTO.User();
@@ -1554,7 +2061,11 @@ public String getTokenCheck(String username, String password){
                 user.setUserAccount(userAcc);
                 dto.setUser(user);
                 return dto != null ? dto : null;
-            } else {
+            }
+
+
+
+            else {
                 return null;
             }
         } catch (Exception e) {
@@ -1565,17 +2076,55 @@ public String getTokenCheck(String username, String password){
     public String updatePassEmpDtoDynamic(String GatePassId) {
         try {
             UpdateEmployeeRequestDTO employeeRequestDTO = this.gatePassUpdateEmpDto(GatePassId);
-            if (employeeRequestDTO != null) {
-                String employee = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
-                if (employee != null) {
-                    SkillProLevelDateDTO skillPRoLevelDate = this.getSkillPRoLevelDate(GatePassId);
-                    String s = this.wfdEmployeeService.addPersonSkill(skillPRoLevelDate.getPersonNumber(), skillPRoLevelDate.getSkill(), skillPRoLevelDate.getProficiencyLevel(), skillPRoLevelDate.getEffectiveDate());
-                    return employee + "*******************************************" + s;
-                } else {
-                    return "Issue in Json or API";
-                }
+            if (employeeRequestDTO == null) {
+                return "STATUS:400\nTransaction Id Not Found";
             } else {
-                return "Not fount transcation Id";
+
+                String employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
+                String[] parts = employeeResponse.split("\nBODY:", 2);
+                if (parts.length < 2) {
+                    return "STATUS:500\nInvalid response format";
+                } else {
+                    int statusCode = Integer.parseInt(parts[0].replace("STATUS:", "").trim());
+                    String body = parts[1];
+                    if (statusCode != 200) {
+                        return "STATUS:" + statusCode + "\n" + body;
+                    } else {
+                        JsonNode rootNode = this.objectMapper.readTree(body);
+                        JsonNode personKeyNode = rootNode.path("personIdentity").path("personKey");
+                        if (!personKeyNode.isMissingNode() && !personKeyNode.isNull()) {
+                            Long personKey = personKeyNode.asLong();
+                            SkillProLevelDateDTO skillData = this.getSkillPRoLevelDate(GatePassId);
+                            if (skillData == null) {
+                                return "STATUS:400\nSkill data not found from SQL query";
+                            } else {
+                                String skillName = skillData.getSkill();
+                                String profName = skillData.getProficiencyLevel();
+                                if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
+                                    PostSkillWfd postSkill = new PostSkillWfd();
+                                    postSkill.setName(skillName);
+                                    this.wfdEmployeeService.createSkillsInWFD(postSkill);
+                                }
+
+                                if (!this.wfdEmployeeService.verifyProfInWFD(profName)) {
+                                    System.out.println("going for create Prof"+profName);
+                                    ProficiencyDTO profDto = new ProficiencyDTO();
+                                    profDto.setId(329);
+                                    profDto.setActive(true);
+                                    profDto.setProficiencyLevelNumeric(329);
+                                    profDto.setVersion(0);
+                                    profDto.setName(profName);
+                                    this.wfdEmployeeService.createProfInWFD(profDto);
+                                }
+
+                                this.wfdEmployeeService.addPersonSkill(skillData.getPersonNumber(), skillName, profName, skillData.getEffectiveDate());
+                                return personKey.toString();
+                            }
+                        } else {
+                            return "STATUS:400\n" + body;
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
