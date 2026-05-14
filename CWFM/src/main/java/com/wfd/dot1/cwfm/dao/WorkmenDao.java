@@ -262,4 +262,6 @@ public interface WorkmenDao {
 	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId);
 
 	boolean updateGatePassMainDOJ(String gatePassId, String doj);
+
+	public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId);
 }

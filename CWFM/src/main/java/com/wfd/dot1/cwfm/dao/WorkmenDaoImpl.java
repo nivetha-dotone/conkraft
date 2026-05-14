@@ -3593,7 +3593,7 @@ private Object[] prepareRenewGatePassParameters1(String transId, GatePassMain ga
         0,
         gatePassMain.getComments()!=null?gatePassMain.getComments():"",
         		gatePassMain.getAddress()!=null?gatePassMain.getAddress():"",
-        				gatePassMain.getDoj(),gatePassMain.getPfApplicable(),gatePassMain.getPoliceVerificationDate(),gatePassMain.getDot(),
+        				gatePassMain.getPfApplicable(),gatePassMain.getPoliceVerificationDate(),gatePassMain.getDot(),
         gatePassMain.getUserId(),gatePassMain.getLlNo(),
         gatePassMain.getAadharDocName(),gatePassMain.getPhotoName(),gatePassMain.getBankDocName(),
         gatePassMain.getPoliceVerificationDocName(),gatePassMain.getIdProof2DocName(),gatePassMain.getMedicalDocName(),
@@ -4603,5 +4603,67 @@ public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String un
                     return dto;
                 }
             });
+}
+@Override
+public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId) {
+
+    try {
+
+    	 // STEP 1: Get data from GATEPASSMAIN
+        String fetchSql ="select DOJ from GATEPASSMAIN where GatePassId=?";
+               
+
+        GatePassMain data = jdbcTemplate.queryForObject(
+                fetchSql,
+                new Object[]{gpm.getGatePassId()},
+                (rs, rowNum) -> {
+
+                    GatePassMain gp = new GatePassMain();
+                    gp.setDoj(rs.getString("DOJ"));
+                    return gp;
+                }
+        );
+    	
+        // STEP 1: Expire existing record
+        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
+               
+
+        jdbcTemplate.update(updateSql, personId);
+
+        // STEP 2: Insert new record
+        String insertSql =
+                "INSERT INTO CMSPERSONJOBHIST ( " +
+                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+
+        int inserted = jdbcTemplate.update(
+                insertSql,
+                personId,
+                gpm.getTrade(),
+                gpm.getSkill(),
+                gpm.getUnitId(),
+                gpm.getContractor(),
+                gpm.getDepartment(),
+                gpm.getSubdepartment(),
+                gpm.getWorkorder(),
+                gpm.getEic(),
+               // java.sql.Date.valueOf(gpm.getDoj()),
+                data.getDoj(),
+                java.sql.Date.valueOf("3000-01-01")
+        );
+
+        if (inserted == 0) {
+            log.error("Insert failed in CMSPERSONJOBHIST for personid = {}", personId);
+            throw new RuntimeException("Insert failed for personid = " + personId);
+        }
+
+        return true;
+
+    } catch (Exception e) {
+
+        log.error("Error in bulk renew for personid: {}", personId, e);
+        throw new RuntimeException("Failed CMSPERSONJOBHIST bulk renew", e);
+    }
 }
 }

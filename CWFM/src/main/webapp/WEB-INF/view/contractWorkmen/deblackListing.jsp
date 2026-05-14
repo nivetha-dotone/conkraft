@@ -317,7 +317,14 @@
        data-transaction="${wo.transactionId}"
        data-gatepass="${wo.gatePassId}"
        data-type="${wo.gatePassType}"></td>
-												<td  > ${ wo.transactionId } </td> 
+												<%-- <td  > ${ wo.transactionId } </td> --%> 
+												 			<td>
+    <a href="#"
+       class="transaction-link"
+       onclick="redirectToWorkmenDeblackViewLink('${wo.gatePassId}'); return false;">
+        ${wo.transactionId}
+    </a>
+</td>
 												 <td  > ${ wo.gatePassId } </td> 
 					                              <td  > ${ wo.firstName } ${ wo.lastName}  </td> 
 												 

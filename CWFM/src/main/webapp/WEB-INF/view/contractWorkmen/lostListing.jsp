@@ -259,7 +259,14 @@
             <c:forEach items="${GatePassListingDto}" var="wo" >
             <tr>
             <td  ><input type="checkbox" name="selectedWOs" value="${wo.transactionId}"></td>
-												<td  > ${ wo.transactionId } </td> 
+												<%-- <td  > ${ wo.transactionId } </td> --%> 
+															<td>
+    <a href="#"
+       class="transaction-link"
+       onclick="redirectToWorkmenLostViewLink('${wo.gatePassId}'); return false;">
+        ${wo.transactionId}
+    </a>
+</td>
 												 <td  > ${ wo.gatePassId } </td> 
 					                              <td  > ${ wo.firstName } ${ wo.lastName}  </td> 
 												 

@@ -1421,6 +1421,7 @@ if (!validateFiles(aadharFile || existingAadhar,policeFile || existingPolice,pro
             disability:$("#disability").val(),
             workmenType:$("#workmenType").val(),
             proficiency: $("#proficiency").val(),
+             unitId: $("#principalEmployer").val(),
 			onboardingType:type,
         };
 
@@ -2641,7 +2642,14 @@ function previewImage(event, inputId, displayId) {
 					                $.each(response, function(index, wo) {
 					                    var row = '<tr  >' +
 												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.transactionId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-												'<td  >' + wo.transactionId + '</td>' +
+												//'<td  >' + wo.transactionId + '</td>' +
+												
+												 '<td>' +
+        '<a href="#" class="transaction-link" ' +
+        'onclick="redirectToWorkmenViewLink(\'' + wo.transactionId + '\', \'' + wo.status + '\'); return false;">' +
+        wo.transactionId +
+        '</a>' +
+    '</td>' +
 												 '<td  >' + wo.gatePassId + '</td>' +
 					                              '<td  >' + wo.firstName+' ' +wo.lastName + '</td>' +
 												 
@@ -2691,7 +2699,8 @@ function previewImage(event, inputId, displayId) {
 										                $.each(response, function(index, wo) {
 										                    var row = '<tr  >' +
 '<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-																	'<td  >' + wo.transactionId + '</td>' +
+																	//'<td  >' + wo.transactionId + '</td>' +
+										                              '<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenBlockViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 										                              '<td  >' + wo.gatePassId + '</td>' +
 										                              '<td  >' + wo.firstName + ' '+wo.lastName +'</td>' +
 																	  
@@ -2741,7 +2750,8 @@ function previewImage(event, inputId, displayId) {
 										                $.each(response, function(index, wo) {
 										                    var row = '<tr>' +
 										                       '<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-										                        '<td>' + wo.transactionId + '</td>' +
+										                       // '<td>' + wo.transactionId + '</td>' +
+										                       '<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenUnblockViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 										                        '<td>' + wo.gatePassId + '</td>' +
 										                        '<td>' + wo.firstName + ' ' + wo.lastName + '</td>' +
 										                        '<td>' + wo.aadhaarNumber + '</td>' +
@@ -2786,16 +2796,13 @@ function previewImage(event, inputId, displayId) {
 										        if (Array.isArray(response) &&response.length > 0) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
-																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-																											'<td  >' + wo.transactionId + '</td>' +
-																											'<td  >' + wo.gatePassId + '</td>' +
-										                          '<td  >' + wo.firstName + ' '+ wo.lastName +'</td>' +
-																
-																											  
-															
+																'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
+																//'<td  >' + wo.transactionId + '</td>' +
+																'<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenBlackViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
+																'<td  >' + wo.gatePassId + '</td>' +
+										                        '<td  >' + wo.firstName + ' '+ wo.lastName +'</td>' +
 																'<td  >' + wo.aadhaarNumber + '</td>' +	
 																'<td  >' + wo.contractorName + '</td>' +	
-																	
 																'<td  >' +wo.unitName + '</td>' +	
 																'<td  >' + wo.gatePassType + '</td>' +	
 																'<td  >' + toCapitalCase(wo.onboardingType) + '</td>' +
@@ -2833,7 +2840,8 @@ function previewImage(event, inputId, displayId) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
 																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-																											'<td  >' + wo.transactionId + '</td>' +
+																											//'<td  >' + wo.transactionId + '</td>' +
+																											'<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenDeblackViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName + ' '  + wo.lastName + '</td>' +
 																
@@ -2878,7 +2886,8 @@ function previewImage(event, inputId, displayId) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
 																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-																											'<td  >' + wo.transactionId + '</td>' +
+																											//'<td  >' + wo.transactionId + '</td>' +
+																											'<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenCancelViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName + ' '+ wo.lastName +'</td>' +
 																
@@ -2921,7 +2930,8 @@ function previewImage(event, inputId, displayId) {
 										            $.each(response, function(index, wo) {
 										                var row = '<tr  >' +
 																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '"></td>'+
-																											'<td  >' + wo.transactionId + '</td>' +
+																											//'<td  >' + wo.transactionId + '</td>' +
+																											'<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenLostViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 																											'<td  >' + wo.gatePassId + '</td>' +
 										                          '<td  >' + wo.firstName +' '+ wo.lastName + '</td>' +
 																
@@ -3500,7 +3510,8 @@ function previewImage(event, inputId, displayId) {
 											            $.each(response, function(index, wo) {
 											                var row = '<tr  >' +
 																							'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
-																							'<td  >' + wo.transactionId + '</td>' +
+																							//'<td  >' + wo.transactionId + '</td>' +
+																							'<td>' + '<a href="#" class="transaction-link" ' + 'onclick="redirectToWorkmenRenewViewLink(\'' + wo.gatePassId + '\'); return false;">' + wo.transactionId + '</a>' + '</td>' +
 																							 '<td  >' + wo.gatePassId + '</td>' +
 											                          '<td  >' + wo.firstName + ' ' + wo.lastName +'</td>' +
 																							 
@@ -3689,6 +3700,7 @@ function renewGatePass(userId) {
             disability:$("#disability").val(),
             workmenType:$("#workmenType").val(),
             proficiency: $("#proficiency").val(),
+            unitId: $("#principalEmployer").val(),
         };
 
         // Serialize the JSON object to a string
@@ -6267,4 +6279,161 @@ function autoSelectAndTrigger(selectId, callback, triggerChange = true) {
             $select.trigger("change");
         }
     }
+}
+function redirectToWorkmenViewLink(transactionId, status) {
+
+    if (!transactionId || transactionId.trim() === '') {
+        alert("Invalid Transaction Id");
+        return;
+    }
+
+    if (status && status.toLowerCase() === "draft") {
+        alert("Status 'Draft' record cannot be viewed.");
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState === 4) {
+
+            if (xhr.status === 200) {
+
+                document.getElementById("mainContent").innerHTML = xhr.responseText;
+
+            } else {
+
+                alert("Failed to load view page.");
+            }
+        }
+    };
+
+    xhr.open("GET", "/CWFM/contractworkmen/view/" + encodeURIComponent(transactionId), true);
+
+    xhr.send();
+}
+function redirectToWorkmenBlackViewLink(gatepassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+      xhr.open("GET", "/CWFM/contractworkmen/blackview/" + gatepassId+ "/" + mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenBlockViewLink(gatePassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+      xhr.open("GET", "/CWFM/contractworkmen/blockview/" + gatePassId+ "/" + mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenCancelViewLink(gatePassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+       xhr.open("GET", "/CWFM/contractworkmen/cancelview/" + gatePassId+"/"+mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenDeblackViewLink(gatePassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+      xhr.open("GET", "/CWFM/contractworkmen/deblackview/" + gatePassId+"/"+mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenUnblockViewLink(gatePassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+       xhr.open("GET", "/CWFM/contractworkmen/unblockview/" + gatePassId+"/"+mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenLostViewLink(gatePassId) {
+
+ var mode = "view";
+ 
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+       xhr.open("GET", "/CWFM/contractworkmen/lostordamageview/" + gatePassId+"/"+mode, true);
+
+    xhr.send();
+}
+function redirectToWorkmenRenewViewLink(gatePassId) {
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState == 4 && xhr.status == 200) {
+
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+        }
+    };
+
+       xhr.open("GET", "/CWFM/contractworkmen/renewview/" + gatePassId, true);
+
+    xhr.send();
 }

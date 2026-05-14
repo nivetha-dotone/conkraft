@@ -1567,6 +1567,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    long personId = getPersonIdFromCmsPerson(gpm.getGatePassId());
 	    if (personId <= 0) return false;
 
+	    //insert/update jobhist
+	    if (!logAndCheck("JOBHIST_UPDATE",
+	    		 workmenDao.updateCmsPersonJobHistRenew( gpm,  personId)))
+	        return false;
+	    
 	    // Step 1: Close existing CUSTDATA rows
 	    if (!logAndCheck("CUSTDATA_UPDATE",
 	            workmenDao.updateCmsPersonCustDataRenewEffectiveTill(personId,dot)))
@@ -1677,5 +1682,4 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    return true;
 	}
-	}
-
+}
