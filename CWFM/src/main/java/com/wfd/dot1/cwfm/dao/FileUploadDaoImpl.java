@@ -2575,6 +2575,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		}
 		public int insertRenewGatepassTransactionMapping(GatePassMain gm,String createdBy) {
 			String transactionId= workmenDao.getNextTransactionId();
+			gm.setTransactionId(transactionId);
 			String sql =insertBulkCancelGatepassTransactionMapping();
 			//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
 		    int result=jdbcTemplate.update(sql,transactionId, gm.getGatePassId(),GatePassType.RENEW.getStatus() );
@@ -2685,7 +2686,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		 try {
 
 		        // STEP 1: Get data from GATEPASSMAIN
-		        String fetchSql ="select TradeId,SkillId,TransactionId from GATEPASSMAIN where GatePassId=?";
+		        String fetchSql ="select TradeId,SkillId from GATEPASSMAIN where GatePassId=?";
 		               
 
 		        GatePassMain data = jdbcTemplate.queryForObject(
@@ -2696,7 +2697,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		                    GatePassMain gp = new GatePassMain();
 		                    gp.setTrade(rs.getString("TradeId"));
 		                    gp.setSkill(rs.getString("SkillId"));
-		                    gp.setTransactionId(rs.getString("TransactionId"));
+		                    //gp.setTransactionId(rs.getString("TransactionId"));
 		                    return gp;
 		                }
 		        );
