@@ -2362,11 +2362,11 @@ public class FileUploadDaoImpl implements FileUploadDao {
 				}
 		 
 		 @Override
-			public Map<String, Object>  workorderExistsForPlantAndContractor(String workorderNumber, Integer contractorId,Integer unitId){
+			public Map<String, Object>  workorderExistsForPlantAndContractor(String workorderNumber,Integer unitId){
 
-			    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? AND CONTRACTORID=? and UNITID=?";
+			    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? and UNITID=?";
 
-			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, contractorId,unitId);
+			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber,unitId);
 
 			    return list.isEmpty() ? null : list.get(0);
 			}
@@ -2546,7 +2546,12 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        	log.error("Update failed: No record found for GatePassId in GatepassMain",rows);
 		        	throw new RuntimeException("Update failed: No record found for GatePassId = " + gm.getGatePassId());
 		        }
-
+		        
+		        int renew =insertRenewGatepassTransactionMapping(gm,createdBy);
+			    if(renew==0) {
+			    	log.error("insertions failed in gatepassTransactionMapping gatepass: "+gm.getGatePassId());
+		           throw new RuntimeException("insertions failed in gatepassTransactionMapping gatepass: "+gm.getGatePassId());
+			    }
 		        //  Call next process
 		        boolean result = gatePassActionPersonInsertIntraPlantTransfer(gm, createdBy, dot);
 
@@ -2568,7 +2573,17 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        throw new RuntimeException("Transaction failed, rolling back", e); //  triggers rollback
 		    }
 		}
-
+		public int insertRenewGatepassTransactionMapping(GatePassMain gm,String createdBy) {
+			String transactionId= workmenDao.getNextTransactionId();
+			String sql =insertBulkCancelGatepassTransactionMapping();
+			//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
+		    int result=jdbcTemplate.update(sql,transactionId, gm.getGatePassId(),GatePassType.RENEW.getStatus() );
+		    if(result==0) {
+		    	log.error("gatepassTransactionMapping insertion failed ");
+	            throw new RuntimeException("gatepassTransactionMapping insertion failed ");
+		    }
+		    return result;
+		}
 		@Transactional(rollbackFor = Exception.class)
 		public boolean gatePassActionPersonInsertIntraPlantTransfer(GatePassMain gpm, String createdBy, String dot) {
 
@@ -2613,11 +2628,13 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		                }
 		            }
 		     // 5. Insert new CUSTOMDATA
-		        boolean custDataUpdated =this.updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(personId,gpm,dot,createdBy);
 		        
+		        
+		       // boolean custDataUpdated =this.updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(personId,gpm,dot,createdBy);
+		        boolean custDataUpdated =this.insertIntoCustDataRenew( createdBy, personId, GatePassType.RENEW.getStatus());
 		        if (!custDataUpdated) {
-		        	log.error("CMSPERSONCUSTOMDATA  update failed");
-		            throw new RuntimeException("CMSPERSONCUSTOMDATA update failed");
+		        	log.error("CMSPERSONCUSTOMDATA renew update failed");
+		            throw new RuntimeException("CMSPERSONCUSTOMDATA renew update failed");
 		        }
 		        
 		        return true;
@@ -2913,79 +2930,108 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	public String saveCMSPERSONCUSTDATA() {
 		return QueryFileWatcher.getQuery("SAVE_CMSPERSON_CUSTOMDATA");
 	}
-	public boolean updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(Long  personId, GatePassMain gpm,String dot,String createdBy){
-      try {
-    	  
-    	// Set required values into gpm
-          gpm.setGatePassAction(GatePassType.CREATE.getStatus());
-          gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
-         // gpm.setDot(dot);
-          gpm.setCreatedBy(createdBy);
-          
-	    String sql = saveCMSPERSONCUSTDATA(); 
-
-	    // Fetch all active custom definitions
-	    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
-	    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
-
-
-	    List<Object[]> batchArgs = new ArrayList<>();
-
-	    for (Map<String, Object> def : defList) {
-
-	        int defId = (Integer) def.get("CSTMDEFID");
-	        String fieldName = (String) def.get("CSTMDEFNAME");
-
-	        String value = mapGatePassValue(fieldName, gpm);
-
-	        // Skip null/empty values
-	        if (value == null || value.trim().isEmpty()) {
-	            continue;
-	        }
-          
-	        // ✅ Set EFFECTIVETILL conditionally
-	        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
-	                ? dot              // only GatePassType gets DOT
-	                : "3000-01-01";           // others get default
-
-	        batchArgs.add(new Object[]{
-	        		personId,        // ?
-	                defId,             // ?
-	                value,             // ?
-	                effectiveTill,     // ? (EFFECTIVETILL)
-	                gpm.getCreatedBy()  // ?
-	        });
-	    }
-
-	    if (batchArgs.isEmpty()) {
-	          log.error("No custom data found to insert for PersonId : {}", personId);
-	    	return false; // nothing to insert
-	    }
-
-	    int[] result = jdbcTemplate.batchUpdate(sql, batchArgs);
-
-	    for (int count : result) {
-
-            if (count <= 0) {
-
-                log.error("Batch insert failed for PersonId : {}", personId);
-
-                throw new RuntimeException("Failed to insert CMSPERSONCUSTOMDATA");
-            }
-        }
-
-        log.info("CMSPERSONCUSTOMDATA inserted successfully for PersonId : {}", personId);
-
-      return true; // records inserted
-      } catch (Exception e) {
-
-          log.error("Error while inserting CMSPERSONCUSTOMDATA for PersonId : {}",personId,e);
-
-          // Rethrow so parent transaction rolls back
-          throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed",e);
-      }
+	public String insertIntoCustData() {
+		return QueryFileWatcher.getQuery("INSERT_CUSTOM_DATA");
 	}
-	
+	public boolean insertIntoCustDataRenew(String updatedBy,long personId,String gatePassStatus) {
+		String defSqlGatePass  = getCustomDefIDforGPtype();
+
+		Integer gatePassDefId  = jdbcTemplate.queryForObject(defSqlGatePass, Integer.class);
+		
+		if (gatePassDefId == null ) {
+	        log.error("Custom definition IDs not found");
+	        return false;
+	    }
+		
+		boolean result = false;
+		String sql = insertIntoCustData();
+
+		 int count1 =jdbcTemplate.update(sql,personId,gatePassDefId,gatePassStatus,"3000-01-01",updatedBy);
+	   try {
+	   if (count1 > 0 ) {
+	   	result=true;
+	   }else {
+	       log.warn("Failed to create GatePass action for GatePassId: " );
+	   }
+	   }catch (Exception e) {
+	       log.error("Error creating GatePass action for GatePassId: " , e);
+	       return false;
+	   }
+	   return result;
+	}
+//	public boolean updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(Long  personId, GatePassMain gpm,String dot,String createdBy){
+//      try {
+//    	  
+//    	// Set required values into gpm
+//          gpm.setGatePassAction(GatePassType.CREATE.getStatus());
+//          gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+//         // gpm.setDot(dot);
+//          gpm.setCreatedBy(createdBy);
+//          
+//	    String sql = saveCMSPERSONCUSTDATA(); 
+//
+//	    // Fetch all active custom definitions
+//	    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+//	    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+//
+//
+//	    List<Object[]> batchArgs = new ArrayList<>();
+//
+//	    for (Map<String, Object> def : defList) {
+//
+//	        int defId = (Integer) def.get("CSTMDEFID");
+//	        String fieldName = (String) def.get("CSTMDEFNAME");
+//
+//	        String value = mapGatePassValue(fieldName, gpm);
+//
+//	        // Skip null/empty values
+//	        if (value == null || value.trim().isEmpty()) {
+//	            continue;
+//	        }
+//          
+//	        // ✅ Set EFFECTIVETILL conditionally
+//	        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
+//	                ? dot              // only GatePassType gets DOT
+//	                : "3000-01-01";           // others get default
+//
+//	        batchArgs.add(new Object[]{
+//	        		personId,        // ?
+//	                defId,             // ?
+//	                value,             // ?
+//	                effectiveTill,     // ? (EFFECTIVETILL)
+//	                gpm.getCreatedBy()  // ?
+//	        });
+//	    }
+//
+//	    if (batchArgs.isEmpty()) {
+//	          log.error("No custom data found to insert for PersonId : {}", personId);
+//	    	return false; // nothing to insert
+//	    }
+//
+//	    int[] result = jdbcTemplate.batchUpdate(sql, batchArgs);
+//
+//	    for (int count : result) {
+//
+//            if (count <= 0) {
+//
+//                log.error("Batch insert failed for PersonId : {}", personId);
+//
+//                throw new RuntimeException("Failed to insert CMSPERSONCUSTOMDATA");
+//            }
+//        }
+//
+//        log.info("CMSPERSONCUSTOMDATA inserted successfully for PersonId : {}", personId);
+//
+//      return true; // records inserted
+//      } catch (Exception e) {
+//
+//          log.error("Error while inserting CMSPERSONCUSTOMDATA for PersonId : {}",personId,e);
+//
+//          // Rethrow so parent transaction rolls back
+//          throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed",e);
+//      }
+//	}
+//	
 	private String mapGatePassValue(String field, GatePassMain gp) {
 
 	    switch (field) {
@@ -3319,7 +3365,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	        jdbcTemplate.update(sql,   gm.getGatePassId(),gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),
 	                gm.getWcEsicId(),gm.getLlId(),gm.getEsicNumber(),parseSqlDate(gm.getEffectiveFromDate()), parseSqlDate(dot) , createdBy);
-	        updateGatepassMainStatusCancelForIntrPlant(gm, dot );
+	        updateGatepassMainStatusCancelForIntrPlant(gm, dot,createdBy );
 		}catch (Exception e) {
 	        log.error("Error in insertIntraPlantTransferTemp", e);
 	        throw new RuntimeException("Transaction failed, rolling back", e); //  important
@@ -3327,10 +3373,16 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	    }
 	
 	@Transactional(rollbackFor = Exception.class)
-	private void updateGatepassMainStatusCancelForIntrPlant(GatePassMain gm,String dot) {
+	private void updateGatepassMainStatusCancelForIntrPlant(GatePassMain gm,String dot,String createdBy) {
 		 String sql = "update GATEPASSMAIN set GatePassTypeId =?,Reasoning=? ,DOT=DATEADD(DAY, -1, ?)  where GatePassId=?";
 	    jdbcTemplate.update(sql,GatePassType.CANCEL.getStatus() ,gm.getReasoning(),parseSqlDate(gm.getEffectiveFromDate()),gm.getGatePassId());
-	   boolean result = gatePassActionPersonCancelInsertForIntraPlant(gm,GatePassType.CANCEL.getStatus());
+	  
+	    int cancelled =insertCancelGatepassTransactionMapping(gm,createdBy);
+	    if(cancelled==0) {
+	    	log.error("insertions failed in gatepassTransactionMapping gatepass: "+gm.getGatePassId());
+           throw new RuntimeException("insertions failed in gatepassTransactionMapping gatepass: "+gm.getGatePassId());
+	    }
+	    boolean result = gatePassActionPersonCancelInsertForIntraPlant(gm,GatePassType.CANCEL.getStatus());
 	   if(!result) {
 	    	log.error("CMSPERSON TABLE insertions failed while canceling gatepass: "+gm.getGatePassId());
            throw new RuntimeException("CMSPERSON TABLE insertions failed while canceling gatepass: "+gm.getGatePassId());
@@ -3341,6 +3393,18 @@ public class FileUploadDaoImpl implements FileUploadDao {
             throw new RuntimeException("gatepassmain insertion failed while creating new gatepass");
 	    }
 	}
+	public int insertCancelGatepassTransactionMapping(GatePassMain gm,String createdBy) {
+		String transactionId= workmenDao.getNextTransactionId();
+		String sql =insertBulkCancelGatepassTransactionMapping();
+		//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
+	    int result=jdbcTemplate.update(sql,transactionId, gm.getGatePassId(),GatePassType.CANCEL.getStatus() );
+	    if(result==0) {
+	    	log.error("gatepassTransactionMapping cancel insertion failed ");
+            throw new RuntimeException("gatepassTransactionMapping cancel insertion failed ");
+	    }
+	    return result;
+	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	public boolean gatePassActionPersonCancelInsertForIntraPlant(GatePassMain gpm, String gatePassType) {
 

@@ -238,7 +238,7 @@ public interface FileUploadDao {
 
 	boolean activeGatepassExists(String gatepassNumber);
 
-	Map<String, Object> workorderExistsForPlantAndContractor(String workorderNumber, Integer contractorId,
+	Map<String, Object> workorderExistsForPlantAndContractor(String workorderNumber, 
 			Integer unitId);
 
 	Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber);

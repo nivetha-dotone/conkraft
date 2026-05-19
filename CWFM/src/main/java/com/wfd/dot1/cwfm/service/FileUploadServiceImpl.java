@@ -3175,10 +3175,10 @@ private Map<String, Object> processIntraPlantTransfer(BufferedReader reader, Str
             continue;
         }
         
-        Map<String, Object> woData = fileUploadDao.workorderExistsForPlantAndContractor(workorderNumber,contractorId,unitId);
+        Map<String, Object> woData = fileUploadDao.workorderExistsForPlantAndContractor(workorderNumber,unitId);
 
         if (woData == null) {
-            errorData.add(Map.of("row", rowNum, "error",  "Workorder Number not Mapped to Contractor and Plant"));
+            errorData.add(Map.of("row", rowNum, "error",  "Workorder Number not Mapped to Plant"));
             continue;
         }
 
