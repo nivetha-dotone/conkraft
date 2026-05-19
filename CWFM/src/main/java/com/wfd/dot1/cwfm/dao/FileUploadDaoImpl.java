@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -33,10 +34,14 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
+import com.wfd.dot1.cwfm.dto.CMSPerson;
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.dto.PersonStatusIds;
 import com.wfd.dot1.cwfm.enums.DotType;
+import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
@@ -72,6 +77,13 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	
 	@Autowired
     private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	CreateEmpFetchByGatePassAPICALL api;
+	
+	public String getWFDIntegration() {
+		return QueryFileWatcher.getQuery("WFD_INTEGRATION");
+	}
 	
 	 public String saveGeneralMasterTemplate() {
 		    return QueryFileWatcher.getQuery("SAVE_GENERAL_MASTER_TEMPLATE");
@@ -535,6 +547,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "Unit Code,State Name,Zone Name,Skill Name,Basic,DA,Other Allowances,From Date";
             case "Data-User":
             	return "First Name,Last Name,Login Id,Password,Email Address,Mobile Number,Plant Code,Organisation,Department,Area,Role,SAP Vendor Code";
+            case "Data-Intra Plant Transfer":
+            	return "GatepassId,Plant Code,Contractor Code,Department,Area,EIC Number,Workorder,WC/ESIC,LL Number,ESIC,Effective From Date";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -1902,55 +1916,75 @@ public class FileUploadDaoImpl implements FileUploadDao {
 			        (rs, rowNum) -> rs.getInt("WOLLID"));
 			    return result.isEmpty() ? null : result.get(0);
 			}
+		 
 		 @Override
-			public void updateGatepassBulkRenew(GatePassMain gm, String createdBy,String dot){
-			 String sql = updateGatepassBulkRenew();
-			    //String sql = "UPDATE GATEPASSMAIN SET WorkorderId=?,WcEsicNo=?,LLNo=?,GatePassTypeId=?,GatePassStatus=?,DOT=?,UpdatedBy=?,UpdatedDate=GETDATE() WHERE GatePassId=?";
-
-			    jdbcTemplate.update(sql,gm.getWorkorder(),gm.getWcEsicNo(),gm.getLlNo(),GatePassType.BULKRENEW.getStatus() ,GatePassStatus.APPROVED.getStatus(),dot,createdBy,gm.getGatePassId());
-			    insertBulkRenewGatepassTransactionMapping(gm,createdBy,dot);
+		 @Transactional(rollbackFor = Exception.class)
+		 public void updateGatepassBulkRenew(GatePassMain gm, String createdBy, String dot) {
+		     try {
+		         String sql = updateGatepassBulkRenew();
+		         jdbcTemplate.update(sql,gm.getWorkorder(),gm.getWcEsicNo(),gm.getLlNo(),GatePassType.BULKRENEW.getStatus() ,GatePassStatus.APPROVED.getStatus(),dot,createdBy,gm.getGatePassId());
+				    boolean result =insertBulkRenewGatepassTransactionMapping(gm,createdBy,dot);
+				    if (!result) {
+				    	log.error("GatePassTransaction mapping failed for GatePassId: {}", gm.getGatePassId());
+			            throw new RuntimeException("GatePassTransaction mapping failed");
+			        }
+		     } catch (Exception e) {
+		         log.error("Error in Bulk Renew Gatepass for GatePassId: {}", gm.getGatePassId(), e);
+		         throw new RuntimeException("Bulk Renew Gatepass failed - rollback triggered", e);
+		     }
 		 }
 		 
-		 public void insertBulkRenewGatepassTransactionMapping(GatePassMain gm,String createdBy,String dot) {
-				String transactionId= workmenDao.getNextTransactionId();
-				 String sql = insertBulkRenewGatepassTransactionMapping();
-				//String sql = "INSERT INTO GatePassTransactionMapping (TRANSACTIONID, GATEPASSID, GATEPASSTYPEID, CREATEDDATE) VALUES (?, ?, ?, GETDATE())";
-			    jdbcTemplate.update(sql,transactionId, gm.getGatePassId(),GatePassType.BULKRENEW.getStatus() );
-			    gatePassActionPersonInsertRenew(gm,GatePassType.BULKRENEW.getStatus(),createdBy,dot);
-			}
-		 
-		 public boolean gatePassActionPersonInsertRenew(GatePassMain gpm, String gatePassType,String createdBy,String dot) {
+		 public boolean insertBulkRenewGatepassTransactionMapping(GatePassMain gm,String createdBy,String dot) {
+			    String transactionId = workmenDao.getNextTransactionId();
+			    String sql = insertBulkRenewGatepassTransactionMapping();
 
-			    long personId = workmenDao.getPersonIdFromCmsPerson(gpm.getGatePassId());
-			    if (personId <= 0) return false;
-
-			    // Step 1: Close existing CUSTDATA rows
-			    if (!logAndCheck("CUSTDATA_UPDATE",
-			            workmenDao.updateCmsPersonCustDataRenewEffectiveTill(personId,dot)))
-			        return false;
-
-			    // Step 2: Insert new CUSTDATA row
-			    if (!logAndCheck("CUSTDATA_INSERT",
-			    		workmenDao.insertIntoCustDataRenew(createdBy, personId, gatePassType)))
-			        return false;
-
-			    // Step 3: Update StatusMM only if active
-			    if (workmenDao.isPersonActiveInStatusMM(personId)) {
-
-			        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
-
-			        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
-
-			            boolean statusUpdated =
-			                    workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
-
-			            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
-			                return false;
-			        }
+			    int inserted = jdbcTemplate.update(sql,transactionId,gm.getGatePassId(),GatePassType.BULKRENEW.getStatus());
+			    if (inserted == 0) {
+			        throw new RuntimeException("GatePassTransactionMapping insert failed");
 			    }
-
-			    return true;
+			    return gatePassActionPersonInsertRenew(gm,GatePassType.BULKRENEW.getStatus(),createdBy,dot);
 			}
+		 public boolean gatePassActionPersonInsertRenew(GatePassMain gpm,String gatePassType,String createdBy,String dot) {
+
+                  long personId = workmenDao.getPersonIdFromCmsPerson(gpm.getGatePassId());
+                 if (personId <= 0) {
+                	 log.error("Invalid personId for GatePassId: "+ gpm.getGatePassId());
+                       throw new RuntimeException("Invalid personId for GatePassId: " + gpm.getGatePassId());
+                   }
+
+                       // STEP 1: JOB HISTORY
+                      boolean jobHist = this.updateCmsPersonJobHistBulkRenew(gpm, personId);
+                   if (!jobHist) {
+                	   log.error("Job history update/insert failed for personId: " + personId);
+                          throw new RuntimeException("Job history update/insert failed for personId: " + personId);
+                     }
+
+                      // STEP 2: CUST DATA UPDATE
+                      boolean custUpdate = workmenDao.updateCmsPersonCustDataRenewEffectiveTill(personId, dot);
+                         if (!custUpdate) {
+                        	 log.error("CustData effectivetill update failed for personId: " + personId);
+                              throw new RuntimeException("CustData effectivetill update failed for personId: " + personId);
+                        }
+
+                    // STEP 3: CUST DATA INSERT
+                     boolean custInsert = workmenDao.insertIntoCustDataRenew(createdBy, personId, gatePassType);
+                       if (!custInsert) {
+                    	   log.error("CustData gatepasstype insert failed for personId: " + personId);
+                         throw new RuntimeException("CustData gatepasstype insert failed for personId: " + personId);
+                         }
+
+                     // STEP 4: STATUS MM UPDATE
+                       if (workmenDao.isPersonActiveInStatusMM(personId)) {
+                            PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+                                 if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+                                        boolean statusUpdated = workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(),ids.getInactiveId(),dot);
+                                           if (!statusUpdated) {
+                                                throw new RuntimeException("StatusMM update failed for personId: " + personId);
+                                           }
+                                  }
+                     }
+                return true;
+      }
 		 public String saveMinimumWageToStaging() {
 				return QueryFileWatcher.getQuery("SAVE_KTC_MINIMUMWAGE");
 			}
@@ -2321,7 +2355,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 			}
 		 @Override
 			public boolean activeGatepassExists(String gatepassNumber) {
-				String sql="select count(*) from GATEPASSMAIN where GatePassId=? and GatePassTypeId in (1,2) and GatePassStatus=4";
+				String sql="select count(*) from GATEPASSMAIN where GatePassId=? and GatePassTypeId in (1,2,12,15) and GatePassStatus=4";
 				//String sql=gatepassNumberExists();
 				  Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gatepassNumber);
 				    return count != null && count > 0;
@@ -2339,8 +2373,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		 @Override
 			public Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber){
 
-			    String sql = "select wo.workorderid, wc.WC_TO_DTM,wc.LICENCE_TYPE from CMSWORKORDER wojoin CMSWORKORDER_LLWC llwc on llwc.WONUMBER=wo.SAP_WORKORDER_NUM"
-			    		+ "join CMSCONTRACTOR_WC wc on  wc.wcCode=llwc.LICENSE_NUMBER where wo.SAP_WORKORDER_NUM=? and wc.WC_CODE=?";
+			    String sql = "select llwc.WOLLID AS WCID,wc.WC_FROM_DTM as VALIDFROM, wc.WC_TO_DTM as VALIDTO,wc.LICENCE_TYPE as LICENSETYPE from CMSWORKORDER wo \r\n"
+			    		+ "join CMSWORKORDER_LLWC llwc on llwc.WONUMBER=wo.SAP_WORKORDER_NUM\r\n"
+			    		+ "join CMSCONTRACTOR_WC wc on  wc.WC_CODE=llwc.LICENSE_NUMBER where wo.SAP_WORKORDER_NUM=? and wc.WC_CODE=?";
 
 			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, wcesicNumber);
 
@@ -2480,5 +2515,1290 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 		    return new HashSet<>(existing);
 		}
-	
+		
+		@Transactional(rollbackFor = Exception.class)
+		   @Override
+		    public void insertIntraPlantTransferTemp(GatePassMain gm, String createdBy, String dot){
+			try {
+		    	//String sql=insertUnitTradeSkillMapping();
+		        String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		        jdbcTemplate.update(sql,   gm.getGatePassId(),gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),
+		                gm.getWcEsicId(),gm.getLlId(),gm.getEsicNumber(),parseSqlDate(gm.getEffectiveFromDate()), parseSqlDate(dot) , createdBy);
+		        updateGatepassMainIntraPlantTransfer(gm,createdBy,dot);
+			}catch (Exception e) {
+		        log.error("Error in insertIntraPlantTransferTemp", e);
+		        throw new RuntimeException("Transaction failed, rolling back", e); //  important
+		    }
+		    }
+		   
+		@Transactional(rollbackFor = Exception.class)
+		@Override
+		public void updateGatepassMainIntraPlantTransfer(GatePassMain gm, String createdBy, String dot) {
+
+		    try {
+		        String sql = "update gatepassmain set UnitId=?,ContractorId=?,DepartmentId=?,AreaId=?,EicId=?,WorkorderId=?,WcEsicNo=?,LLNo=?,EsicNumber=?,DOT=?,UpdatedBy=?,UpdatedDate=GETDATE() where GatePassId=?";
+
+		        int rows = jdbcTemplate.update(sql,gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),gm.getWcEsicNo(),gm.getLlNo(),
+		                         gm.getEsicNumber(),dot,createdBy,gm.getGatePassId());
+
+		        //  Check if update actually happened
+		        if (rows == 0) {
+		        	log.error("Update failed: No record found for GatePassId in GatepassMain",rows);
+		        	throw new RuntimeException("Update failed: No record found for GatePassId = " + gm.getGatePassId());
+		        }
+
+		        //  Call next process
+		        boolean result = gatePassActionPersonInsertIntraPlantTransfer(gm, createdBy, dot);
+
+		        if (!result) {
+		        	log.error("Update failed: GatePassPerson action processing failed",result);
+		            throw new RuntimeException("GatePassPerson action processing failed");
+		        }
+		        try {
+		        	String wfdIntegration = this.getWFDIntegration();
+		        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+		        		api.updateOnBoardingDetails(gm.getTransactionId());
+		        	}
+		        	}catch(Exception e) {
+		        		log.info(e.getMessage());
+						 throw new RuntimeException("renew Api Integration Failed");
+		        	}
+		    } catch (Exception e) {
+		        log.error("Error in updateIntraPlantTransfer for GatePassId: {}", gm.getGatePassId(), e);
+		        throw new RuntimeException("Transaction failed, rolling back", e); //  triggers rollback
+		    }
+		}
+
+		@Transactional(rollbackFor = Exception.class)
+		public boolean gatePassActionPersonInsertIntraPlantTransfer(GatePassMain gpm, String createdBy, String dot) {
+
+		    try {
+		        // 1. Update CMSPERSON
+		        long personId = this.updateCmsPerson(gpm,dot);
+		        if (personId <= 0) {
+		        	log.error("CMSPERSON update failed");
+		            throw new RuntimeException("CMSPERSON update failed");
+		        }
+
+		        // 2. Update CMSPERSONJOBHIST
+		        boolean jobHistUpdated = this.updateCmsPersonJobHist(gpm, personId);
+		        if (!jobHistUpdated) {
+		        	log.error("CMSPERSONJOBHIST update failed");
+		            throw new RuntimeException("CMSPERSONJOBHIST update failed");
+		        }
+
+		        // 3. Update CUSTDATA
+//		        boolean custDataTypeStatusUpdated =this.updateCmsPersonCustDataIntaPlantTransferEffectiveTillStatus(personId,GatePassType.CANCEL.getStatus(),gpm);
+//
+//		        if (!custDataTypeStatusUpdated) {
+//		        	log.error("CMSPERSONCUSTOMDATA Cancel effectivetill update failed");
+//		            throw new RuntimeException("CMSPERSONCUSTOMDATA Canceleffectivetill  update failed");
+//		        }
+
+		        // 4. Update StatusMM (only if active)
+		        if (this.isPersonActiveInStatusMM(personId)) {
+
+		            PersonStatusIds ids = this.getPersonStatusIds(personId);
+
+		            if (ids.getActiveId() == null && ids.getInactiveId() == null) {
+
+		            	log.error("PersonStatusMM IDs not found for PersonId : {}", personId);
+		                throw new RuntimeException("PersonStatusMM IDs not found");
+		            }
+		                boolean statusUpdated =this.updatePersonStatusValidityForIntraPlantTransfer(ids.getActiveId(),ids.getInactiveId(),dot,gpm.getEffectiveFromDate());
+
+		                if (!statusUpdated) {
+		                	log.error("CMSPERSONSTATUSMM update failed");
+		                    throw new RuntimeException("CMSPERSONSTATUSMM update failed");
+		                }
+		            }
+		     // 5. Insert new CUSTOMDATA
+		        boolean custDataUpdated =this.updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(personId,gpm,dot,createdBy);
+		        
+		        if (!custDataUpdated) {
+		        	log.error("CMSPERSONCUSTOMDATA  update failed");
+		            throw new RuntimeException("CMSPERSONCUSTOMDATA update failed");
+		        }
+		        
+		        return true;
+		    } catch (Exception e) {
+		        log.error("Error in gatePassActionPersonInsertIntraPlantTransfer for GatePassId: {}",gpm.getGatePassId(), e);
+
+		        //  THIS TRIGGERS ROLLBACK
+		        throw new RuntimeException("Transaction failed, rolling back", e);
+		    }
+		}
+
+		private long updateCmsPerson(GatePassMain gpm,String dot) {
+
+		    try {
+		        String updateSql = "UPDATE CMSPERSON SET DATEOFTERMINATION = ?, ESICNUMBER = ? WHERE EMPLOYEECODE = ?";
+
+		        int rows = jdbcTemplate.update(updateSql,dot,gpm.getEsicNumber(),gpm.getGatePassId());
+
+		        //  If no row updated - throw exception
+		        if (rows == 0) {
+		        	log.error("CMSPERSON update failed: No record found for EMPLOYEECODE");
+		            throw new RuntimeException("CMSPERSON update failed: No record found for EMPLOYEECODE = "
+		                    + gpm.getGatePassId());
+		        }
+
+		        //  Fetch employee ID
+		        String selectSql = "SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
+
+		        Long personId = jdbcTemplate.queryForObject(selectSql,new Object[]{gpm.getGatePassId()},Long.class);
+
+		        //  Validate result
+		        if (personId == null || personId <= 0) {
+		            throw new RuntimeException("EMPLOYEEID not found after update for EMPLOYEECODE = "
+		                    + gpm.getGatePassId());
+		        }
+
+		        return personId;
+
+		    } catch (Exception e) {
+		        log.error("Error updating CMSPERSON for EMPLOYEECODE: {}", gpm.getGatePassId(), e);
+
+		        //  IMPORTANT: rethrow exception - triggers rollback
+		        throw new RuntimeException("Failed to update CMSPERSON", e);
+		    }
+		}
+
+		private boolean updateCmsPersonJobHist(GatePassMain gpm, long personId) {
+		 try {
+
+		        // STEP 1: Get data from GATEPASSMAIN
+		        String fetchSql ="select TradeId,SkillId,TransactionId from GATEPASSMAIN where GatePassId=?";
+		               
+
+		        GatePassMain data = jdbcTemplate.queryForObject(
+		                fetchSql,
+		                new Object[]{gpm.getGatePassId()},
+		                (rs, rowNum) -> {
+
+		                    GatePassMain gp = new GatePassMain();
+		                    gp.setTrade(rs.getString("TradeId"));
+		                    gp.setSkill(rs.getString("SkillId"));
+		                    gp.setTransactionId(rs.getString("TransactionId"));
+		                    return gp;
+		                }
+		        );
+
+		        // STEP 2: Expire existing record with gpm.effectivedate-1
+		        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, ?) WHERE EMPLOYEEID = ? " ;
+		               
+
+		        jdbcTemplate.update(updateSql, gpm.getEffectiveFromDate(),personId);
+
+		        // STEP 3: Insert new record
+		        String insertSql =
+		                "INSERT INTO CMSPERSONJOBHIST ( " +
+		                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+		                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+		                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+
+		        int inserted = jdbcTemplate.update(
+		                insertSql,
+		                personId,
+		                data.getTrade(),
+		                data.getSkill(),
+		                gpm.getUnitId(),
+		                gpm.getContractor(),
+		                gpm.getDepartment(),
+		                gpm.getSubdepartment(),
+		                gpm.getWorkorder(),
+		                gpm.getEic(),
+		               // java.sql.Date.valueOf(data.getDoj()),
+		                gpm.getEffectiveFromDate(),
+		                java.sql.Date.valueOf("3000-01-01")
+		        );
+
+		        if (inserted == 0) {
+		            log.error("Insert failed in CMSPERSONJOBHIST for personid = {}", personId);
+		            throw new RuntimeException("Insert failed for personid = " + personId);
+		        }
+
+		        return true;
+
+		    } catch (Exception e) {
+
+		        log.error("Error in bulk renew for personid: {}", personId, e);
+		        throw new RuntimeException("Failed CMSPERSONJOBHIST bulk renew", e);
+		    }
+		}
+	public String getCustomDefIDforGPtype() {
+		return QueryFileWatcher.getQuery("GET_CUSTOMDEFID_FOR_GP_TYPE");
 	}
+	public String getCustomDefIDforreasoning() {
+		return QueryFileWatcher.getQuery("GET_CUSTOMDEFID_FOR_REASONING");
+	}
+	private boolean updateCmsPersonCustDataIntaPlantTransferEffectiveTillStatus(long personId, String gatepassType, GatePassMain gpm) {
+
+	    try {
+	        String defSqlGatePassType = getCustomDefIDforGPtype();
+	        String defSqlGatePassStatus = getCustomDefID();
+	        String defSqlReasoning  = getCustomDefIDforreasoning();
+	        
+	        Integer gatePassTypeDefId = jdbcTemplate.queryForObject(defSqlGatePassType, Integer.class);
+	        Integer reasoningDefId  = jdbcTemplate.queryForObject(defSqlReasoning, Integer.class);
+	       // Integer gatePassStatusDefId = jdbcTemplate.queryForObject(defSqlGatePassStatus, Integer.class);
+
+	        //  Validate definition IDs
+	        if (gatePassTypeDefId == null || reasoningDefId == null) {
+	        	log.error("Custom definition IDs not found");
+	            throw new RuntimeException("Custom definition IDs not found");
+	        }
+
+	        // Date handling
+	       // LocalDate effectiveDate = LocalDate.parse(gpm.getEffectiveFromDate());
+	       // LocalDate effectiveTillDate = effectiveDate.minusDays(1);
+	        // Parse any supported format and convert to yyyy-MM-dd
+	        Date parsedDate = parseDateQuiet(gpm.getEffectiveFromDate());
+
+	        if (parsedDate == null) {
+
+	            log.error("Invalid EffectiveFromDate : {}",gpm.getEffectiveFromDate());
+
+	            throw new RuntimeException("Invalid EffectiveFromDate format");
+	        }
+
+	        // Convert to LocalDate
+	        LocalDate effectiveDate =((java.sql.Date) parsedDate).toLocalDate();
+	        LocalDate effectiveTillDate =effectiveDate.minusDays(1);
+
+	        
+	        String sql = "INSERT INTO CMSPERSONCUSTOMDATA "
+	                + "(EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY) "
+	                + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)";
+
+	        //  Insert GatePass Type and status
+	        int count1 = jdbcTemplate.update(sql,personId,gatePassTypeDefId,gatepassType,java.sql.Date.valueOf(effectiveTillDate),gpm.getCreatedBy());
+	        int count2 =jdbcTemplate.update(sql,personId,reasoningDefId,gpm.getReasoning(),"3000-01-01",gpm.getCreatedBy());
+	        //  Validate inserts
+	        if (count1 < 0 && count2 < 0) {
+	        	log.error("Insert into CMSPERSONCUSTOMDATA gatepasstype and status,reasoning  failed");
+	            throw new RuntimeException("Insert into CMSPERSONCUSTOMDATA failed");
+	        }
+
+	        return true;
+
+	    } catch (Exception e) {
+	        log.error("Error inserting CMSPERSONCUSTOMDATA for personId: {}", personId, e);
+
+	        //  VERY IMPORTANT - triggers rollback
+	        throw new RuntimeException("CMSPERSONCUSTOMDATA operation failed", e);
+	    }
+	}
+	
+	public String isPersonActiveInStatusMM() {
+		return QueryFileWatcher.getQuery("IS_PERSON_ACTIVE_IN_STATUSMM");
+	}
+
+	public boolean isPersonActiveInStatusMM(long personId) {
+
+	    try {
+	    	String sql = isPersonActiveInStatusMM();
+
+	        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, personId);
+
+	        if (count == null) {
+	            throw new RuntimeException("Failed to fetch is Person Active In StatusMM  for EMPLOYEEID = " + personId);
+	        }
+
+	        return count > 0;
+
+	    } catch (Exception e) {
+	        log.error("Error checking active status for EMPLOYEEID: {}", personId, e);
+
+	        //  Important: throw exception - triggers rollback in calling method
+	        throw new RuntimeException("Failed to check person active status", e);
+	    }
+	}
+	
+	public String getActivePersonStatusIds() {
+		return QueryFileWatcher.getQuery("GET_ACTIVE_PERSON_STATUS_ID");
+	}
+	public String getInactivePersonStatusIds() {
+		return QueryFileWatcher.getQuery("GET_INACTIVE_PERSON_STATUS_ID");
+	}
+	
+	public PersonStatusIds getPersonStatusIds(long personId) {
+
+	    PersonStatusIds ids = new PersonStatusIds();
+
+	    try {
+	        // ================= ACTIVE =================
+	        String activeSql = getActivePersonStatusIds();
+
+	        try {
+	            Long activeId = jdbcTemplate.queryForObject(activeSql, Long.class, personId);
+	            ids.setActiveId(activeId);
+	        } catch (EmptyResultDataAccessException ex) {
+	            ids.setActiveId(null); //  acceptable (no active record)
+	        }
+
+	        // ================= INACTIVE =================
+	        String inactiveSql = getInactivePersonStatusIds();
+
+	        try {
+	            Long inactiveId = jdbcTemplate.queryForObject(inactiveSql, Long.class, personId);
+	            ids.setInactiveId(inactiveId);
+	        } catch (EmptyResultDataAccessException ex) {
+	            ids.setInactiveId(null); // ✅ acceptable
+	        }
+
+	        return ids;
+
+	    } catch (Exception e) {
+	        log.error("Error fetching PersonStatusIds for EMPLOYEEID: {}", personId, e);
+
+	        //  IMPORTANT - triggers rollback in transactional flow
+	        throw new RuntimeException("Failed to fetch PersonStatusIds", e);
+	    }
+	}
+	
+	public String updateValidtodot() {
+	    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_TO_RENEW");
+	}
+
+	public String updateValidfromdotnextday() {
+	    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_FROM_RENEW");
+	}
+
+
+	public boolean updatePersonStatusValidityForIntraPlantTransfer(Long activeId, Long inactiveId, String dot, String effectiveFromDate) {
+	    try {
+	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	        LocalDate dotDate = LocalDate.parse(dot, formatter);
+	        LocalDate nextDay = dotDate.plusDays(1);
+	        LocalDate effectiveFrom = LocalDate.parse(effectiveFromDate, formatter);
+
+	        // ================= UPDATE ACTIVE =================
+	        if (activeId != null) {
+	        	//String sqlActive = updateValidtodot();
+	            String sql = "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ?, VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+
+	            int count1 = jdbcTemplate.update(sql,java.sql.Date.valueOf(dotDate),java.sql.Date.valueOf(effectiveFrom),activeId);
+	            // int count1 = jdbcTemplate.update(sqlActive,java.sql.Date.valueOf(dotDate),activeId);
+		        //int count3 = jdbcTemplate.update(sqlActiveEffectiveFrom,java.sql.Date.valueOf(effectiveFromDate),activeId);
+	            //  Fail fast
+	            if (count1 <= 0) {
+	                throw new RuntimeException("Failed to update ACTIVE status for PERSONSTATUSMMID = " + activeId);
+	            }
+	        }
+
+	        // ================= UPDATE INACTIVE =================
+	        if (inactiveId != null) {
+
+	            String sqlInactive = updateValidfromdotnextday();
+
+	            int count2 = jdbcTemplate.update(sqlInactive,java.sql.Date.valueOf(nextDay),inactiveId);
+
+	            // ✅ Fail fast
+	            if (count2 <= 0) {
+	                throw new RuntimeException("Failed to update INACTIVE status for PERSONSTATUSMMID = " + inactiveId);
+	            }
+	        }
+
+	        return true;
+
+	    } catch (Exception e) {
+	        log.error("Error updating CMSPERSONSTATUSMM for activeId: {}, inactiveId: {}",
+	                activeId, inactiveId, e);
+
+	        //  VERY IMPORTANT - triggers rollback
+	        throw new RuntimeException("CMSPERSONSTATUSMM update failed", e);
+	    }
+	}
+	public String saveCMSPERSONCUSTDATA() {
+		return QueryFileWatcher.getQuery("SAVE_CMSPERSON_CUSTOMDATA");
+	}
+	public boolean updateCmsPersonCustDataDiffPlantSameContIntaPlantTransfer(Long  personId, GatePassMain gpm,String dot,String createdBy){
+      try {
+    	  
+    	// Set required values into gpm
+          gpm.setGatePassAction(GatePassType.CREATE.getStatus());
+          gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+         // gpm.setDot(dot);
+          gpm.setCreatedBy(createdBy);
+          
+	    String sql = saveCMSPERSONCUSTDATA(); 
+
+	    // Fetch all active custom definitions
+	    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+	    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+
+
+	    List<Object[]> batchArgs = new ArrayList<>();
+
+	    for (Map<String, Object> def : defList) {
+
+	        int defId = (Integer) def.get("CSTMDEFID");
+	        String fieldName = (String) def.get("CSTMDEFNAME");
+
+	        String value = mapGatePassValue(fieldName, gpm);
+
+	        // Skip null/empty values
+	        if (value == null || value.trim().isEmpty()) {
+	            continue;
+	        }
+          
+	        // ✅ Set EFFECTIVETILL conditionally
+	        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
+	                ? dot              // only GatePassType gets DOT
+	                : "3000-01-01";           // others get default
+
+	        batchArgs.add(new Object[]{
+	        		personId,        // ?
+	                defId,             // ?
+	                value,             // ?
+	                effectiveTill,     // ? (EFFECTIVETILL)
+	                gpm.getCreatedBy()  // ?
+	        });
+	    }
+
+	    if (batchArgs.isEmpty()) {
+	          log.error("No custom data found to insert for PersonId : {}", personId);
+	    	return false; // nothing to insert
+	    }
+
+	    int[] result = jdbcTemplate.batchUpdate(sql, batchArgs);
+
+	    for (int count : result) {
+
+            if (count <= 0) {
+
+                log.error("Batch insert failed for PersonId : {}", personId);
+
+                throw new RuntimeException("Failed to insert CMSPERSONCUSTOMDATA");
+            }
+        }
+
+        log.info("CMSPERSONCUSTOMDATA inserted successfully for PersonId : {}", personId);
+
+      return true; // records inserted
+      } catch (Exception e) {
+
+          log.error("Error while inserting CMSPERSONCUSTOMDATA for PersonId : {}",personId,e);
+
+          // Rethrow so parent transaction rolls back
+          throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed",e);
+      }
+	}
+	
+	private String mapGatePassValue(String field, GatePassMain gp) {
+
+	    switch (field) {
+
+	        case "IdProof":
+	            return gp.getAadhaarNumber();
+
+	        case "PoliceVerificationDate":
+	            return gp.getPoliceVerificationDate();
+
+	        case "HealthCheckDate":
+	            return gp.getHealthCheckDate();
+
+	        case "UnitId":
+	            return gp.getUnitId();
+
+	        case "ContractorId":
+	            return gp.getContractor();
+
+	        case "DepartmentId":
+	            return gp.getDepartment();
+
+	        case "SkillId":
+	            return gp.getSkill();
+
+	        case "TradeId":
+	            return gp.getTrade();
+
+	        case "WorkorderId":
+	            return gp.getWorkorder();
+
+	        case "SectionId":
+	            return gp.getSubdepartment();
+
+	        case "MobileNumber":
+	            return gp.getMobileNumber();
+
+	        case "MaritalStatus":
+	            return gp.getMaritalStatus();
+
+	        case "NatureOfJob":
+	            return gp.getNatureOfJob();
+
+	        case "WcEsicNo":
+	            return gp.getWcEsicId();
+
+	        case "Technical":
+	            return gp.getTechnical();
+
+	        case "WorkFlowType":
+	            return String.valueOf(gp.getWorkFlowType());
+
+	        case "Comments":
+	            return gp.getComments();
+
+	        case "Address":
+	            return gp.getAddress();
+
+	        case "OnboardingType":
+	            return gp.getOnboardingType();
+
+	        case "PfNumber":
+	            return gp.getPfNumber();
+
+	        case "LLNo":
+	            return gp.getLlId();
+
+	        case "GatePassType":
+	            return gp.getGatePassType();
+
+	        case "Status":
+	            return gp.getGatePassStatus();  // Block / Approve etc.
+
+	        case "WorkmenType":
+	            return gp.getWorkmenType();
+	            
+	        case "PhysicallyChallenged":
+	            return gp.getDisability();
+	            
+	        case "Proficiency":
+	            return gp.getProficiency();
+	            
+	        default:
+	            return null;
+	    }
+	}
+	private java.sql.Date parseDateQuiet(String dateStr) {
+
+	    if (dateStr == null || dateStr.trim().isEmpty()) {
+	        return null;
+	    }
+
+	    String input = dateStr.trim();
+
+	    // Supported formats
+	    String[] patterns = {
+	            "dd/MM/yyyy",
+	            "dd-MM-yyyy",
+	            "yyyy/MM/dd",
+	            "yyyy-MM-dd"
+	    };
+
+	    for (String pattern : patterns) {
+
+	        try {
+
+	            SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+
+	            // Strict parsing
+	            sdf.setLenient(false);
+
+	            // Parse using java.util.Date
+	            java.util.Date parsedDate = sdf.parse(input);
+
+	            // Convert to yyyy-MM-dd
+	            SimpleDateFormat outputFormat =
+	                    new SimpleDateFormat("yyyy-MM-dd");
+
+	            String formattedDate =
+	                    outputFormat.format(parsedDate);
+
+	            // Return as java.sql.Date
+	            return java.sql.Date.valueOf(formattedDate);
+
+	        } catch (Exception e) {
+	            // try next pattern
+	        }
+	    }
+
+	    return null;
+	}
+	@Override
+	public List<String> getContractorDetailsForIntraPlantTransfer(String gatepassNumber) {
+		//String sql =getContractorDetailsForCancel();
+		String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID,DOJ FROM GATEPASSMAIN WHERE GATEPASSID = ?";
+
+	    try {
+	        return jdbcTemplate.queryForObject(sql, new Object[]{gatepassNumber}, (rs, rowNum) -> {
+	            List<String> list = new ArrayList<>();
+	            list.add(rs.getString("UNITID"));
+	            list.add(rs.getString("CONTRACTORID"));
+	            list.add(rs.getString("DEPARTMENTID"));
+	            list.add(rs.getString("DOJ"));
+	            return list;
+	        });
+	    } catch (EmptyResultDataAccessException e) {
+	        return null;
+	    }
+	}
+	@Override
+	public String getLastEffectiveFromDateFromJobHist(String gatepassNumber,java.util.Date effectiveFrom) {
+
+	    try {
+	        // STEP 1 : GET EMPLOYEE ID
+	        String empSql ="SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
+
+	        Integer employeeId =jdbcTemplate.queryForObject(empSql,Integer.class,gatepassNumber);
+
+	        if (employeeId == null) {
+	            return null;
+	        }
+	        // STEP 2 : GET MAX VALIDFROM
+	        String validSql ="SELECT MAX(VALIDFROM) FROM CMSPERSONJOBHIST WHERE EMPLOYEEID = ? AND VALIDFROM > ?";
+
+	        java.sql.Date maxValidFrom =jdbcTemplate.queryForObject(validSql,java.sql.Date.class,employeeId, new java.sql.Date(effectiveFrom.getTime()));
+
+	        return maxValidFrom != null? maxValidFrom.toString(): null;
+	    } catch (Exception e) {
+
+	        log.error("Error fetching max VALIDFROM for GatePass: {}",gatepassNumber,e);
+
+	        return null;
+	    }
+	}
+	private boolean updateCmsPersonJobHistBulkRenew(GatePassMain gpm, long personId) {
+
+	    try {
+
+	        // STEP 1: Get data from GATEPASSMAIN
+	        String fetchSql ="select TradeId,SkillId,DepartmentId,AreaId,UnitId,ContractorId,DOJ,EicId from GATEPASSMAIN where GatePassId=?";
+	               
+
+	        GatePassMain data = jdbcTemplate.queryForObject(
+	                fetchSql,
+	                new Object[]{gpm.getGatePassId()},
+	                (rs, rowNum) -> {
+
+	                    GatePassMain gp = new GatePassMain();
+	                    gp.setTrade(rs.getString("TradeId"));
+	                    gp.setSkill(rs.getString("SkillId"));
+	                    gp.setDepartment(rs.getString("DepartmentId"));
+	                    gp.setSubdepartment(rs.getString("AreaId"));
+	                    gp.setUnitId(rs.getString("UnitId"));
+	                    gp.setContractor(rs.getString("ContractorId"));
+	                    gp.setDoj(rs.getString("DOJ"));
+	                    gp.setEic(rs.getString("EicId"));
+	                    return gp;
+	                }
+	        );
+
+	        // STEP 2: Expire existing record
+	        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
+	               
+
+	        jdbcTemplate.update(updateSql, personId);
+
+	        // STEP 3: Safe DOJ conversion
+	        java.sql.Date validFromDate;
+	        try {
+	            validFromDate = java.sql.Date.valueOf(data.getDoj());
+	        } catch (Exception ex) {
+	        	log.error("Invalid DOJ format for personId: " + personId);
+	            throw new RuntimeException("Invalid DOJ format for personId: " + personId, ex);
+	        }
+	        
+	        // STEP 3: Insert new record
+	        String insertSql =
+	                "INSERT INTO CMSPERSONJOBHIST ( " +
+	                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+	                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+	                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+
+	        int inserted = jdbcTemplate.update(
+	                insertSql,
+	                personId,
+	                data.getTrade(),
+	                data.getSkill(),
+	                data.getUnitId(),
+	                data.getContractor(),
+	                data.getDepartment(),
+	                data.getSubdepartment(),
+	                gpm.getWorkorder(),
+	                data.getEic(),
+	               // java.sql.Date.valueOf(data.getDoj()),
+	                validFromDate,
+	                java.sql.Date.valueOf("3000-01-01")
+	        );
+
+	        if (inserted == 0) {
+	            log.error("Insert failed in CMSPERSONJOBHIST for personid = {}", personId);
+	            throw new RuntimeException("Insert failed for personid = " + personId);
+	        }
+
+	        return true;
+
+	    } catch (Exception e) {
+
+	        log.error("Error in bulk renew for personid: {}", personId, e);
+	        throw new RuntimeException("Failed CMSPERSONJOBHIST bulk renew", e);
+	    }
+	}
+	//same plant doff contractor for intra plant transfer
+	@Override
+	public GatePassMain getAllDeatilsOfWorkmenBasedOnGatePass(String gatepassId) {
+
+	    try {
+
+	        String sql = "SELECT * FROM GATEPASSMAIN WHERE GATEPASSID = ?";
+
+	        return jdbcTemplate.queryForObject(
+	                sql,
+	                new Object[]{gatepassId},
+	                (rs, rowNum) -> {
+
+	                    GatePassMain gm = new GatePassMain();
+
+	                    gm.setTransactionId(rs.getString("TransactionId"));
+	                  //  gm.setGatePassId(rs.getString("GatePassId"));
+	                    gm.setGatePassType(rs.getString("GatePassTypeId"));
+	                  //  gm.setGatePassStatus(rs.getString("GatePassStatus"));
+	                    //gm.setAadhaarNumber(rs.getString("AadharNumber"));
+	                    gm.setFirstName(rs.getString("FirstName"));
+	                    gm.setLastName(rs.getString("LastName"));
+	                    gm.setDateOfBirth(rs.getString("DOB"));
+	                    gm.setGender(rs.getString("Gender"));
+	                    gm.setRelationName(rs.getString("RelativeName"));
+	                    gm.setIdMark(rs.getString("IdMark"));
+	                    gm.setMobileNumber(rs.getString("MobileNumber"));
+	                    gm.setMaritalStatus(rs.getString("MaritalStatus"));
+	                    gm.setTrade(rs.getString("TradeId"));
+	                    gm.setSkill(rs.getString("SkillId"));
+	                    gm.setNatureOfJob(rs.getString("NatureOfJob"));
+	                    //gm.setWcEsicNo(rs.getString("WcEsicNo"));
+	                    gm.setHazardousArea(rs.getString("HazardousArea"));
+	                    gm.setUanNumber(rs.getString("UanNumber"));
+	                    gm.setHealthCheckDate(rs.getString("HealthCheckDate"));
+	                    gm.setBloodGroup(rs.getString("BloodGroupId"));
+	                    gm.setAccommodation(rs.getString("Accommodation"));
+	                    gm.setAcademic(rs.getString("AcademicId"));
+	                    gm.setTechnical(rs.getString("Technical"));
+	                    gm.setIfscCode(rs.getString("IfscCode"));
+	                    gm.setAccountNumber(rs.getString("AccountNumber"));
+	                    gm.setEmergencyNumber(rs.getString("EmergencyContactNumber"));
+	                    gm.setEmergencyName(rs.getString("EmergencyContactName"));
+	                    gm.setPfNumber(rs.getString("PfNumber"));
+	                    //gm.setEsicNumber(rs.getString("EsicNumber"));
+	                    gm.setDoj(rs.getString("DOJ"));
+	                    //gm.setDot(rs.getString("DOT"));
+	                    gm.setOnboardingType(rs.getString("OnboardingType"));
+                        gm.setPoliceVerificationDate(rs.getString("policeverificationDate"));
+                        gm.setAddress(rs.getString("Address"));
+                        gm.setAadhaarNumber(rs.getString("AadharNumber"));
+                        gm.setAccessArea(rs.getString("AccessAreaId"));
+                        gm.setComments(rs.getString("Comments"));
+                        gm.setWorkmenType(rs.getString("WorkmenType"));
+                        gm.setDisability(rs.getString("disability"));
+                        gm.setWageCategory(rs.getString("WorkmenWageCategoryId"));
+                        gm.setBonusPayout(rs.getString("BonusPayoutId"));
+                        gm.setZone(rs.getString("ZoneId"));
+                        gm.setBasic(rs.getBigDecimal("Basic"));
+                        gm.setDa(rs.getBigDecimal("DA"));
+                        gm.setHra(rs.getBigDecimal("HRA"));
+                        gm.setWashingAllowance(rs.getBigDecimal("WashingAllowance"));
+                        gm.setOtherAllowance(rs.getBigDecimal("OtherAllowance"));
+                        gm.setUniformAllowance(rs.getBigDecimal("UniformAllowance"));
+                        gm.setPfCap(rs.getString("PfCap"));
+                        gm.setPfApplicable(rs.getString("pfapplicable"));
+	                    return gm;
+	                });
+
+	    } catch (Exception e) {
+	        log.error("Error fetching GatePassMain for GatePassId: {}",gatepassId, e);
+	        return null;
+	    }
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	   @Override
+	    public void insertSamePlantDiffContIntraPlantTransfer(GatePassMain gm, String createdBy, String dot){
+		try {
+	        String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+	        jdbcTemplate.update(sql,   gm.getGatePassId(),gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),
+	                gm.getWcEsicId(),gm.getLlId(),gm.getEsicNumber(),parseSqlDate(gm.getEffectiveFromDate()), parseSqlDate(dot) , createdBy);
+	        updateGatepassMainStatusCancelForIntrPlant(gm, dot );
+		}catch (Exception e) {
+	        log.error("Error in insertIntraPlantTransferTemp", e);
+	        throw new RuntimeException("Transaction failed, rolling back", e); //  important
+	    }
+	    }
+	
+	@Transactional(rollbackFor = Exception.class)
+	private void updateGatepassMainStatusCancelForIntrPlant(GatePassMain gm,String dot) {
+		 String sql = "update GATEPASSMAIN set GatePassTypeId =?,Reasoning=? ,DOT=DATEADD(DAY, -1, ?)  where GatePassId=?";
+	    jdbcTemplate.update(sql,GatePassType.CANCEL.getStatus() ,gm.getReasoning(),parseSqlDate(gm.getEffectiveFromDate()),gm.getGatePassId());
+	   boolean result = gatePassActionPersonCancelInsertForIntraPlant(gm,GatePassType.CANCEL.getStatus());
+	   if(!result) {
+	    	log.error("CMSPERSON TABLE insertions failed while canceling gatepass: "+gm.getGatePassId());
+           throw new RuntimeException("CMSPERSON TABLE insertions failed while canceling gatepass: "+gm.getGatePassId());
+	    }
+	    int row =gatepassmainInsertionForSamePlantDiffCont( gm, dot);
+	    if(row==0) {
+	    	log.error("gatepassmain insertion failed while creating new gatepass");
+            throw new RuntimeException("gatepassmain insertion failed while creating new gatepass");
+	    }
+	}
+	@Transactional(rollbackFor = Exception.class)
+	public boolean gatePassActionPersonCancelInsertForIntraPlant(GatePassMain gpm, String gatePassType) {
+
+		 long personId = workmenDao.getPersonIdFromCmsPerson(gpm.getGatePassId());
+	        if (personId <= 0) {
+	        	log.error("CMSPERSON employeid not found for gatepass:" + gpm.getGatePassId());
+	            throw new RuntimeException("CMSPERSON employeid not found for gatepass:" +gpm.getGatePassId() );
+	        }
+
+	    // Step 1: Close existing CUSTDATA rows cancel
+	   
+        boolean custDataTypeStatusUpdated =this.updateCmsPersonCustDataIntaPlantTransferEffectiveTillStatus(personId,GatePassType.CANCEL.getStatus(),gpm);
+
+        if (!custDataTypeStatusUpdated) {
+        	log.error("CMSPERSONCUSTOMDATA Cancel effectivetill update failed");
+            throw new RuntimeException("CMSPERSONCUSTOMDATA Cancel effectivetill  update failed");
+        }
+
+	    // Step 3: Update StatusMM only if active
+	    if (this.isPersonActiveInStatusMM(personId)) {
+
+	        PersonStatusIds ids = this.getPersonStatusIds(personId);
+
+	        if (ids.getActiveId() == null && ids.getInactiveId() == null) {
+	        	
+	        	log.error("PersonStatusMM IDs not found for PersonId : {}", personId);
+                throw new RuntimeException("PersonStatusMM IDs not found");
+	        }
+	            boolean statusUpdated =this.updatePersonStatusValidity(ids.getActiveId(), ids.getInactiveId(),gpm.getEffectiveFromDate());
+	            if (!statusUpdated) {
+                	log.error("CMSPERSONSTATUSMM update failed for canceling record :"+ gpm.getGatePassId() );
+                    throw new RuntimeException("CMSPERSONSTATUSMM update failed for canceling record :"+ gpm.getGatePassId() );
+                }
+            }
+           try {
+        	   //gpm.setGatePassType(GatePassType.CANCEL.getStatus());
+              String wfdIntegration = this.getWFDIntegration();
+			 if("yes".equalsIgnoreCase(wfdIntegration)) {
+	             //if(gpm.getGatePassType().equals(GatePassType.CANCEL.getStatus())){
+			        api.updateEmpStatusTerOrAct(gpm.getGatePassId(),EmployeeStatusType.CANCEL);
+	             }
+			   //}
+			 }catch(Exception e) {
+				 log.info(e.getMessage());
+				 throw new RuntimeException("Cancel Api Integration Failed");
+			 }
+	    
+	    return true;
+	 }
+	public String updateValidtoYesterday() {
+		return QueryFileWatcher.getQuery("UPDATE_ACTIVE_VALID_TO_YESTERDAY");
+	}
+	public String updateValidfromToday() {
+		return QueryFileWatcher.getQuery("UPDATE_INACTIVE_VALID_FROM_TODAY");
+	}
+//	public boolean updatePersonStatusValidity(Long activeId, Long inactiveId) {
+//
+//	    boolean updated = false;
+//	    // Update active record → VALIDTO = yesterday
+//	    if (activeId != null) {
+//	    	 String sqlActive = updateValidtoYesterday() ;
+//
+//	        int count1 = jdbcTemplate.update(sqlActive, activeId);
+//	        updated = updated || count1 > 0;
+//	    }
+//
+//	    // Update inactive record → VALIDFROM = today
+//	    if (inactiveId != null) {
+//	    	 String sqlInactive = updateValidfromToday() ;
+//
+//	        int count2 = jdbcTemplate.update(sqlInactive, inactiveId);
+//	        updated = updated || count2 > 0;
+//	    }
+//
+//	    return updated;
+//	}
+	public boolean updatePersonStatusValidity(Long activeId,Long inactiveId,String effectiveFromDate) {
+
+	    boolean updated = false;
+
+	    try {
+
+	        // ACTIVE record:
+	        // VALIDTO = effectiveFromDate - 1 day
+	        if (activeId != null) {
+
+	            String sqlActive ="UPDATE CMSPERSONSTATUSMM SET VALIDTO = DATEADD(DAY, -1, ?) WHERE PERSONSTATUSMMID = ?";
+
+	            int count1 = jdbcTemplate.update(sqlActive,parseSqlDate(effectiveFromDate),activeId);
+
+	            updated =  count1 > 0;
+	        }
+
+	        // INACTIVE record:
+	        // VALIDFROM = effectiveFromDate
+	        if (inactiveId != null) {
+
+	            String sqlInactive ="UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+
+	            int count2 = jdbcTemplate.update(sqlInactive,parseSqlDate(effectiveFromDate),inactiveId);
+
+	            updated = count2 > 0;
+	        }
+
+	        return updated;
+
+	    } catch (Exception e) {
+
+	        log.error("Error updating CMSPERSONSTATUSMM validity dates while canceling the record", e);
+
+	        throw new RuntimeException("Failed to update CMSPERSONSTATUSMM validity dates while canceling the record",e);
+	    }
+	}
+	@Transactional(rollbackFor = Exception.class)
+	public int gatepassmainInsertionForSamePlantDiffCont(GatePassMain gm, String dot) {
+		 int result = 0;
+
+		    try {
+		String gatePassId = this.generateGatePassId();
+		String transactionId=getNextTransactionId();
+		//String gatepassTypeId=GatePassType.CREATE.getStatus();
+		String gatepassStatus=GatePassStatus.APPROVED.getStatus();
+		gm.setGatePassId(gatePassId);
+		gm.setTransactionId(transactionId);
+		//gm.setGatePassType(gatepassTypeId);
+
+	    String query =
+	            "INSERT INTO GATEPASSMAIN (TransactionId,GatePassId, GatePassTypeId, GatePassStatus, AadharNumber, FirstName, LastName, "
+	            + "DOB, Gender, RelativeName, IdMark, MobileNumber , MaritalStatus , UnitId, ContractorId, WorkorderId, TradeId, SkillId, "
+	            + "DepartmentId, AreaId, EicId, NatureOfJob, WcEsicNo, HazardousArea, AccessAreaId, UanNumber, HealthCheckDate,pfnumber,esicNumber,"
+	            + " BloodGroupId, Accommodation, AcademicId, Technical, IfscCode, AccountNumber,EmergencyContactName,EmergencyContactNumber, "
+	            + "WorkmenWageCategoryId, BonusPayoutId, PfCap,ZoneId, Basic, DA, HRA, WashingAllowance, OtherAllowance, UniformAllowance,AadharDocName, "
+	            + "PhotoName, BankDocName, PoliceVerificationDocName, IdProof2DocName, MedicalDocName, EducationDocName, Form11DocName, TrainingDocName, "
+	            + "OtherDocName,WorkFlowType,Comments,Address,DOJ,pfapplicable,policeverificationDate, DOT,UpdatedBy, UpdatedDate,OnboardingType,LLNo,"
+	            + "AppointmentDocName,disability,WorkmenType,Proficiency) VALUES  (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  "
+	            + "?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,?,?,?,?,?,?,?, GETDATE(),?,?,?,?,?,?)";
+	    result = jdbcTemplate.update(query,transactionId,gatePassId,gm.getGatePassType(),gatepassStatus,gm.getAadhaarNumber(),gm.getFirstName(),gm.getLastName(),
+	            gm.getDateOfBirth(),gm.getGender(),gm.getRelationName(),gm.getIdMark(),gm.getMobileNumber(),gm.getMaritalStatus(),gm.getUnitId(),gm.getContractor(),gm.getWorkorder(),gm.getTrade(),gm.getSkill(),
+	            gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getNatureOfJob(),gm.getWcEsicNo(),gm.getHazardousArea(),gm.getAccessArea(),gm.getUanNumber(),gm.getHealthCheckDate(),gm.getPfNumber(),gm.getEsicNumber(),
+	            gm.getBloodGroup(),gm.getAccommodation(),gm.getAcademic(),gm.getTechnical(),gm.getIfscCode(),gm.getAccountNumber(),gm.getEmergencyName(),gm.getEmergencyNumber(),
+	            gm.getWageCategory(),gm.getBonusPayout(),gm.getPfCap(),gm.getZone(),gm.getBasic(),gm.getDa(),gm.getHra(),gm.getWashingAllowance(),gm.getOtherAllowance(),gm.getUniformAllowance(),gm.getAadharDocName() !=null?gm.getAadharDocName():"",
+	            gm.getPhotoName() !=null?gm.getPhotoName():"",gm.getBankDocName()!=null?gm.getBankDocName():"",gm.getPoliceVerificationDocName()!=null?gm.getBankDocName():"",gm.getIdProof2DocName()!=null?gm.getBankDocName():"",
+	            gm.getMedicalDocName()!=null?gm.getBankDocName():"",gm.getEducationDocName()!=null?gm.getBankDocName():"",gm.getForm11DocName()!=null?gm.getBankDocName():"",gm.getTrainingDocName()!=null?gm.getBankDocName():"",
+	            gm.getOtherDocName()!=null?gm.getBankDocName():"",gm.getWorkFlowType(),gm.getComments(),gm.getAddress(),gm.getEffectiveFromDate(),gm.getPfApplicable(),gm.getPoliceVerificationDate(),
+	            dot,gm.getCreatedBy(),gm.getOnboardingType(),gm.getLlNo(),gm.getAppointmentDocName()!=null?gm.getAppointmentDocName():"",gm.getDisability(),gm.getWorkmenType(),gm.getProficiency()!=null?gm.getProficiency():"");
+
+    // log.info("GatePassMain inserted successfully.");
+   //  log.info("Rows affected : {}", result);
+     
+     boolean row = gatePassActionPersonCreateInsertForIntraPlant(gm,dot);
+     if(!row) {
+	    	log.error("PERSON TABLES insertions failed while creating gatepass: "+gm.getGatePassId());
+      throw new RuntimeException("PERSON TABLES insertions failed while canceling gatepass: "+gm.getGatePassId());
+	    }
+     
+     try {
+     	String wfdIntegration = this.getWFDIntegration();
+     	if("yes".equalsIgnoreCase(wfdIntegration)) {
+     		api.addOnBoardingDetailsActual(gm.getTransactionId());
+     	}
+     	}catch(Exception e) {
+     		log.info(e.getMessage());
+			 throw new RuntimeException("create Api Integration Failed");
+     	}
+     
+   } catch (Exception e) {
+
+     log.error("Error occurred while inserting GatePassMain" + gm.getGatePassId(), e);
+     throw new RuntimeException("Error occurred while inserting GatePassMain" + gm.getGatePassId(), e);
+
+  }
+
+    return result;
+ }
+	
+	@Transactional(rollbackFor = Exception.class)
+	public boolean gatePassActionPersonCreateInsertForIntraPlant(GatePassMain gpm,String dot) {
+    
+	    long personId = saveIntoCMSPerson(gpm,dot);
+	    if (personId <= 0) {
+	        throw new RuntimeException("CMSPERSON insert failed");
+	    }
+
+	    boolean jobHist = saveIntoCMSPERSONJOBHIST(gpm, personId);
+
+	    if (!jobHist) {
+	        throw new RuntimeException("CMSPERSONJOBHIST insert failed");
+	    }
+
+	    boolean status =saveCMSPERSONSTATUSMM(gpm, personId,dot);
+
+	    if (!status) {
+	        throw new RuntimeException("CMSPERSONSTATUSMM insert failed");
+	    }
+
+	    gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+
+	    boolean custom =this.updateCmsPersonCustDataIntaPlantTransfer(personId,gpm,dot);
+
+	    if (!custom) {
+	        throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed");
+	    }
+
+	    return true;
+ }
+	@Transactional(rollbackFor = Exception.class)
+	public long saveIntoCMSPerson(GatePassMain gpm,String dot) {
+		
+		CMSPerson person = new CMSPerson();
+		person.setEmployeeCode(gpm.getGatePassId());
+		person.setFirstName(gpm.getFirstName());
+		person.setLastName(gpm.getLastName());
+		person.setRelationName(gpm.getRelationName());
+		person.setDateOfBirth(gpm.getDateOfBirth());
+		person.setDateOfJoining(gpm.getEffectiveFromDate());
+		person.setDateOfTermination(dot!=null?dot:"");
+		//person.setBloodGroup(Integer.parseInt(gpm.getBloodGroup()));
+		person.setBloodGroup(gpm.getBloodGroup() != null && !gpm.getBloodGroup().trim().isEmpty()? Integer.parseInt(gpm.getBloodGroup()): 0);
+
+		person.setHazardousArea(gpm.getHazardousArea());
+		person.setGender(Integer.parseInt(gpm.getGender()));
+		person.setAcademics(gpm.getAcademic() != null && !gpm.getAcademic().trim().isEmpty()? Integer.parseInt(gpm.getAcademic()): 0);
+		person.setAccomodation(gpm.getAccommodation() != null && gpm.getAccommodation().trim().equalsIgnoreCase("Yes") ? 1 : 0);
+		person.setBankBranch(gpm.getIfscCode());
+		person.setAccountNo(gpm.getAccountNumber() != null && !gpm.getAccountNumber().trim().isEmpty()? gpm.getAccountNumber(): " ");
+		person.setEmergencyName(gpm.getEmergencyName());
+		person.setEmergencyNumber(gpm.getEmergencyNumber());
+		person.setMobileNumber(gpm.getMobileNumber());
+		//person.setAccessLevel(Integer.parseInt(gpm.getAccessArea()));
+		person.setAccessLevel(gpm.getAccessArea() != null && !gpm.getAccessArea().trim().isEmpty()? Integer.parseInt(gpm.getAccessArea()): 0);
+		person.setEsicNumber(gpm.getEsicNumber());
+		person.setUanNumber(gpm.getUanNumber()!=null?gpm.getUanNumber():" ");
+		person.setIsPfEligible(gpm.getPfApplicable().equals("Yes")?1:0);
+		person.setIdMark(gpm.getIdMark()!=null?gpm.getIdMark():" ");
+		person.setPanNumber(gpm.getPfNumber()!=null?gpm.getPfNumber():" ");
+		person.setAadharNumber(gpm.getAadhaarNumber());
+		person.setUpdatedBy(gpm.getCreatedBy());
+		
+		return this.saveIntoCMSPerson(person);
+	}
+	
+	public String saveIntoCMSPerson() {
+		return QueryFileWatcher.getQuery("SAVE_CMSPERSON");
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public long saveIntoCMSPerson(CMSPerson person) {
+		String sql= saveIntoCMSPerson();
+	    KeyHolder keyHolder = new GeneratedKeyHolder();
+	    Object terminationValue = 
+	            (person.getDateOfTermination() == null || person.getDateOfTermination().toString().trim().isEmpty())
+	                    ? " " : person.getDateOfTermination();
+	    
+	    Object[] parameters = new Object[]{
+	        person.getEmployeeCode(),
+	        person.getFirstName(),
+	        person.getRelationName(),
+	        person.getLastName(),
+	        person.getDateOfBirth(),
+	        parseSqlDate(person.getDateOfJoining()),
+	        //parseSqlDate(person.getDateOfTermination()),
+	        terminationValue,
+	        person.getBloodGroup(),
+	        person.getHazardousArea(),
+	        person.getGender(),
+	        person.getAcademics(),
+	        person.getAccomodation(),
+	        person.getBankBranch(),
+	        person.getAccountNo(),
+	        person.getEmergencyName(),
+	        person.getEmergencyNumber(),
+	        person.getMobileNumber(),
+	        person.getAccessLevel(),
+	        person.getEsicNumber(),
+	        person.getUanNumber(),
+	        person.getIsPfEligible(),
+	        person.getIdMark(),
+	        person.getPanNumber(),
+	        person.getUpdatedBy(),
+	        person.getAadharNumber(),
+	        
+	    };
+
+	    try {
+	        jdbcTemplate.update(connection -> {
+	            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+	            for (int i = 0; i < parameters.length; i++) {
+	                ps.setObject(i + 1, parameters[i]);
+	            }
+	            return ps;
+	        }, keyHolder);
+
+	        Number generatedId = keyHolder.getKey();
+	        if (generatedId != null) {
+	            return generatedId.longValue();  // return EMPLOYEEID
+	        } else {
+	            log.warn("Insert succeeded but no EMPLOYEEID returned for EmployeeCode: " + person.getEmployeeCode());
+	            throw new RuntimeException("Insert succeeded but no EMPLOYEEID returned for EmployeeCode: " + person.getEmployeeCode());
+	        }
+	    } catch (Exception e) {
+	        log.error("Error inserting into CMSPerson for EmployeeCode: " + person.getEmployeeCode(), e);
+	        throw new RuntimeException("Error inserting into CMSPerson for EmployeeCode: " + person.getEmployeeCode(), e);
+	    }
+	}
+	public String saveIntoCMSPERSONJOBHIST() {
+		return QueryFileWatcher.getQuery("SAVE_CMSPERSONJOBHIST");
+	}
+	@Transactional(rollbackFor = Exception.class)
+	public boolean saveIntoCMSPERSONJOBHIST(GatePassMain gpm, long employeeId) {
+		boolean result = false;
+		String sql = saveIntoCMSPERSONJOBHIST();
+		// String sql = "INSERT INTO CMSPERSONJOBHIST ( EMPLOYEEID , TRADEID , SKILLID , UNITID , CONTRACTORID , DEPARTMENTID , "
+		// 		+ " SUBDEPARTMENTID , WORKORDERID , EICID , VALIDFROM , VALIDTO  ) "
+		// 		+ "     VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+	     Object[] parameters = new Object[] {employeeId,gpm.getTrade(),gpm.getSkill(),gpm.getUnitId(),gpm.getContractor(),gpm.getDepartment(),
+	    		 gpm.getSubdepartment(),gpm.getWorkorder(),gpm.getEic(),parseSqlDate(gpm.getEffectiveFromDate()), "1/1/3000"};
+	     try {
+	     int status = jdbcTemplate.update(sql, parameters);
+	     if (status > 0) {
+	     	result=true;
+	     }else {
+	         log.warn("Failed to insert CMSPERSONJOBHIST action for GatePassId: " + gpm.getGatePassId());
+	         throw new RuntimeException("Failed to insert CMSPERSONJOBHIST action for GatePassId: " + gpm.getGatePassId());
+	     }
+	     }catch (Exception e) {
+	         log.error("Error insert CMSPERSONJOBHIST action for GatePassId: " + gpm.getGatePassId(), e);
+	         throw new RuntimeException("Error insert CMSPERSONJOBHIST action for GatePassId: " + gpm.getGatePassId(), e);
+	     }
+	     return result;
+	}
+	
+	public String saveCMSPERSONSTATUSMM() {
+		return QueryFileWatcher.getQuery("SAVE_CMSPERSONSTATUSMM");
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public boolean saveCMSPERSONSTATUSMM(GatePassMain gpm, long employeeId, String dot) {
+		
+		boolean result = false;
+		String sql = saveCMSPERSONSTATUSMM();
+		if(dot==null) {
+			throw new RuntimeException("DOT IS NULL for GatePassId: " + gpm.getGatePassId()); 
+		}
+		// String sql = "INSERT INTO CMSPERSONSTATUSMM ( EMPLOYEEID , ISACTIVE , VALIDFROM , VALIDTO)  VALUES (?,?,?,? )";
+	    Object[] parameters = new Object[] {employeeId,1,parseSqlDate(gpm.getEffectiveFromDate()),dot};
+	    try {
+	    int status = jdbcTemplate.update(sql, parameters);
+	    if (status > 0) {
+	    	boolean r = saveCMSPERSONSTATUSMMTerminated(gpm,employeeId,dot);
+	    	result=r;
+	    }else {
+	        log.warn("Failed to insert active record statusmm for GatePassId: " + gpm.getGatePassId());
+	        throw new RuntimeException("Failed to insert active record statusmm  for GatePassId: " + gpm.getGatePassId());
+	    }
+	    }catch (Exception e) {
+	        log.error("Failed to insert active record statusmm  for GatePassId: " + gpm.getGatePassId(), e);
+	        throw new RuntimeException("Failed to insert active record statusmm  for GatePassId: " + gpm.getGatePassId(), e);
+	    }
+	    return result;
+	}
+	
+	public String saveCMSPERSONSTATUSMMTerminated() {
+		return QueryFileWatcher.getQuery("SAVE_CMSPERSONSTATUSMM_INACTIVE");
+	}
+	
+	public boolean saveCMSPERSONSTATUSMMTerminated(GatePassMain gpm, long employeeId,String Newdot) {
+		
+		String dot = Newdot;  // e.g. "2025-12-31"
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate date = LocalDate.parse(dot, formatter);
+		LocalDate nextDate = date.plusDays(1);
+		String newDot = nextDate.format(formatter);
+		gpm.setNewDot(newDot);
+		
+		boolean result = false;
+		String sql = saveCMSPERSONSTATUSMMTerminated();
+		// String sql = "INSERT INTO CMSPERSONSTATUSMM ( EMPLOYEEID , ISACTIVE , VALIDFROM , VALIDTO)  VALUES (?,?,?,? )";
+	    Object[] parameters = new Object[] {employeeId,0,gpm.getNewDot(),"1/1/3000"};
+	    try {
+	    int status = jdbcTemplate.update(sql, parameters);
+	    if (status > 0) {
+	    	result=true;
+	    }else {
+	        log.warn("Failed to insert inactive record statusmm for GatePassId: " + gpm.getGatePassId());
+	        throw new RuntimeException("Failed to insert inactive record statusmm for GatePassId: " + gpm.getGatePassId());
+	    }
+	    }catch (Exception e) {
+	        log.error("Failed to insert inactive record statusmm for GatePassId: " + gpm.getGatePassId(), e);
+	        throw new RuntimeException("Failed to insert inactive record statusmm for GatePassId: " + gpm.getGatePassId(), e);
+	    }
+	    return result;
+	}
+	@Transactional(rollbackFor = Exception.class)
+	public boolean updateCmsPersonCustDataIntaPlantTransfer(Long  personId, GatePassMain gpm,String dot){
+	      try {
+	    	  
+	          
+		    String sql = saveCMSPERSONCUSTDATA(); 
+
+		    // Fetch all active custom definitions
+		    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+		    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+
+
+		    List<Object[]> batchArgs = new ArrayList<>();
+
+		    for (Map<String, Object> def : defList) {
+
+		        int defId = (Integer) def.get("CSTMDEFID");
+		        String fieldName = (String) def.get("CSTMDEFNAME");
+
+		        String value = mapGatePassValue(fieldName, gpm);
+
+		        // Skip null/empty values
+		        if (value == null || value.trim().isEmpty()) {
+		            continue;
+		        }
+	          
+		        // ✅ Set EFFECTIVETILL conditionally
+		        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
+		                ? dot              // only GatePassType gets DOT
+		                : "3000-01-01";           // others get default
+
+		        batchArgs.add(new Object[]{
+		        		personId,        // ?
+		                defId,             // ?
+		                value,             // ?
+		                effectiveTill,     // ? (EFFECTIVETILL)
+		                gpm.getCreatedBy()  // ?
+		        });
+		    }
+
+		    if (batchArgs.isEmpty()) {
+		          log.error("No custom data found to insert for PersonId : {}", personId);
+		    	return false; // nothing to insert
+		    }
+
+		    int[] result = jdbcTemplate.batchUpdate(sql, batchArgs);
+
+		    for (int count : result) {
+
+	            if (count <= 0) {
+
+	                log.error("Batch insert failed for PersonId : {}", personId);
+
+	                throw new RuntimeException("Failed to insert CMSPERSONCUSTOMDATA");
+	            }
+	        }
+
+	        log.info("CMSPERSONCUSTOMDATA inserted successfully for PersonId : {}", personId);
+
+	      return true; // records inserted
+	      } catch (Exception e) {
+
+	          log.error("Error while inserting CMSPERSONCUSTOMDATA for PersonId : {}",personId,e);
+
+	          // Rethrow so parent transaction rolls back
+	          throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed",e);
+	      }
+		}
+}

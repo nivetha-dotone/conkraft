@@ -646,5 +646,13 @@ public String getWcEsicId() {
 public void setWcEsicId(String wcEsicId) {
 	this.wcEsicId = wcEsicId;
 }
+public String effectiveFromDate;
+
+public String getEffectiveFromDate() {
+	return effectiveFromDate;
+}
+public void setEffectiveFromDate(String effectiveFromDate) {
+	this.effectiveFromDate = effectiveFromDate;
+}
 
 }

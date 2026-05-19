@@ -254,4 +254,16 @@ public interface FileUploadDao {
 	boolean getPEStateExists(Long unitId, Long stateId);
 
 	Set<String> getExistingPECodes(List<PrincipalEmployer> list, long orgLevelDefId);
+
+	void updateGatepassMainIntraPlantTransfer(GatePassMain gm, String createdBy, String dot);
+
+	void insertIntraPlantTransferTemp(GatePassMain gm, String createdBy, String dot);
+
+	List<String> getContractorDetailsForIntraPlantTransfer(String gatepassNumber);
+
+	String getLastEffectiveFromDateFromJobHist(String gatepassNumber, Date effectiveFrom);
+
+	GatePassMain getAllDeatilsOfWorkmenBasedOnGatePass(String gatepassId);
+
+	void insertSamePlantDiffContIntraPlantTransfer(GatePassMain gm, String createdBy, String dot);
 }

@@ -199,6 +199,12 @@ public class FileUploadServiceImpl implements FileUploadService {
                 }
                 savedData = processUser(reader);
                 break;
+            case "Data-Intra Plant Transfer":
+                if (!headerLine.equalsIgnoreCase("GatepassId,Plant Code,Contractor Code,Department,Area,EIC Number,Workorder,WC/ESIC,LL Number,ESIC,Effective From Date")) {
+                    throw new Exception("File can not upload due to incorrect format.");
+                }
+                 savedData = processIntraPlantTransfer(reader,userAccount,createdBy);
+                 break;
             default:
                 throw new Exception("Unsupported template type: " + templateType);
         }
@@ -2545,7 +2551,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 	            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
 	            continue;
 	        }
-
+      try {
 	        // ================= 7️ Update Gatepass =================
 	        fileUploadDao.updateGatepassBulkRenew(gm, createdBy, dot);
 
@@ -2557,7 +2563,15 @@ public class FileUploadServiceImpl implements FileUploadService {
 	        map.put("llNumber", llNumber);
 
 	        successData.add(map);
-	    }
+       }catch (Exception ex) {
+
+            log.error("Rollback happened for GatePassId: {}", gatepassNumber, ex);
+
+    //  Add rollback error message
+        errorData.add(Map.of("row", rowNum,"gatepassNumber", gatepassNumber,"error", "Failed Bulk Renew for GatePassId: " + gatepassNumber));
+    continue; // move to next row
+   }
+ }
 
 	    Map<String, Object> result = new HashMap<>();
 	    result.put("successData", successData);
@@ -2566,6 +2580,15 @@ public class FileUploadServiceImpl implements FileUploadService {
 	}
 	public Map<String, String> workmenCountCheck(GatePassMain gatePassMain,String gpUnitId,String gpContId) {
 		Map<String, String> errors = new LinkedHashMap<>();
+		
+		 // ❗ If plant is NOT allowed → return error immediately
+		 String plantValidation = plantCountCheck(gpUnitId);
+
+		    if (!ALLOW.equalsIgnoreCase(plantValidation)) {
+		        errors.put("plantCount",plantValidation);
+		        return errors;
+		    }
+	    
 		int activeCount = workmenDao.getActiveWorkmenCount(gpUnitId, gpContId, GatePassStatus.APPROVED.getStatus(), GatePassType.CREATE.getStatus());
 		int llDeployedCount = workmenDao.getLLDeploymentCountByUnitId(gpUnitId);
 		if(activeCount < llDeployedCount) {
@@ -2574,6 +2597,22 @@ public class FileUploadServiceImpl implements FileUploadService {
 			return licenseExistsAndCount(gatePassMain,gpUnitId,gpContId, activeCount);
 			
 		}
+	}
+	private static final String ALLOW = "ALLOW";
+	private static final String EXCEEDED = "Plant maximum contract workmen count exceeded";
+	
+	private String plantCountCheck(String principalEmployer) {
+
+	    Map<String, Integer> counts = workmenDao.getPlantCounts(principalEmployer);
+
+	    int maxCount = counts.get("maxCount");
+	    int activeCount = counts.get("activeCount");
+
+	    if (activeCount >= maxCount) {
+	        return EXCEEDED;
+	    }
+
+	    return ALLOW;
 	}
 	public Map<String, String> licenseExistsAndCount(GatePassMain gatePassMain,String gpUnitId,String gpContId, int activeCount) {
 
@@ -3003,4 +3042,429 @@ public class FileUploadServiceImpl implements FileUploadService {
 		            .findFirst()
 		            .orElse(null);
 		}
+
+private Map<String, Object> processIntraPlantTransfer(BufferedReader reader, String userAccount, String createdBy) throws IOException {
+
+    List<Map<String, Object>> successData = new ArrayList<>();
+    List<Map<String, Object>> errorData = new ArrayList<>();
+
+    String line;
+    int rowNum = 0;
+
+    String[] fieldNames = {"gatepassNumber", "unitCode", "contractorCode", "department","area","eicNumber","workorder","wcesic","llNumber","esic","effectiveFromDate"};
+    Set<String> mandatoryFields = Set.of("gatepassNumber", "unitCode", "contractorCode", "department","area","eicNumber","workorder","wcesic","effectiveFromDate");
+
+    while ((line = reader.readLine()) != null) {
+        rowNum++;
+        line = line.replaceAll("[\\x00-\\x1F\\x7F]", "");
+        if (line.trim().isEmpty()) continue;
+
+        String[] rawFields = line.split(",", -1);
+        String[] fields = new String[rawFields.length];
+        for (int i = 0; i < rawFields.length; i++) {
+            fields[i] = rawFields[i].trim().replaceAll("\"", "");
+        }
+
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+        // ================= Field Count Check =================
+        if (fields.length < 10) {
+            errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
+            continue;
+        }
+
+        String gatepassNumber = fields[0];
+        String unitCode = fields[1];
+        String contractorCode = fields[2];
+        String department = fields[3];
+        String area = fields[4];
+        String eicNumber = fields[5];
+        String workorderNumber = fields[6];
+        String wcesicNumber = fields[7];
+        String llNumber = fields[8];
+        String esicNumber = fields[9];
+        String effectiveFromDate = fields[10];
+      
+
+        // ================= 1️ Mandatory Fields Check =================
+        for (int i = 0; i < fieldNames.length; i++) {
+            if (mandatoryFields.contains(fieldNames[i]) && fields[i].isBlank()) {
+                fieldErrors.put(fieldNames[i], "is mandatory");
+            }
+        }
+
+        if (!fieldErrors.isEmpty()) {
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+
+        // ================= 2️ Gatepass Validation =================
+        boolean gatepassExists = fileUploadDao.activeGatepassExists(gatepassNumber);
+        if (!gatepassExists) {
+            fieldErrors.put("gatepassNumber", "Gatepass Number is not Active");
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+        
+        String gpDOJ =null;
+        String gpUnitId = null;
+        String gpContId = null;
+        String gpDeptId = null;
+        // ================= Fetch Gatepass Details =================
+        if(gatepassExists) {
+        List<String> gpm = fileUploadDao.getContractorDetailsForIntraPlantTransfer(gatepassNumber);
+        if (gpm == null) {
+            fieldErrors.put("gatepassNumber", "Gatepass Details not Found");
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+
+         gpUnitId = gpm.get(0);
+         gpContId = gpm.get(1);
+         gpDeptId = gpm.get(2);
+         gpDOJ = gpm.get(3);
+        // =================  Logged-in User Access Check =================
+        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(userAccount);
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        Set<String> userPEIds = groupedByLevelDef.getOrDefault("Principal Employer", List.of())
+                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+        Set<String> userDeptIds = groupedByLevelDef.getOrDefault("Dept", List.of())
+                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+        Set<String> userContIds = groupedByLevelDef.getOrDefault("Contractor", List.of())
+                .stream().map(PersonOrgLevel::getId).collect(Collectors.toSet());
+
+        if (!userPEIds.contains(gpUnitId) && !userDeptIds.contains(gpDeptId) && !userContIds.contains(gpContId)) {
+            fieldErrors.put("access", "Logged-in user does not have access to Do Intra Plant Transfer");
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+       } 
+
+        //check plant exists
+        Integer unitId = fileUploadDao.getUnitIdByName(unitCode);
+        if (unitId == null || unitId == 0) {
+            errorData.add(Map.of("row", rowNum, "error", "PlantCode: " + unitCode + " Not exists"));
+            continue;
+        }
+        
+        Integer departmentId = fileUploadDao.getGeneralMasterId("Department", department);
+        Integer  subDepartmentId = fileUploadDao.getGeneralMasterId("Area", area);
+        
+        if (departmentId == null || departmentId == 0) {
+            errorData.add(Map.of("row", rowNum, "error", "Department: " + department + " Not exists"));
+            continue;
+        }
+        if (subDepartmentId == null || subDepartmentId == 0) {
+            errorData.add(Map.of("row", rowNum, "error", "Area: " + area + " Not exists"));
+            continue;
+        }
+        
+        boolean mappingExists = deptMapDao.trioexistsMapping(unitId, departmentId,subDepartmentId);
+        if (!mappingExists) {
+            errorData.add(Map.of("row", rowNum, "error", "Mapping not exists for '" +department+"' and '"+area+"' with "+unitCode));
+            continue;
+        }
+        Integer contractorId = fileUploadDao.getContractorIdByName(contractorCode);
+        
+        if (contractorId == null || contractorId == 0) {
+            errorData.add(Map.of("row", rowNum, "error", "Contractor: " + contractorCode + " Not exists"));
+            continue;
+        }
+        
+        Map<String, Object> woData = fileUploadDao.workorderExistsForPlantAndContractor(workorderNumber,contractorId,unitId);
+
+        if (woData == null) {
+            errorData.add(Map.of("row", rowNum, "error",  "Workorder Number not Mapped to Contractor and Plant"));
+            continue;
+        }
+
+        Integer woid = ((Number) woData.get("WORKORDERID")).intValue();
+        Date validDt = (Date) woData.get("VALIDDT");
+        
+        if (validDt == null || !validDt.after(new Date())) {
+            fieldErrors.put("workorderNumber", "Workorder Expiry Date must be in future");
+        }
+        
+        // ================= 4️ WC / LL Mapping Check =================
+        Map<String, Object> WCESIClicenseData =fileUploadDao.licenseExistsWithWorkorder(workorderNumber, wcesicNumber);
+
+        //  FIRST: null check
+        if (WCESIClicenseData == null) {
+        	errorData.add(Map.of("row", rowNum,"error", "Invalid WC/ESIC Number or not mapped to Workorder"));
+            continue;
+        }
+
+        //  Safe extraction AFTER null check
+        Integer wcesicid = WCESIClicenseData.get("WCID") != null? ((Number) WCESIClicenseData.get("WCID")).intValue(): null;
+
+        Date wcesicvalidFrom = (Date) WCESIClicenseData.get("VALIDFROM");
+        Date wcesicvalidTo = (Date) WCESIClicenseData.get("VALIDTO");
+        String licenseType = (String) WCESIClicenseData.get("LICENSETYPE");
+
+        //  Validation checks
+        if (wcesicid == null || wcesicid == 0) {
+            fieldErrors.put("wcesicNumber", "WC/ESIC Number not mapped to Workorder");
+        }
+
+        if (wcesicvalidTo == null || !wcesicvalidTo.after(new Date())) {
+            fieldErrors.put("wcesicNumber", "WC/ESIC is expired");
+        }
+
+        // FIX: use .equals() instead of ==
+        if ("ESIC".equalsIgnoreCase(licenseType)) {
+            if (esicNumber == null || esicNumber.isBlank()) {
+                errorData.add(Map.of("row", rowNum,"error", "If WC/ESIC Type is ESIC then ESIC Number is mandatory"));
+                continue;
+            }
+        }
+        Integer llid = null;
+        Date llvalidFrom =null;
+        Date llvalidTo =null;
+      if(llNumber!=null && ! llNumber.isBlank()) {
+        Map<String, Object> licenseData =fileUploadDao.licenseExistsWithWorkorder(workorderNumber, llNumber);
+
+        //  FIRST: null check
+        if (licenseData == null) {
+        	errorData.add(Map.of("row", rowNum,"error", "Invalid LL Number or not mapped to Workorder"));
+            continue;
+        }
+
+        //  Safe extraction AFTER null check
+         llid = licenseData.get("WCID") != null? ((Number) licenseData.get("WCID")).intValue(): null;
+         
+          llvalidFrom = (Date) licenseData.get("VALIDFROM");
+         llvalidTo = (Date) licenseData.get("VALIDTO");
+        String llType = (String) licenseData.get("LICENSETYPE");
+
+        //  Validation checks
+        if (llid == null || llid == 0) {
+            fieldErrors.put("llNumber", "LL Number not mapped to Workorder");
+        }
+
+        if (llvalidTo == null || !llvalidTo.after(new Date())) {
+            fieldErrors.put("llNumber", "LL Number is expired");
+        }
+  }      
+//	        Date effectiveFrom = parseDateStrict(fields[9], "EffectiveFrom", fieldErrors);
+//
+//	        
+//	        // Convert to LocalDate for easy comparison
+//	        LocalDate valideffectiveFrom = new java.sql.Date(effectiveFrom.getTime()).toLocalDate();
+//
+//	        LocalDate today = LocalDate.now();
+//	        LocalDate maxDate = today.plusDays(7);
+//
+//	        //  Validate range (today to +7 days)
+//	        if (valideffectiveFrom.isBefore(today) || valideffectiveFrom.isAfter(maxDate)) {
+//	            fieldErrors.put("EffectiveFrom","Effective From date must be between today and next 7 days");
+//	        }
+      Date effectiveFrom = parseDateStrict(fields[10], "EffectiveFrom", fieldErrors);
+
+      //if (effectiveFrom != null) {
+      LocalDate effectiveDate = new java.sql.Date(effectiveFrom.getTime()).toLocalDate();
+    	  LocalDate today = LocalDate.now();
+    	  LocalDate minDate = today.minusDays(7);
+    	  LocalDate maxDate = today.plusDays(7);
+
+    	  if (effectiveDate.isBefore(minDate) || effectiveDate.isAfter(maxDate)) {
+
+    	      fieldErrors.put("EffectiveFrom","Effective From date must be between past and future 7 days");
+    	  }
+
+          // 2. Check WC/ESIC license validity range
+          if (wcesicvalidFrom != null && wcesicvalidTo != null) {
+
+              LocalDate wcFrom = new java.sql.Date(wcesicvalidFrom.getTime()).toLocalDate();
+
+              LocalDate wcTo = new java.sql.Date(wcesicvalidTo.getTime()).toLocalDate();
+
+              if (effectiveDate.isBefore(wcFrom)|| effectiveDate.isAfter(wcTo)) {
+
+                  fieldErrors.put("EffectiveFrom","Effective From date must be between WC/ESIC license valid from and valid to dates");
+              }
+          }
+
+          // 3. Check LL license validity range (only if LL exists)
+          if (llNumber != null && !llNumber.isBlank() && llvalidFrom != null && llvalidTo != null) {
+
+              LocalDate llFrom = new java.sql.Date(llvalidFrom.getTime()).toLocalDate();
+
+              LocalDate llTo = new java.sql.Date(llvalidTo.getTime()).toLocalDate();
+
+              if (effectiveDate.isBefore(llFrom)|| effectiveDate.isAfter(llTo)) {
+
+                  fieldErrors.put("EffectiveFrom","Effective From date must be between LL license valid from and valid to dates");
+              }
+          }
+          
+       // ================= DOJ Validation =================
+          if (gpDOJ != null && !gpDOJ.isBlank()) {
+
+              try {
+                  // Convert DOJ String to LocalDate
+                  LocalDate dojDate = LocalDate.parse(gpDOJ);
+                  // Effective From must be >= DOJ
+                  if (effectiveDate.isBefore(dojDate)) {
+                      fieldErrors.put("EffectiveFrom","Effective From date must be greater than or equal to Date Of Joining");
+                  }
+
+              } catch (DateTimeParseException e) {
+                  fieldErrors.put("DOJ","Invalid DOJ date format");
+              }
+          }
+          String lastEffectiveValidFrom = fileUploadDao.getLastEffectiveFromDateFromJobHist(gatepassNumber,effectiveFrom);
+          if(lastEffectiveValidFrom != null) {
+        	  fieldErrors.put("EffectiveFrom","Effective from must be greater than last effective date: " + lastEffectiveValidFrom);
+          }
+          
+          Integer eicId = fileUploadDao.geteicId(department,unitId,eicNumber);
+          if (eicId == null || eicId == 0) {
+              errorData.add(Map.of("row", rowNum, "error", "EIC Number: " + eicNumber + " Not exists with Department"));
+              continue;
+          }
+      //}     
+        if (!fieldErrors.isEmpty()) {
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+
+        // ================= Build GatePass Object =================
+        GatePassMain gm = new GatePassMain();
+        gm.setGatePassId(gatepassNumber);
+        gm.setUnitId(String.valueOf(unitId));
+        gm.setContractor(String.valueOf(contractorId));
+        gm.setDepartment(String.valueOf(departmentId));
+        gm.setSubdepartment(String.valueOf(subDepartmentId));
+        gm.setEic(String.valueOf(eicId));
+        gm.setWorkorder(String.valueOf(woid));
+        gm.setWcEsicNo(String.valueOf(wcesicid));
+        gm.setLlNo(llid != null ? String.valueOf(llid) : "");
+        gm.setEsicNumber(esicNumber!=null?esicNumber:"");
+        gm.setWcEsicId(String.valueOf(wcesicNumber));
+        gm.setLlId(String.valueOf(llNumber));
+        gm.setEffectiveFromDate(effectiveFromDate);
+        gm.setCreatedBy(createdBy);
+        gm.setReasoning("Intra Plant Transfer");
+        String dot = this.getDOT(gm, String.valueOf(unitId));
+
+        // ================= 6️ License Validation =================
+       Map<String, String> licenseErrors = this.workmenCountCheck(gm, String.valueOf(unitId), String.valueOf(contractorId));
+
+        if (!licenseErrors.isEmpty()) {
+            for (Map.Entry<String, String> entry : licenseErrors.entrySet()) {
+                fieldErrors.put(entry.getKey(), "GatePass " + gatepassNumber + " : " + entry.getValue());
+            }
+            errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
+            continue;
+        }
+
+        // ================= 7️ Update Gatepass =================
+        
+        try {
+        	 boolean samePlant = String.valueOf(unitId).equals(gpUnitId);
+
+        	 boolean sameContractor = String.valueOf(contractorId).equals(gpContId);
+        	    
+        	if(samePlant && !sameContractor) {
+        		GatePassMain gatepassOld =fileUploadDao.getAllDeatilsOfWorkmenBasedOnGatePass(gatepassNumber);
+
+        		if (gatepassOld != null) {
+
+        		    gm.setAadhaarNumber(gatepassOld.getAadhaarNumber());
+        		    gm.setFirstName(gatepassOld.getFirstName());
+        		    gm.setLastName(gatepassOld.getLastName());
+        		    gm.setDateOfBirth(gatepassOld.getDateOfBirth());
+        		    gm.setGender(gatepassOld.getGender());
+        		    gm.setRelationName(gatepassOld.getRelationName());
+        		    gm.setMobileNumber(gatepassOld.getMobileNumber());
+        		    gm.setUanNumber(gatepassOld.getUanNumber());
+        		    gm.setPfNumber(gatepassOld.getPfNumber());
+        		    gm.setAccountNumber(gatepassOld.getAccountNumber());
+        		    gm.setIfscCode(gatepassOld.getIfscCode());
+        		    gm.setDoj(gatepassOld.getDoj());
+        		    gm.setBloodGroup(gatepassOld.getBloodGroup());
+        		    gm.setHazardousArea(gatepassOld.getHazardousArea());
+        		    gm.setGender(gatepassOld.getGender());
+        		    gm.setAcademic(gatepassOld.getAcademic());
+        		    gm.setAccommodation(gatepassOld.getAccommodation());
+        		    gm.setEmergencyName(gatepassOld.getEmergencyName());
+        		    gm.setEmergencyNumber(gatepassOld.getEmergencyNumber());
+        		    gm.setAccessArea(gatepassOld.getAccessArea());
+        		    gm.setIdMark(gatepassOld.getIdMark());
+        		    gm.setTrade(gatepassOld.getTrade());
+        		    gm.setSkill(gatepassOld.getSkill());
+        		    gm.setPoliceVerificationDate(gatepassOld.getPoliceVerificationDate());
+        		    gm.setHealthCheckDate(gatepassOld.getHealthCheckDate());
+        		    gm.setMaritalStatus(gatepassOld.getMaritalStatus());
+        		    gm.setNatureOfJob(gatepassOld.getNatureOfJob());
+        		    gm.setTechnical(gatepassOld.getTechnical());
+        		    gm.setComments(gatepassOld.getComments());
+        		    gm.setAddress(gatepassOld.getAddress());
+        		    gm.setWorkmenType(gatepassOld.getWorkmenType());
+        		    gm.setDisability(gatepassOld.getDisability());
+        		    gm.setTransactionId(gatepassOld.getTransactionId());
+                    gm.setWageCategory(gatepassOld.getWageCategory());
+                    gm.setBonusPayout(gatepassOld.getBonusPayout());
+                    gm.setZone(gatepassOld.getZone());
+                    gm.setBasic(gatepassOld.getBasic());
+                    gm.setDa(gatepassOld.getDa());
+                    gm.setHra(gatepassOld.getHra());
+                    gm.setWashingAllowance(gatepassOld.getWashingAllowance());
+                    gm.setOtherAllowance(gatepassOld.getOtherAllowance());
+                    gm.setUniformAllowance(gatepassOld.getUniformAllowance());
+                    gm.setPfCap(gatepassOld.getPfCap());
+                    gm.setWorkFlowType(1);
+                    gm.setPfApplicable(gatepassOld.getPfApplicable());
+                    gm.setGatePassType(gatepassOld.getGatePassType());
+                    gm.setOnboardingType(gatepassOld.getOnboardingType());
+
+        		}
+        		
+              fileUploadDao.insertSamePlantDiffContIntraPlantTransfer(gm, createdBy, dot);
+        	} else if (!samePlant && sameContractor) {
+                fileUploadDao.insertIntraPlantTransferTemp(gm,createdBy,dot);
+            }else {
+
+                errorData.add(Map.of("row", rowNum,"gatepassNumber", gatepassNumber,"error", "Go with Bulk Renew Process"));
+                                 continue;
+            }
+
+            // ✅ Success
+            Map<String, Object> map = new HashMap<>();
+            map.put("gatepassNumber", gatepassNumber);
+            map.put("unitCode", unitCode);
+            map.put("contractorCode", contractorCode);
+            map.put("department", department);
+            map.put("area", area);
+            map.put("eicNumber", eicNumber);
+            map.put("workorderNumber", workorderNumber);
+            map.put("wcesicNumber", wcesicNumber);
+            map.put("llNumber", llNumber);
+            map.put("esicNumber", esicNumber);
+            map.put("effectiveFrom", toSqlDateString(effectiveFrom));
+
+            successData.add(map);
+
+        } catch (Exception ex) {
+
+            log.error("Rollback happened for GatePassId: {}", gatepassNumber, ex);
+
+            //  Add rollback error message
+            errorData.add(Map.of("row", rowNum,"gatepassNumber", gatepassNumber,"error", "Failed Intra Plant Transfer for GatePassId: " + gatepassNumber));
+
+            continue; // move to next row
+        }
+    }
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("successData", successData);
+    result.put("errorData", errorData);
+    return result;
 }
+
+}
+

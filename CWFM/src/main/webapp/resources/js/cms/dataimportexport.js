@@ -297,6 +297,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
             case "data-user":
                 headers = ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
                 break;
+           case "data-intra plant transfer":
+                headers =  ["GatepassId","Plant Code","Contractor Code","Department","Area","EIC Number","Workorder","WC/ESIC","LL Number","ESIC","Effective From Date"];
+                break;
             default:
                 alert("Template configuration not found for: " + selectedText);
                 return;
@@ -573,6 +576,11 @@ const tableBody = document.getElementById("tableBody");
             headers = ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
             fieldMap = ["firstName","lastName","userAccount","password","email","mobileNumber","plantCode","organisation","department","area","role","SAPVendorCode"];
         }
+         else if (templateType === "Data-Intra Plant Transfer") {
+            headers = ["GatepassId","Plant Code","Contractor Code","Department","Area","EIC Number","Workorder","WC/ESIC","LL Number","ESIC","Effective From Date"];
+            fieldMap = ["gatepassNumber","unitCode","contractorCode","department","area","eicNumber","workorderNumber","wcesicNumber","llNumber","esicNumber","effectiveFrom"];
+        }
+        
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
        // checkTh.innerHTML = `<input type="checkbox" id="selectAll">`;
@@ -894,6 +902,9 @@ function getHeadersByTemplate(selectedText) {
             
         case "data-user":
                 return  ["First Name","Last Name","Login Id","Password","Email Address","Mobile Number","Plant Code","Organisation","Department","Area","Role","SAP Vendor Code"];
+       
+        case "data-intra plant transfer":
+                return  ["GatepassId","Plant Code","Contractor Code","Department","Area","EIC Number","Workorder","WC/ESIC","LL Number","ESIC","Effective From Date"];
         default:
             return [];
     }

@@ -411,6 +411,25 @@ public class FileUploadController {
             
             templateInfo.put("fields", fields);
         }
+        else  if ("Data-Intra Plant Transfer".equals(templateType)) {
+            templateInfo.put("title", "Data-Intra Plant Transfer Event");
+            templateInfo.put("description", "Imports Data-Intra Plant Transfer events.");
+
+            List<Map<String, String>> fields = new ArrayList<>();
+            fields.add(Map.of("name", "GatepassId", "type", "Text", "example", "GP7000021"));
+            fields.add(Map.of("name", "Plant Code", "type", "Text", "example", "51YU"));
+            fields.add(Map.of("name", "Contractor Code", "type", "Text", "example", "178890"));
+            fields.add(Map.of("name", "Department", "type", "Text", "example", "Safety"));
+            fields.add(Map.of("name", "Area", "type", "Text", "example", "Safety")); 
+            fields.add(Map.of("name", "EIC Number", "type", "Text", "example", "4503061061K"));
+            fields.add(Map.of("name", "Workorder", "type", "Number", "example", "4503061061"));
+            fields.add(Map.of("name", "WC/ESIC", "type", "Text", "example", "345506/48/2026/204"));
+            fields.add(Map.of("name", "LL Number", "type", "Text", "example", "CLRA/Licence/CLRA/KTC/2025/CLL/669"));
+            fields.add(Map.of("name", "ESIC", "type", "Text", "example", "1253409832"));
+            fields.add(Map.of("name", "Effective From Date", "type", "Text", "example", "2026/05/29"));
+            
+            templateInfo.put("fields", fields);
+        }
         else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
