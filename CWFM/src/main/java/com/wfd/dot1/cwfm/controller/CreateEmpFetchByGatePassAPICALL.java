@@ -138,6 +138,8 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+
+
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
         Long gpTransactionId = null;

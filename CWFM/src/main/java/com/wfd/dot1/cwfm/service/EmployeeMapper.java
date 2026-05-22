@@ -594,7 +594,7 @@ public String getTokenCheck(String username, String password){
                 email.setHasEmailNotificationDelivery(false);
                 personInfo.setEmailAddresses(Arrays.asList(email));
                 EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
                 empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
@@ -936,7 +936,7 @@ public String getTokenCheck(String username, String password){
                 email.setHasEmailNotificationDelivery(false);
                 personInfo.setEmailAddresses(Arrays.asList(email));
                 EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
                 empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
@@ -1396,7 +1396,7 @@ public String getTokenCheck(String username, String password){
 
 
         try {
-            GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnId(GatePassId);
+            GatePassToOnBoard individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnBoardDetailsByTrnIdUpdated(GatePassId);
             String issandorpoc1 = getISSANDORPOC();
 
             if (issandorpoc1 != null) {
@@ -1676,7 +1676,7 @@ public String getTokenCheck(String username, String password){
                 jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
                 job.setJobAssignmentDetails(jobDetails);
                 UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
-                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
                 labor.setExpirationDate("3000-01-01");
 
                 boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
@@ -1988,7 +1988,7 @@ public String getTokenCheck(String username, String password){
                 jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
                 job.setJobAssignmentDetails(jobDetails);
                 UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
-                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
                 labor.setExpirationDate("3000-01-01");
 
                 boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
@@ -2079,7 +2079,6 @@ public String getTokenCheck(String username, String password){
             if (employeeRequestDTO == null) {
                 return "STATUS:400\nTransaction Id Not Found";
             } else {
-
                 String employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
                 String[] parts = employeeResponse.split("\nBODY:", 2);
                 if (parts.length < 2) {
@@ -2130,6 +2129,10 @@ public String getTokenCheck(String username, String password){
             throw new RuntimeException(e);
         }
     }
+
+
+
+
 
     public EmployeeRequestDTO mapFromGatePass(GatePassMain gatePass) {
         EmployeeRequestDTO dto = new EmployeeRequestDTO();

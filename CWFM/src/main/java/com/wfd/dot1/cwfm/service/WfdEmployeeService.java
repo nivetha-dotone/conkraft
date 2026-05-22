@@ -635,19 +635,65 @@ public class WfdEmployeeService {
 
     public String updateEmployee(UpdateEmployeeRequestDTO dto) {
         try {
+
             String jsonBody = this.objectMapper.writeValueAsString(dto);
+
+
             String accessToken = this.wfdAuthService.getAccessToken();
-            Integer personKey = this.getPersonKey(accessToken, dto.getPersonInformation().getPerson().getPersonNumber());
+
+
+            Integer personKey = this.getPersonKey(
+                    accessToken,
+                    dto.getPersonInformation()
+                            .getPerson()
+                            .getPersonNumber()
+            );
+
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
-            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
-            String var10000 = this.getHostName();
-            String url = var10000 + this.getUpateEmpWFD() + personKey;
-            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.PUT, entity, String.class, new Object[0]);
-            return (String)response.getBody();
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating employee in WFD API", e);
+
+            HttpEntity<String> entity =
+                    new HttpEntity<>(jsonBody, headers);
+
+
+            String url = this.getHostName()
+                    + this.getUpateEmpWFD()
+                    + personKey;
+
+
+            ResponseEntity<String> response =
+                    this.restTemplate.exchange(
+                            url,
+                            HttpMethod.PUT,
+                            entity,
+                            String.class
+                    );
+
+            int status = response.getStatusCodeValue();
+
+            return "STATUS:" + status +
+                    "\nBODY:" + response.getBody();
+
+        }
+        catch (HttpServerErrorException | HttpClientErrorException e) {
+
+            int status =
+                    ((HttpStatusCodeException)e)
+                            .getStatusCode()
+                            .value();
+
+            return "STATUS:" + status +
+                    "\nBODY:" +
+                    ((HttpStatusCodeException)e)
+                            .getResponseBodyAsString();
+
+        }
+        catch (Exception e) {
+
+            return "STATUS:500\nBODY:Error updating employee in WFD API: "
+                    + e.getMessage();
         }
     }
 
