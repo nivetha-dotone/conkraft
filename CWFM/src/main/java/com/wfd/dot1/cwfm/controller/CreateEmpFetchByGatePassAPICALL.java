@@ -138,8 +138,6 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
-
-
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
         Long gpTransactionId = null;
@@ -191,7 +189,7 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     @GetMapping({"/getVerifyLaborCat"})
     public ResponseEntity<?> verifyLaborCate(@RequestParam String Workorder
-                                               ) {
+    ) {
         try {
             String gatePassEmpDtoDynamic = this.employeeMapper.getVerifyLabor( Workorder);
 

@@ -45,8 +45,24 @@ public class GatePassToOnBoardService {
         }else{
             return null;
         }
+    }
 
+    public String getGTByTrnsIdUpdated() {
+        String issandorpoc = getISSAND();
 
+        if (issandorpoc != null) {
+            issandorpoc = issandorpoc.trim();
+        }
+
+        if ("yes".equalsIgnoreCase(issandorpoc)) {
+            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYRenewal");
+
+        } else if ("no".equalsIgnoreCase(issandorpoc)) {
+            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYPOC");
+
+        }else{
+            return null;
+        }
     }
 
     public String getListOfTrEmpStatus() {
@@ -154,7 +170,7 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getLocationPathCheck");
     }
 
-     public String getQueryCreateLocation() {
+    public String getQueryCreateLocation() {
         return QueryFileWatcher.getQuery("INSERTBSIN");
     }
 
@@ -273,7 +289,7 @@ public class GatePassToOnBoardService {
 
             } else if ("no".equalsIgnoreCase(issandorpoc)) {
                 log.info("Fetching Skill for job URL");
-               PostJobWfd postSkillWfd = null;
+                PostJobWfd postSkillWfd = null;
                 if (id!=null && !id.isEmpty()) {
                     postSkillWfd = new PostJobWfd();
                     postSkillWfd.setName(id);
@@ -326,12 +342,12 @@ public class GatePassToOnBoardService {
             log.info("fetching SAP Work Order to Labor Category record");
 
             PostLaborCatDTO postLaborCateWfd = null;
-                postLaborCateWfd = new PostLaborCatDTO();
-                postLaborCateWfd.setName(workOrder);
-                PostLaborCatDTO.LaborCategory laborCategory = new PostLaborCatDTO.LaborCategory();
-                laborCategory.setQualifier(getLAborCategory());
-                postLaborCateWfd.setLaborCategory(laborCategory);
-                postLaborCateWfd.setInactive(false);
+            postLaborCateWfd = new PostLaborCatDTO();
+            postLaborCateWfd.setName(workOrder);
+            PostLaborCatDTO.LaborCategory laborCategory = new PostLaborCatDTO.LaborCategory();
+            laborCategory.setQualifier(getLAborCategory());
+            postLaborCateWfd.setLaborCategory(laborCategory);
+            postLaborCateWfd.setInactive(false);
 
             log.info("Exit from SAP Work Order to Labor Category record");
             return postLaborCateWfd;
@@ -454,7 +470,7 @@ public class GatePassToOnBoardService {
     }
 
 
- public List<String> getListOfTrReScheduleOnbUpdate() {
+    public List<String> getListOfTrReScheduleOnbUpdate() {
         try {
             log.info("Fetching TranscationId list for reschedule to post ");
             List<String> dtoTrList = new LinkedList();
@@ -584,7 +600,7 @@ public class GatePassToOnBoardService {
     }
 
 
-   public List<ActiveEmpStatusDto> updateEmpStatusTrScheduleTrace() {
+    public List<ActiveEmpStatusDto> updateEmpStatusTrScheduleTrace() {
         try {
             String query = this.getListOfTrEmpStatusTrace();
             if (query == null) {
@@ -713,9 +729,9 @@ public class GatePassToOnBoardService {
         }
 
         if ( "no".equalsIgnoreCase(issandorpoc1)) {
-         return   buildLicenseTypesPOC();
+            return   buildLicenseTypesPOC();
         } else if ("yes".equalsIgnoreCase(issandorpoc1)) {
-           return buildLicenseTypes();
+            return buildLicenseTypes();
         }else{
             return null;
         }
@@ -812,7 +828,6 @@ public class GatePassToOnBoardService {
                 dto.setOnboardingType(rs.getString("OnboardingType"));
                 dto.setAccommodation(rs.getString("Accommodation"));
                 dto.setESICIPNumber(rs.getString("ESICIPNumber"));
-                dto.setEmploymentStatusEffectiveDate(rs.getString("ESICIPNumber"));
 
 
             }
@@ -824,23 +839,6 @@ public class GatePassToOnBoardService {
         }
     }
 
-    public String getGTByTrnsIdUpdated() {
-        String issandorpoc = getISSAND();
-
-        if (issandorpoc != null) {
-            issandorpoc = issandorpoc.trim();
-        }
-
-        if ("yes".equalsIgnoreCase(issandorpoc)) {
-            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYRenewal");
-
-        } else if ("no".equalsIgnoreCase(issandorpoc)) {
-            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYPOC");
-
-        }else{
-            return null;
-        }
-    }
     public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdUpdated(String trnsId) {
         try {
             log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
@@ -931,93 +929,6 @@ public class GatePassToOnBoardService {
     }
 
 
-    public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdUpdate(String trnsId) {
-        try {
-            log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
-            GatePassToOnBoard dto = null;
-            String queryGetOnBdByTranId = this.getGTByTrnsId();
-            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
-            SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
-            if (rs.next()) {
-                dto = new GatePassToOnBoard();
-                dto.setGatePassTypeId(Integer.valueOf(rs.getString("gatepasstypeid")));
-                dto.setGatePassId(rs.getString("GatePassId"));
-                dto.setFirstName(rs.getString("FirstName"));
-                dto.setLastName(rs.getString("LastName"));
-                dto.setLastName(rs.getString("LastName"));
-                dto.setShortName(rs.getString("shortName"));
-                dto.setAccessProfileName(rs.getString("accessProfileName"));
-                dto.setPreferenceProfileName(rs.getString("preferenceProfileName"));
-                dto.setProfessionalPayCodeName(rs.getString("professionalPayCodeName"));
-                dto.setProfessionalWorkRuleName(rs.getString("professionalWorkRuleName"));
-                dto.setShiftCodeName(rs.getString("shiftCodeName"));
-                dto.setAddressEmail(rs.getString("addressEmail"));
-                dto.setContactTypeName(rs.getString("contactTypeName"));
-                dto.setHourlyRate(rs.getDouble("hourlyRate"));
-                dto.setPayRuleName(rs.getString("payRuleName"));
-                dto.setSupervisorName(rs.getString("supervisorName"));
-                dto.setSupervisorPersonNumber(rs.getString("supervisorPersonNumber"));
-                dto.setLogonProfileName(rs.getString("logonProfileName"));
-                dto.setAddressEmail(rs.getString("addressEmail"));
-                dto.setContactTypeName(rs.getString("contactTypeName"));
-                dto.setEmploymentStatus(rs.getString("employmentStatus"));
-                dto.setEmploymentStatusEffectiveDate(rs.getString("employmentStatusEffectiveDate"));
-                dto.setGender(rs.getString("gender"));
-                dto.setAadharNumber(rs.getString("AadharNumber"));
-                dto.setAadharName(rs.getString("aadharName"));
-                dto.setRelativeName(rs.getString("RelativeName"));
-                dto.setAddress(rs.getString("Address"));
-                dto.setPermanentDistrict(rs.getString("permanentDistrict"));
-                dto.setPermanentState(rs.getString("permanentState"));
-                dto.setPermanentPincode(rs.getString("permanentPincode"));
-                dto.setIdMark(rs.getString("IdMark"));
-                dto.setUanNumber(rs.getString("UanNumber"));
-                dto.setMaritalStatus(rs.getString("MaritalStatus"));
-                dto.setTechnical(rs.getString("Technical"));
-                dto.setAcademic(rs.getString("academic"));
-                dto.setShoeSize(rs.getString("shoesize"));
-                dto.setBloodGroup(rs.getString("bloodGroup"));
-                dto.setWorkmenType(rs.getString("workmenType"));
-                dto.setNatureOfJob(rs.getString("NatureOfJob"));
-                dto.setPanNumber(rs.getString("panNumber"));
-                dto.setPfNumber(rs.getString("pfNumber"));
-                dto.setAccountNumber(rs.getString("AccountNumber"));
-                dto.setBankName(rs.getString("bankName"));
-                dto.setIfscCode(rs.getString("IfscCode"));
-                dto.setCompany(rs.getString("company"));
-                dto.setLocation(rs.getString("location"));
-                dto.setSkill(rs.getString("skill"));
-                dto.setProLevel(rs.getString("proLevel"));
-                dto.setSkillDate(rs.getString("skillDate"));
-                dto.setPlantLocation(rs.getString("plantLocation"));
-                dto.setDepartment(rs.getString("department"));
-                dto.setSection(rs.getString("section"));
-                dto.setSubSection(rs.getString("subSection"));
-                dto.setContractorCode(rs.getString("contractorCode"));
-                dto.setCategory(rs.getString("category"));
-                dto.setHireDate(rs.getString("hireDate"));
-                dto.setBirthDate(rs.getString("birthDate"));
-                dto.setPhone1(rs.getString("phone1"));
-                dto.setPhone2(rs.getString("phone2"));
-                dto.setEmail(rs.getString("email"));
-                dto.setAddress(rs.getString("Address"));
-                dto.setUserAccountName(rs.getString("userAccountName"));
-                dto.setUserAccountStatus(rs.getString("userAccountStatus"));
-                dto.setUserPassword(rs.getString("userPassword"));
-                dto.setOnboardingType(rs.getString("OnboardingType"));
-                dto.setAccommodation(rs.getString("Accommodation"));
-                dto.setESICIPNumber(rs.getString("ESICIPNumber"));
-                dto.setEmploymentStatusEffectiveDate(rs.getString("ESICIPNumber"));
-
-
-            }
-
-            log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");
-            return dto;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdPro(String trnsId) {
         try {

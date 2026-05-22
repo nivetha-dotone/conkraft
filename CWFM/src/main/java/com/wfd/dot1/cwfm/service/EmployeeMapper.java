@@ -523,17 +523,17 @@ public class EmployeeMapper {
         }
     }
 
-public String getTokenCheck(String username, String password){
+    public String getTokenCheck(String username, String password){
         try{
-          return  wfdEmployeeService.getAuthToken( username,  password);
+            return  wfdEmployeeService.getAuthToken( username,  password);
 
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-}
+    }
 
-   
+
 
     public Object getAuthCheckup(String username, String password) {
 
@@ -594,7 +594,7 @@ public String getTokenCheck(String username, String password){
                 email.setHasEmailNotificationDelivery(false);
                 personInfo.setEmailAddresses(Arrays.asList(email));
                 EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
+                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
@@ -886,21 +886,21 @@ public String getTokenCheck(String username, String password){
 
 
 
-                    String skill = individualOnBoardDetailsByTrnId.getSkill();
-                    boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
+                String skill = individualOnBoardDetailsByTrnId.getSkill();
+                boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("check job found or not - "+ checkJob);
 
-                    if(!checkJob){
-                        PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
-                         this.wfdEmployeeService.createJobInWFD(jobByname);
-                        System.out.println("created job - "+ checkJob);
-                    }
+                if(!checkJob){
+                    PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
+                    this.wfdEmployeeService.createJobInWFD(jobByname);
+                    System.out.println("created job - "+ checkJob);
+                }
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
 
 
-                  String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
-                  System.out.println(orgPath);
+                String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+                System.out.println(orgPath);
 
 
                 labor.setOrganizationPath(
@@ -936,7 +936,7 @@ public String getTokenCheck(String username, String password){
                 email.setHasEmailNotificationDelivery(false);
                 personInfo.setEmailAddresses(Arrays.asList(email));
                 EmployeeRequestDTO.EmploymentStatus empStatus = new EmployeeRequestDTO.EmploymentStatus();
-                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
+                empStatus.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 empStatus.setEmploymentStatusName(individualOnBoardDetailsByTrnId.getEmploymentStatus());
                 empStatus.setExpirationDate("3000-01-01");
                 personInfo.setEmploymentStatusList(Arrays.asList(empStatus));
@@ -1314,13 +1314,13 @@ public String getTokenCheck(String username, String password){
 
         gatePassToOnBoardService.createBusinessStructurePOC(orgPath);
 
-            if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
+        if (wfdEmployeeService.checkLocationInUKG(orgPath)) {
             gatePassToOnBoardService.storeHierarchyInDBPOC(orgPath);
             return orgPath;
         }else{
-                return orgPath;
+            return orgPath;
 
-            }
+        }
 
 //        throw new RuntimeException("Failed to resolve orgPath: " + orgPath);
     }
@@ -1988,7 +1988,7 @@ public String getTokenCheck(String username, String password){
                 jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
                 job.setJobAssignmentDetails(jobDetails);
                 UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
-                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
+                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
                 labor.setExpirationDate("3000-01-01");
 
                 boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());
@@ -2079,6 +2079,7 @@ public String getTokenCheck(String username, String password){
             if (employeeRequestDTO == null) {
                 return "STATUS:400\nTransaction Id Not Found";
             } else {
+
                 String employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
                 String[] parts = employeeResponse.split("\nBODY:", 2);
                 if (parts.length < 2) {
@@ -2129,10 +2130,6 @@ public String getTokenCheck(String username, String password){
             throw new RuntimeException(e);
         }
     }
-
-
-
-
 
     public EmployeeRequestDTO mapFromGatePass(GatePassMain gatePass) {
         EmployeeRequestDTO dto = new EmployeeRequestDTO();

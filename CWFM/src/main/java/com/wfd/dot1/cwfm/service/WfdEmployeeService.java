@@ -404,7 +404,7 @@ public class WfdEmployeeService {
 
     public String getAuthToken(String username, String password){
         try{
-           return wfdAuthService.getAccessCheckup( username,  password);
+            return wfdAuthService.getAccessCheckup( username,  password);
 
 
         } catch (Exception e) {
@@ -697,6 +697,7 @@ public class WfdEmployeeService {
         }
     }
 
+
     public Integer getPersonKey(String accessToken, String personNumber) {
         try {
             String jsonBody = "{\n  \"where\": {\n    \"employees\": {\n      \"key\": \"personnumber\",\n      \"values\": [\"" + personNumber + "\"]\n    }\n  }\n}";
@@ -776,7 +777,7 @@ public class WfdEmployeeService {
     public boolean checkLocationInUKG(String path) {
         try {
 
-            
+
             String encodedPath = path
 //                    .replace(" ", "%20")
                     .replace("&", "%26");
