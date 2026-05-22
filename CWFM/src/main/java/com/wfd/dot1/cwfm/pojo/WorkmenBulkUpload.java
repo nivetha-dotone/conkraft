@@ -105,8 +105,16 @@ public class WorkmenBulkUpload {
 	private String idMark;
 	private String bonusPayout;
 	
+	private String employeeCode;
 	
 	
+	
+	public String getEmployeeCode() {
+		return employeeCode;
+	}
+	public void setEmployeeCode(String employeeCode) {
+		this.employeeCode = employeeCode;
+	}
 	public String getBonusPayout() {
 		return bonusPayout;
 	}
@@ -473,6 +481,7 @@ public class WorkmenBulkUpload {
 	public void setLLnumber(String lLnumber) {
 		LLnumber = lLnumber;
 	}
+	
 	
 	
 	

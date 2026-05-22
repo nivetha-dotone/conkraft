@@ -1291,20 +1291,23 @@ public class WorkmenServiceImpl implements WorkmenService{
 //				String wfdResponse = wfdEmployeeService.createEmployee(employeeDTO);
 //				log.info("WFD Response: {}", wfdResponse);
 
-				 //if(null!= gatePassMain.getGatePassId){
-				 //to updateGatePassIdByEmpCode(gatePassMain);
-			//}else{
-				 
-				 String gatePassId = workmenDao.updateGatePassIdByTransactionId(transactionId);
-				 if (gatePassId == null) {
-		                throw new RuntimeException("Failed to update GatePassId");
-		            }
+				 if (gatePassMain.getGatePassId() != null && !gatePassMain.getGatePassId().trim().isEmpty()) {
 
-				gatePassMain.setGatePassId(gatePassId);
-			//}
+					    workmenDao.updateGatePassIdByEmpCode(gatePassMain);
+
+					} else {
+
+					    String gatePassId = workmenDao.updateGatePassIdByTransactionId(transactionId);
+
+					    if (gatePassId == null || gatePassId.trim().isEmpty()) {
+					        throw new RuntimeException("Failed to update GatePassId");
+					    }
+
+					    gatePassMain.setGatePassId(gatePassId);
+				}
 				GatePassStatusLogDto dto =new GatePassStatusLogDto();
 				dto.setTransactionId(transactionId);
-				dto.setGatePassId(gatePassId);
+				dto.setGatePassId(gatePassMain.getGatePassId());
 				dto.setGatePassType(GatePassType.CREATE.getStatus());
 				dto.setStatus(Integer.parseInt(GatePassStatus.APPROVED.getStatus()));
 				dto.setComments(gatePassMain.getComments());

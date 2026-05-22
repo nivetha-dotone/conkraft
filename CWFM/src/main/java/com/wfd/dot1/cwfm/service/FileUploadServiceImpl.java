@@ -166,7 +166,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 		+ "Aadhar/Id Proof Number*,Vendor Code*,Gender*,Date of Joining,Department*,Area,Work Order Number*,PF A/C Number,Marital Status*,"
                 		+ "Technical/Non Technical*,Academic,Blood Group,Accommodation*,Bank Branch Name,Account Number,"
                 		+ "Mobile Number,Emergency Contact Number*,Police Verification Date,Health Chekup Date,Access Levels*,ESIC Number,Unit Code*,Organization Name,"
-                		+ "EIC Number*,EC Number*,UAN Number,Emergency Contact Person*,Is Eligible for PF,SpecializationName,Insurance Type,LL Number,Address,Zone,IdMark*")) {
+                		+ "EIC Number*,EC Number*,UAN Number,Emergency Contact Person*,Is Eligible for PF,SpecializationName,Insurance Type,LL Number,Address,Zone,IdMark*,Employee Code")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processworkmenbulkupload(reader);
@@ -1635,7 +1635,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             "workorderNumber", "pfNumber", "maritalStatus", "technical", "academic",
             "bloodGroup", "accommodation", "bankName", "accountNumber", "mobileNumber", "emergencyNumber", "policeVerificationDate",
             "healthCheckDate", "accessArea", "esicNumber", "unitCode", "organizationName",
-            "EICNumber", "ECnumber", "uanNumber", "emergencyName", "pfApplicable", "specializationName", "insuranceType", "LLnumber","address","zone","idMark"
+            "EICNumber", "ECnumber", "uanNumber", "emergencyName", "pfApplicable", "specializationName", "insuranceType", "LLnumber","address","zone","idMark","employeeCode"
         };
 
         Set<String> mandatoryFields = Set.of(
@@ -1802,7 +1802,8 @@ public class FileUploadServiceImpl implements FileUploadService {
                 staging.setAddress(fields[39]);
                 staging.setZone(zoneId!=null?String.valueOf(zoneId):" ");
                 staging.setIdMark(fields[41]==null?"NA":fields[41]);
-
+                staging.setEmployeeCode(fields[42]);   
+                
                 fileUploadDao.saveWorkmenBulkUploadToStaging(staging);
 
                 Map<String, Object> rowMap = new LinkedHashMap<>();
@@ -3435,7 +3436,7 @@ private Map<String, Object> processIntraPlantTransfer(BufferedReader reader, Str
 
             // ✅ Success
             Map<String, Object> map = new HashMap<>();
-            map.put("gatepassNumber", gatepassNumber);
+            map.put("gatepassNumber",gatepassNumber );
             map.put("unitCode", unitCode);
             map.put("contractorCode", contractorCode);
             map.put("department", department);

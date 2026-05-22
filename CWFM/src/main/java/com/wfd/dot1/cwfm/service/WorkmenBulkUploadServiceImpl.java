@@ -272,9 +272,11 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            
 	        	String transactionId=workmenUploadDao.getNextTransactionId();
 	        	GatePassMain gatePassMain = new GatePassMain();
+	        	
 
 	        	// ---- Basic Identity ----
 	        	gatePassMain.setTransactionId(transactionId);
+	        	gatePassMain.setGatePassId(record.getEmployeeCode());
 	        	gatePassMain.setAadhaarNumber(record.getAadhaarNumber());
 	        	gatePassMain.setFirstName(record.getFirstName());
 	        	gatePassMain.setLastName(record.getLastName());

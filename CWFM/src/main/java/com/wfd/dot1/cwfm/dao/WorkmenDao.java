@@ -264,4 +264,6 @@ public interface WorkmenDao {
 	boolean updateGatePassMainDOJ(String gatePassId, String doj);
 
 	public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId);
+
+	public void updateGatePassIdByEmpCode(GatePassMain gatePassMain);
 }

@@ -4666,4 +4666,13 @@ public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId) {
         throw new RuntimeException("Failed CMSPERSONJOBHIST bulk renew", e);
     }
 }
+
+@Override
+public void updateGatePassIdByEmpCode(GatePassMain gatePassMain) {
+
+    String sql = getUpdateGatepassid();
+
+    jdbcTemplate.update(sql,gatePassMain.getGatePassId(),gatePassMain.getTransactionId());
+}
+
 }

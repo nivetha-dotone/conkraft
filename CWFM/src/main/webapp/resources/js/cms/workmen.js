@@ -2896,7 +2896,7 @@ function previewImage(event, inputId, displayId) {
 														
 																'<td  >' +wo.unitName + '</td>' +	
 																'<td  >' + wo.gatePassType + '</td>' +
-																'<td  >' + toCapitalCase(wo.onboardingType) + '</td>' +	
+																'<td  >' + wo.onboardingType + '</td>' +	
 																'<td  >' + wo.status + '</td>' +				                             
 										                          '</tr>';
 										                tableBody.append(row);
