@@ -626,10 +626,9 @@ public class GatePassToOnBoardService {
         ActiveEmpStatusDto.PersonInformation personInfo = new ActiveEmpStatusDto.PersonInformation();
         String employmentName = "Terminated";
         personInfo.setEmploymentStatusList(List.of(this.buildEmploymentStatus(employmentName, effectiveDate)));
-        personInfo.setUserAccountStatusList(List.of(this.buildUserAccountStatus(employmentName)));
+        personInfo.setUserAccountStatusList(List.of(this.buildUserAccountStatus(employmentName,effectiveDate)));
         personInfo.setPerson(this.buildPersonData(gpId));
         personInfo.setPersonLicenseTypes(this.buildLicenseTypesCHECK());
-
         dto.setPersonInformation(personInfo);
         return dto;
     }
@@ -674,7 +673,7 @@ public class GatePassToOnBoardService {
         personInfo.setPersonLicenseTypes(this.buildLicenseTypesCHECK());
 
         personInfo.setUserAccountStatusList(
-                List.of(this.buildUserAccountStatus(employmentName))
+                List.of(this.buildUserAccountStatus(employmentName,effectiveDate))
         );
 
         dto.setPersonInformation(personInfo);
@@ -715,9 +714,10 @@ public class GatePassToOnBoardService {
         status.setEffectiveDate(date);
         return status;
     }
-    private ActiveEmpStatusDto.UserAccountStatus buildUserAccountStatus(String name) {
+    private ActiveEmpStatusDto.UserAccountStatus buildUserAccountStatus(String name,String date) {
         ActiveEmpStatusDto.UserAccountStatus status = new ActiveEmpStatusDto.UserAccountStatus();
         status.setUserAccountStatusName(name);
+        status.setEffectiveDate(date);
         return status;
     }
 

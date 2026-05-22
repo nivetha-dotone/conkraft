@@ -1988,7 +1988,7 @@ public class EmployeeMapper {
                 jobDetails.setTimeZoneName("(GMT +05:30) Calcutta");
                 job.setJobAssignmentDetails(jobDetails);
                 UpdateEmployeeRequestDTO.PrimaryLaborAccount labor = new UpdateEmployeeRequestDTO.PrimaryLaborAccount();
-                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                labor.setEffectiveDate(individualOnBoardDetailsByTrnId.getEmploymentStatusEffectiveDate());
                 labor.setExpirationDate("3000-01-01");
 
                 boolean b = this.wfdEmployeeService.verifyLaborCatEnInWFD(individualOnBoardDetailsByTrnId.getCategory());

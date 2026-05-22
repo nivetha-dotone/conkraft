@@ -59,7 +59,7 @@ public class ActiveEmpStatusDto {
 
     @Data
     public static class UserAccountStatus {
-
+        private String effectiveDate;
         private String userAccountStatusName;
     }
 }
