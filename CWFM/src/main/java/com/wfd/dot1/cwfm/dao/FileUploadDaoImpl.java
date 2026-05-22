@@ -1929,6 +1929,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 				    	log.error("GatePassTransaction mapping failed for GatePassId: {}", gm.getGatePassId());
 			            throw new RuntimeException("GatePassTransaction mapping failed");
 			        }
+				    try {
+			        	String wfdIntegration = this.getWFDIntegration();
+			        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+			        		api.updateOnBoardingDetails(gm.getTransactionId());
+			        	}
+			        	}catch(Exception e) {
+			        		log.info(e.getMessage());
+							 throw new RuntimeException("renew Api Integration Failed");
+			        	}
 		     } catch (Exception e) {
 		         log.error("Error in Bulk Renew Gatepass for GatePassId: {}", gm.getGatePassId(), e);
 		         throw new RuntimeException("Bulk Renew Gatepass failed - rollback triggered", e);
@@ -1938,7 +1947,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		 public boolean insertBulkRenewGatepassTransactionMapping(GatePassMain gm,String createdBy,String dot) {
 			    String transactionId = workmenDao.getNextTransactionId();
 			    String sql = insertBulkRenewGatepassTransactionMapping();
-
+			    gm.setTransactionId(transactionId);
 			    int inserted = jdbcTemplate.update(sql,transactionId,gm.getGatePassId(),GatePassType.BULKRENEW.getStatus());
 			    if (inserted == 0) {
 			        throw new RuntimeException("GatePassTransactionMapping insert failed");
