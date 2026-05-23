@@ -150,6 +150,10 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("GET_SKILL_DETAILS_BY_TRANSACTIONID_QUERY");
     }
 
+    public String getSKILLSByTrnsIdUpdate() {
+        return QueryFileWatcher.getQuery("GET_SKILL_DETAILS_BY_TRANSACTIONID_QUERYRenewal");
+    }
+
     public String getSKILLSByTrnsIdPro() {
         return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERY_PROJ");
     }
@@ -1012,6 +1016,27 @@ public class GatePassToOnBoardService {
         try {
             log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
             String queryGetOnBdByTranId = this.getSKILLSByTrnsId();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
+            SkillProLevelDateDTO addSkillPro = null;
+            if (rs.next()) {
+                addSkillPro = new SkillProLevelDateDTO();
+                addSkillPro.setPersonNumber(rs.getString("GatePassId"));
+                addSkillPro.setSkill(rs.getString("skill"));
+                addSkillPro.setProficiencyLevel(rs.getString("proLevel"));
+                addSkillPro.setEffectiveDate(rs.getString("skillDate"));
+            }
+
+            log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");
+            return addSkillPro;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public SkillProLevelDateDTO getOnlySkillProByTrnIdUpdate(String trnsId) {
+        try {
+            log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
+            String queryGetOnBdByTranId = this.getSKILLSByTrnsIdUpdate();
             log.info("query to get onboardDetails " + queryGetOnBdByTranId);
             SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
             SkillProLevelDateDTO addSkillPro = null;

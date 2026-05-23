@@ -1133,13 +1133,9 @@ public class EmployeeMapper {
                 licenseAbsence.setLicenseTypeName("Absence");
                 EmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new EmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                if (!String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) && !String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())) {
-                    if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
-                        licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
-                    }
-                } else {
+
                     licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-                }
+
 
                 EmployeeRequestDTO.PersonLicenseType licenseScheduling = new EmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
@@ -1385,6 +1381,14 @@ public class EmployeeMapper {
     public SkillProLevelDateDTO getSkillPRoLevelDate(String trndID) {
         try {
             SkillProLevelDateDTO onlySkillProByTrnId = this.gatePassToOnBoardService.getOnlySkillProByTrnId(trndID);
+            return onlySkillProByTrnId;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public SkillProLevelDateDTO getSkillPRoLevelDateUpdate(String trndID) {
+        try {
+            SkillProLevelDateDTO onlySkillProByTrnId = this.gatePassToOnBoardService.getOnlySkillProByTrnIdUpdate(trndID);
             return onlySkillProByTrnId;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -1957,13 +1961,9 @@ public class EmployeeMapper {
                 licenseAbsence.setLicenseTypeName("Absence");
                 UpdateEmployeeRequestDTO.PersonLicenseType licensehourlyTimekeeping = new UpdateEmployeeRequestDTO.PersonLicenseType();
                 licensehourlyTimekeeping.setActiveFlag(true);
-                if (!String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.CREATE.getStatus()) && !String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.RENEW.getStatus())) {
-                    if (String.valueOf(individualOnBoardDetailsByTrnId.getGatePassTypeId()).equals(GatePassType.PROJECT.getStatus())) {
-                        licensehourlyTimekeeping.setLicenseTypeName("Salaried Timekeeping");
-                    }
-                } else {
+             
                     licensehourlyTimekeeping.setLicenseTypeName("Hourly Timekeeping");
-                }
+
 
                 UpdateEmployeeRequestDTO.PersonLicenseType licenseScheduling = new UpdateEmployeeRequestDTO.PersonLicenseType();
                 licenseScheduling.setActiveFlag(true);
@@ -2094,10 +2094,10 @@ public class EmployeeMapper {
                         JsonNode personKeyNode = rootNode.path("personIdentity").path("personKey");
                         if (!personKeyNode.isMissingNode() && !personKeyNode.isNull()) {
                             Long personKey = personKeyNode.asLong();
-                            SkillProLevelDateDTO skillData = this.getSkillPRoLevelDate(GatePassId);
+                            SkillProLevelDateDTO skillData = this.getSkillPRoLevelDateUpdate(GatePassId);
                             if (skillData == null) {
                                 return "STATUS:400\nSkill data not found from SQL query";
-                            } else {
+                            }else {
                                 String skillName = skillData.getSkill();
                                 String profName = skillData.getProficiencyLevel();
                                 if (!this.wfdEmployeeService.verifySkillsInWFD(skillName)) {
