@@ -58,7 +58,7 @@ public class GatePassToOnBoardService {
             return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYRenewal");
 
         } else if ("no".equalsIgnoreCase(issandorpoc)) {
-            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYPOC");
+            return QueryFileWatcher.getQuery("GET_DETAILS_BY_TRANSACTIONID_QUERYPOCRenewal");
 
         }else{
             return null;
