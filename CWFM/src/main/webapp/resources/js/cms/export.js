@@ -392,14 +392,14 @@ function toggleExportSelectAll() {
 
 		    downloadCSV(headers, rows, "Policeverification Expiry Report.csv");
 	   	       }
-  function fetchPoliceReportData(module) {
+  function fetchPoliceReportData() {
 	       
-	       let unitId = $('#principalEmployer').val();
+	       let unitId = $('#principalEmployers').val();
 	       let reportType = "policeVerificationWorkmenReport";
 
-	       if (!module) return;
+	       //if (!module) return;
 
-	       let contractorId = $('#contractor option:selected').val();
+	       let contractorId = $('#contractors option:selected').val();
 
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
@@ -457,14 +457,14 @@ function toggleExportSelectAll() {
 	           }
 	       });
 	   }
-function fetchInactiveReportData(module) {
+function fetchInactiveReportData() {
 	       
-	        let unitId = $('#principalEmployer').val();
+	        let unitId = $('#principalEmployers').val();
 	       let reportType = "inActiveWorkmenReport";
 
-	       if (!module) return;
+	       //if (!module) return;
 
-	       let contractorId = $('#contractor option:selected').val();
+	       let contractorId = $('#contractors option:selected').val();
 
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
@@ -522,13 +522,13 @@ function fetchInactiveReportData(module) {
 	           }
 	       });
 	   }
-	   function fetchPolicysExpiryReportData(module) {
-	        let unitId = $('#principalEmployer').val();
+	   function fetchPolicysExpiryReportData() {
+	        let unitId = $('#principalEmployers').val();
 	       let reportType = "policyExpiryWorkmenReport";
 
-	       if (!module) return;
+	       //if (!module) return;
 
-	       let contractorId = $('#contractor option:selected').val();
+	       let contractorId = $('#contractors option:selected').val();
 
 	       $.ajax({
 	           url: '/CWFM/reports/fetchModuleData',
@@ -647,6 +647,99 @@ function fetchInactiveReportData(module) {
 	   	       }
 	   	       
 			   function getContractorsForReports(unitId, userAccount, callback) {
+			   					    $.ajax({
+			   					        url:"/CWFM/contractworkmen/getAllContractors",
+			   					        type: "GET",
+			   					        data: {
+			   					            unitId: unitId,
+			   					            userAccount: userAccount
+			   					        },
+			   					        success: function (contractors) {
+
+			   					            const $contractor = $("#contractors");
+			   					            $contractor.empty();
+			   					            $contractor.append('<option value="">Select Contractor</option>');
+
+			   					            $.each(contractors, function (index, contractor) {
+			   					                $contractor.append(
+			   					                    '<option value="' + contractor.contractorId + '">' +
+			   					                    contractor.contractorName +
+			   					                    '</option>'
+			   					                );
+			   					            });
+
+			   					            if (typeof callback === "function") {
+			   					                callback();
+			   					            }
+			   					        },
+			   					        error: function () {
+			   					            console.error("Error loading contractors");
+			   					        }
+			   					    });
+			   					}
+                            function getContractorsForInactiveReports(unitId, userAccount, callback) {
+			   					    $.ajax({
+			   					        url:"/CWFM/contractworkmen/getAllContractors",
+			   					        type: "GET",
+			   					        data: {
+			   					            unitId: unitId,
+			   					            userAccount: userAccount
+			   					        },
+			   					        success: function (contractors) {
+
+			   					            const $contractor = $("#contractors");
+			   					            $contractor.empty();
+			   					            $contractor.append('<option value="">Select Contractor</option>');
+
+			   					            $.each(contractors, function (index, contractor) {
+			   					                $contractor.append(
+			   					                    '<option value="' + contractor.contractorId + '">' +
+			   					                    contractor.contractorName +
+			   					                    '</option>'
+			   					                );
+			   					            });
+
+			   					            if (typeof callback === "function") {
+			   					                callback();
+			   					            }
+			   					        },
+			   					        error: function () {
+			   					            console.error("Error loading contractors");
+			   					        }
+			   					    });
+			   					}
+                        function getContractorsForPolicyExpiryReports(unitId, userAccount, callback) {
+			   					    $.ajax({
+			   					        url:"/CWFM/contractworkmen/getAllContractors",
+			   					        type: "GET",
+			   					        data: {
+			   					            unitId: unitId,
+			   					            userAccount: userAccount
+			   					        },
+			   					        success: function (contractors) {
+
+			   					            const $contractor = $("#contractors");
+			   					            $contractor.empty();
+			   					            $contractor.append('<option value="">Select Contractor</option>');
+
+			   					            $.each(contractors, function (index, contractor) {
+			   					                $contractor.append(
+			   					                    '<option value="' + contractor.contractorId + '">' +
+			   					                    contractor.contractorName +
+			   					                    '</option>'
+			   					                );
+			   					            });
+
+			   					            if (typeof callback === "function") {
+			   					                callback();
+			   					            }
+			   					        },
+			   					        error: function () {
+			   					            console.error("Error loading contractors");
+			   					        }
+			   					    });
+			   					}
+			   					 function getContractorsForPoliceReports(unitId, userAccount, callback) {
 			   					    $.ajax({
 			   					        url:"/CWFM/contractworkmen/getAllContractors",
 			   					        type: "GET",

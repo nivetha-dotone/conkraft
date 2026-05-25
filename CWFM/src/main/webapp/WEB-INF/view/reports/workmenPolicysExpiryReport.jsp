@@ -270,7 +270,9 @@
 
    
 <div class="page-header">
-  <label for="principalEmployerId" style="color: darkcyan;">Principal Employer:</label> <select class="custom-select" id="principalEmployer" name="principalEmployerId" onchange="getContractorsAndTrades(this.value, '${sessionScope.loginuser.userAccount}')">
+<input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
+  <label for="principalEmployerId" style="color: darkcyan;">Principal Employer:</label> 
+  <select class="custom-select" id="principalEmployers" name="principalEmployerId" onchange="getContractorsForPolicyExpiryReports(this.value, document.getElementById('loggedInUserAccount').value)" style="color:gray;padding:3px;">
                                 <option value="">Please select Principal Employer</option>
                                 
                                 
@@ -285,7 +287,9 @@
                                 </select>
                             
                           <label for="deptId" style="color: darkcyan;">Contractor:</label>
-                            <select class="custom-select" id="contractor" name="contractorId" onchange="fetchPolicysExpiryReportData(this.value)">
+                          <input type="hidden" id="autoSearchFunction" value="fetchPolicysExpiryReportData">
+                            <input type="hidden" id="autoSearchParam" value="">
+                            <select class="custom-select" id="contractors" name="contractors" onchange="fetchPolicysExpiryReportData()" style="color:gray;padding:3px;">
             						<option value="">Please select Contractor</option>
 									<c:forEach var="contr" items="${Contractors}">
 										

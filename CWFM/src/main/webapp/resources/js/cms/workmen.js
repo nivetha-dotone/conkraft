@@ -2884,6 +2884,7 @@ function previewImage(event, inputId, displayId) {
 										        tableBody.empty();
 										        if (Array.isArray(response) &&response.length > 0) {
 										            $.each(response, function(index, wo) {
+														 var onboardingTypeFormatted = wo.onboardingType? toCapitalCase(String(wo.onboardingType)): '';
 										                var row = '<tr  >' +
 																											'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.gatePassId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
 																											//'<td  >' + wo.transactionId + '</td>' +
@@ -2896,7 +2897,7 @@ function previewImage(event, inputId, displayId) {
 														
 																'<td  >' +wo.unitName + '</td>' +	
 																'<td  >' + wo.gatePassType + '</td>' +
-																'<td  >' + wo.onboardingType + '</td>' +	
+																'<td  >' +onboardingTypeFormatted + '</td>' +	
 																'<td  >' + wo.status + '</td>' +				                             
 										                          '</tr>';
 										                tableBody.append(row);
@@ -4756,6 +4757,7 @@ function searchGatePassReportBasedOnPE() {
 										   tableBody.empty();
 					            if (Array.isArray(response) &&response.length > 0) {
 					                $.each(response, function(index, wo) {
+										var entryPassTypeFormatted = wo.entryPassType? toCapitalCase(String(wo.entryPassType)): '';
 					                    var row = '<tr  >' +
 												'<td  ><input type="checkbox" name="selectedUnitIds" value="' + wo.transactionId + '"></td>'+
 												'<td  >' + wo.transactionId + '</td>' +
@@ -4769,7 +4771,7 @@ function searchGatePassReportBasedOnPE() {
 												  '<td  >' + wo.workOrder + '</td>' +
 												  '<td  >' + wo.eicNumber + '</td>' +
 												  '<td  >' + wo.entryPassAction + '</td>' +
-												  '<td  >' +  toCapitalCase(wo.entryPassType) + '</td>' +
+												  '<td  >' + entryPassTypeFormatted + '</td>' +
 												  '<td  >' + wo.lastApprover + '</td>' +
 												  '<td  >' + wo.nextApprover + '</td>' +
 												  '<td  >' + wo.status + '</td>' +				                             

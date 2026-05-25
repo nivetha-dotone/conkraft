@@ -250,6 +250,33 @@ function initReportsListingScreen() {
             }
 
         });
+    	getContractorsForInactiveReports(unitId, userAccount, function () {
+
+            autoSelectOnly("contractors");
+
+            if ($("#principalEmployers").val() && $("#contractors").val()) {
+                callAutoSearchFunction();
+            }
+
+        });
+    	getContractorsForPolicyExpiryReports(unitId, userAccount, function () {
+
+            autoSelectOnly("contractors");
+
+            if ($("#principalEmployers").val() && $("#contractors").val()) {
+                callAutoSearchFunction();
+            }
+
+        });
+    	getContractorsForPoliceReports(unitId, userAccount, function () {
+
+            autoSelectOnly("contractors");
+
+            if ($("#principalEmployers").val() && $("#contractors").val()) {
+                callAutoSearchFunction();
+            }
+
+        });
     }, false);
 }
 
@@ -1451,14 +1478,22 @@ function saveGMMaster() {
         return;
     }
  // ✅ Convert to Capital Case
- function toProperCase(str) {
+function formatName(str) {
+
+    // Check if the entire string is uppercase
+    if (str === str.toUpperCase()) {
+        return str; // keep uppercase as it is
+    }
+
+    // Otherwise convert to Title Case
     return str.replace(/\b\w+/g, function(word) {
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     });
 }
 
-    masterName = toProperCase(masterName);
-    masterValue = masterValue;
+// Usage
+masterName = formatName(masterName);
+masterValue = masterValue;
     
     console.log("📌 Valid Input:", { gmTypeId, masterName, masterValue }); // Log data
 
@@ -1469,12 +1504,17 @@ function saveGMMaster() {
         const nameInput = row.querySelector("input[id='name']");
         const descInput = row.querySelector("input[id='value']");
         if (nameInput && descInput) {
-            existingNames.push(nameInput.value.trim());
-            existingValues.push(descInput.value.trim());
+            existingNames.push(nameInput.value.trim().toLowerCase());
+            existingValues.push(descInput.value.trim().toLowerCase());
         }
     });
+    
+ // Convert current input also to lowercase for comparison
+    const checkMasterName = masterName.trim().toLowerCase();
+    const checkMasterValue = masterValue.trim().toLowerCase();
 
-    if (existingNames.includes(masterName)) {
+
+    if (existingNames.includes(checkMasterName)) {
         errorBox.innerText = "Duplicate Name found. Please enter a unique Name.";
         errorBox.style.display = "block";
         return;

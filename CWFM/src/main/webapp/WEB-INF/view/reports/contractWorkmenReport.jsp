@@ -272,7 +272,7 @@
 <div class="page-header">
 <input type="hidden" id="loggedInUserAccount" value="${sessionScope.loginuser.userAccount}">
   <label for="principalEmployerId" style="color: darkcyan;">Principal Employer:</label> 
-  <select class="custom-select" id="principalEmployers" name="principalEmployerId" onchange="getContractorsForReports(this.value, document.getElementById('loggedInUserAccount').value)">
+  <select class="custom-select" id="principalEmployers" name="principalEmployerId" onchange="getContractorsForReports(this.value, document.getElementById('loggedInUserAccount').value)" style="color:gray;padding:3px;">
                                 <option value="">Please select Principal Employer</option>
                                 
                                 
@@ -289,7 +289,7 @@
                           <label for="deptId" style="color: darkcyan;">Contractor:</label>
 <input type="hidden" id="autoSearchFunction" value="fetchReportData">
 <input type="hidden" id="autoSearchParam" value="">
-                            <select class="custom-select" id="contractors" name="contractors" onchange="fetchReportData()">
+                            <select class="custom-select" id="contractors" name="contractors" onchange="fetchReportData()" style="color:gray;padding:3px;">
             						<option value="">Please select Contractor</option>
 									<c:forEach var="contr" items="${Contractors}">
 										
