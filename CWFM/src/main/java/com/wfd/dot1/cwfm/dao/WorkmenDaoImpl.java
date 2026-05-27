@@ -579,7 +579,7 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	    // UNION SELECT params
 	    params.add(gatePassTypeId);
 	    params.add(type);
-	    //params.addAll(contractorIds);
+	    params.addAll(contractorIds);
 
 	    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
 
@@ -2106,6 +2106,7 @@ public GatePassMain getIndividualContractWorkmenDetailsByGatePassId(String gateP
 	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,gatePassId);
 	if(rs.next()) {
 		dto = new GatePassMain();
+		dto.setOnboardingType(rs.getString("OnboardingType"));
 		dto.setTransactionId(rs.getString("TransactionId"));
 		dto.setGatePassId(rs.getString("GatePassId"));
 		dto.setUnitId(rs.getString("peId"));

@@ -355,11 +355,16 @@ public class WorkmenServiceImpl implements WorkmenService{
 	            updated = workmenDao.updateGatePassMainStatusByTransactionId(
 	                    dto.getTransactionId(), dto.getStatus());
 	        } else {
+	        	String revertType=GatePassType.CREATE.getStatus();
+	        	if(gpm.getOnboardingType().equals("project")){
+	        		revertType=GatePassType.PROJECT.getStatus();
+                }
 	            // Rejecting other actions → revert to CREATE + Approved
 	            updated = workmenDao.updateGatePassMainStatusAndType(
 	                    dto.getGatePassId(),
 	                    GatePassStatus.APPROVED.getStatus(),
-	                    GatePassType.CREATE.getStatus()
+	                    revertType
+	                    
 	            );
 	        }
 
@@ -629,7 +634,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 				dto.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
 				result = workmenDao.gatePassAction(dto);
 				if(dto.getGatePassType().equals(GatePassType.DEBLACKLIST.getStatus()) || dto.getGatePassType().equals(GatePassType.UNBLOCK.getStatus())) {
-					 workmenDao.updateGatePassMainStatusAndType(dto.getGatePassId(),dto.getGatePassStatus(),GatePassType.CREATE.getStatus());
+					String revertType = GatePassType.CREATE.getStatus();
+					if(gatePassMain.getOnboardingType().equals("project")) {
+						revertType = GatePassType.PROJECT.getStatus();
+					}
+					 workmenDao.updateGatePassMainStatusAndType(dto.getGatePassId(),dto.getGatePassStatus(),revertType);
 					 gatePassMain.setWorkorder(gatePassMain.getWoId());
 					 gatePassMain.setLlNo(gatePassMain.getLlId());
 					 gatePassMain.setWcEsicNo(gatePassMain.getWcEsicId());
