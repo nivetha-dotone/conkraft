@@ -266,4 +266,10 @@ public interface WorkmenDao {
 	public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId);
 
 	public void updateGatePassIdByEmpCode(GatePassMain gatePassMain);
+
+	public List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department);
+
+	void saveTrainingDetails(ApproveRejectGatePassDto dto);
+
+	public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId);
 }

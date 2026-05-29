@@ -743,6 +743,9 @@ textarea {
             <button data-target="tab2" onclick="showTabNew('tab2')">Employment Information</button>
             <!-- <button data-target="tab3" onclick="showTabNew('tab3')">Other Information</button>
             <button data-target="tab4" onclick="showTabNew('tab4')">Wages</button> -->
+            <% if (user != null && ("Eic".equals(roleName) || "Safety".equals(roleName) || "Contractor".equals(roleName))) { %>
+              <button data-target="tab7" onclick="showTabNew('tab7')">Training Details</button>
+            <% } %>
             <button data-target="tab5" onclick="showTabNew('tab5')">Documents</button>
             <button data-target="tab6" onclick="showTabNew('tab6')">Approval Status</button>
         </div>
@@ -1203,7 +1206,173 @@ textarea {
                 </table>
             </div>
             
+              <%--     <c:if test="${(GatePassObj.gatePassAction eq '1'||GatePassObj.gatePassAction eq '2'||GatePassObj.gatePassAction eq '15'||GatePassObj.gatePassAction eq '12')}"> 
+           <% if (user != null && "Eic".equals(roleName) || user != null && "Safety".equals(roleName)  ) { %> --%>
+          
+             <div id="tab7" class="tab-content">
+           <% boolean isContractor = user != null && "Contractor".equals(roleName);
+             boolean isEicOrSafety = user != null && ("Eic".equals(roleName)|| "Safety".equals(roleName)); %>
+           <!--  <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;"></div>
+            <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div> -->
+            <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
+                   
+        <thead>
+            <tr style=" border: 1px solid #ddd;">
             
+                <th><label class="custom-label"></th>
+                <th><label class="custom-label"></th>
+               <%--  <th><label class="custom-label">  <spring:message code="label.workOrderNumber"/></th> --%>
+				<%-- <th><label class="custom-label"> <spring:message code="label.natureOfJob"/></th> --%>
+				<th><label class="custom-label"> <spring:message code="label.trainingType"/></th>
+				<th><label class="custom-label"> <spring:message code="label.trainingName"/></th>
+				<th><label class="custom-label"> <spring:message code="label.trainingFromDate"/></th>
+				<th><label class="custom-label"><spring:message code="label.trainingToDate"/></th>
+				<th><label class="custom-label"><spring:message code="label.fromTime"/></th>
+				<th><label class="custom-label"><spring:message code="label.toTime"/></th>
+				<th><label class="custom-label"><spring:message code="label.faculty"/></th>
+				<th><label class="custom-label"><spring:message code="label.marks"/></th>
+				<th><label class="custom-label"><spring:message code="label.efficency"/></th>
+				<th><label class="custom-label"><spring:message code="label.nextTrainingDate"/></th>
+				<th><label class="custom-label"><spring:message code="label.comments"/></th>
+            </tr>
+        </thead>
+      <tbody id="trainingBody">
+
+
+   <% if (isContractor) { %>
+        <c:forEach var="record" items="${existingTrainingRecords}">
+
+           <tr style=" border: 1px solid #ddd;background-color: ${status.index % 2 == 0 ? '#f9f9f9' : '#ffffff'};">
+
+                <td></td>
+                <td></td>
+                <td style="color:#2c2c2c;">${record.trainingType}</td>
+                <td style="color:#2c2c2c;">${record.trainingName}</td>
+                <td style="color:#2c2c2c;">${record.trainingFromDate}</td>
+                <td style="color:#2c2c2c;">${record.trainingToDate}</td>
+                <td style="color:#2c2c2c;">${record.fromTime}</td>
+                <td style="color:#2c2c2c;">${record.toTime}</td>
+                <td style="color:#2c2c2c;">${record.faculty}</td>
+                <td style="color:#2c2c2c;">${record.marks}</td>
+                <td style="color:#2c2c2c;">${record.efficency}</td>
+                <td style="color:#2c2c2c;">${record.nextTrainingDate}</td>
+                <td style="color:#2c2c2c;">${record.remarks}</td>
+
+            </tr>
+
+        </c:forEach>
+
+    <% } %>
+
+<% if (isEicOrSafety) { %>
+        <c:choose>
+
+            <c:when test="${not empty existingTrainingRecords}">
+
+                <c:forEach var="record" items="${existingTrainingRecords}">
+
+                    <tr>
+
+                         <td><button type="button" class="btn btn-success addTrainingRowNew" style="color:blue;background-color:white;">+</button></td>
+                         <td><button type="button" class="btn btn-danger removeTrainingRowNew" style="color:blue;background-color:white;">-</button></td>
+
+                        <td>
+                            <select class="form-control trainingType" name="trainingType">
+                                <option value="">Please select Training Type</option>
+                                <c:forEach var="training" items="${trainingList}">
+                                    <option value="${training.trainingType}"
+                                        <c:if test="${training.trainingType eq record.trainingType}">selected</c:if>>
+                                        ${training.trainingType}
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </td>
+
+                        <td>
+                            <select class="form-control trainingName" name="trainingName">
+                                <option value="">Please select Training Name</option>
+                                <c:forEach var="training" items="${trainingList}">
+                                    <option value="${training.trainingName}"
+                                        <c:if test="${training.trainingName eq record.trainingName}">selected</c:if>>
+                                        ${training.trainingName}
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </td>
+
+                        <td><input type="text" class="form-control trainingFromDate" name="trainingFromDate" value="${record.trainingFromDate}"/></td>
+                        <td><input type="text" class="form-control trainingToDate" name="trainingToDate" value="${record.trainingToDate}"/></td>
+                        <td><input type="text" class="form-control fromTime" name="fromTime" value="${record.fromTime}"/></td>
+                        <td><input type="text" class="form-control toTime" name="toTime" value="${record.toTime}"/></td>
+                        <td><input type="text" class="form-control faculty" name="faculty" value="${record.faculty}"/></td>
+                        <td><input type="number" class="form-control marks" name="marks" value="${record.marks}"/></td>
+
+                        <td>
+                            <select class="form-control efficency" name="efficency">
+                                <option value="1" ${record.efficency == '1' ? 'selected' : ''}>1</option>
+                                <option value="2" ${record.efficency == '2' ? 'selected' : ''}>2</option>
+                                <option value="3" ${record.efficency == '3' ? 'selected' : ''}>3</option>
+                                <option value="4" ${record.efficency == '4' ? 'selected' : ''}>4</option>
+                                <option value="5" ${record.efficency == '5' ? 'selected' : ''}>5</option>
+                            </select>
+                        </td>
+
+                        <td><input type="text" class="form-control nextTrainingDate" name="nextTrainingDate" value="${record.nextTrainingDate}"/></td>
+                        <td><input type="text" class="form-control remarks" name="remarks" value="${record.remarks}"/></td>
+
+                    </tr>
+
+                </c:forEach>
+
+            </c:when>
+
+            <c:otherwise>
+    <tr>
+        <td><button type="button" class="btn btn-success addTrainingRowNew" style="color:blue;background-color:white;">+</button></td>
+        <td><button type="button" class="btn btn-danger removeTrainingRowNew" style="color:blue;background-color:white;">-</button></td>
+        <td>
+            <select class="form-control trainingType" name="trainingType">
+                <option value="">Please select Training Type</option>
+                <c:forEach var="training" items="${trainingList}">
+                   <option value="${training.trainingType}">${training.trainingType}</option>
+               </c:forEach>
+            </select>
+        </td>
+        <td>
+            <select class="form-control trainingName" name="trainingName">
+                <option value="">Please select Training Name</option>
+               <c:forEach var="training" items="${trainingList}">
+                     <option value="${training.trainingName}">${training.trainingName}</option>
+               </c:forEach>
+            </select>
+        </td>
+        <td><input type="text" class="form-control trainingFromDate expirydatetimepicker" name="trainingFromDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control trainingToDate expirydatetimepicker" name="trainingToDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control fromTime" name="fromTime" autocomplete="off"/></td>
+        <td><input type="text" class="form-control toTime" name="toTime" autocomplete="off"/></td>
+        <td><input type="text" class="form-control faculty" name="faculty" autocomplete="off"/></td>
+        <td><input type="number" class="form-control marks" name="marks" min="0" max="100" autocomplete="off"/></td>
+        <td>
+            <select class="form-control efficency" name="efficency">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control nextTrainingDate expirydatetimepicker" name="nextTrainingDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control remarks" name="remarks" autocomplete="off"/></td>
+     </tr>
+    </c:otherwise>
+        </c:choose>
+<% } %>
+
+</tbody>
+ </table>
+</div>
+<%-- <% } %> 
+</c:if> --%>
             
             <div id="tab6" class="tab-content">
              <div class="table-scroll-wrapper">

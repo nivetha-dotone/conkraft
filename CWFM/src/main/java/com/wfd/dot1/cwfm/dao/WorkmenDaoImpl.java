@@ -1943,7 +1943,8 @@ public GatePassMain getIndividualContractWorkmenDetailsByTransId(String transact
 		dto.setRateManagerDocName(rs.getString("RateManagerDocName"));
 		dto.setLOCDocName(rs.getString("LOCDocName"));
 		dto.setProficiency(rs.getString("Proficiency"));
-	}
+		dto.setTrainingId(rs.getString("TRAININGID"));
+		}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+transactionId);
 	return dto;
 }
@@ -2969,6 +2970,9 @@ private String mapGatePassValue(String field, GatePassMain gp) {
             
         case "Proficiency":
             return gp.getProficiency();
+            
+        case "TrainingId":
+            return gp.getTrainingId();
             
         default:
             return null;
@@ -4676,4 +4680,165 @@ public void updateGatePassIdByEmpCode(GatePassMain gatePassMain) {
     jdbcTemplate.update(sql,gatePassMain.getGatePassId(),gatePassMain.getTransactionId());
 }
 
+@Override
+public List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department) {
+
+    String sql ="SELECT TRAINING_TYPE, TRAINING_NAME FROM CMSTRAININGDETAILS WHERE UNIT_ID = ? AND DEP_NAME = ? AND MANDATORY = 'YES'";
+
+    return jdbcTemplate.query(sql,new Object[]{unitId, department},new RowMapper<ApproveRejectGatePassDto>() {
+
+                @Override
+                public ApproveRejectGatePassDto mapRow(ResultSet rs, int rowNum)
+                        throws SQLException {
+
+                	ApproveRejectGatePassDto obj = new ApproveRejectGatePassDto();
+
+                    obj.setTrainingType(rs.getString("TRAINING_TYPE"));
+
+                    obj.setTrainingName(rs.getString("TRAINING_NAME"));
+
+                    return obj;
+                }
+            }
+    );
+}
+//private String getMaxTrainingIdQuery() {
+//	return QueryFileWatcher.getQuery("GET_MAX_TRAININGID_FOR_GATEPASSID");
+//}
+public synchronized String generateTrainingIdForGatePass() {
+
+    String trainingId = "";
+
+    try {
+
+        // SQL SERVER QUERY
+        String sql =
+                "SELECT ISNULL(MAX(CAST(SUBSTRING(SFTID, 3, LEN(SFTID)) AS INT)), 0) " +
+                "FROM CMSPERSONSAFETYMM " +
+                "WHERE SFTID IS NOT NULL " +
+                "AND SFTID LIKE 'TR%'";
+
+        Integer maxId = jdbcTemplate.queryForObject(sql, Integer.class);
+
+        // IF NULL
+        if (maxId == null) {
+            maxId = 0;
+        }
+
+        // NEXT ID
+        int nextId = maxId + 1;
+
+        // FORMAT -> TR00001
+        trainingId = String.format("TR%05d", nextId);
+
+        log.info("Generated Training ID : {}", trainingId);
+
+    } catch (Exception e) {
+
+        log.error("Error generating Training ID", e);
+    }
+
+    return trainingId;
+}
+@Override
+public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
+
+    String transactionId = dto.getTransactionId();
+
+    String sftId = null;
+
+    //STEP 1:CHECK TRAINING ID EXISTS
+
+    String checkSql ="SELECT TRAININGID FROM GATEPASSMAIN WHERE TRANSACTIONID = ?";
+
+    List<String> existingIds = jdbcTemplate.query(checkSql,new Object[]{transactionId},(rs, rowNum) -> rs.getString("TRAININGID"));
+
+    // STEP 2:IF EXISTS USE SAME SFTID
+    if (existingIds != null && !existingIds.isEmpty() && existingIds.get(0) != null) {
+
+        sftId = existingIds.get(0);
+
+        //STEP3 : DELETE OLD RECORDS
+
+        String deleteSql ="DELETE FROM CMSPERSONSAFETYMM WHERE SFTID = ?";
+
+        jdbcTemplate.update(deleteSql, sftId);
+
+    } else {
+        //STEP4: GENERATE NEW TRAINING ID
+        sftId = generateTrainingIdForGatePass();
+       
+        //STEP5:  UPDATE GATEPASSMAIN
+        String updateSql ="UPDATE GATEPASSMAIN SET TRAININGID = ? WHERE TRANSACTIONID = ?";
+
+        jdbcTemplate.update(updateSql,sftId,transactionId);
+    }
+
+    //STEP6: BATCH INSERT TRAINING RECORDS
+
+    String insertSql ="INSERT INTO CMSPERSONSAFETYMM(SFTID,DATETAKEN,FRMTIME,TOTIME, NEXTDATE,TRNDESC,DEPTID,SECID,FUNC,NJOB,MODULE,TNI,FACULTYNM,VENUE,\r\n"
+    		+ "  PREMO,PREMM,PREPERCENT,POSTMO,POSTMM,POSTPERCENT,RECOM,REMARKS,UPDATEDBY,UPDATEDON,PMMID)\r\n"
+    		+ "     VALUES(?,?,?,?,?,?,null,null,null,null,null,?,?,null,null,null,null,null,null,?,?,?,?,getdate(),'1')";
+
+
+
+    List<Object[]> batchArgs = new ArrayList<>();
+
+     //LOOP TRAINING ROWS
+    for (ApproveRejectGatePassDto training : dto.getTrainingDetailsList()) {
+
+        Object[] obj = new Object[]{sftId,
+        		                training.getTrainingFromDate(),
+        		                convertToSqlTime(training.getFromTime()),
+        		                convertToSqlTime(training.getToTime()),
+        						training.getNextTrainingDate(),
+        						training.getTrainingName(),
+        		                training.getTrainingType(),
+        		                training.getFaculty(),
+        		                training.getMarks(),
+        						training.getEfficency(),
+        						training.getRemarks(),
+        						training.getApproverRole()
+        };
+
+        batchArgs.add(obj);
+    }
+     // FINAL BATCH INSERT
+    jdbcTemplate.batchUpdate(insertSql,batchArgs);
+}
+@Override
+public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId) {
+
+    String sql ="select CONVERT(varchar, mm.DATETAKEN, 23) AS TRAINING_FROM_DATE,'' as TRAINING_TO_DATE ,LEFT(CONVERT(varchar, mm.FRMTIME, 108), 5) AS FROM_TIME,LEFT(CONVERT(varchar, mm.TOTIME, 108), 5) AS TO_TIME,CONVERT(varchar, mm.NEXTDATE, 23) AS NEXT_TRAINING_DATE,mm.TRNDESC as TRAINING_NAME,mm.TNI as TRAINING_TYPE,mm.FACULTYNM as FACULTY,mm.POSTPERCENT as MARKS,mm.RECOM as EFFICIENCY,mm.REMARKS as REMARKS from CMSPERSONSAFETYMM mm JOIN GATEPASSMAIN GPM  ON GPM.TRAININGID = MM.SFTID WHERE GPM.TRANSACTIONID = ?";
+            
+    return jdbcTemplate.query(sql,new Object[]{transactionId},new RowMapper<ApproveRejectGatePassDto>() {
+
+                @Override
+                public ApproveRejectGatePassDto mapRow(ResultSet rs,int rowNum) throws SQLException {
+
+                	ApproveRejectGatePassDto obj = new ApproveRejectGatePassDto();
+
+                    obj.setTrainingType(rs.getString("TRAINING_TYPE"));
+                    obj.setTrainingName(rs.getString("TRAINING_NAME"));
+                    obj.setTrainingFromDate(rs.getString("TRAINING_FROM_DATE"));
+                    obj.setTrainingToDate(rs.getString("TRAINING_TO_DATE"));
+                    obj.setFromTime(rs.getString("FROM_TIME"));
+                    obj.setToTime(rs.getString("TO_TIME"));
+                    obj.setFaculty(rs.getString("FACULTY"));
+                    obj.setMarks(rs.getString("MARKS"));
+                    obj.setEfficency(rs.getString("EFFICIENCY"));
+                    obj.setNextTrainingDate(rs.getString("NEXT_TRAINING_DATE"));
+                    obj.setRemarks(rs.getString("REMARKS"));
+
+                    return obj;
+                }
+            });
+}
+private String convertToSqlTime(String time) {
+    if (time == null || time.isEmpty()) {
+        return null;
+    }
+    // Convert 10.00 -> 10:00:00
+    return time.replace(".", ":") + ":00";
+}
 }

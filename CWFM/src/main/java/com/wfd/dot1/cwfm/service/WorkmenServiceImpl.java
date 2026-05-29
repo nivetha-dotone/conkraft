@@ -344,6 +344,11 @@ public class WorkmenServiceImpl implements WorkmenService{
       		 ||dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) &&dto.getApproverRole().equals("Security")) {
       	  workmenDao.updateonboardingDocTypeinGP(dto.getOnboardingDocType(),dto.getTransactionId());
  }
+	    //for safety,eic training moduke update in gatepassmain
+	    if ((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus()) || dto.getGatePassType().equals(GatePassType.RENEW.getStatus()))&& (dto.getApproverRole().equals("Safety") || dto.getApproverRole().equals("Eic"))) {
+
+	        workmenDao.saveTrainingDetails(dto);
+	    }
 	    
 	    // Handle REJECT first
 	    if (dto.getStatus().equals(GatePassStatus.REJECTED.getStatus())) {
@@ -1694,4 +1699,15 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    return true;
 	}
+	
+	 @Override
+	    public List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department) {
+
+	        return workmenDao.getTrainingDetails(unitId, department);
+	    }
+	 
+	 @Override
+	 public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId) {
+	     return workmenDao.getExistingTrainingRecords(transactionId);
+	 }
 }

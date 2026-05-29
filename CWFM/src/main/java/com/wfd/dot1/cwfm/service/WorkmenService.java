@@ -167,5 +167,8 @@ public interface WorkmenService {
 
 	public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId);
 
+	List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department);
+
+	public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId);
 	
 }	

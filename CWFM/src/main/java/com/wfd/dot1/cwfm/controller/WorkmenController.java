@@ -805,7 +805,14 @@ return "failed";
     		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
     		    request.setAttribute(attributeName, gmList1);
     		});
+    		//display the training type and name while approving for eic,security
+    		List<ApproveRejectGatePassDto> trainingList = workmenService.getTrainingDetails(gatePassMainObj.getUnitId(),gatePassMainObj.getDepartment());
+    		request.setAttribute("trainingList", trainingList);
     		
+    		// EXISTING TRAINING RECORDS
+    		 List<ApproveRejectGatePassDto> existingTrainingRecords =workmenService.getExistingTrainingRecords(gatePassMainObj.getTransactionId());
+    		 request.setAttribute("existingTrainingRecords",existingTrainingRecords);
+    		 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		
     		if(gatePassMainObj.getOnboardingType().equals("project")) {

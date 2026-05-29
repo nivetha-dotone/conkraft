@@ -1114,6 +1114,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status == 200) {
             document.getElementById("mainContent").innerHTML = xhr.responseText;
+             setDateRange();
         }
     };
     xhr.open("GET", "/CWFM/contractworkmen/view/" + transactionId, true);
@@ -1150,6 +1151,37 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
     }else{
 		$("#error-onboardingDocType").hide();
 	}
+	//TRAINING DETAILS ARRAY
+    let trainingDetailsList = [];
+
+ if (Role === "Eic" || Role === "Safety") {
+
+        $("#trainingBody tr").each(function () {
+
+            const row = $(this);
+
+            const trainingObj = {
+                trainingType:row.find(".trainingType").val(),
+                trainingName:row.find(".trainingName").val(),
+                trainingFromDate:row.find(".trainingFromDate").val(),
+                trainingToDate:row.find(".trainingToDate").val(),
+                fromTime:row.find(".fromTime").val(),
+                toTime:row.find(".toTime").val(),
+                faculty:row.find(".faculty").val(),
+                marks:row.find(".marks").val(),
+                efficency:row.find(".efficency").val(),
+                nextTrainingDate:row.find(".nextTrainingDate").val(),
+                remarks:row.find(".remarks").val()
+            };
+             //OPTIONAL:SKIP EMPTY ROWS
+            if (trainingObj.trainingType !== ""|| trainingObj.trainingName !== "") {
+                trainingDetailsList.push(trainingObj);
+            }
+        });
+    }
+
+
+
 	if(isValid){
 		const data = {
 			approverId : $("#userId").val().trim(),
@@ -1161,6 +1193,7 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
 			roleId :$("#roleId").val().trim(),
 			gatePassType : gatePassType,
 			onboardingDocType:$("#onboardingDocType").val(),
+			trainingDetailsList:trainingDetailsList
 		};
 			  const xhr = new XMLHttpRequest();
     xhr.open("POST", "/CWFM/contractworkmen/approveRejectGatePass", true); // Replace with your actual controller URL
@@ -6303,7 +6336,7 @@ function redirectToWorkmenViewLink(transactionId, status) {
             if (xhr.status === 200) {
 
                 document.getElementById("mainContent").innerHTML = xhr.responseText;
-
+ setDateRange();
             } else {
 
                 alert("Failed to load view page.");
@@ -6438,4 +6471,111 @@ function redirectToWorkmenRenewViewLink(gatePassId) {
        xhr.open("GET", "/CWFM/contractworkmen/renewview/" + gatePassId, true);
 
     xhr.send();
+}
+
+document.addEventListener('click', function (e) {
+
+    // ADD ROW
+    if (e.target.matches('button.addTrainingRowNew')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setTimeout(() => {
+            addContTrainingRowNew();
+            if (typeof setDateRange === "function") {
+                setDateRange();
+            }
+        }, 0);
+    }
+
+    // DELETE ROW
+    else if (e.target.matches('button.removeTrainingRowNew')) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        setTimeout(() => {
+            deleteContTrainingRowNew(e.target);
+        }, 0);
+    }
+});
+
+/* ADD TRAINING ROW */
+function addContTrainingRowNew() {
+
+    const tbody = document.getElementById("trainingBody");
+
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+        <td><button type="button" class="btn btn-success addTrainingRowNew" style="color:blue;background-color:white;">+</button></td>
+        <td><button type="button" class="btn btn-danger removeTrainingRowNew" style="color:blue;background-color:white;">-</button></td>
+        <td></td>
+        <td></td>
+        <td><input type="text" class="form-control trainingFromDate expirydatetimepicker" name="trainingFromDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control trainingToDate expirydatetimepicker" name="trainingToDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control fromTime" name="fromTime" autocomplete="off"/></td>
+        <td><input type="text" class="form-control toTime" name="toTime" autocomplete="off"/></td>
+        <td><input type="text" class="form-control faculty" name="faculty" autocomplete="off"/></td>
+        <td><input type="number" class="form-control marks" name="marks" min="0" max="100" autocomplete="off"/></td>
+        <td>
+          <select class="form-control efficency" name="efficency">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </td>
+        <td><input type="text" class="form-control nextTrainingDate expirydatetimepicker" name="nextTrainingDate" autocomplete="off"/></td>
+        <td><input type="text" class="form-control remarks" name="remarks" autocomplete="off"/></td>
+    `;
+    /* CLONE TRAINING TYPE DROPDOWN */
+   const trainingTypeDropdown =
+    document.querySelector('#trainingBody tr:first-child select.trainingType');
+
+  if (trainingTypeDropdown) {
+
+    const clonedTypeDropdown = trainingTypeDropdown.cloneNode(true);
+    clonedTypeDropdown.classList.add("trainingType");
+    clonedTypeDropdown.name = "trainingType";
+    /* RESET DROPDOWN */
+    clonedTypeDropdown.selectedIndex = 0;
+    Array.from(clonedTypeDropdown.options).forEach(option => {
+        option.removeAttribute("selected");
+    });
+    clonedTypeDropdown.options[0].selected = true;
+    row.cells[2].appendChild(clonedTypeDropdown);
+ }
+    /* CLONE TRAINING NAME DROPDOWN */
+    const trainingNameDropdown =
+    document.querySelector('#trainingBody tr:first-child select.trainingName');
+
+ if (trainingNameDropdown) {
+    const clonedNameDropdown = trainingNameDropdown.cloneNode(true);
+    clonedNameDropdown.classList.add("trainingName");
+    clonedNameDropdown.name = "trainingName";
+    /* RESET DROPDOWN */
+    clonedNameDropdown.selectedIndex = 0;
+    Array.from(clonedNameDropdown.options).forEach(option => {
+        option.removeAttribute("selected");
+    });
+    clonedNameDropdown.options[0].selected = true;
+    row.cells[3].appendChild(clonedNameDropdown);
+ }
+    /* APPEND ROW */
+    tbody.appendChild(row);
+}
+
+/* DELETE TRAINING ROW */
+function deleteContTrainingRowNew(buttonElement) {
+
+    const row = buttonElement.closest('tr');
+    const tbody = document.getElementById("trainingBody");
+    const dataRows = Array.from(
+        tbody.querySelectorAll('tr')
+    ).filter(r => r.querySelector('button.removeTrainingRowNew'));
+    console.log(dataRows.length);
+    if (dataRows.length > 1) {
+        row.remove();
+    } else {
+        alert("At least one row must be present.");
+    }
 }

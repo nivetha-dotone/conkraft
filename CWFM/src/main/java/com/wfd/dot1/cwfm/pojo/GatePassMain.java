@@ -654,5 +654,12 @@ public String getEffectiveFromDate() {
 public void setEffectiveFromDate(String effectiveFromDate) {
 	this.effectiveFromDate = effectiveFromDate;
 }
+private String trainingId;
+public String getTrainingId() {
+	return trainingId;
+}
+public void setTrainingId(String trainingId) {
+	this.trainingId = trainingId;
+}
 
 }
