@@ -100,11 +100,11 @@ public class CreateEmpFetchByGatePassAPICALL {
 
 
     @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
-    public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String trnId) {
-        Long gpTransactionId = null;
+    public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String gpTransactionId) {
+
         try {
-            gpTransactionId = Long.parseLong(trnId);
-            String result = this.employeeMapper.gatePassEmpDtoDynamic(trnId);
+
+            String result = this.employeeMapper.gatePassEmpDtoDynamic(gpTransactionId);
             if (result == null) {
                 this.passToOnBoardService.saveErrorTraceTrNOT(gpTransactionId, 200, "Transaction Id Not Found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction Id Not Found");
@@ -137,13 +137,11 @@ public class CreateEmpFetchByGatePassAPICALL {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error: " + var7.getMessage());
         }
     }
-
+    
     @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
-    public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String trendId) {
-        Long gpTransactionId = null;
+    public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String gpTransactionId) {
         try {
-            gpTransactionId = Long.parseLong(trendId);
-            String result = this.employeeMapper.updatePassEmpDtoDynamic(trendId);
+            String result = this.employeeMapper.updatePassEmpDtoDynamic(gpTransactionId);
             if (result == null) {
                 this.passToOnBoardService.saveErrorTraceTrNOTUpdate(gpTransactionId, 200, "Transaction Id Not Found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Transaction Id Not Found");

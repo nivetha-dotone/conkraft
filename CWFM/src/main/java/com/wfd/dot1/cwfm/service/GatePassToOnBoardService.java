@@ -382,12 +382,12 @@ public class GatePassToOnBoardService {
         }
     }
 
-    public void saveSuccessTrace(Long gpTransactionId, Long personId, Integer statusNumber) {
+    public void saveSuccessTrace(String gpTransactionId, Long personId, Integer statusNumber) {
         String sql = this.getQueryInsertSuccessEnty();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
     }
 
-    public void saveSuccessTraceUpdate(Long gpTransactionId, Long personId, Integer statusNumber) {
+    public void saveSuccessTraceUpdate(String gpTransactionId, Long personId, Integer statusNumber) {
         String sql = this.getQueryInsertSuccessEntyUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
     }
@@ -402,33 +402,33 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{statusNumber,gpTransactionId});
     }
 
-    public void updateSuccessTrace(Long gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
+    public void updateSuccessTrace(String gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
         String sql = this.getQueryUpdateWFDLogOK();
         this.jdbcTemplate.update(sql, new Object[]{personId, statusNumber, gpTransactionId});
     }
 
-    public void updateSuccessTraceUPON(Long gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
+    public void updateSuccessTraceUPON(String gpTransactionId, Long personId, Integer statusNumber, Boolean flag) {
         String sql = this.getQueryUpdateWFDLogOKONUP();
         this.jdbcTemplate.update(sql, new Object[]{personId, statusNumber, gpTransactionId});
     }
 
-    public void updateErrorTrace(Long gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
+    public void updateErrorTrace(String gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
         String sql = this.getQueryUpdateWFDNotSuccess();
         this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse, flag, gpTransactionId});
     }
 
 
 
-    public void updateErrorTraceUpdateON(Long gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
+    public void updateErrorTraceUpdateON(String gpTransactionId, Integer statusNumber, String errorResponse, Integer flag) {
         String sql = this.getQueryUpdateWFDNotSuccessUPON();
         this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse, flag, gpTransactionId});
     }
 
-    public void saveErrorTrace(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+    public void saveErrorTrace(String gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccess();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
-    public void saveErrorTraceUpdate(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+    public void saveErrorTraceUpdate(String gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccessUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
@@ -443,12 +443,12 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{statusNumber, errorResponse,gpTransactionId});
     }
 
-    public void saveErrorTraceTrNOT(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+    public void saveErrorTraceTrNOT(String gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccesstrNot();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
 
-    public void saveErrorTraceTrNOTUpdate(Long gpTransactionId, Integer statusNumber, String errorResponse) {
+    public void saveErrorTraceTrNOTUpdate(String gpTransactionId, Integer statusNumber, String errorResponse) {
         String sql = this.getQueryInsertNotSuccesstrNotUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }

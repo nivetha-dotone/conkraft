@@ -236,11 +236,11 @@ public class EmployeeMapper {
                 String result = this.gatePassEmpDtoDynamic(gpTransactionId);
 
                 if (result == null) {
-                    this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), 404, "Transaction Id Not Found", 1);
+                    this.gatePassToOnBoardService.updateErrorTrace(gpTransactionId, 404, "Transaction Id Not Found", 1);
 
                 } else if (result.matches("\\d+")) {
                     Long personKey = Long.parseLong(result);
-                    this.gatePassToOnBoardService.updateSuccessTrace(Long.valueOf(gpTransactionId), personKey, 200, true);
+                    this.gatePassToOnBoardService.updateSuccessTrace(gpTransactionId, personKey, 200, true);
 
                 } else if (result.startsWith("STATUS:")) {
                     String[] parts = result.split("\n", 2);
@@ -250,7 +250,7 @@ public class EmployeeMapper {
                     Integer flag = (body.contains("WCO-101520") && body.contains("ID already exists")) ||
                             body.contains("Transaction Id Not Found") ? 1 : 0;
 
-                    this.gatePassToOnBoardService.updateErrorTrace(Long.valueOf(gpTransactionId), statusCode, body, flag);
+                    this.gatePassToOnBoardService.updateErrorTrace(gpTransactionId, statusCode, body, flag);
                 }
             }
         } catch (Exception e) {
@@ -279,11 +279,11 @@ public class EmployeeMapper {
                 String result = this.updatePassEmpDtoDynamic(gpTransactionId);
 
                 if (result == null) {
-                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(Long.valueOf(gpTransactionId), 404, "Transaction Id Not Found", 1);
+                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(gpTransactionId, 404, "Transaction Id Not Found", 1);
 
                 } else if (result.matches("\\d+")) {
                     Long personKey = Long.parseLong(result);
-                    this.gatePassToOnBoardService.updateSuccessTraceUPON(Long.valueOf(gpTransactionId), personKey, 200, true);
+                    this.gatePassToOnBoardService.updateSuccessTraceUPON(gpTransactionId, personKey, 200, true);
 
                 } else if (result.startsWith("STATUS:")) {
                     String[] parts = result.split("\n", 2);
@@ -293,7 +293,7 @@ public class EmployeeMapper {
                     Integer flag = (body.contains("WCO-101520") && body.contains("ID already exists")) ||
                             body.contains("Transaction Id Not Found") ? 1 : 0;
 
-                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(Long.valueOf(gpTransactionId), statusCode, body, flag);
+                    this.gatePassToOnBoardService.updateErrorTraceUpdateON(gpTransactionId, statusCode, body, flag);
                 }
             }
         } catch (Exception e) {
