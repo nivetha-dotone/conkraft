@@ -272,4 +272,12 @@ public interface WorkmenDao {
 	void saveTrainingDetails(ApproveRejectGatePassDto dto);
 
 	public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId);
+
+	public boolean updateInactiveValidTo(Long inactiveId, LocalDate minusDays);
+
+	public boolean insertActiveStatusRecord(long personId, LocalDate today, LocalDate dotDate);
+
+	public boolean insertInactiveStatusRecord(long personId, LocalDate plusDays, LocalDate of);
+
+	public boolean isActionDoneToday(String gatePassId, Long gatePassTypeId);
 }

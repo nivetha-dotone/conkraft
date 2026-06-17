@@ -1818,20 +1818,54 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 		    // Step 3: Update StatusMM only if active
 		    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+		    	DateTimeFormatter formatte = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        String bulkCanceltoday = LocalDate.now().format(formatte);
+		        bc.setDot(bulkCanceltoday);
+		        
+		    	 boolean statusUpdated = this.processDotDate(bc.getDot(),bc.getGatepassNumber());
 
-		        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
-
-		        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
-
-		            boolean statusUpdated =
-		                    workmenDao.updatePersonStatusValidity(ids.getActiveId(), ids.getInactiveId());
+//		        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+//
+//		        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+//
+//		            boolean statusUpdated =
+//		                    workmenDao.updatePersonStatusValidity(ids.getActiveId(), ids.getInactiveId());
 
 		            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
 		                return false;
-		        }
+		        //}
 		    }
 
 		    return true;
+		}
+		private long getPersonIdFromCmsPerson(String gatePassId) {
+			// TODO Auto-generated method stub
+			return workmenDao.getPersonIdFromCmsPerson(gatePassId);
+		}
+		private boolean processDotDate(String dot,String gatepassNumber) {
+
+		    if (dot == null || dot.trim().isEmpty()) {
+		        return false;
+		    }
+
+		    LocalDate dotDate = LocalDate.parse(dot);
+		    LocalDate today = LocalDate.now();
+
+		    long personId = getPersonIdFromCmsPerson(gatepassNumber);
+
+		    PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+
+		    if (ids == null || ids.getActiveId() == null || ids.getInactiveId() == null) {
+		        return false;
+		    }
+
+		    if (dotDate.isAfter(today)) {
+		        return workmenDao.updatePersonStatusValidity(ids.getActiveId(),ids.getInactiveId());
+		    }else {
+		    	// no update when dot <= today
+		    	return true;
+		    }
+
 		}
 		public String getCustomDefID() {
 			return QueryFileWatcher.getQuery("GET_CUSTOM_DEFID_CMSPERSONCUSTOMDATADEFINITION");

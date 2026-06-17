@@ -4609,13 +4609,24 @@ public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String un
                 }
             });
 }
+
+public String getDOJFromGPM() {
+    return QueryFileWatcher.getQuery("GET_DOJ_FROM_GATEPASSMAIN");
+}
+public String updatePERSONJOBHISTValidtoYesterday() {
+    return QueryFileWatcher.getQuery("UPDATE_PERSONJOBHIST_VALIDTO_YESTERDAY");
+}
+public String insertIntoPERSONJOBHISTOnRenewal() {
+    return QueryFileWatcher.getQuery("INSERT_PERSONJOBHIST_ON_RENEWAL");
+}
 @Override
 public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId) {
 
     try {
 
     	 // STEP 1: Get data from GATEPASSMAIN
-        String fetchSql ="select DOJ from GATEPASSMAIN where GatePassId=?";
+    	String fetchSql =getDOJFromGPM();
+        //String fetchSql ="select DOJ from GATEPASSMAIN where GatePassId=?";
                
 
         GatePassMain data = jdbcTemplate.queryForObject(
@@ -4630,17 +4641,19 @@ public boolean updateCmsPersonJobHistRenew(GatePassMain gpm, long personId) {
         );
     	
         // STEP 1: Expire existing record
-        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
+        String updateSql =updatePERSONJOBHISTValidtoYesterday();
+       // String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
                
 
         jdbcTemplate.update(updateSql, personId);
 
         // STEP 2: Insert new record
-        String insertSql =
-                "INSERT INTO CMSPERSONJOBHIST ( " +
-                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
-                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
-                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+        String insertSql =insertIntoPERSONJOBHISTOnRenewal();
+//        String insertSql =
+//                "INSERT INTO CMSPERSONJOBHIST ( " +
+//                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+//                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+//                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
 
         int inserted = jdbcTemplate.update(
                 insertSql,
@@ -4679,11 +4692,14 @@ public void updateGatePassIdByEmpCode(GatePassMain gatePassMain) {
 
     jdbcTemplate.update(sql,gatePassMain.getGatePassId(),gatePassMain.getTransactionId());
 }
-
+public String getTrainingDetails() {
+    return QueryFileWatcher.getQuery("GET_TRAININGTYPE_TRAININGNAME_DETAILS");
+}
 @Override
 public List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department) {
 
-    String sql ="SELECT TRAINING_TYPE, TRAINING_NAME FROM CMSTRAININGDETAILS WHERE UNIT_ID = ? AND DEP_NAME = ? AND MANDATORY = 'YES'";
+	 String sql =getTrainingDetails();
+   // String sql ="SELECT TRAINING_TYPE, TRAINING_NAME FROM CMSTRAININGDETAILS WHERE UNIT_ID = ? AND DEP_NAME = ? AND MANDATORY = 'YES'";
 
     return jdbcTemplate.query(sql,new Object[]{unitId, department},new RowMapper<ApproveRejectGatePassDto>() {
 
@@ -4705,6 +4721,11 @@ public List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String d
 //private String getMaxTrainingIdQuery() {
 //	return QueryFileWatcher.getQuery("GET_MAX_TRAININGID_FOR_GATEPASSID");
 //}
+
+public String generateTrainingIdForGatePasses() {
+    return QueryFileWatcher.getQuery("GENERATE_TRAININGID_FOR_GATEPASS");
+}
+
 public synchronized String generateTrainingIdForGatePass() {
 
     String trainingId = "";
@@ -4712,11 +4733,12 @@ public synchronized String generateTrainingIdForGatePass() {
     try {
 
         // SQL SERVER QUERY
-        String sql =
-                "SELECT ISNULL(MAX(CAST(SUBSTRING(SFTID, 3, LEN(SFTID)) AS INT)), 0) " +
-                "FROM CMSPERSONSAFETYMM " +
-                "WHERE SFTID IS NOT NULL " +
-                "AND SFTID LIKE 'TR%'";
+    	String sql =generateTrainingIdForGatePasses();
+//        String sql =
+//                "SELECT ISNULL(MAX(CAST(SUBSTRING(SFTID, 3, LEN(SFTID)) AS INT)), 0) " +
+//                "FROM CMSPERSONSAFETYMM " +
+//                "WHERE SFTID IS NOT NULL " +
+//                "AND SFTID LIKE 'TR%'";
 
         Integer maxId = jdbcTemplate.queryForObject(sql, Integer.class);
 
@@ -4740,6 +4762,18 @@ public synchronized String generateTrainingIdForGatePass() {
 
     return trainingId;
 }
+public String isExistingTrainingId() {
+    return QueryFileWatcher.getQuery("IS_TRAININGID_EXISTS");
+}
+public String deleteOlderTrainingRecordsOfGP() {
+    return QueryFileWatcher.getQuery("DELETE_OLDER_TRAINING_RECORDS_OF_GP");
+}
+public String updateTrainingIdInGatepassMain() {
+    return QueryFileWatcher.getQuery("UPDATE_TRAININGID_IN_GATEPASSMAIN");
+}
+public String insertTrainingRecordsInSafetyMM() {
+    return QueryFileWatcher.getQuery("INSERT_TRAINING_RECORDS_IN_SAFETYMM");
+}
 @Override
 public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
 
@@ -4748,8 +4782,8 @@ public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
     String sftId = null;
 
     //STEP 1:CHECK TRAINING ID EXISTS
-
-    String checkSql ="SELECT TRAININGID FROM GATEPASSMAIN WHERE TRANSACTIONID = ?";
+    String checkSql =isExistingTrainingId();
+   // String checkSql ="SELECT TRAININGID FROM GATEPASSMAIN WHERE TRANSACTIONID = ?";
 
     List<String> existingIds = jdbcTemplate.query(checkSql,new Object[]{transactionId},(rs, rowNum) -> rs.getString("TRAININGID"));
 
@@ -4759,8 +4793,8 @@ public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
         sftId = existingIds.get(0);
 
         //STEP3 : DELETE OLD RECORDS
-
-        String deleteSql ="DELETE FROM CMSPERSONSAFETYMM WHERE SFTID = ?";
+        String deleteSql =deleteOlderTrainingRecordsOfGP();
+        //String deleteSql ="DELETE FROM CMSPERSONSAFETYMM WHERE SFTID = ?";
 
         jdbcTemplate.update(deleteSql, sftId);
 
@@ -4769,16 +4803,17 @@ public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
         sftId = generateTrainingIdForGatePass();
        
         //STEP5:  UPDATE GATEPASSMAIN
-        String updateSql ="UPDATE GATEPASSMAIN SET TRAININGID = ? WHERE TRANSACTIONID = ?";
+        String updateSql =updateTrainingIdInGatepassMain();
+        //String updateSql ="UPDATE GATEPASSMAIN SET TRAININGID = ? WHERE TRANSACTIONID = ?";
 
         jdbcTemplate.update(updateSql,sftId,transactionId);
     }
 
     //STEP6: BATCH INSERT TRAINING RECORDS
-
-    String insertSql ="INSERT INTO CMSPERSONSAFETYMM(SFTID,DATETAKEN,FRMTIME,TOTIME, NEXTDATE,TRNDESC,DEPTID,SECID,FUNC,NJOB,MODULE,TNI,FACULTYNM,VENUE,\r\n"
-    		+ "  PREMO,PREMM,PREPERCENT,POSTMO,POSTMM,POSTPERCENT,RECOM,REMARKS,UPDATEDBY,UPDATEDON,PMMID)\r\n"
-    		+ "     VALUES(?,?,?,?,?,?,null,null,null,null,null,?,?,null,null,null,null,null,null,?,?,?,?,getdate(),'1')";
+    String insertSql =insertTrainingRecordsInSafetyMM();
+//    String insertSql ="INSERT INTO CMSPERSONSAFETYMM(SFTID,DATETAKEN,FRMTIME,TOTIME, NEXTDATE,TRNDESC,DEPTID,SECID,FUNC,NJOB,MODULE,TNI,FACULTYNM,VENUE,\r\n"
+//    		+ "  PREMO,PREMM,PREPERCENT,POSTMO,POSTMM,POSTPERCENT,RECOM,REMARKS,UPDATEDBY,UPDATEDON,PMMID)\r\n"
+//    		+ "     VALUES(?,?,?,?,?,?,null,null,null,null,null,?,?,null,null,null,null,null,null,?,?,?,?,getdate(),'1')";
 
 
 
@@ -4806,10 +4841,13 @@ public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
      // FINAL BATCH INSERT
     jdbcTemplate.batchUpdate(insertSql,batchArgs);
 }
+public String getExistingTrainingRecords() {
+    return QueryFileWatcher.getQuery("GET_EXISTSTING_TRAINING_RECORDS");
+}
 @Override
 public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId) {
-
-    String sql ="select CONVERT(varchar, mm.DATETAKEN, 23) AS TRAINING_FROM_DATE,'' as TRAINING_TO_DATE ,LEFT(CONVERT(varchar, mm.FRMTIME, 108), 5) AS FROM_TIME,LEFT(CONVERT(varchar, mm.TOTIME, 108), 5) AS TO_TIME,CONVERT(varchar, mm.NEXTDATE, 23) AS NEXT_TRAINING_DATE,mm.TRNDESC as TRAINING_NAME,mm.TNI as TRAINING_TYPE,mm.FACULTYNM as FACULTY,mm.POSTPERCENT as MARKS,mm.RECOM as EFFICIENCY,mm.REMARKS as REMARKS from CMSPERSONSAFETYMM mm JOIN GATEPASSMAIN GPM  ON GPM.TRAININGID = MM.SFTID WHERE GPM.TRANSACTIONID = ?";
+	String sql =getExistingTrainingRecords();
+    //String sql ="select CONVERT(varchar, mm.DATETAKEN, 23) AS TRAINING_FROM_DATE,'' as TRAINING_TO_DATE ,LEFT(CONVERT(varchar, mm.FRMTIME, 108), 5) AS FROM_TIME,LEFT(CONVERT(varchar, mm.TOTIME, 108), 5) AS TO_TIME,CONVERT(varchar, mm.NEXTDATE, 23) AS NEXT_TRAINING_DATE,mm.TRNDESC as TRAINING_NAME,mm.TNI as TRAINING_TYPE,mm.FACULTYNM as FACULTY,mm.POSTPERCENT as MARKS,mm.RECOM as EFFICIENCY,mm.REMARKS as REMARKS from CMSPERSONSAFETYMM mm JOIN GATEPASSMAIN GPM  ON GPM.TRAININGID = MM.SFTID WHERE GPM.TRANSACTIONID = ?";
             
     return jdbcTemplate.query(sql,new Object[]{transactionId},new RowMapper<ApproveRejectGatePassDto>() {
 
@@ -4840,5 +4878,47 @@ private String convertToSqlTime(String time) {
     }
     // Convert 10.00 -> 10:00:00
     return time.replace(".", ":") + ":00";
+}
+
+public String insertActiveRecordInStatusMM() {
+    return QueryFileWatcher.getQuery("INSERT_ACTIVE_RECORD_IN_STATUSMM");
+}
+public String insertInactiveRecordInStatusMM() {
+    return QueryFileWatcher.getQuery("INSERT_INACTIVE_RECORD_IN_STATUSMM");
+}
+public String updateInactiveRecordValidToInStatusMM() {
+    return QueryFileWatcher.getQuery("UPDATE_INACTIVE_RECORD_VALIDTO_IN_STATUSMM");
+}
+
+@Override
+public boolean insertActiveStatusRecord(long employeeId,LocalDate validFrom,LocalDate validTo) {
+	String sql =insertActiveRecordInStatusMM();
+/// String sql = "INSERT INTO CMSPERSONSTATUSMM ( EMPLOYEEID , ISACTIVE , VALIDFROM , VALIDTO)  VALUES (?,?,?,? )";
+     return jdbcTemplate.update(sql,employeeId,1,validFrom,validTo) > 0;
+}
+@Override
+public boolean insertInactiveStatusRecord(long employeeId,LocalDate validFrom,LocalDate validTo) {
+	String sql =insertInactiveRecordInStatusMM();
+//String sql = "INSERT INTO CMSPERSONSTATUSMM ( EMPLOYEEID , ISACTIVE , VALIDFROM , VALIDTO)  VALUES (?,?,?,? )";
+     return jdbcTemplate.update(sql,employeeId,0,validFrom,validTo) > 0;
+}
+@Override
+public boolean updateInactiveValidTo(Long inactiveId, LocalDate minusDays){
+	String sql =updateInactiveRecordValidToInStatusMM();
+//String sql ="UPDATE CMSPERSONSTATUSMM SET VALIDTO = ? WHERE PERSONSTATUSMMID = ?";
+
+   return jdbcTemplate.update(sql,minusDays,inactiveId) > 0;
+}
+public String isActionDoneToday() {
+    return QueryFileWatcher.getQuery("IS_ACTION_DONE_TODAY");
+}
+@Override
+public boolean isActionDoneToday(String gatePassId, Long typeId) {
+	String sql =isActionDoneToday();
+    //String sql = "SELECT 1 FROM (SELECT TOP 1 CreatedDate FROM GatePassTransactionMapping WHERE GatePassId = ? AND GatePassTypeId = ? ORDER BY CreatedDate DESC) t WHERE CAST(t.CreatedDate AS DATE) = CAST(GETDATE() AS DATE)";
+
+    List<Integer> result = jdbcTemplate.query(sql,new Object[]{gatePassId, typeId},(rs, rowNum) -> rs.getInt(1));
+
+    return !result.isEmpty();
 }
 }

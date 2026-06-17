@@ -1997,6 +1997,24 @@ showLoader();
     }
 
     if (!isValid) return;
+    
+     // 👇 Determine which type to check
+    let checkTypeId = null;
+
+    if (gatePassType == 5) {
+        checkTypeId = 4;   // check block if doing unblock
+    }
+   const gatePassId = $("#gatePassId").val().trim();
+console.log("gatePassId =", gatePassId);
+console.log("checkTypeId =", checkTypeId);
+    // 👇 Call validation first
+    checkSameDayValidation(gatePassId, checkTypeId, function (isAllowed) {
+
+        if (!isAllowed) {
+        hideLoader();
+        return;
+    }
+
 
     // Files
      var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
@@ -2008,7 +2026,7 @@ showLoader();
         createdBy: userId,
         comments: comments,
         transactionId: $("#transactionId").val().trim(),
-        gatePassId: $("#gatePassId").val().trim(),
+        gatePassId: gatePassId,
         gatePassType: gatePassType,
         reasoning: reason
     };
@@ -2041,6 +2059,7 @@ showLoader();
     };
 
     xhr.send(formData);
+    });
 }
 
 		function approveRejectUnblock(status,gatePassType){
@@ -2253,6 +2272,26 @@ showLoader();
     }
 
     if (!isValid) return;
+    
+    // 👇 Determine which type to check
+    let checkTypeId = null;
+
+    if (gatePassType == 7) {
+        checkTypeId = 6;   // check block if doing unblock
+    }
+    
+     const gatePassId = $("#gatePassId").val().trim();
+
+console.log("gatePassId =", gatePassId);
+console.log("checkTypeId =", checkTypeId);
+    // 👇 Call validation first
+    checkSameDayValidation(gatePassId, checkTypeId, function (isAllowed) {
+
+        if (!isAllowed) {
+        hideLoader();
+        return;
+    }
+
 
     // Files
     var attachmentOfReference = $("#attachmentOfReference")[0].files[0];
@@ -2264,7 +2303,7 @@ showLoader();
         createdBy: userId,
         comments: comments,
         transactionId: $("#transactionId").val().trim(),
-        gatePassId: $("#gatePassId").val().trim(),
+        gatePassId: gatePassId,
         gatePassType: gatePassType,
         reasoning: reason
     };
@@ -2298,6 +2337,7 @@ showLoader();
     };
 
     xhr.send(formData);
+     });
 }
 
 function approveRejectDeblacklist(status,gatePassType){
@@ -6578,4 +6618,44 @@ function deleteContTrainingRowNew(buttonElement) {
     } else {
         alert("At least one row must be present.");
     }
+}
+
+function checkSameDayValidation(gatePassId, gatePassTypeId, callback) {
+
+    $.ajax({
+        type: "POST",
+        url: "/CWFM/contractworkmen/checkSameDayAction",
+        data: {
+            gatePassId: gatePassId,
+            gatePassTypeId: gatePassTypeId
+        },
+        success: function(response) {
+
+            if (response === true || response === "true") {
+
+                if (gatePassTypeId == 4) {
+                    alert("Block action happened today. Unblock is not allowed on the same day.");
+                }
+                else if (gatePassTypeId == 6) {
+                    alert("Blacklist action happened today. Deblacklist is not allowed on the same day.");
+                }
+
+                hideLoader();
+                callback(false);
+                return;
+            }
+
+            callback(true);
+        },
+        error: function(xhr) {
+
+            hideLoader();
+
+            console.log("Status:", xhr.status);
+            console.log("Response:", xhr.responseText);
+
+            alert("Validation check failed.");
+            callback(false);
+        }
+    });
 }

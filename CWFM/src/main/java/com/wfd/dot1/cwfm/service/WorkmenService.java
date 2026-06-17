@@ -170,5 +170,7 @@ public interface WorkmenService {
 	List<ApproveRejectGatePassDto> getTrainingDetails(String unitId, String department);
 
 	public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId);
+
+	public boolean isActionDoneToday(String gatePassId, Long gatePassTypeId);
 	
 }	

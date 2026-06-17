@@ -4113,4 +4113,15 @@ return "failed";
             return ResponseEntity.internalServerError().build();
         }
     }
+    
+    @PostMapping("/checkSameDayAction")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkSameDayAction(
+            @RequestParam("gatePassId") String  gatePassId,
+            @RequestParam("gatePassTypeId") Long gatePassTypeId) {
+
+        boolean isDoneToday = workmenService.isActionDoneToday(gatePassId, gatePassTypeId);
+
+        return ResponseEntity.ok(isDoneToday);
+    }
     }
