@@ -47,7 +47,7 @@ public class DashboardDaoImpl implements DashboardDao {
                         .collect(Collectors.joining(","));
 
         loadKpiSummary(dashboard, userId, roleName,peIds, contIds);
-        loadPlantWiseWorkmen(dashboard, peIds);
+        loadPlantWiseWorkmen(dashboard, peIds,contIds);
         loadContractorWiseWorkmen(dashboard, contIds);
         loadActiveWOList(dashboard, peIds, contIds);
         loadPvcExpiryList(dashboard, peIds);
@@ -79,16 +79,16 @@ public class DashboardDaoImpl implements DashboardDao {
         }, userId, roleName, peIds, contIds);
     }
 
-    private void loadPlantWiseWorkmen(DashboardDTO dashboard, String peIds) {
+    private void loadPlantWiseWorkmen(DashboardDTO dashboard, String peIds,String contIds) {
 
-        String sql = "EXEC dbo.USP_DASHBOARD_PLANT_WISE_WORKMEN ?";
+        String sql = "EXEC dbo.USP_DASHBOARD_PLANT_WISE_WORKMEN ?,?";
 
         List<PlantWorkmenDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
             PlantWorkmenDTO dto = new PlantWorkmenDTO();
             dto.setPlantName(rs.getString("PlantName"));
             dto.setActiveCount(rs.getInt("CountValue"));
             return dto;
-        }, peIds);
+        }, peIds,contIds);
 
         dashboard.setPlantWorkmenList(list);
     }

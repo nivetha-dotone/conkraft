@@ -58,7 +58,7 @@
     </div> --%>
 
     <!-- PROGRESS -->
-   <div class="card warn">
+  <%--  <div class="card warn">
   <div class="ct">Supervisors per plant</div>
 
   <div class="prog-list">
@@ -102,7 +102,7 @@
     </c:forEach>
 
   </div>
-</div>
+</div> --%>
 
   </div>  <div class="chart-row">
 
