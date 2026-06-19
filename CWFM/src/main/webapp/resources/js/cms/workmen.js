@@ -456,14 +456,14 @@ function initializeDatePicker() {
     } else {
     $("#error-firstName").hide(); 
     }
-    /*const lastName = $("#lastName").val().trim();
+    const lastName = $("#lastName").val().trim();
     const lastnameRegex = /^[A-Za-z\s]{1,}$/;
-    if (!lastnameRegex.test(lastName)) {
-        $("#error-lastName").show();
-        isValid = false;
-    }else{
-		 $("#error-lastName").hide();
-	}*/
+    if (lastName !== "" && !lastnameRegex.test(lastName)) {
+    $("#error-lastName").show();
+    isValid = false;
+    } else {
+    $("#error-lastName").hide();
+    }
 	/*if (firstName.toLowerCase() === lastName.toLowerCase()) {
     $("#error-equalNames").show();
     isValid = false;
@@ -484,14 +484,14 @@ function initializeDatePicker() {
     }else{
 		$("#error-gender").hide();
 	}
-   /* const relationName = $("#relationName").val().trim();
+    const relationName = $("#relationName").val().trim();
     const relationnameRegex = /^[A-Za-z\s]{2,}$/;  // Only alphabetic characters, at least 2 letters
-    if (!relationnameRegex.test(relationName)) {
+    if (relationName !== "" && !relationnameRegex.test(relationName)) {
     $("#error-relationName").show(); // Show error if invalid
     isValid = false;
     } else {
     $("#error-relationName").hide(); // Hide error if valid
-    }*/
+    }
    /* const idMark = $("#idMark").val().trim();
     const idmarkRegex=/^[A-Za-z\s]+$/;
     if (!idmarkRegex.test(idMark)) {

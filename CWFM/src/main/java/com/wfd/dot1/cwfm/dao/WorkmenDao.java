@@ -280,4 +280,6 @@ public interface WorkmenDao {
 	public boolean insertInactiveStatusRecord(long personId, LocalDate plusDays, LocalDate of);
 
 	public boolean isActionDoneToday(String gatePassId, Long gatePassTypeId);
+
+	public String getoldDotFromActiveRecord(Long activeId);
 }

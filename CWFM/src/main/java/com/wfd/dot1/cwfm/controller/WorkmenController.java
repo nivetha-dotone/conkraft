@@ -2880,7 +2880,7 @@ return "failed";
     		 if(null != gatePassMainObj.getPhotoName()) {
     			 
            		 String profilePicFilePath =null;
-           		 if(GatePassType.CREATE.getStatus().equals(gatePassMainObj.getGatePassAction()))
+           		 if(GatePassType.CREATE.getStatus().equals(gatePassMainObj.getGatePassAction()) || GatePassType.PROJECT.getStatus().equals(gatePassMainObj.getGatePassAction()))
            			 profilePicFilePath =  "/imageinline/"+user.getUserId()+"/" + oldTransactionId + "/" +gatePassMainObj.getPhotoName();
            		 else
            			 profilePicFilePath =  "/imageinline/"+user.getUserId()+"/" + transactionId + "/" +gatePassMainObj.getPhotoName();

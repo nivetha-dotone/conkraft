@@ -2019,16 +2019,87 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
                      // STEP 4: STATUS MM UPDATE
                        if (workmenDao.isPersonActiveInStatusMM(personId)) {
-                            PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
-                                 if (ids.getActiveId() != null && ids.getInactiveId() != null) {
-                                        boolean statusUpdated = workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(),ids.getInactiveId(),dot);
+                    	   boolean statusUpdated = processRenewStatusMM(dot,gpm);
+//                            PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+//                                 if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+//                                        boolean statusUpdated = workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(),ids.getInactiveId(),dot);
                                            if (!statusUpdated) {
+                                        	   log.error("StatusMM update failed for personId: " + personId);
                                                 throw new RuntimeException("StatusMM update failed for personId: " + personId);
                                            }
-                                  }
+                                //  }
                      }
                 return true;
       }
+		 
+  private boolean processRenewStatusMM(String dot, GatePassMain gpm) {
+		try {
+			 if (dot == null || dot.trim().isEmpty()) {
+		            throw new IllegalArgumentException("DOT cannot be null or empty");
+		        }
+
+			    LocalDate dotDate = LocalDate.parse(dot);
+			    LocalDate today = LocalDate.now();
+
+			    long personId = getPersonIdFromCmsPerson(gpm.getGatePassId());
+
+			    PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+			    if (ids == null || ids.getActiveId() == null || ids.getInactiveId() == null) {
+		            throw new RuntimeException("StatusMM records not found for personId: " + personId);
+		        }
+			    //GET THE OLD DOT FROM STATUSMM ACTIVE RECORD
+			    String oldDot = workmenDao.getoldDotFromActiveRecord(ids.getActiveId());
+			    if (oldDot == null || oldDot.trim().isEmpty()) {
+		            throw new RuntimeException("Old DOT not found for personId: " + personId);
+		        }
+			    LocalDate oldDotDate = LocalDate.parse(oldDot);
+
+			    if (oldDotDate.isAfter(today)) {
+
+			        // 1. update existing inactive record (VALIDTO = today - 1)
+			        boolean updated = workmenDao.updateInactiveValidTo(ids.getInactiveId(),today.minusDays(1));
+
+			        if (!updated) {
+			        	log.error("StatusMM update failed for inactiverecord validto personId: " + personId);
+			        	throw new RuntimeException("StatusMM update failed for inactiverecord validto personId: " + personId);
+			        }
+
+			        // 2. insert ACTIVE record (today -> dot)
+			        boolean activeInserted = workmenDao.insertActiveStatusRecord(personId,today,dotDate);
+
+			        if (!activeInserted) {
+			        	log.error("StatusMM insert failed for activerecord  personId: " + personId);
+			        	throw new RuntimeException("StatusMM insert failed for activerecord  personId: " + personId);
+			        }
+
+			        // 3. insert INACTIVE record (dot+1 -> 3000-01-01)
+			        boolean inactiveInserted = workmenDao.insertInactiveStatusRecord(personId,dotDate.plusDays(1),LocalDate.of(3000, 1, 1));
+                   
+			        if(!inactiveInserted) {
+			        	log.error("StatusMM insert failed for inactiverecord  personId: " + personId);
+	                  throw new RuntimeException("StatusMM insert failed for inactiverecord  personId: " + personId);
+                     }
+			        return true;
+
+			    }else {
+
+		            boolean updated =workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
+
+		            if (!updated) {
+		                throw new RuntimeException("Failed to update status validity for personId: " + personId);
+		            }
+
+		            return true;
+		        }
+
+		    } catch (Exception e) {
+
+		        log.error("Error while processing StatusMM renewal", e);
+
+		        throw e; // Important for transaction rollback
+		    }
+		}
+  
 		 public String saveMinimumWageToStaging() {
 				return QueryFileWatcher.getQuery("SAVE_KTC_MINIMUMWAGE");
 			}

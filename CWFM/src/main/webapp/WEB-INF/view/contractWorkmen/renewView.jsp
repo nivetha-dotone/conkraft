@@ -882,7 +882,7 @@ textarea {
     <td>
                    		 <div id="preview" style="display: flex; flex-direction: column; justify-content: flex-end; height: 200px; width: 200px; border: 1px solid #ccc;">
         					<c:set var="txnId"
-       value="${GatePassObj.gatePassAction eq '1'
+       value="${GatePassObj.gatePassAction eq '1' || GatePassObj.gatePassAction eq '12'
                ? GatePassObj.oldTransactionId
                : GatePassObj.transactionId}" />
         					<img class="target" src="/imageinline/${GatePassObj.createdBy }/${txnId}/${GatePassObj.photoName }" alt="Image" style="max-width: 100%; height: auto;">
@@ -1065,7 +1065,7 @@ textarea {
             <table class="ControlLayout" cellspacing="0" cellpadding="0">
                     <tbody>
                      <c:set var="txnId"
-       value="${GatePassObj.gatePassAction eq '1'
+       value="${GatePassObj.gatePassAction eq '1' || GatePassObj.gatePassAction eq '12'
                ? GatePassObj.oldTransactionId
                : GatePassObj.transactionId}" />
                     <tr>

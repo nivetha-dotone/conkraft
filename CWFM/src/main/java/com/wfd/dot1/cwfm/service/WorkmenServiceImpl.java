@@ -345,7 +345,7 @@ public class WorkmenServiceImpl implements WorkmenService{
       	  workmenDao.updateonboardingDocTypeinGP(dto.getOnboardingDocType(),dto.getTransactionId());
  }
 	    //for safety,eic training moduke update in gatepassmain
-	    if ((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus()) || dto.getGatePassType().equals(GatePassType.RENEW.getStatus()))&& (dto.getApproverRole().equals("Safety") || dto.getApproverRole().equals("Eic"))) {
+	    if ((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus()))&& (dto.getApproverRole().equals("Safety") || dto.getApproverRole().equals("Eic"))) {
 
 	        workmenDao.saveTrainingDetails(dto);
 	    }
@@ -1675,21 +1675,70 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    // Step 3: Update StatusMM only if active
 	    if (workmenDao.isPersonActiveInStatusMM(personId)) {
+	    	boolean statusUpdated = processRenewStatusMM(dot,gpm);
 
-	        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
-
-	        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
-
-	            boolean statusUpdated =
-	                    workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
+//	        PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+//
+//	        if (ids.getActiveId() != null && ids.getInactiveId() != null) {
+//
+//	            boolean statusUpdated =
+//	                    workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
 
 	            if (!logAndCheck("STATUSMM_UPDATE", statusUpdated))
 	                return false;
-	        }
+	        //}
 	    }
 
 	    return true;
 	}
+	
+	private boolean processRenewStatusMM(String dot, GatePassMain gpm) {
+
+	    if (dot == null || dot.trim().isEmpty()) {
+	        return false;
+	    }
+
+	    LocalDate dotDate = LocalDate.parse(dot);
+	    LocalDate today = LocalDate.now();
+
+	    long personId = getPersonIdFromCmsPerson(gpm.getGatePassId());
+
+	    PersonStatusIds ids = workmenDao.getPersonStatusIds(personId);
+	    if (ids == null || ids.getActiveId() == null || ids.getInactiveId() == null) {
+	        return false;
+	    }
+	    //GET THE OLD DOT FROM STATUSMM ACTIVE RECORD
+	    String oldDot = workmenDao.getoldDotFromActiveRecord(ids.getActiveId());
+	    LocalDate oldDotDate = LocalDate.parse(oldDot);
+
+	    if (oldDotDate.isAfter(today)) {
+
+	        // 1. update existing inactive record (VALIDTO = today - 1)
+	        boolean updated = workmenDao.updateInactiveValidTo(ids.getInactiveId(),today.minusDays(1));
+
+	        if (!updated) {
+	            return false;
+	        }
+
+	        // 2. insert ACTIVE record (today -> dot)
+	        boolean activeInserted = workmenDao.insertActiveStatusRecord(personId,today,dotDate);
+
+	        if (!activeInserted) {
+	            return false;
+	        }
+
+	        // 3. insert INACTIVE record (dot+1 -> 3000-01-01)
+	        boolean inactiveInserted = workmenDao.insertInactiveStatusRecord(personId,dotDate.plusDays(1),LocalDate.of(3000, 1, 1));
+
+	        return inactiveInserted;
+
+	    }else {
+	    	
+	    	return workmenDao.updatePersonStatusValidityRenew(ids.getActiveId(), ids.getInactiveId(),dot);
+	    }
+
+	}
+	
 	private boolean insertCustDataRenew(String createdBy, long personId, String gatePassType) {
 
 	    GatePassType type = GatePassType.fromStatus(gatePassType);

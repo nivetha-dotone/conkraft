@@ -4921,4 +4921,16 @@ public boolean isActionDoneToday(String gatePassId, Long typeId) {
 
     return !result.isEmpty();
 }
+
+@Override
+public String getoldDotFromActiveRecord(Long activeId) {
+
+	String query="select CONVERT(varchar, VALIDTO, 23) AS  VALIDTO from CMSPERSONSTATUSMM where PERSONSTATUSMMID=?";
+	String oldDot = null;
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,activeId);
+	if(rs.next()) {
+		oldDot = rs.getString("VALIDTO");
+	}
+	return oldDot;
+}
 }
