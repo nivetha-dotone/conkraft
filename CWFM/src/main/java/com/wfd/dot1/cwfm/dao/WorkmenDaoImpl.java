@@ -4833,7 +4833,7 @@ public void saveTrainingDetails(ApproveRejectGatePassDto dto) {
         		                training.getMarks(),
         						training.getEfficency(),
         						training.getRemarks(),
-        						training.getApproverRole()
+        						dto.getApproverId()
         };
 
         batchArgs.add(obj);

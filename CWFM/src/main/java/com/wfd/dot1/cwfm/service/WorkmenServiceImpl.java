@@ -343,11 +343,15 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    if((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus())
       		 ||dto.getGatePassType().equals(GatePassType.RENEW.getStatus())) &&dto.getApproverRole().equals("Security")) {
       	  workmenDao.updateonboardingDocTypeinGP(dto.getOnboardingDocType(),dto.getTransactionId());
- }
+   }
 	    //for safety,eic training moduke update in gatepassmain
 	    if ((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus()))&& (dto.getApproverRole().equals("Safety") || dto.getApproverRole().equals("Eic"))) {
 
-	        workmenDao.saveTrainingDetails(dto);
+	        //workmenDao.saveTrainingDetails(dto);
+	    	if (dto.getTrainingDetailsList() != null && !dto.getTrainingDetailsList().isEmpty()) {
+
+	    	    workmenDao.saveTrainingDetails(dto);
+	    	}
 	    }
 	    
 	    // Handle REJECT first
