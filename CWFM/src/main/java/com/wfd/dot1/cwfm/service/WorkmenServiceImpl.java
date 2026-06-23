@@ -699,7 +699,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 					 
 					 gatePassMain.setDot(dot);
 					 boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
-		            
+					 if (!dotUpdated) {
+			 	            throw new RuntimeException("GatePass dotUpdate failed unexpectedly.");
+			 	        }
 					
 				 workmenDao.updateGatePassMainStatus(gatePassId,dto.getGatePassStatus());
 				 
@@ -722,11 +724,13 @@ public class WorkmenServiceImpl implements WorkmenService{
 				        String today = LocalDate.now().format(formatter);
 				        gatePassMain.setDot(today);
 				        boolean actionDone = this.gatePassActionPersonInsert(gatePassMain, dto.getGatePassType());
-
+				        boolean dotUpdated  = workmenDao.updateDOTGatePassMainDOT(dto.getGatePassId(),gatePassMain.getDot());
 				        if (!actionDone) {
 				            throw new RuntimeException("GatePass action insert failed unexpectedly.");
 				        }
-
+				        if (!dotUpdated) {
+			 	            throw new RuntimeException("GatePass dotUpdate failed unexpectedly.");
+			 	        }
 				        
 				    }
 				//make api call to ukg
