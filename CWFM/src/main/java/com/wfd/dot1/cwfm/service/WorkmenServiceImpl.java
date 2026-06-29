@@ -512,10 +512,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 	             if (!actionDone) {
 	 	            throw new RuntimeException("GatePass action insert failed unexpectedly.");
 	 	        }
-	        	String wfdIntegration = this.getWFDIntegration();
-	        	if("yes".equalsIgnoreCase(wfdIntegration)) {
-	        		api.updateOnBoardingDetails(dto.getTransactionId());
-	        	}
+//	        	String wfdIntegration = this.getWFDIntegration();
+//	        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+//	        		api.updateOnBoardingDetails(dto.getTransactionId());
+//	        	}
 	        	}catch(Exception e) {return result;}
 
 	    }
@@ -541,6 +541,8 @@ public class WorkmenServiceImpl implements WorkmenService{
 					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.UNBLOCK);
 				}else if(dto.getGatePassType().equals(GatePassType.CANCEL.getStatus())){
 					api.updateEmpStatusTerOrAct(dto.getGatePassId(),EmployeeStatusType.CANCEL);
+				}else if(dto.getGatePassType().equals(GatePassType.RENEW.getStatus())){
+					api.updateOnBoardingDetails(dto.getTransactionId());
 				}
 	    		
 
