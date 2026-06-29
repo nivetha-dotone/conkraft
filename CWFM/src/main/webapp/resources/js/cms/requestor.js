@@ -707,12 +707,467 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-  let capturedImageP = null;
+window.capturedImageP = window.capturedImageP || null;
   let contextPathP = "/CWFM";
-  let userLatitude = null;
-  let userLongitude = null;
+
+window.stream = window.stream || null;
+window.video = window.video || null;
+window.canvas = window.canvas || null;
+window.ctx = window.ctx || null;
+window.capturedImages = window.capturedImages || [];
+window.overlay  = window.overlay  || null;
+const TOTAL_IMAGES = 60;
+window.overlay = null;
+window.recognitionRunning = false;
 
 
+let userLatitude = null;
+let userLongitude = null;
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    video =
+        document.getElementById("video");
+
+    overlay =
+        document.getElementById("overlay");
+});
+
+async function startPunchRecognition()
+{
+    console.log("Start Recognition Clicked");
+    if(userLatitude == null || userLongitude == null)
+    {
+        alert("Location not available.");
+        requestLocationPermission();
+        return;
+    }
+
+    try
+    {
+        video =
+            document.getElementById("video");
+
+        overlay =
+            document.getElementById("overlay");
+
+        stream =
+            await navigator.mediaDevices.getUserMedia({
+                video:true
+            });
+
+        video.srcObject = stream;
+
+        video.onloadedmetadata = () =>
+        {
+            overlay.width =
+                video.videoWidth;
+
+            overlay.height =
+                video.videoHeight;
+
+            recognitionRunning = true;
+
+            recognizeLoop();
+        };
+    }
+    catch(error)
+    {
+        console.log(error);
+
+        alert(error.message);
+    }
+}
+
+async function recognizeLoop()
+{
+    document.getElementById("loaderOverlay").style.display = "flex";
+
+    while (recognitionRunning)
+    {
+        try
+        {
+            const frame = captureRecognitionFrame();
+
+           console.log("Sending Request...");
+const API_BASE_URL = window.location.origin + "/Test/Face/recognize";
+        console.log(API_BASE_URL)
+          const response = await fetch(
+             API_BASE_URL,
+              {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({
+                      image: frame,
+                      latitude: userLatitude,
+                      longitude: userLongitude
+                  })
+              }
+          );
+
+           console.log("Response Status =", response.status);
+
+           const result = await response.json();
+
+           console.log("Recognition Result =", result);
+
+            drawRecognitionFace(result);
+
+            // ==========================================
+            // Unknown Person
+            // ==========================================
+            if (result.message === "Unknown Person")
+            {
+                document.getElementById("result").innerHTML =
+                    "❌ Unknown Person";
+
+                clearRecognitionFace();
+
+                await sleep(500);
+
+                continue;
+            }
+
+            // ==========================================
+            // Outside Radius
+            // ==========================================
+            if (result.message === "User is outside configured radius")
+            {
+                recognitionRunning = false;
+
+                stopFaceCamera();
+
+                document.getElementById("loaderOverlay").style.display =
+                    "none";
+
+                document.getElementById("result").innerHTML =
+                    "❌ User is outside configured radius";
+
+                clearRecognitionFace();
+
+                await sleep(500);
+
+                break;
+            }
+
+            // ==========================================
+            // Success Punch
+            // ==========================================
+            if (result.matched)
+            {
+                recognitionRunning = false;
+
+                stopFaceCamera();
+
+                document.getElementById("loaderOverlay").style.display =
+                    "none";
+
+                document.getElementById("result").innerHTML =
+                    "✅ Punch Success<br>"
+                    + result.personName
+                    + " ("
+                    + result.personId
+                    + ")";
+
+                clearRecognitionFace();
+
+                break;
+            }
+
+            // ==========================================
+            // No Face Detected
+            // ==========================================
+            if (!result.faceDetected)
+            {
+                clearRecognitionFace();
+
+                document.getElementById("result").innerHTML =
+                    "⚠️ No Face Detected";
+            }
+
+            await sleep(500);
+        }
+        catch (error)
+        {
+            console.error(error);
+
+            document.getElementById("loaderOverlay").style.display =
+                "none";
+
+            document.getElementById("result").innerHTML =
+                "❌ Server Error";
+
+            await sleep(1000);
+        }
+    }
+}
+
+function drawRecognitionFace(result)
+{
+    if(!overlay)
+    {
+        return;
+    }
+
+    const ctx =
+        overlay.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        overlay.width,
+        overlay.height
+    );
+
+    if(result.faceDetected)
+    {
+        ctx.strokeStyle = "lime";
+
+        ctx.lineWidth = 3;
+
+        ctx.strokeRect(
+            result.x,
+            result.y,
+            result.width,
+            result.height
+        );
+    }
+}
+function clearRecognitionFace()
+{
+    if(!overlay)
+    {
+        return;
+    }
+
+    const ctx = overlay.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        overlay.width,
+        overlay.height
+    );
+}
+function captureRecognitionFrame()
+{
+    const temp =
+        document.createElement("canvas");
+
+    temp.width =
+        video.videoWidth;
+
+    temp.height =
+        video.videoHeight;
+
+    const tctx =
+        temp.getContext("2d");
+
+    tctx.drawImage(
+        video,
+        0,
+        0
+    );
+
+    return temp.toDataURL(
+        "image/jpeg",
+        0.9
+    );
+}
+
+async function startFaceCamera() {
+    try {
+
+        video = document.getElementById("video");
+
+        if (!video) {
+            alert("Video element not found");
+            return;
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+        video.srcObject = stream;
+
+        await video.play(); // important for mobile browsers
+
+    } catch (err) {
+        console.error(err);
+        alert(err.message);
+    }
+}
+function stopFaceCamera()
+{
+    if(stream)
+    {
+        stream.getTracks().forEach(
+            track => track.stop()
+        );
+    }
+}
+
+function sleep(ms)
+{
+    return new Promise(
+        resolve => setTimeout(resolve, ms)
+    );
+}
+
+
+ function applyMobilePunchRestriction()
+ {
+//     if(!isRealMobileDevice())
+     if(true)
+     {
+         document.getElementById("status").innerHTML =
+             "<span style='color:red'>Face Registration works only on Mobile Devices.</span>";
+     }
+ }
+
+
+async function captureFacesForRegistration() {
+
+    console.log("Capture started");
+
+    const select = document.getElementById("workmanId");
+
+    if (!select || select.value === "") {
+        alert("Select Workman");
+        return;
+    }
+
+    if (!stream) {
+        alert("Start Camera First");
+        return;
+    }
+
+    // 🔥 IMPORTANT FIX HERE
+    if (!initCameraComponents()) {
+        alert("Camera components not initialized yet");
+        return;
+    }
+
+    if (!video.videoWidth || !video.videoHeight) {
+        await new Promise(resolve => {
+            video.onloadedmetadata = resolve;
+        });
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    capturedImages = [];
+
+    document.getElementById("loaderOverlay").style.display = "flex";
+    document.getElementById("status").innerText = "Capturing Images...";
+
+    for (let i = 1; i <= TOTAL_IMAGES; i++) {
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const image = canvas.toDataURL("image/jpeg", 0.9);
+        capturedImages.push(image);
+
+        document.getElementById("progress").style.width =
+            ((i / TOTAL_IMAGES) * 100) + "%";
+
+        document.getElementById("status").innerText =
+            "Captured " + i + " / " + TOTAL_IMAGES;
+
+        await sleep(250);
+    }
+
+    await uploadRegistrationImages();
+}
+
+
+
+function initCameraComponents() {
+
+    video = document.getElementById("video");
+    canvas = document.getElementById("canvas");
+
+    if (!video || !canvas) {
+        console.error("Video or Canvas not found in DOM");
+        return false;
+    }
+
+    ctx = canvas.getContext("2d");
+
+    return true;
+}
+
+async function uploadRegistrationImages() {
+    try {
+        const select = document.getElementById("workmanId");
+
+        if (!select || select.value === "") {
+            alert("Please select Workman");
+            return;
+        }
+
+        const employeeId = select.value;
+
+        const employeeName = select.options[
+            select.selectedIndex
+        ].text.split("-").slice(1).join("-").trim();
+
+        const payload = {
+            employeeId: employeeId,
+            employeeName: employeeName,
+            images: capturedImages
+        };
+
+        console.log("Payload Sent:", payload);
+
+        document.getElementById("loaderOverlay").style.display = "flex";
+
+        const API_BASE_URL = window.location.origin + "/Test/Face/register";
+        console.log(API_BASE_URL);
+        const response = await fetch(
+           API_BASE_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
+
+        document.getElementById("loaderOverlay").style.display = "none";
+
+        const result = await response.text();
+
+        if (response.ok) {
+
+            stopFaceCamera();
+
+            document.getElementById("status").innerHTML =
+                "Registration Completed";
+
+            alert(result);
+
+        } else {
+
+            alert("Registration Failed\n" + result);
+        }
+
+    } catch (error) {
+
+        document.getElementById("loaderOverlay").style.display = "none";
+
+        console.error(error);
+
+        alert("Server Error");
+    }
+}
 
  function openPunchTab() {
 
@@ -893,203 +1348,58 @@ function showLocationBlockedAlert() {
     );
 }
 
- function isRealMobileDevice() {
 
-    const ua = navigator.userAgent.toLowerCase();
 
-    return (
-        ua.includes("android") ||
-        ua.includes("iphone") ||
-        ua.includes("ipad") ||
-        ua.includes("ipod")
-    );
 
-}
 
-  function applyMobilePunchRestriction() {
 
-      const punchBtn = document.getElementById("punchBtn");
-      const preview = document.getElementById("preview");
 
-      // If HTML not yet rendered, exit safely
-      if (!punchBtn || !preview) {
-          console.warn("Punch elements not found yet");
-          return;
-      }
 
-      if (!isRealMobileDevice()) {
-          punchBtn.style.display = "none";
-          preview.innerHTML =
-              "<div style='color:red;font-weight:bold;padding:10px'>" +
-              "Mobile Punch works only on a real mobile device." +
-              "</div>";
-      } else {
-          punchBtn.style.display = "inline-block";
-          preview.innerHTML = "";
-      }
-  }
 
-function openMobileCamera() {
 
-    // open camera immediately (required for iOS)
-    document.getElementById("mobileCameraInput").click();
 
-    // fetch location in background
-    requestLocationPermission();
 
-}
+ function isRealMobileDevice()
+ {
+     const ua = navigator.userAgent.toLowerCase();
 
-  function handlePunchImage(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+     return (
+         ua.includes("android") ||
+         ua.includes("iphone") ||
+         ua.includes("ipad") ||
+         ua.includes("ipod")
+     );
+ }
 
-      const reader = new FileReader();
-      reader.onload = function (e) {
-          capturedImageP = e.target.result;
 
-          document.getElementById("preview").innerHTML =
-              "<img src='" + capturedImageP + "' style='width:100%;border-radius:8px'/>";
-      };
-      reader.readAsDataURL(file);
-  }
 
-  function cancelPunch() {
-      window.history.back();
-  }
 
-  function saveRegistraction() {
 
-      const workmanId = document.getElementById("workmanId").value;
-      const fileInput = document.getElementById("mobileCameraInput");
 
-      if (!workmanId) {
-          document.getElementById("error-workman").style.display = "block";
-          return;
-      }
 
-      if (!fileInput.files.length) {
-          alert("Please capture photo before saving.");
-          return;
-      }
+// Select option
+options.forEach(option => {
 
-      if (userLatitude == null || userLongitude == null) {
-          alert("To use Mobile Punch turn on location in phone.");
-          return;
-      }
+    option.addEventListener('click', function () {
 
-      document.getElementById("loaderOverlay").style.display = "flex";
+        const value = this.getAttribute('data-value');
 
-      const formData = new FormData();
+        const text = this.textContent;
 
-      const registerFaceObj = {
-          userId: workmanId,
-          latitude: userLatitude,
-          longitude: userLongitude
-      };
+        hiddenInput.value = value;
 
-      formData.append("registerFace", JSON.stringify(registerFaceObj));
-      formData.append("imageFile", fileInput.files[0]);
+        selectedOption.innerHTML =
+            "<b>Selected:</b> " + text;
 
-      const baseUrl = window.location.origin;
-
-      fetch(baseUrl + "/CWFM/faced/register", {
-          method: "POST",
-          body: formData
-      })
-      .then(async res => {
-
-    const text = await res.text();
-
-    document.getElementById("loaderOverlay").style.display = "none";
-
-    if (!res.ok) {
-        alert(text || "Server error occurred");
-        return;
-    }
-
-    alert(text);
-    resetForm();   // ✅ RESET AFTER SUCCESS
-
-})
-      .catch(() => {
-
-          document.getElementById("loaderOverlay").style.display = "none";
-          alert("Unable to reach server");
-
-      });
-  }
-
-  
- function savePunch() {
-
-    const workmanId = document.getElementById("workmanId").value;
-    const fileInput = document.getElementById("mobileCameraInput");
-
-    if (!workmanId) {
-        document.getElementById("error-workman").style.display = "block";
-        return;
-    }
-
-    if (!fileInput.files.length) {
-        alert("Please capture photo before saving.");
-        return;
-    }
-
-    if (userLatitude == null || userLongitude == null) {
-        alert("Location not detected. Please enable GPS.");
-        return;
-    }
-
-    document.getElementById("loaderOverlay").style.display = "flex";
-
-    const formData = new FormData();
-
-    formData.append("userId", workmanId);
-    formData.append("latitude", userLatitude);     
-    formData.append("longitude", userLongitude);   
-    formData.append("imageFile", fileInput.files[0]);
-
-    const baseUrl = window.location.origin;
-
-    fetch(baseUrl + "/CWFM/faced/save-image-auto", {
-        method: "POST",
-        body: formData
-    })
-    .then(async res => {
-
-        const data = await res.json();
-
-        document.getElementById("loaderOverlay").style.display = "none";
-
-        if (!res.ok) {
-            alert(data.message || "Server error occurred");
-            return;
-        }
-
-        alert(data.message);
-
-        resetForm(); 
-
-    })
-    .catch(() => {
-
-        document.getElementById("loaderOverlay").style.display = "none";
-        alert("Unable to reach server");
+        searchBox.value = text;
 
     });
-}
 
-  function resetForm() {
+});
 
-    document.getElementById("workmanId").value = "";
 
-    document.getElementById("mobileCameraInput").value = "";
 
-    document.getElementById("preview").innerHTML = "";
 
-    capturedImageP = null;
-
-}
 
 
 

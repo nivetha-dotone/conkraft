@@ -10,7 +10,10 @@ import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +48,10 @@ public class EmployeeMapper {
 
     public String getRegardsEmail() {
         return QueryFileWatcher.getQuery("getRegards");
+    }
+
+     public String getRoleByUserAccount() {
+        return QueryFileWatcher.getQuery("getRoleByUserAccount");
     }
 
     public String gatePassEmpDtoStatic(String GatePassId) {
@@ -301,7 +310,174 @@ public class EmployeeMapper {
         }
     }
 
+    public  String getCommentCat(){
+        return QueryFileWatcher.getQuery("getCommentCat");
+    }
 
+    private static final DateTimeFormatter FLEXIBLE_DATE_TIME =
+            new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy-MM-dd HH:mm:ss")
+                    .optionalStart()
+                    .appendFraction(
+                            ChronoField.NANO_OF_SECOND,
+                            1,      // minimum digits
+                            9,      // maximum digits
+                            true    // decimal point
+                    )
+                    .optionalEnd()
+                    .toFormatter();
+    @Scheduled(cron = "0 * * * * *")
+    @Transactional
+    public synchronized void gateSchedularPunchDB() {
+        try {
+
+
+            List<FaceLogFetchDto> listOfFaceLogFetchDto = this.gatePassToOnBoardService.getListOfNotPostPunch();
+            if (listOfFaceLogFetchDto == null || listOfFaceLogFetchDto.isEmpty()) {
+                return;
+            }
+
+            for (FaceLogFetchDto gpTransactionId : listOfFaceLogFetchDto) {
+                System.out.println("Processing punch : person num" + gpTransactionId.getPersonNum());
+                PunchRequestCommentDTO punchRequestDTO = new PunchRequestCommentDTO();
+                String response;
+
+                if (gpTransactionId != null) {
+
+
+                    LocalDateTime punchDateTime =
+                            LocalDateTime.parse(
+                                    gpTransactionId.getPunchDtm().trim(),
+                                    FLEXIBLE_DATE_TIME
+                            );
+
+                    String formattedPunchDtm =
+                            punchDateTime.format(
+                                    DateTimeFormatter.ofPattern(
+                                            "yyyy-MM-dd'T'HH:mm:ss"
+                                    )
+                            );
+
+                    String formattedDate =
+                            punchDateTime.toLocalDate().toString();
+
+                    PunchRequestCommentDTO.DoDTO doDTO = new PunchRequestCommentDTO.DoDTO();
+                    PunchRequestCommentDTO.PunchesDTO punchesDTO = new PunchRequestCommentDTO.PunchesDTO();
+                    PunchRequestCommentDTO.AddedPunchDTO addedPunchDTO = new PunchRequestCommentDTO.AddedPunchDTO();
+                    PunchRequestCommentDTO.CommentsNoteDTO commentsNoteDTO=new PunchRequestCommentDTO.CommentsNoteDTO();
+
+                    List<PunchRequestCommentDTO.AddedPunchDTO> addedPunchDTOList = new ArrayList();
+                    List<PunchRequestCommentDTO.CommentsNoteDTO> commentsNoteList = new ArrayList();
+
+                    addedPunchDTO.setPunchDtm(formattedPunchDtm);
+                    PunchRequestCommentDTO.EmployeeDTO employeeDTO = new PunchRequestCommentDTO.EmployeeDTO();
+                    employeeDTO.setQualifier(gpTransactionId.getPersonNum());
+                    addedPunchDTO.setEmployee(employeeDTO);
+
+                    PunchRequestCommentDTO.CommentDTO commentDTO = new PunchRequestCommentDTO.CommentDTO();
+                    List<PunchRequestCommentDTO.CategoryDTO> categoryDTOList = new ArrayList();
+
+                    PunchRequestCommentDTO.CategoryDTO categoryDTO=new PunchRequestCommentDTO.CategoryDTO();
+                    categoryDTO.setQualifier(gpTransactionId.getLocation());
+                    categoryDTOList.add(categoryDTO);
+                    commentDTO.setCategories(categoryDTOList);
+                    commentDTO.setName(getCommentCat());
+
+                    List<PunchRequestCommentDTO.NoteDTO> noteDTOList = new ArrayList();
+                    PunchRequestCommentDTO.NoteDTO noteDTO = new PunchRequestCommentDTO.NoteDTO();
+                    noteDTO.setText(gpTransactionId.getLocation());
+                    noteDTOList.add(noteDTO);
+                    commentsNoteDTO.setComment(commentDTO);
+                    commentsNoteDTO.setNotes(noteDTOList);
+                    commentsNoteList.add(commentsNoteDTO);
+                    addedPunchDTO.setCommentsNotes(commentsNoteList);
+                    addedPunchDTOList.add(addedPunchDTO);
+                    punchesDTO.setAdded(addedPunchDTOList);
+                    doDTO.setPunches(punchesDTO);
+                    PunchRequestCommentDTO.WhereDTO whereDTO = new PunchRequestCommentDTO.WhereDTO();
+                    PunchRequestCommentDTO.DateRangeDTO dateRangeDTO = new PunchRequestCommentDTO.DateRangeDTO();
+
+                    dateRangeDTO.setStartDate(formattedDate);
+                    dateRangeDTO.setEndDate(formattedDate);
+                    whereDTO.setEmployee(employeeDTO);
+                    whereDTO.setDateRange(dateRangeDTO);
+                    punchRequestDTO.setDoObj(doDTO);
+                    punchRequestDTO.setWhere(whereDTO);
+                    response  = this.wfdEmployeeService.addEmployeePunchFaceSchedulr(punchRequestDTO);
+                    processResponse(gpTransactionId.getPunchId(), response);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void processResponse(Integer punchId, String response) {
+
+        try {
+
+            if (response == null || response.trim().isEmpty()) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdate(
+                        punchId,
+                        "Empty Response"
+                );
+                return;
+            }
+
+            if (!response.startsWith("STATUS:")) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdate(
+                        punchId,
+                        response
+                );
+                return;
+            }
+
+            String[] parts = response.split("BODY:", 2);
+
+            int statusCode = Integer.parseInt(
+                    parts[0].replace("STATUS:", "").trim()
+            );
+
+            String body = parts.length > 1
+                    ? parts[1].trim()
+                    : "";
+
+            // SUCCESS
+            if (statusCode == 200 ) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunch(
+                        punchId,
+                        "Posted"
+                );
+                return;
+            }
+
+            // DUPLICATE PUNCH
+            if (statusCode == 400
+                    && body.contains("WTK-120127")) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunch(
+                        punchId,
+                        body
+                );
+                return;
+            }
+
+            // ALL OTHER ERRORS
+            gatePassToOnBoardService.saveErrorTracePunchNOTUpdate(
+                    punchId,
+                    body
+            );
+
+        } catch (Exception e) {
+
+            gatePassToOnBoardService.saveErrorTracePunchNOTUpdate(
+                    punchId,
+                    "Response Parse Error : " + e.getMessage()
+            );
+        }
+    }
 
     public String postCertificTowfd(Integer gmId) {
         try {
@@ -543,6 +719,32 @@ public class EmployeeMapper {
             return null;
         }
     }
+
+    public Object getAuthCheckupForapp(LoginApp loginapp) {
+        try {
+            MasterUser authCheck = wfdEmployeeService.getAuthCheckApp(loginapp.getEmail(),loginapp.getPassword());
+            if(authCheck!=null){
+
+                MasterUserApp  passResonse =new MasterUserApp();
+                passResonse.setStatus("success");
+                passResonse.setMessage("Data fetched successfully");
+                MasterUserApp.Dat dataUser = new MasterUserApp.Dat();
+                dataUser.setTotalUser(12);
+                dataUser.setTotalJobsite(12);
+                dataUser.setTotalDevice(12);
+                dataUser.setTotalSubcontractor(12);
+                passResonse.setData(dataUser);
+
+                return passResonse;
+            }else{
+                return  null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
     public Object getDetailsPerson(String username) {
 
         try {
@@ -551,7 +753,6 @@ public class EmployeeMapper {
             return null;
         }
     }
-
 
 
     public String getVerifyLabor(String username) {
@@ -1171,7 +1372,7 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category + ",,,,,");
+                        labor.setLaborCategoryName(category + ", ");
                         System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
@@ -1183,7 +1384,7 @@ public class EmployeeMapper {
                     if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
-                            labor.setLaborCategoryName(category + ",,,,,");
+                            labor.setLaborCategoryName(category + ", ");
                             System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
                         }
                     }

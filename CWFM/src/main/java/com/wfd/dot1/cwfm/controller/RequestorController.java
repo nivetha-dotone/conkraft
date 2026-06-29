@@ -87,7 +87,6 @@ public class RequestorController {
 
     @GetMapping("/addQuickOB")
     public String createGatePass(HttpServletRequest request,HttpServletResponse response) {
-
         HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
         MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 

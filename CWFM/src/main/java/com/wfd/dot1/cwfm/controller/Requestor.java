@@ -45,6 +45,7 @@ public class Requestor {
 
     @Autowired
     private FaceRegistrationRepository faceRegistrationRepository;
+
     @GetMapping("/mobilePunchFace")
     public String cwfmfacePunch(HttpServletRequest request, HttpServletResponse response) {
 

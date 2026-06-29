@@ -16,6 +16,7 @@
                             <!-- <script src="resources/js/cms/principalEmployer.js"></script>
                             <script src="resources/js/cms/contractor.js"></script>-->
                             <script src="resources/js/cms/requestor.js"></script>
+
                             <title>Mobile Register</title>
                             <style>
                                 body {
@@ -470,6 +471,7 @@
                                     input,
                                     select,
                                     textarea {
+                                    color: black;
                                         width: 100% !important;
                                         max-width: 100%;
                                         box-sizing: border-box;
@@ -789,22 +791,11 @@
                                         document.getElementById(tabId).classList.add('active');
                                         document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
                                     } */
-
-                                    document.addEventListener("DOMContentLoaded", function () {
-                                        // Set the default tab
-                                        showTab('tab1');
-                                        initializeDatePicker();
-                                    });
-
-
-
-
-
-
-
-
-
+                                 
                                 </script>
+
+
+
 
                         </head>
 
@@ -817,8 +808,11 @@
 
                                     </div>
                                     <div class="action-buttons">
-                                        <button type="button" class="btn btn-default"
-                                            onclick="saveRegistraction()">Save</button>
+                                     <button type="button"
+                                             class="btn btn-default"
+                                             onclick="captureFacesForRegistration()">
+                                         Register Face
+                                     </button>
                                     </div>
                                 </div>
                                 <div id="tab1" class="tab-content active">
@@ -834,14 +828,15 @@
                                                     </label>
                                                 </th>
                                                 <td>
-                                                    <select class="custom-select" id="workmanId" name="workmanId">
+                                                       <select id="workmanId" name="workmanId" style="color: black;">
                                                         <option value="">Select Workman</option>
+
                                                         <c:forEach var="pe" items="${contractors}">
-                                                            <option value="${pe.gatePassId}" ${requesterObj.gatePassId
-                                                                eq pe.gatePassId ? 'selected="selected"' : '' }>
-                                                                ${pe.gatePassId} - ${pe.firstName} - ${pe.lastName}
+                                                            <option value="${pe.EMPLOYEEID}">
+                                                                ${pe.gatePassId} - ${pe.firstName} ${pe.lastName}
                                                             </option>
                                                         </c:forEach>
+
                                                     </select>
 
                                                     <label id="error-workman" class="error-label" style="display:none;">
@@ -854,23 +849,62 @@
                                                 <th>
                                                     <label class="custom-label">
                                                         <span class="required-field">*</span>
-                                                        Punch
+                                                        Face Registration
                                                     </label>
                                                 </th>
+
                                                 <td>
 
+                                                    <video id="video"
+                                                           autoplay
+                                                           playsinline
+                                                           style="
+                                                               width:320px;
+                                                               height:240px;
+                                                               border:1px solid #ccc;">
+                                                    </video>
 
-                                                    <div id="preview"
-                                                        style="height:180px;width:180px;border:1px solid #ccc;margin-bottom:10px;">
+                                                    <canvas id="canvas"
+                                                            style="display:none;">
+                                                    </canvas>
+
+                                                    <br><br>
+
+                                                    <button type="button"
+                                                            class="punch-btn"
+                                                            id="startCameraBtn"
+                                                            onclick="startFaceCamera()">
+                                                        Start Camera
+                                                    </button>
+
+                                                    <button type="button"
+                                                            class="punch-btn"
+                                                            id="captureBtn"
+                                                            onclick="captureFacesForRegistration()">
+                                                        Capture Photos
+                                                    </button>
+
+                                                    <br><br>
+
+                                                    <div id="status">
+                                                        Waiting...
                                                     </div>
 
+                                                    <br>
 
-                                                    <input type="file" id="mobileCameraInput" accept="image/*" capture
-                                                        style="display:none" onchange="handlePunchImage(event)">
+                                                    <div style="
+                                                        width:100%;
+                                                        height:20px;
+                                                        border:1px solid #ccc;">
 
+                                                        <div id="progress"
+                                                             style="
+                                                                width:0%;
+                                                                height:100%;
+                                                                background:#005151;">
+                                                        </div>
 
-                                                    <button type="button" class="punch-btn" id="punchBtn"
-                                                        onclick="openMobileCamera()">Register Face</button>
+                                                    </div>
 
                                                 </td>
                                             </tr>
@@ -878,8 +912,7 @@
 
                                     </table>
                                     <script>
-                                        applyMobilePunchRestriction();
-                                        requestLocationPermission();
+                                     applyMobilePunchRestriction();
                                     </script>
                                 </div>
                             </div>

@@ -712,6 +712,25 @@
 
 
                                 }
+
+                                #container{
+                                    position:relative;
+                                    display:inline-block;
+                                }
+
+                                #result{
+                                    font-size:20px;
+                                    font-weight:bold;
+                                    color:black;
+                                }
+
+                                .success{
+                                    color:green;
+                                }
+
+                                .error{
+                                    color:red;
+                                }
                             </style>
 
                             <!-- MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null && user.getUserId() !=null ? String.valueOf(user.getUserId()) : "" ;  -->
@@ -815,8 +834,8 @@
 
                                     </div>
                                     <div class="action-buttons">
-                                        <button id="saveButton" type="submit" class="btn btn-default"
-                                            onclick="savePunch()">Save</button>
+                                       <button  id="saveButton" type="button" class="btn btn-default"
+                                       onclick="startPunchRecognition()">Start Recognition </button>
                                     </div>
                                 </div>
                                 <div id="tab1" class="tab-content active">
@@ -824,64 +843,47 @@
                                     <table class="ControlLayout no-dt" cellspacing="0" cellpadding="0">
 
                                         <tbody>
-                                            <tr>
-                                                <th>
-                                                    <label class="custom-label">
-                                                        <span class="required-field">*</span>
-                                                        Workmen
-                                                    </label>
-                                                </th>
-                                                <td>
-                                                    <select class="custom-select" id="workmanId" name="workmanId" >
-                                                        <option value="">Select Workman</option>
-                                                        <c:forEach var="pe" items="${contractors}">
-                                                            <option value="${pe.gatePassId}" ${requesterObj.gatePassId
-                                                                eq pe.gatePassId ? 'selected="selected"' : '' }>
-                                                                ${pe.gatePassId} - ${pe.firstName} - ${pe.lastName}
-                                                            </option>
-                                                        </c:forEach>
-                                                    </select>
+                                           <tr>
 
-                                                    <label id="error-workman" class="error-label" style="display:none;">
-                                                        Workman is required
-                                                    </label>
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <th>
-                                                    <label class="custom-label">
-                                                        <span class="required-field">*</span>
-                                                        Punch
-                                                    </label>
-                                                </th>
-                                                <td>
+                                               <td>
 
 
-                                                    <div id="preview"
-                                                        style="height:180px;width:180px;border:1px solid #ccc;margin-bottom:10px;">
-                                                    </div>
 
+                                                   <br><br>
 
-                                                        <input type="file" id="mobileCameraInput" accept="image/*" capture
-                                                        style="display:none" onchange="handlePunchImage(event)">
+                                                   <div id="container">
 
+                                                       <video id="video"
+                                                              autoplay
+                                                              playsinline
+                                                              style="width:300px;border:1px solid #ccc;">
+                                                       </video>
 
-                                                    <button type="button" class="punch-btn" id="punchBtn"
-                                                        onclick="openMobileCamera()">Punch
-                                                        Now</button>
+                                                       <canvas id="overlay"
+                                                               style="
+                                                                   position:absolute;
+                                                                   left:0;
+                                                                   top:0;">
+                                                       </canvas>
 
-                                                </td>
-                                            </tr>
+                                                   </div>
+
+                                                   <br>
+
+                                                   <div id="result"></div>
+
+                                               </td>
+                                           </tr>
                                         </tbody>
 
                                     </table>
-  <script>
-    applyMobilePunchRestriction();
-      requestLocationPermission();
+<script>
+window.onload = function () {
+    requestLocationPermission();
+};
 </script>
-                                </div>
-                            </div>
+                           </div>
+                           </div>
                             <div id="loaderOverlay" style="display:none;">
                                 <div class="loader-box">
                                     <div class="spinner"></div>

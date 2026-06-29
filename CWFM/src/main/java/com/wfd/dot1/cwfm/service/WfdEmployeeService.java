@@ -382,6 +382,7 @@ public class WfdEmployeeService {
     public String getISSANDORPOC() {
         return QueryFileWatcher.getQuery("ISSAND");
     }
+
     public String getcheckHost() {
         try {
             String issandorpoc = getISSANDORPOC();
@@ -435,6 +436,30 @@ public class WfdEmployeeService {
         }
     }
 
+    public MasterUser getAuthCheckApp(String username, String password) {
+        try {
+            String authCheck = wfdAuthService.getAccessCheckup(username, password);
+
+            if ("successful".equalsIgnoreCase(authCheck)) {
+
+                Integer personKey = getPersonKeyBasedonUserName(username);
+
+                if (personKey != null) {
+                    return getUserDetailsByPersonKeyapp(personKey);
+
+
+                }
+
+                return null;
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public Object getDeatilsPersonViaUKGAUTH(String username) {
         try {
             String authCheck = "successful";
@@ -459,6 +484,105 @@ public class WfdEmployeeService {
 
 
     public MasterUser getUserDetailsByPersonKey(Integer personKey) {
+        try {
+            String url = getHostName()+getDetailsByPersonKey()+ personKey;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String accessToken = this.wfdAuthService.getAccessToken();
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+
+            MasterUser user = new MasterUser();
+
+            // ✅ userAccount
+            user.setUserAccount(
+                    root.path("user")
+                            .path("userAccount")
+                            .path("userName")
+                            .asText(null)
+            );
+
+            // ✅ firstName, lastName, fullName
+            JsonNode personNode = root.path("personInformation").path("person");
+
+            String rawName = personNode.path("lastName").asText("").trim();
+
+            if (rawName.isEmpty()) {
+                rawName = "NA";
+            }
+
+            String[] parts = rawName.split("\\s+");
+
+            String firstName = "";
+            String lastName = "";
+
+            if (parts.length == 1) {
+                // 🔹 1 word → split into 2 parts
+                String word = parts[0];
+
+                if (word.length() <= 3) {
+                    // very short name → keep as firstName only
+                    firstName = word;
+                    lastName = "";
+                } else {
+                    int mid = word.length() / 2;
+                    firstName = word.substring(0, mid);
+                    lastName = word.substring(mid);
+                }
+
+            } else if (parts.length == 2) {
+                // 🔹 2 words → direct mapping
+                firstName = parts[0];
+                lastName = parts[1];
+
+            } else {
+
+                firstName = parts[0] + " " + parts[1];
+
+                StringBuilder ln = new StringBuilder();
+                for (int i = 2; i < parts.length; i++) {
+                    ln.append(parts[i]).append(" ");
+                }
+                lastName = ln.toString().trim();
+            }
+
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setFullName((firstName + " " + lastName).trim());
+
+            user.setFullName(personNode.path("fullName").asText(" "));
+            user.setStatus("A");
+            // ✅ contactNumber
+            JsonNode phoneArray = root.path("personInformation").path("telephoneNumbers");
+            if (phoneArray.isArray() && phoneArray.size() > 0) {
+                user.setContactNumber(phoneArray.get(0).path("phoneNumber").asText(" "));
+            }
+            // ✅ EmailId address
+            JsonNode emailArray = root.path("personInformation").path("emailAddresses");
+            if (emailArray.isArray() && emailArray.size() > 0) {
+                user.setEmailId(emailArray.get(0).path("address").asText(" "));
+            }
+
+
+
+
+            return user;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching user details", e);
+        }
+    }
+
+
+    public MasterUser getUserDetailsByPersonKeyapp(Integer personKey) {
         try {
             String url = getHostName()+getDetailsByPersonKey()+ personKey;
 
@@ -602,19 +726,68 @@ public class WfdEmployeeService {
             String var10000 = this.getHostName();
             String url = var10000 + this.getUpdatePUNCHEMPWFD();
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
-            if (response.getStatusCode().is2xxSuccessful()) {
-                return "and also in updated in WFD system";
-            } else {
-                throw new RuntimeException("WFD API failed with status: " + String.valueOf(response.getStatusCode()));
+            int status = response.getStatusCodeValue();
+
+            return "STATUS:" + status +
+                    "\nBODY:" + response.getBody();
+
+        }catch (HttpServerErrorException | HttpClientErrorException e) {
+
+                int status =
+                        ((HttpStatusCodeException)e)
+                                .getStatusCode()
+                                .value();
+
+                return "STATUS:" + status +
+                        "\nBODY:" +
+                        ((HttpStatusCodeException)e)
+                                .getResponseBodyAsString();
+
+        }catch (Exception e) {
+
+                return "STATUS:500\nBODY:Error updating employee in WFD API: "
+                        + e.getMessage();
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating punch in WFD API", e);
         }
-    }
+    public String addEmployeePunchFaceSchedulr(PunchRequestCommentDTO dto) {
+        try {
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            String accessToken = this.wfdAuthService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getUpdatePUNCHEMPWFD();
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
+            int status = response.getStatusCodeValue();
+
+            return "STATUS:" + status +
+                    "\nBODY:" + response.getBody();
+
+        }catch (HttpServerErrorException | HttpClientErrorException e) {
+
+                int status =
+                        ((HttpStatusCodeException)e)
+                                .getStatusCode()
+                                .value();
+
+                return "STATUS:" + status +
+                        "\nBODY:" +
+                        ((HttpStatusCodeException)e)
+                                .getResponseBodyAsString();
+
+        }catch (Exception e) {
+
+                return "STATUS:500\nBODY:Error updating employee in WFD API: "
+                        + e.getMessage();
+            }
+        }
 
     public String createEmployee(EmployeeRequestDTO dto) {
         try {
             String jsonBody = this.objectMapper.writeValueAsString(dto);
+            System.out.println(jsonBody);
             String accessToken = this.wfdAuthService.getAccessToken();
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

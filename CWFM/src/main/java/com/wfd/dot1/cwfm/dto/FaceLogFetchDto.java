@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 public class FaceLogFetchDto {
 
+    private Integer punchId;
     private String personNum;
     private String username;   // renamed from UserAcco
     private String imagePath;

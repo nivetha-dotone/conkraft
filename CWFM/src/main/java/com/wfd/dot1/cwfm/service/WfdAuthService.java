@@ -25,7 +25,7 @@ public class WfdAuthService {
     }
 
 
-    public String getUserNameSand() {
+  public String getUserNameSand() {
         return QueryFileWatcher.getQuery("USERNAME");
     }
   public String getPasswordSand() {
@@ -40,15 +40,13 @@ public class WfdAuthService {
   public String getGrantTypeSand() {
         return QueryFileWatcher.getQuery("GRANT_TYPE");
     }
-
-    public String getAuth_ChainSand() {
+  public String getAuth_ChainSand() {
         return QueryFileWatcher.getQuery("AUTH_CHAIN");
     }
-
-   public String getAuthUrl() {
+  public String getAuthUrl() {
         return QueryFileWatcher.getQuery("AUTHLOGINURL");
     }
-    public String getHost() {
+  public String getHost() {
         return QueryFileWatcher.getQuery("HostName");
     }
 
@@ -56,42 +54,38 @@ public class WfdAuthService {
 
 
 
-    public String getUserNamePoc() {
+  public String getUserNamePoc() {
         return QueryFileWatcher.getQuery("USERNAMEPOC");
     }
-    public String getPasswordPoc() {
+  public String getPasswordPoc() {
         return QueryFileWatcher.getQuery("PASSWORDPOC");
     }
-    public String getClientIdPoc() {
+  public String getClientIdPoc() {
         return QueryFileWatcher.getQuery("CLIENT_IDPOC");
     }
-    public String getClientSPoc() {
+  public String getClientSPoc() {
         return QueryFileWatcher.getQuery("CLIENT_SECRETPOC");
     }
-    public String getGrantTypePoc() {
+  public String getGrantTypePoc() {
         return QueryFileWatcher.getQuery("GRANT_TYPEPOC");
 
     }
-    public String getRealmPoc() {
+  public String getRealmPoc() {
         return QueryFileWatcher.getQuery("REALMPOC");
     }
-    public String getAudiencePoc() {
+  public String getAudiencePoc() {
         return QueryFileWatcher.getQuery("AUDIENCEPOC");
     }
-    public String getHostAuthPoc() {
+  public String getHostAuthPoc() {
         return QueryFileWatcher.getQuery("AUTHURLPOC");
     }
-
-    public String getHostPoc() {
+  public String getHostPoc() {
         return QueryFileWatcher.getQuery("HostNamePOC");
     }
-
-    public String getISSANDORPOC() {
+  public String getISSANDORPOC() {
         return QueryFileWatcher.getQuery("ISSAND");
     }
-
-
-    public String getAccessToken() {
+  public String getAccessToken() {
         try {
             String issandorpoc = getISSANDORPOC();
 

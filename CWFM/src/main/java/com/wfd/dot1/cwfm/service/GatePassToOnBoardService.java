@@ -85,12 +85,19 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOSTUp");
     }
 
+    public String getQuerytoFetchListNOTPOSTPunch() {
+        return QueryFileWatcher.getQuery("getQueryListPOSTPunch");
+    }
+
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
     }
 
     public String getQueryInsertSuccessEntyUpdate() {
         return QueryFileWatcher.getQuery("getWFDLogOKUpdate");
+    }
+    public String getInsertSuccessEntyPunch() {
+        return QueryFileWatcher.getQuery("getInsertSuccessEntyPunch");
     }
 
     public String getQueryInsertSuccessEntyTr() {
@@ -131,6 +138,10 @@ public class GatePassToOnBoardService {
 
     public String getQueryInsertNotSuccesstrNotUpdate() {
         return QueryFileWatcher.getQuery("getWFDLognotOKtrNotUpdate");
+    }
+
+    public String saveErrorPunchNOTUpdate() {
+        return QueryFileWatcher.getQuery("saveErrorTracePunchNOTUpdate");
     }
 
     public String getQueryInsertNotSuccesstrNotTr() {
@@ -217,6 +228,9 @@ public class GatePassToOnBoardService {
 
     public String getCertiteQuery() {
         return QueryFileWatcher.getQuery("getassCertificateQuery");
+    }
+    public String getRoleByAccount() {
+        return QueryFileWatcher.getQuery("GETROLEBYUSERID");
     }
 
     public PostSkillWfd createSkills(Integer id) {
@@ -392,6 +406,9 @@ public class GatePassToOnBoardService {
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, personId, statusNumber});
     }
 
+
+
+
     public void saveSuccessTraceTr(String gpTransactionId, Integer statusNumber) {
         String sql = this.getQueryInsertSuccessEntyTr();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber});
@@ -452,6 +469,14 @@ public class GatePassToOnBoardService {
         String sql = this.getQueryInsertNotSuccesstrNotUpdate();
         this.jdbcTemplate.update(sql, new Object[]{gpTransactionId, statusNumber, errorResponse});
     }
+    public void saveSuccessTracePostPunch(Integer gpTransactionId, String status) {
+        String sql = this.getInsertSuccessEntyPunch();
+        this.jdbcTemplate.update(sql, new Object[]{status, gpTransactionId});
+    }
+    public void saveErrorTracePunchNOTUpdate(Integer punchId, String issue) {
+        String sql = this.saveErrorPunchNOTUpdate();
+        this.jdbcTemplate.update(sql, new Object[]{issue, punchId});
+    }
 
     public List<String> getListOfTrReScheduleOnb() {
         try {
@@ -488,6 +513,32 @@ public class GatePassToOnBoardService {
             }
 
             log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<FaceLogFetchDto> getListOfNotPostPunch() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<FaceLogFetchDto> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchListNOTPOSTPunch();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+            FaceLogFetchDto passDto =null;
+            while(sqlRowSet.next()) {
+                passDto=new FaceLogFetchDto();
+                passDto.setPunchId(sqlRowSet.getInt("PUNCH_ID"));
+                passDto.setPersonNum(sqlRowSet.getString("PERSON_NUM"));
+                passDto.setPunchDtm(sqlRowSet.getString("PUNCH_DATETIME"));
+                passDto.setLocation(sqlRowSet.getString("LOCATION"));
+                dtoTrList.add(passDto);
+
+            }
+
+
+            log.info("Exit from getListOfNotPostPunch method");
             return dtoTrList;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -543,6 +594,35 @@ public class GatePassToOnBoardService {
                 log.info("Exit from assignmentCertific method");
                 return requestDTO;
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String getRoleByUserAcc(String id) {
+        try {
+            log.info("Fetching role Data");
+            String role = this.getRoleByAccount();
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(role, new Object[]{id});
+
+            if(sqlRowSet.next()) {
+
+
+                return sqlRowSet.getString("ROLE");
+
+
+
+            }
+
+//            if (assignmentList.isEmpty()) {
+//                return null;
+//            } else {
+//                CertificationAssignmentRequestDTO requestDTO = new CertificationAssignmentRequestDTO();
+//                requestDTO.setAssignments(assignmentList);
+//                log.info("Exit from assignmentCertific method");
+//                return requestDTO;
+//            }
+            return null;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

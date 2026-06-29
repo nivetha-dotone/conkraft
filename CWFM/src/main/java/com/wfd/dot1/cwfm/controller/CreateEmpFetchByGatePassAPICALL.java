@@ -4,6 +4,8 @@ package com.wfd.dot1.cwfm.controller;
 
 import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
 import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
+import com.wfd.dot1.cwfm.dto.LoginApp;
+import com.wfd.dot1.cwfm.dto.MasterUserApp;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
@@ -69,7 +71,6 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     }
 
-
     @GetMapping({"/schedularUpdateON"})
     public void upOnBoardingSchedular() {
         try {
@@ -77,6 +78,14 @@ public class CreateEmpFetchByGatePassAPICALL {
         } catch (Exception var2) {
         }
 
+    }
+
+    @GetMapping({"/schedularPunchDB"})
+    public void schedularPunchDB() {
+        try {
+            this.employeeMapper.gateSchedularPunchDB();
+        } catch (Exception var2) {
+        }
     }
 
     @PostMapping("/encryptUserId")
@@ -99,7 +108,7 @@ public class CreateEmpFetchByGatePassAPICALL {
     }
 
 
-    @PostMapping({"/addByTrnsIdToUKG/{trnId}"})
+    @PostMapping({"/addByTrnsIdToUKG/{gpTransactionId}"})
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String gpTransactionId) {
 
         try {
@@ -138,7 +147,7 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
     
-    @PutMapping({"/updateByTrnsIdToUKG/{trendId}"})
+    @PutMapping({"/updateByTrnsIdToUKG/{gpTransactionId}"})
     public ResponseEntity<?> updateOnBoardingDetails(@PathVariable String gpTransactionId) {
         try {
             String result = this.employeeMapper.updatePassEmpDtoDynamic(gpTransactionId);
@@ -209,35 +218,41 @@ public class CreateEmpFetchByGatePassAPICALL {
             if (authCheckup instanceof MasterUser) {
                 return ResponseEntity.ok(authCheckup);
             }
-
-
-            return ResponseEntity.ok(null);
-
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
+
+    @PostMapping("/checkLoginforApp")
+    public ResponseEntity<?> getAccessAuthenticationforApp(
+            @RequestBody LoginApp loginapp) {
+        try {
+            Object authCheckup = employeeMapper.getAuthCheckupForapp(loginapp);
+
+            if (authCheckup instanceof MasterUserApp) {
+                return ResponseEntity.ok(authCheckup);
+            }
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @GetMapping("/personCheckViaUKGAUTH")
     public ResponseEntity<?> getDetailsofPerson(
             @RequestParam String username) {
         try {
             Object authCheckup = employeeMapper.getDetailsPerson(username);
-
             if (authCheckup instanceof MasterUser) {
                 return ResponseEntity.ok(authCheckup);
             }
-
-            // ✅ now this will truly be null
             return ResponseEntity.ok(null);
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
-
 
     @PostMapping({"/postSkillInWFD/{gmId}"})
     public ResponseEntity<?> postSkills(@PathVariable Integer gmId) {
@@ -280,6 +295,19 @@ public class CreateEmpFetchByGatePassAPICALL {
             throw new RuntimeException(e);
         }
     }
+//    @PostMapping({"/postPunchUkg"})
+//    public ResponseEntity<?> postPunchfromUkg(@RequestParam("punchTime") String punchTime,@RequestParam("userId") String userID ) {
+//        try {
+//            String individualOnBoardDetailsByTrnId = this.employeeMapper.punchMatched(WORKORDERID);
+//            if (individualOnBoardDetailsByTrnId != null && individualOnBoardDetailsByTrnId.equals("Labor category already in the WFD")) {
+//                return new ResponseEntity("Labor Cate already in the WFD ", HttpStatus.BAD_REQUEST);
+//            } else {
+//                return individualOnBoardDetailsByTrnId != null ? new ResponseEntity(individualOnBoardDetailsByTrnId, HttpStatus.OK) : new ResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR);
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     @PostMapping({"/postProfLevels/{gmId}"})
     public ResponseEntity<?> postProfLevels(@PathVariable Integer gmId) {

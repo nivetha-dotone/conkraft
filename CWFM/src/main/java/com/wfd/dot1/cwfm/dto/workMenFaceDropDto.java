@@ -7,6 +7,7 @@ import lombok.Data;
 public class workMenFaceDropDto {
 
     private  String gatePassId;
+    private String EMPLOYEEID;
     private String firstName;
     private String lastName;
 
