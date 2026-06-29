@@ -17,13 +17,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/faced")
 public class FaceLoginController {
 
-
-
     @Autowired
     private FaceRegistrationRepository faceRegistrationRepository;
-
-
-
 
     @PostMapping(
             value = "/register",
@@ -36,8 +31,7 @@ public class FaceLoginController {
 
         ObjectMapper mapper = new ObjectMapper();
 
-        FaceRegistrationDTO faceRegistrationDTO =
-                mapper.readValue(registerFace, FaceRegistrationDTO.class);
+        FaceRegistrationDTO faceRegistrationDTO = mapper.readValue(registerFace, FaceRegistrationDTO.class);
 
         // You now have latitude & longitude
         Double latitude = faceRegistrationDTO.getLatitude();
@@ -54,8 +48,6 @@ public class FaceLoginController {
             return ResponseEntity.badRequest().body(result);
         }
     }
-
-
 
 
     @PostMapping(
@@ -104,6 +96,10 @@ public class FaceLoginController {
 
         }
     }
+
+
+
+
 
 
 

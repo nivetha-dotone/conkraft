@@ -2200,7 +2200,7 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category + ",,,,,");
+                        labor.setLaborCategoryName(category + ",");
                         System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
@@ -2212,7 +2212,7 @@ public class EmployeeMapper {
                     if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
-                            labor.setLaborCategoryName(category + ",,,,,");
+                            labor.setLaborCategoryName(category + ",");
                             System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
                         }
                     }

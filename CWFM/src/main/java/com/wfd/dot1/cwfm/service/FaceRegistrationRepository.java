@@ -323,7 +323,6 @@ public class FaceRegistrationRepository {
 
                 String storedImagePath = row.get("IMAGE_PATH").toString();
 
-                // 🛑 Skip missing DB images
                 if (!Files.exists(Paths.get(storedImagePath))) {
                     System.out.println("Missing DB image file: " + storedImagePath);
                     continue;
@@ -340,7 +339,6 @@ public class FaceRegistrationRepository {
 
                 if (match) {
 
-                    // ✅ Store verified image permanently
                     String newFileName = generateFileName();
                     Path finalPath = Paths.get(GETROOT_DIRECTORYUserLogin(), newFileName);
 
@@ -389,7 +387,6 @@ public class FaceRegistrationRepository {
             return new FaceLoginResponse(false, "Server error during face login");
 
         } finally {
-            // 🧹 Cleanup FACE_TEMP image
             try {
                 if (tempLoginImage != null) {
                     Files.deleteIfExists(tempLoginImage);
@@ -442,7 +439,6 @@ public class FaceRegistrationRepository {
                 output.append(line);
             }
 
-            // ⏳ Timeout protection
             boolean finished = process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS);
             if (!finished) {
                 process.destroyForcibly();
@@ -470,7 +466,6 @@ public class FaceRegistrationRepository {
                     dto.getPersonNum(),
                     dto.getUsername(),
                     dto.getPunchDtm(),
-
                     dto.getPersonNum(),
                     dto.getPunchDtm(),
                     dto.getImagePath(),
@@ -480,9 +475,7 @@ public class FaceRegistrationRepository {
                     dto.getLocation(),
                     dto.getIpAddress()
             );
-
             return rows > 0;
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -511,6 +504,7 @@ public class FaceRegistrationRepository {
                 dto.setGatePassId(rs.getString("GatePassId"));
                 dto.setFirstName(rs.getString("FirstName"));
                 dto.setLastName(rs.getString("LastName"));
+                dto.setEMPLOYEEID(rs.getString("EMPLOYEEID"));
                 peList.add(dto);
             }
             log.info("Fetched {} requestors", peList.size());
