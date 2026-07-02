@@ -709,7 +709,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.capturedImageP = window.capturedImageP || null;
   let contextPathP = "/CWFM";
-
 window.stream = window.stream || null;
 window.video = window.video || null;
 window.canvas = window.canvas || null;
@@ -719,7 +718,7 @@ window.overlay  = window.overlay  || null;
 const TOTAL_IMAGES = 60;
 window.overlay = null;
 window.recognitionRunning = false;
-
+window.lastRecognizedFrame = null;
 
 let userLatitude = null;
 let userLongitude = null;
@@ -739,49 +738,93 @@ document.addEventListener("DOMContentLoaded", function () {
 
 async function startPunchRecognition()
 {
-    console.log("Start Recognition Clicked");
-    if(userLatitude == null || userLongitude == null)
-    {
-        alert("Location not available.");
-        requestLocationPermission();
-        return;
-    }
-
     try
     {
+        console.log("Start Recognition");
+
         video =
             document.getElementById("video");
 
         overlay =
             document.getElementById("overlay");
 
+        if (!video)
+        {
+            throw new Error("Video element not found");
+        }
+
+        if (!overlay)
+        {
+            throw new Error("Overlay element not found");
+        }
+
+        stopFaceCamera();
+
+        await sleep(500);
+
+        await new Promise((resolve, reject) =>
+        {
+            navigator.geolocation.getCurrentPosition(
+                position =>
+                {
+                    userLatitude =
+                        position.coords.latitude;
+
+                    userLongitude =
+                        position.coords.longitude;
+
+                    resolve();
+                },
+                reject,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        });
+
         stream =
             await navigator.mediaDevices.getUserMedia({
-                video:true
+                video:
+                {
+                    facingMode: "user"
+                }
             });
 
-        video.srcObject = stream;
+        video.srcObject =
+            stream;
 
-        video.onloadedmetadata = () =>
+        await new Promise(resolve =>
         {
-            overlay.width =
-                video.videoWidth;
+            video.onloadedmetadata =
+                resolve;
+        });
 
-            overlay.height =
-                video.videoHeight;
+        await video.play();
 
-            recognitionRunning = true;
+        overlay.width =
+            video.videoWidth;
 
-            recognizeLoop();
-        };
+        overlay.height =
+            video.videoHeight;
+
+        recognitionRunning =
+            true;
+
+        recognizeLoop();
     }
     catch(error)
     {
-        console.log(error);
+        console.error(error);
 
-        alert(error.message);
+        alert(
+            "Unable to start recognition\n\n" +
+            error.message
+        );
     }
 }
+
 
 async function recognizeLoop()
 {
@@ -793,35 +836,35 @@ async function recognizeLoop()
         {
             const frame = captureRecognitionFrame();
 
-           console.log("Sending Request...");
-const API_BASE_URL = window.location.origin + "/Test/Face/recognize";
-        console.log(API_BASE_URL)
-          const response = await fetch(
-             API_BASE_URL,
-              {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({
-                      image: frame,
-                      latitude: userLatitude,
-                      longitude: userLongitude
-                  })
-              }
-          );
+            window.lastRecognizedFrame = frame;
 
-           console.log("Response Status =", response.status);
+            const API_BASE_URL =
+                window.location.origin + "/Test/Face/recognize";
 
-           const result = await response.json();
+            const response =
+                await fetch(API_BASE_URL,
+                {
+                    method: "POST",
+                    headers:
+                    {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        image: frame,
+                        latitude: userLatitude,
+                        longitude: userLongitude
+                    })
+                });
 
-           console.log("Recognition Result =", result);
+            const result = await response.json();
+
+            console.log(result);
 
             drawRecognitionFace(result);
 
-            // ==========================================
+            //--------------------------------------------------
             // Unknown Person
-            // ==========================================
+            //--------------------------------------------------
             if (result.message === "Unknown Person")
             {
                 document.getElementById("result").innerHTML =
@@ -830,13 +873,12 @@ const API_BASE_URL = window.location.origin + "/Test/Face/recognize";
                 clearRecognitionFace();
 
                 await sleep(500);
-
                 continue;
             }
 
-            // ==========================================
+            //--------------------------------------------------
             // Outside Radius
-            // ==========================================
+            //--------------------------------------------------
             if (result.message === "User is outside configured radius")
             {
                 recognitionRunning = false;
@@ -851,38 +893,74 @@ const API_BASE_URL = window.location.origin + "/Test/Face/recognize";
 
                 clearRecognitionFace();
 
-                await sleep(500);
-
                 break;
             }
 
-            // ==========================================
+            //--------------------------------------------------
             // Success Punch
-            // ==========================================
-            if (result.matched)
-            {
-                recognitionRunning = false;
+            //--------------------------------------------------
+         if (result.matched)
+         {
+             const successImg =
+                 document.getElementById("successImage");
 
-                stopFaceCamera();
+             const successBadge =
+                 document.getElementById("successBadge");
 
-                document.getElementById("loaderOverlay").style.display =
-                    "none";
+             document.getElementById("loaderOverlay").style.display =
+                 "none";
 
-                document.getElementById("result").innerHTML =
-                    "✅ Punch Success<br>"
-                    + result.personName
-                    + " ("
-                    + result.personId
-                    + ")";
+             // Freeze last frame
+             successImg.src =
+                 window.lastRecognizedFrame;
 
-                clearRecognitionFace();
+             video.style.display =
+                 "none";
 
-                break;
-            }
+             overlay.style.display =
+                 "none";
 
-            // ==========================================
+             successImg.style.display =
+                 "block";
+
+             successBadge.style.display =
+                 "block";
+
+             document.getElementById("result").innerHTML =
+                 "✅ Punch Success";
+
+             document.getElementById("subResult").innerHTML =
+                 result.personName +
+                 " (" +
+                 result.personId +
+                 ")";
+
+             await sleep(3000);
+
+             // Back to camera
+             successImg.style.display =
+                 "none";
+
+             successBadge.style.display =
+                 "none";
+
+             video.style.display =
+                 "block";
+
+             overlay.style.display =
+                 "block";
+
+             document.getElementById("result").innerHTML = "";
+             document.getElementById("subResult").innerHTML = "";
+
+             document.getElementById("loaderOverlay").style.display =
+                 "flex";
+
+             continue;
+         }
+            //--------------------------------------------------
             // No Face Detected
-            // ==========================================
+            //--------------------------------------------------
             if (!result.faceDetected)
             {
                 clearRecognitionFace();
@@ -907,7 +985,6 @@ const API_BASE_URL = window.location.origin + "/Test/Face/recognize";
         }
     }
 }
-
 function drawRecognitionFace(result)
 {
     if(!overlay)
@@ -955,6 +1032,8 @@ function clearRecognitionFace()
         overlay.height
     );
 }
+
+
 function captureRecognitionFrame()
 {
     const temp =
@@ -1004,11 +1083,16 @@ async function startFaceCamera() {
 }
 function stopFaceCamera()
 {
-    if(stream)
+    if (stream)
     {
-        stream.getTracks().forEach(
-            track => track.stop()
-        );
+        stream.getTracks().forEach(track => track.stop());
+
+        stream = null;           // IMPORTANT
+    }
+
+    if (video)
+    {
+        video.srcObject = null;  // IMPORTANT
     }
 }
 
@@ -1348,17 +1432,6 @@ function showLocationBlockedAlert() {
     );
 }
 
-
-
-
-
-
-
-
-
-
-
-
  function isRealMobileDevice()
  {
      const ua = navigator.userAgent.toLowerCase();
@@ -1371,9 +1444,21 @@ function showLocationBlockedAlert() {
      );
  }
 
+function cancelRecognition()
+{
+    recognitionRunning = false;
 
+    stopFaceCamera();
 
+    clearRecognitionFace();
 
+    document.getElementById("loaderOverlay").style.display = "none";
+
+    document.getElementById("result").innerHTML =
+        "Recognition Cancelled";
+
+    document.getElementById("subResult").innerHTML = "";
+}
 
 
 

@@ -731,6 +731,69 @@
                                 .error{
                                     color:red;
                                 }
+
+
+
+
+
+
+.camera-container{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    margin:auto;
+}
+
+#video,
+#successImage{
+    width:100%;
+    display:block;
+    border-radius:12px;
+}
+
+#overlay{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+#successImage{
+    display:none;
+    border:4px solid #16c63a;
+}
+
+#successBadge{
+    display:none;
+    position:absolute;
+    bottom:15px;
+    left:50%;
+    transform:translateX(-50%);
+    background:#18c93c;
+    color:white;
+    padding:12px 24px;
+    border-radius:10px;
+    font-size:20px;
+    font-weight:bold;
+}
+
+#result{
+    margin-top:15px;
+    text-align:center;
+    font-size:32px;
+    font-weight:700;
+    color:#19b638;
+}
+
+#subResult{
+    text-align:center;
+    font-size:24px;
+    font-weight:600;
+    margin-top:8px;
+        color:#19b638;
+}
+
                             </style>
 
                             <!-- MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null && user.getUserId() !=null ? String.valueOf(user.getUserId()) : "" ;  -->
@@ -851,26 +914,28 @@
 
                                                    <br><br>
 
-                                                   <div id="container">
+                                                 <div id="container" class="camera-container">
 
-                                                       <video id="video"
-                                                              autoplay
-                                                              playsinline
-                                                              style="width:300px;border:1px solid #ccc;">
-                                                       </video>
+                                                     <video id="video"
+                                                            autoplay
+                                                            muted
+                                                            playsinline>
+                                                     </video>
 
-                                                       <canvas id="overlay"
-                                                               style="
-                                                                   position:absolute;
-                                                                   left:0;
-                                                                   top:0;">
-                                                       </canvas>
+                                                     <canvas id="overlay"></canvas>
 
-                                                   </div>
+                                                     <img id="successImage">
 
+                                                     <div id="successBadge">
+
+                                                     </div>
+
+                                                 </div>
+
+                                                 <div id="result"></div>
+
+                                                 <div id="subResult"></div>
                                                    <br>
-
-                                                   <div id="result"></div>
 
                                                </td>
                                            </tr>
@@ -884,12 +949,25 @@ window.onload = function () {
 </script>
                            </div>
                            </div>
-                            <div id="loaderOverlay" style="display:none;">
-                                <div class="loader-box">
-                                    <div class="spinner"></div>
-                                    <div class="loader-text" >Verifying Face...</div>
-                                </div>
-                            </div>
+                           <div id="loaderOverlay" style="display:none;">
+                               <div class="loader-box">
+
+                                   <div class="spinner"></div>
+
+                                   <div class="loader-text">
+                                       Verifying Face...
+                                   </div>
+
+                                   <br>
+
+                                   <button type="button"
+                                           class="btn btn-danger"
+                                           onclick="cancelRecognition()">
+                                       Cancel
+                                   </button>
+
+                               </div>
+                           </div>
 
 
                         </body>

@@ -506,7 +506,7 @@
                                         align-items: stretch !important;
                                     }
 
-                                    /* 
+                                    /*
     button[onclick*="openCamera"] {
         margin-left: 0 !important;
         margin-top: 6px;
@@ -780,18 +780,18 @@
                                         tabContents.forEach(function(content) {
                                             content.classList.remove('active');
                                         });
-                                
+
                                         // Remove active class from all tabs
                                         var tabs = document.querySelectorAll('.tabs button');
                                         tabs.forEach(function(tab) {
                                             tab.classList.remove('active');
                                         });
-                                
+
                                         // Show the selected tab content and add active class to the clicked tab
                                         document.getElementById(tabId).classList.add('active');
                                         document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
                                     } */
-                                 
+
                                 </script>
 
 
@@ -876,14 +876,6 @@
                                                             onclick="startFaceCamera()">
                                                         Start Camera
                                                     </button>
-
-                                                    <button type="button"
-                                                            class="punch-btn"
-                                                            id="captureBtn"
-                                                            onclick="captureFacesForRegistration()">
-                                                        Capture Photos
-                                                    </button>
-
                                                     <br><br>
 
                                                     <div id="status">

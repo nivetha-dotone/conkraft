@@ -326,7 +326,7 @@ public class EmployeeMapper {
                     )
                     .optionalEnd()
                     .toFormatter();
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 */2 * * * *")
     @Transactional
     public synchronized void gateSchedularPunchDB() {
         try {
@@ -1062,7 +1062,7 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category);
+                        labor.setLaborCategoryName(category +",");
                         System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
@@ -1075,8 +1075,8 @@ public class EmployeeMapper {
                             (laborCatInWFD.startsWith("SUCCESS") || laborCatInWFD.contains("This name is already")))
                     {  String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
-//                            labor.setLaborCategoryName(category + ",,,,,");
-                            labor.setLaborCategoryName(category);
+                            labor.setLaborCategoryName(category +",");
+//                            labor.setLaborCategoryName(category);
                             System.out.println("format of to set labour category to post :- "+labor.getLaborCategoryName());
                         }
                     }
@@ -1372,19 +1372,19 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category + ", ");
-                        System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
+                        labor.setLaborCategoryName(category.trim() + ",,,,,");
+                        System.out.println(category +", "  +" :- get this workorder to put in json");
                     }
 
                 }else{
-                    System.out.println(individualOnBoardDetailsByTrnId.getCategory() +"going for create workorder");
+                    System.out.println(individualOnBoardDetailsByTrnId.getCategory()+"," +":-going for create workorder");
                     PostLaborCatDTO laborCategoryDto = gatePassToOnBoardService.createLaborCategoryDto(individualOnBoardDetailsByTrnId.getCategory());
                     String laborCatInWFD = wfdEmployeeService.createLaborCatInWFD(laborCategoryDto);
                     System.out.println(laborCatInWFD +"check that successfull or not");
                     if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
-                            labor.setLaborCategoryName(category + ", ");
+                            labor.setLaborCategoryName(category.trim() + ",,,,,");
                             System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
                         }
                     }
@@ -1892,7 +1892,7 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category);
+                        labor.setLaborCategoryName(category+",");
                         System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
@@ -1906,7 +1906,7 @@ public class EmployeeMapper {
                     {  String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
 //                            labor.setLaborCategoryName(category + ",,,,,");
-                            labor.setLaborCategoryName(category);
+                            labor.setLaborCategoryName(category+",");
                             System.out.println("format of to set labour category to post :- "+labor.getLaborCategoryName());
                         }
                     }
@@ -2200,7 +2200,7 @@ public class EmployeeMapper {
                     System.out.println(category +" get from query workorder");
 
                     if (category != null && !category.isEmpty()) {
-                        labor.setLaborCategoryName(category + ",");
+                        labor.setLaborCategoryName(category.trim() + ",,,,,");
                         System.out.println(labor.getLaborCategoryName() +" :- get this workorder to put in json");
                     }
 
@@ -2212,7 +2212,7 @@ public class EmployeeMapper {
                     if (laborCatInWFD != null && laborCatInWFD.startsWith("SUCCESS")) {
                         String category = individualOnBoardDetailsByTrnId.getCategory();
                         if (category != null && !category.isEmpty()) {
-                            labor.setLaborCategoryName(category + ",");
+                            labor.setLaborCategoryName(category.trim() + ",,,,,");
                             System.out.println("format of to set labour category to post"+labor.getLaborCategoryName());
                         }
                     }
