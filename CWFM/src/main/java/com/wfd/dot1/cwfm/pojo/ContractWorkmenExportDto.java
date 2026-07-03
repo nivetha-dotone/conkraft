@@ -640,6 +640,13 @@ public class ContractWorkmenExportDto {
 	}
 	private String home8;
 	private String home9;
+	private String home7;
+	public String getHome7() {
+		return home7;
+	}
+	public void setHome7(String home7) {
+		this.home7 = home7;
+	}
 	public String getHome8() {
 		return home8;
 	}
@@ -652,7 +659,13 @@ public class ContractWorkmenExportDto {
 	public void setHome9(String home9) {
 		this.home9 = home9;
 	}
-	
+	private String home3;
+	public String getHome3() {
+		return home3;
+	}
+	public void setHome3(String home3) {
+		this.home3 = home3;
+	}
 	
 
 }

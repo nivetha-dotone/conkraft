@@ -133,8 +133,8 @@ public class ExportController {
                 List<ContractWorkmenExportDto> workmen = workmenService.getContractWorkmenExportData(unitId);
                 columns = Arrays.asList("Person Number(Employee id.)", "First Name", "Last Name", "Middle Initial/Name", "Short Name", "Badge Number (Punch Card)",
                 		"Hire Date","Birth Date","Phone 1","Phone 2","Phone 3","Email","Address","City","State","Postal Code","Country","Employment Status","Employment Status Effective Date","Reports to Manager",
-                		"Worker Type(Black Listed)","User Account Name","User Account Status","User Password","Company","Location","Plant Location","Department","Section","sub-section (Line)","Contractore Code",
-                		"Home Business Structure Level 8","Home Business Structure Level 9","Category","Supervioser Id","Cost Center","Workorder","Home Labor Category Level 4","Home Labor Category Level 5","Home Labor Category Level 6","Home Job and Labor Category Effective Date",
+                		"Worker Type(Black Listed)","User Account Name","User Account Status","User Password","Company","Location","Plant Location","Department","Contractore Code",
+                		"Home Business Structure Level 6","Home Business Structure Level 7","Home Business Structure Level 8","Home Business Structure Level 9","Category","Workorder","Cost Center","Home Labor Category Level 3","Home Labor Category Level 4","Home Labor Category Level 5","Home Labor Category Level 6","Home Job and Labor Category Effective Date",
                 		"Gender","Aadhar Number","Name as Per Aadhar","Father or Husband Name","Permanent Address","Permanent District","Permanent State",
                 		"Permanent Pincode","ID Mark","UAN Number","Marital Status","Technical Qualification","Academic Qualification","Shoe Size","Blood Group",
                 		"Workmen Type","Nature Of Job/Work","ESIC IP Number","PAN Number","PF Number","Bank Account Number.","Bank Name","IFSC Code","Future Use 2","Future Use 3","Future Use 4",
@@ -173,15 +173,19 @@ public class ExportController {
                     row.put("Location", c.getLocation());
                     row.put("Plant Location", c.getPlantLocation());
                     row.put("Department", c.getDepartment());
-                    row.put("Section", c.getSection());
-                    row.put("sub-section (Line)", c.getSubSection());
+                   // row.put("Section", c.getSection());
+                   // row.put("sub-section (Line)", c.getSubSection());
                     row.put("Contractore Code", c.getContractorCOde());
+                    row.put("Home Business Structure Level 6", c.getHome6());
+                    row.put("Home Business Structure Level 7", c.getHome7());
                     row.put("Home Business Structure Level 8", c.getHome8());
                     row.put("Home Business Structure Level 9", c.getHome9());
                     row.put("Category", c.getCategory());
-                    row.put("Supervioser Id", c.getSupervisorId());
-                    row.put("Cost Center", c.getCostCenter());
                     row.put("Workorder", c.getWorkorder());
+                    //row.put("Supervioser Id", c.getSupervisorId());
+                    row.put("Cost Center", c.getCostCenter());
+                    //row.put("Workorder", c.getWorkorder());
+                    row.put("Home Labor Category Level 3", c.getHome3());
                     row.put("Home Labor Category Level 4", c.getHome4());
                     row.put("Home Labor Category Level 5", c.getHome5());
                     row.put("Home Labor Category Level 6", c.getHome6());
