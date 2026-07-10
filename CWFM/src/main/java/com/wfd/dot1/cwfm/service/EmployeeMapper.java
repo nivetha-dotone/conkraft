@@ -581,6 +581,10 @@ public class EmployeeMapper {
         return dto == null ? "Employment status not updated" : this.wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
     }
 
+    public String getPersonKeyWFD(String gmID){
+        Integer personKeyApi = wfdEmployeeService.getPersonKeyApi(gmID);
+        return String.valueOf(personKeyApi);
+    }
 
     @Scheduled(
             cron = "0 0 10 * * ?"
@@ -783,6 +787,7 @@ public class EmployeeMapper {
                 EmployeeRequestDTO dto = new EmployeeRequestDTO();
                 EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
                 EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
+                access.setEmployeeLaborCategoryProfileName(individualOnBoardDetailsByTrnId.getEmployeeLaborCategoryProfileName());
                 access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
                 access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
                 access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
@@ -1126,6 +1131,7 @@ public class EmployeeMapper {
                 EmployeeRequestDTO.PersonInformation personInfo = new EmployeeRequestDTO.PersonInformation();
                 EmployeeRequestDTO.AccessAssignment access = new EmployeeRequestDTO.AccessAssignment();
                 access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
+                access.setEmployeeLaborCategoryProfileName(individualOnBoardDetailsByTrnId.getEmployeeLaborCategoryProfileName());
                 access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
                 access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
                 access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());
@@ -1615,6 +1621,7 @@ public class EmployeeMapper {
                 UpdateEmployeeRequestDTO.AccessAssignment access = new UpdateEmployeeRequestDTO.AccessAssignment();
                 access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
                 access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
+                access.setEmployeeLaborCategoryProfileName(individualOnBoardDetailsByTrnId.getEmployeeLaborCategoryProfileName());
                 access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
                 access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());
                 access.setShiftCodeName(individualOnBoardDetailsByTrnId.getShiftCodeName());
@@ -1954,6 +1961,7 @@ public class EmployeeMapper {
                 UpdateEmployeeRequestDTO.PersonInformation personInfo = new UpdateEmployeeRequestDTO.PersonInformation();
                 UpdateEmployeeRequestDTO.AccessAssignment access = new UpdateEmployeeRequestDTO.AccessAssignment();
                 access.setAccessProfileName(individualOnBoardDetailsByTrnId.getAccessProfileName());
+                access.setEmployeeLaborCategoryProfileName(individualOnBoardDetailsByTrnId.getEmployeeLaborCategoryProfileName());
                 access.setPreferenceProfileName(individualOnBoardDetailsByTrnId.getPreferenceProfileName());
                 access.setProfessionalPayCodeName(individualOnBoardDetailsByTrnId.getProfessionalPayCodeName());
                 access.setProfessionalWorkRuleName(individualOnBoardDetailsByTrnId.getProfessionalWorkRuleName());

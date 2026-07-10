@@ -379,6 +379,16 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
     }
 
+ @PostMapping({"/getPersonKey/{gatepassId}"})
+    public ResponseEntity<String> getPersonKey(@PathVariable String gatepassId) {
+        try {
+            String response = this.employeeMapper.getPersonKeyWFD(gatepassId);
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
     @PostMapping({"/updateEmpStatusTerSchedule"})
     public ResponseEntity<Object> updateEmpStatusTerSchedule() {
         try {

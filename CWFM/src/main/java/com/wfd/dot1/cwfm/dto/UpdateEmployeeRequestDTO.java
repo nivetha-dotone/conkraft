@@ -36,6 +36,7 @@ public class UpdateEmployeeRequestDTO {
         private String professionalPayCodeName;
         private String professionalWorkRuleName;
         private String shiftCodeName;
+        private String employeeLaborCategoryProfileName;
     }
 
     @Data

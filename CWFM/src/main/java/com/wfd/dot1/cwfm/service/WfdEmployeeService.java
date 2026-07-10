@@ -893,6 +893,29 @@ public class WfdEmployeeService {
         }
     }
 
+    public Integer getPersonKeyApi( String personNumber) {
+        try {
+            String accessToken = this.wfdAuthService.getAccessToken();
+            String jsonBody = "{\n  \"where\": {\n    \"employees\": {\n      \"key\": \"personnumber\",\n      \"values\": [\"" + personNumber + "\"]\n    }\n  }\n}";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
+            String var10000 = this.getHostName();
+            String url = var10000 + this.getFindPersonKey();
+            ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
+            JsonNode root = this.objectMapper.readTree((String)response.getBody());
+            JsonNode idsNode = root.path("ids");
+            if (idsNode.isArray() && idsNode.size() > 0) {
+                return idsNode.get(0).asInt();
+            } else {
+                throw new RuntimeException("No ID found in response: " + (String)response.getBody());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching person key from WFD API", e);
+        }
+    }
+
 
     public Integer getPersonKeyBasedonUserName(String personNumber) {
         try {

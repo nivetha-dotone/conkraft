@@ -20,6 +20,7 @@ public class EmployeeRequestDTO {
         private List<PersonAuthenticationType> personAuthenticationTypes;
         private List<PersonLicenseType> personLicenseTypes;
         private List<UserAccountStatus> userAccountStatusList;
+
     }
 
     @Data
@@ -29,6 +30,7 @@ public class EmployeeRequestDTO {
         private String professionalPayCodeName;
         private String professionalWorkRuleName;
         private String shiftCodeName;
+        private String employeeLaborCategoryProfileName;
     }
 
     @Data

@@ -842,6 +842,7 @@ public class GatePassToOnBoardService {
             GatePassToOnBoard dto = null;
             String queryGetOnBdByTranId = this.getGTByTrnsId();
             log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+
             SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
             if (rs.next()) {
                 dto = new GatePassToOnBoard();
@@ -853,6 +854,7 @@ public class GatePassToOnBoardService {
                 dto.setShortName(rs.getString("shortName"));
                 dto.setAccessProfileName(rs.getString("accessProfileName"));
                 dto.setPreferenceProfileName(rs.getString("preferenceProfileName"));
+                dto.setEmployeeLaborCategoryProfileName(rs.getString("EmpLaborCatProf"));
                 dto.setProfessionalPayCodeName(rs.getString("professionalPayCodeName"));
                 dto.setProfessionalWorkRuleName(rs.getString("professionalWorkRuleName"));
                 dto.setShiftCodeName(rs.getString("shiftCodeName"));
@@ -941,6 +943,7 @@ public class GatePassToOnBoardService {
                 dto.setAccessProfileName(rs.getString("accessProfileName"));
                 dto.setPreferenceProfileName(rs.getString("preferenceProfileName"));
                 dto.setProfessionalPayCodeName(rs.getString("professionalPayCodeName"));
+                dto.setEmployeeLaborCategoryProfileName(rs.getString("EmpLaborCatProf"));
                 dto.setProfessionalWorkRuleName(rs.getString("professionalWorkRuleName"));
                 dto.setShiftCodeName(rs.getString("shiftCodeName"));
                 dto.setAddressEmail(rs.getString("addressEmail"));

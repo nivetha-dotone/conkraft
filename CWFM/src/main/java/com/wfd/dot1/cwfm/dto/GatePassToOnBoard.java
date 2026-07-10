@@ -17,6 +17,7 @@ public class GatePassToOnBoard {
 
     private String accessProfileName;
     private String preferenceProfileName;
+    private String employeeLaborCategoryProfileName;
     private String professionalPayCodeName;
     private String professionalWorkRuleName;
     private String shiftCodeName;
