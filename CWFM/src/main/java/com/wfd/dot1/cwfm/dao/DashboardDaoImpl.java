@@ -10,15 +10,20 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.AckExpiryDTO;
+import com.wfd.dot1.cwfm.dto.BillStatusDTO;
 import com.wfd.dot1.cwfm.dto.BusinessTypePEDTO;
 import com.wfd.dot1.cwfm.dto.ContractorWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.DashboardDTO;
 import com.wfd.dot1.cwfm.dto.DepartmentWorkmenDTO;
+import com.wfd.dot1.cwfm.dto.ESICDTO;
 import com.wfd.dot1.cwfm.dto.ExpiryDTO;
+import com.wfd.dot1.cwfm.dto.LicensesDTO;
 import com.wfd.dot1.cwfm.dto.PEContractorDTO;
 import com.wfd.dot1.cwfm.dto.PlantWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.PvcTypeDTO;
+import com.wfd.dot1.cwfm.dto.WCDTO;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
+import com.wfd.dot1.cwfm.dto.WorkordersDTO;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 
 @Repository
@@ -54,7 +59,18 @@ public class DashboardDaoImpl implements DashboardDao {
         loadPvcTypeWiseCount(dashboard, peIds);
         loadContractorDeptWorkmen(dashboard, peIds);
         loadPlantContractorWorkmen(dashboard, peIds);
-
+        loadWorkordersExpiry( dashboard,  peIds,  contIds) ;
+        loadLicensesExpiry( dashboard,  peIds,  contIds) ;
+        loadLicensesExpiry( dashboard,  peIds,  contIds) ;
+        gatepassesExpiry( dashboard,  peIds,  contIds) ;
+        blackliestedGatepasses(dashboard) ;
+        pendingBills( dashboard,  peIds,  contIds) ;
+        workOrderCompliance(dashboard,contIds) ;
+        llCompliance(dashboard,contIds) ;
+        wcCompliance(dashboard,contIds) ;
+        esicCompliance(dashboard,contIds) ;
+        billVerificationStatus(dashboard,contIds) ;
+        
         dashboard.setAckExpiryList(new ArrayList<AckExpiryDTO>());
         dashboard.setBusinessTypePEList(new ArrayList<BusinessTypePEDTO>());
         dashboard.setPeContractorList(new ArrayList<PEContractorDTO>());
@@ -213,4 +229,221 @@ public class DashboardDaoImpl implements DashboardDao {
 
         return list;
     }
+
+    private void loadWorkordersExpiry(DashboardDTO dashboard, String peIds, String contIds) {
+
+        String sql = "select count(*) as expiredworkorders from GATEPASSMAIN gpm\r\n"
+        		+ "INNER JOIN CMSWORKORDER wo ON wo.WORKORDERID = gpm.WorkorderId\r\n"
+        		+ "WHERE\r\n"
+        		+ "    gpm.UnitId IN (\r\n"
+        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
+        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    )\r\n"
+        		+ "AND\r\n"
+        		+ "    gpm.ContractorId IN (\r\n"
+        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
+        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    ) AND gpm.GatePassStatus = 4 AND gpm.GatePassTypeId IN (1, 2, 12, 15) \r\n"
+        		+ "AND (CAST(wo.VALIDDT AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)))";
+
+        jdbcTemplate.query(sql, rs -> {
+           
+                dashboard.setExpiredworkorders(rs.getInt("expiredworkorders"));      
+        }, peIds, contIds);
+    }
+    private void loadLicensesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
+
+        String sql = "select count(*) as LicenseExpired from GATEPASSMAIN gpm\r\n"
+        		+ "INNER JOIN CMSWORKORDER_LLWC ccwc ON ccwc.WOLLID = gpm.WcEsicNo\r\n"
+        		+ "INNER JOIN CMSWORKORDER_LLWC ll ON ll.WOLLID = gpm.LLNo \r\n"
+        		+ "INNER JOIN CMSCONTRACTOR_WC cwc ON  cwc.WC_CODE=ccwc.LICENSE_NUMBER\r\n"
+        		+ "WHERE \r\n"
+        		+ "    gpm.UnitId IN (\r\n"
+        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
+        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    )\r\n"
+        		+ "AND\r\n"
+        		+ "    gpm.ContractorId IN (\r\n"
+        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
+        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    ) AND gpm.GatePassStatus = 4 AND gpm.GatePassTypeId IN (1, 2, 12, 15) \r\n"
+        		+ "AND (CAST(cwc.WC_TO_DTM AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)))";
+
+        jdbcTemplate.query(sql, rs -> {
+           
+                dashboard.setExpiredLicensess(rs.getInt("LicenseExpired")); 
+        }, peIds, contIds);
+    }
+    private void gatepassesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
+
+        String sql = "select count(*) as ExpiredGatepasses from GATEPASSMAIN gpm\r\n"
+        		+ "WHERE  gpm.DOT >= CAST(GETDATE() AS DATE)\r\n"
+        		+ "     AND gpm.DOT <= DATEADD(DAY, 30, CAST(GETDATE() AS DATE))\r\n"
+        		+ "	and gpm.UnitId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))\r\n"
+        		+ "      AND gpm.GatePassStatus = 4\r\n"
+        		+ "	   AND gpm.GatePassTypeId IN (1, 2, 12, 15)\r\n"
+        		+ "      AND gpm.ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+
+        jdbcTemplate.query(sql, rs -> {
+           
+                dashboard.setExpiredgatepasses(rs.getInt("ExpiredGatepasses"));
+        }, peIds, contIds);
+    }
+    private void blackliestedGatepasses(DashboardDTO dashboard) {
+
+        String sql = "select count(*) as BlackliestedGatepasses from GATEPASSMAIN where GatePassTypeId=6";
+
+        jdbcTemplate.query(sql, rs -> {
+           
+                dashboard.setBlackliestedGP(rs.getInt("BlackliestedGatepasses"));
+        });
+    }
+    private void pendingBills(DashboardDTO dashboard, String peIds, String contIds) {
+
+        String sql = "select count(*) as PendingBills from CMSWageCostWorkFlow wc where Status=3 and wc.UnitId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))"
+        		 + "AND wc.ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+
+        jdbcTemplate.query(sql, rs -> {
+           
+                dashboard.setPendingBills(rs.getInt("PendingBills"));
+        }, peIds, contIds);
+    }
+    private void workOrderCompliance(DashboardDTO dashboard, String contIds) {
+
+        String sql = """
+            SELECT 
+                COUNT(*) AS TotalWorkOrders,
+                SUM(CASE WHEN VALIDDT >= GETDATE() THEN 1 ELSE 0 END) AS ActiveWorkOrders
+            FROM CMSWORKORDER
+            WHERE ContractorId IN (
+                SELECT TRY_CAST(value AS INT) 
+                FROM STRING_SPLIT(?, ',')
+            )
+        """;
+
+        List<WorkordersDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
+            int total = rs.getInt("TotalWorkOrders");
+            int active = rs.getInt("ActiveWorkOrders");
+
+            // ✅ Calculate percentage safely
+            int percent = total > 0 ? (active * 100) / total : 0;
+
+            WorkordersDTO dto = new WorkordersDTO();
+            dto.setTotalWO(total);
+            dto.setActiveWO(active);
+            dto.setWoPercentage(percent);
+
+            return dto;
+        });
+
+        dashboard.setWorkorderList(list);
+    }
+
+    private void llCompliance(DashboardDTO dashboard ,String contIds) {
+
+        String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('LL') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+
+        List<LicensesDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
+            int total = rs.getInt("TotalLL");
+            int active = rs.getInt("ActiveLLs");
+
+            // ✅ Calculate percentage safely
+            int percent = total > 0 ? (active * 100) / total : 0;
+
+            LicensesDTO dto = new LicensesDTO();
+            dto.setTotalLL(total);
+            dto.setActiveLL(active);
+            dto.setLLPercentage(percent);
+
+            return dto;
+        });
+
+        dashboard.setLicenseList(list);
+    }
+    private void wcCompliance(DashboardDTO dashboard ,String contIds) {
+
+        String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('WC') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+
+        List<WCDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
+            int total = rs.getInt("TotalLL");
+            int active = rs.getInt("ActiveLLs");
+
+            // ✅ Calculate percentage safely
+            int percent = total > 0 ? (active * 100) / total : 0;
+
+            WCDTO dto = new WCDTO();
+            dto.setTotalWC(total);
+            dto.setActiveWC(active);
+            dto.setWCPercentage(percent);
+
+            return dto;
+        });
+
+        dashboard.setWCList(list);
+    }
+    
+    private void esicCompliance(DashboardDTO dashboard ,String contIds) {
+
+        String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('ESIC') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+
+        List<ESICDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
+            int total = rs.getInt("TotalLL");
+            int active = rs.getInt("ActiveLLs");
+
+            // ✅ Calculate percentage safely
+            int percent = total > 0 ? (active * 100) / total : 0;
+
+            ESICDTO dto = new ESICDTO();
+            dto.setTotalEsic(total);
+            dto.setActiveEsic(active);
+            dto.setEsicPercentage(percent);
+
+            return dto;
+        });
+
+        dashboard.setESICList(list);
+    }
+    
+    private void billVerificationStatus(DashboardDTO dashboard, String contractorIds) {
+
+        String sql = """
+            SELECT  
+                SUM(CASE WHEN cwc.status = 4 THEN 1 ELSE 0 END) AS ApprovedCount,
+                SUM(CASE WHEN cwc.status = 5 THEN 1 ELSE 0 END) AS RejectedCount,
+                SUM(CASE WHEN cwc.status = 3 THEN 1 ELSE 0 END) AS PendingCount,
+                COUNT(*) AS TotalCount
+            FROM CMSWageCostWorkFlow cwc
+            WHERE cwc.ContractorId IN (
+                SELECT TRY_CAST(value AS INT) FROM STRING_SPLIT(?, ',')
+            )
+        """;
+
+        List<BillStatusDTO> list = jdbcTemplate.query(sql, new Object[]{contractorIds}, (rs, rowNum) -> {
+            int approved = rs.getInt("ApprovedCount");
+            int rejected = rs.getInt("RejectedCount");
+            int pending = rs.getInt("PendingCount");
+            int total = rs.getInt("TotalCount");
+
+            int approvedPercent = total > 0 ? (approved * 100) / total : 0;
+            int rejectedPercent = total > 0 ? (rejected * 100) / total : 0;
+            int pendingPercent  = total > 0 ? (pending * 100) / total : 0;
+
+            BillStatusDTO dto = new BillStatusDTO();
+            dto.setApprovedCount(approved);
+            dto.setRejectedCount(rejected);
+            dto.setPendingCount(pending);
+            dto.setTotalCount(total);
+            dto.setApprovedPercent(approvedPercent);
+            dto.setRejectedPercent(rejectedPercent);
+            dto.setPendingPercent(pendingPercent);
+
+            return dto;
+        });
+
+        dashboard.setBillList(list);
+    }
+
+
+
+
 }

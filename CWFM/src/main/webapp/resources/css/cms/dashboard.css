@@ -280,10 +280,10 @@
 }
 
 /* CHART CANVAS FIX */
-canvas {
+ canvas {
   width: 100% !important;
   height: 100% !important;
-}
+} 
 
 /* PROGRESS LIST */
 .prog-list {
@@ -351,7 +351,7 @@ button {
 }
 
 button:hover {
-  background: #084c43;
+  background: #CFCFCF;
 }
 
 /* TIMELINE */

@@ -30,8 +30,10 @@
 <!-- Include Digiboost Web SDK digilocker-->
     <script src="https://cdn.jsdelivr.net/gh/surepassio/surepass-digiboost-web-sdk@latest/index.min.js"></script>
     
- <link rel="stylesheet" type="text/css" href="resources/css/cms/dashboard.css" />  
- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ <link rel="stylesheet" type="text/css" href="resources/css/cms/dashboard.css" />
+ <link rel="stylesheet" type="text/css" href="resources/css/cms/newdashboard.css" />  
+ <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+ <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
          <script src="resources/js/cms/requestorList.js"></script>
         <script src="resources/js/cms/plantZoneMappingList.js"></script>  
      <script src="resources/js/cms/requestorHRList.js"></script>
@@ -2052,7 +2054,7 @@ window.onload = function() {
     
 };
 
-function changeRole(selectedRoleId, selectedRoleName) {
+/* function changeRole(selectedRoleId, selectedRoleName) {
     if (selectedRoleId) {
     	 localStorage.setItem("selectedRoleId", selectedRoleId);
          localStorage.setItem("selectedRoleName", selectedRoleName);
@@ -2107,6 +2109,72 @@ function changeRole(selectedRoleId, selectedRoleName) {
         });
     }
 }
+ */
+ function changeRole(selectedRoleId, selectedRoleName) {
+	  if (selectedRoleId) {
+	    localStorage.setItem("selectedRoleId", selectedRoleId);
+	    localStorage.setItem("selectedRoleName", selectedRoleName);
+
+	    if (selectedRoleName === 'System Admin') {
+	      showAdminMenu();
+	    } else {
+	      showOtherMenus();
+	    }
+
+	    const loader = document.getElementById("loader");
+	    if (loader) loader.style.display = "flex";
+
+	    fetch('/CWFM/updateRole', {
+	      method: 'POST',
+	      headers: { 'Content-Type': 'application/json' },
+	      body: JSON.stringify({ roleId: selectedRoleId, roleName: selectedRoleName })
+	    })
+	    .then(response => {
+	      if (!response.ok) throw new Error('Failed to update role.');
+	      return response.json();
+	    })
+	    .then(data => {
+	      updateSidebar(data, selectedRoleName);
+	      return fetch('/CWFM/dashboard/dashboardPage');
+	    })
+	    .then(response => response.text())
+	    .then(html => {
+	      // ✅ Replace dashboard content
+	      const mainContent = document.getElementById("mainContent");
+	      mainContent.innerHTML = html;
+
+	      // ✅ Wait for DOM update before initializing charts
+	       setTimeout(() => {
+	        if (typeof initDashboardCharts === 'function') {
+	          initDashboardCharts(); // your global charts (plant/status)
+	        }
+
+	        // ✅ Render compliance charts after DOM is ready
+	        if (typeof renderComplianceCharts === 'function') {
+	          renderComplianceCharts(); // compliance overview charts
+	        }
+	        
+	        if (typeof renderBillChart === 'function') renderBillChart();
+	        
+	        if (typeof renderBillChart === 'function') renderBillChart();
+
+	        // ✅ Call it safely like your other charts
+	        if (typeof renderContractorDeptCharts === "function") renderContractorDeptCharts();
+	      }, 400); // small delay ensures canvases are ready
+	    }) 
+	   /*  setTimeout(() => {
+	    	  if (typeof initDashboardCharts === 'function') initDashboardCharts();
+	    	  if (typeof renderComplianceCharts === 'function') renderComplianceCharts();
+	    	  if (typeof renderBillChart === 'function') renderBillChart();
+	    	}, 400); // slightly longer delay ensures canvases are ready */
+
+	    .catch(error => console.error("Error:", error))
+	    .finally(() => {
+	       if (loader) loader.style.display = "none"; 
+	    });
+	  }
+	}
+
 
 function showAdminMenu() {
     // Code to show admin menu
@@ -3948,6 +4016,82 @@ background:white;
     gap: 12px;
 }
 
+/* Center headings */
+.center-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1; /* centers content */
+  text-align: center;
+}
+
+.heading-main {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.heading-sub {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.top-nav .conkraftlogo {
+     height: 40px;
+    width: auto;
+    margin: 0 5px; 
+   
+}
+
+.top-nav .conkraftlogo.conkraft {
+    height: 30px;
+}
+/* .logo-conkraft {
+  background: none;           /* Removes any background color */
+  border: none;               /* Removes border if present */
+  mix-blend-mode: multiply;   /* Helps blend with header background */
+  filter: brightness(1.1);    /* Optional: slightly brighten logo */
+  height: 28px;               /* Adjust size as needed */
+  width: auto;
+}
+ */
+ 
+ #loaderOverlay {
+  position: fixed;           /* ✅ covers entire viewport */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4); /* ✅ consistent overlay color */
+  z-index: 9999;             /* ✅ above all other elements */
+  display: none;             /* hidden by default */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;   /* ✅ centers loader vertically and horizontally */
+}
+
+.loader {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #ddd;
+  border-top: 6px solid #1976d2;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loader-text {
+  margin-top: 15px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
 </style>
 </head>
@@ -3962,7 +4106,7 @@ background:white;
     <%-- <div class="top-nav">
     
         <!-- <img src="resources/img/Adani_2012_logo.png" alt="Company Logo" class="logo"> -->
-        <div class="heading">Contract Labor Management System</div>
+        <div class="heading"></div>
 <c:choose>
     <c:when test="${not empty sessionScope.roles and sessionScope.roles.size() > 1}">
         <label for="roleSelect" class="role-label">Role:</label>
@@ -4101,6 +4245,7 @@ background:white;
     
     
     </div> --%>
+    
     <!-- TOP NAV -->
 <div class="top-nav">
     <!-- <button id="sidebar-toggle" class="hamburger-btn">☰</button> -->
@@ -4116,6 +4261,7 @@ background:white;
   </svg>
 </button>
     </div> 
+    <img src="resources/img/conkraftLogo.jpeg" alt="Dot1 Logo" class="conkraftlogo conkraft">
     </div> 
      <!-- <div>
         <button id="sidebar-toggle" onclick="openDrawer()" class="btn home-button" aria-label="Home">
@@ -4124,7 +4270,10 @@ background:white;
      </div> -->
       <!--  <i class="fa fa-bars"></i> -->
         <!-- <img src="resources/img/Adani_2012_logo.png" alt="Company Logo" class="logo"> -->
-        <div class="heading">Contract Labor Management System</div>
+        <div class="center-heading">
+    <div class="heading-main">CONKRAFT</div>
+    <div class="heading-sub">Contract Labor Management System</div>
+  </div>
 <c:choose>
     <c:when test="${not empty sessionScope.roles and sessionScope.roles.size() > 1}">
         <label for="roleSelect" class="role-label">Role:</label>
@@ -4275,7 +4424,11 @@ background:white;
     </ul>
 
 </div>
-
+<!-- Loader Overlay -->
+<div id="loaderOverlay" style="display:none;">
+  <div class="loader"></div>
+  <div class="loader-text">Please wait...</div>
+</div>
 
 <!-- MAIN CONTENT -->
 <div id="mainContent" class="form-content"></div>
@@ -4580,7 +4733,7 @@ document.addEventListener('click', function () {
         }
 
         function updateHeading(text) {
-            const headingElement = document.querySelector('.top-nav .heading');
+            const headingElement = document.querySelector('.top-nav .center-heading');
             headingElement.textContent = text;
         }
 
@@ -4643,7 +4796,7 @@ document.addEventListener('click', function () {
    
 
     function updateHeading(text) {
-        const headingElement = document.querySelector('.top-nav .heading');
+        const headingElement = document.querySelector('.top-nav .center-heading');
         headingElement.textContent = text;
     }
 
@@ -4895,7 +5048,7 @@ document.addEventListener('click', function () {
             success: function(response) {
                 alert("Password reset successfully!");
                 document.getElementById("mainContent").innerHTML ='';
-                updateHeading('Contract Labor Management System');
+                updateHeading('');
             },
             error: function(xhr) {
                 alert("Error: " + xhr.responseText);
@@ -5901,7 +6054,7 @@ function fetchOrgLevelSavedEntries() {
     xhr.send();
 }
 
-function loadDashboardFromHome() {
+/* function loadDashboardFromHome() {
 
     const roleId   = localStorage.getItem("selectedRoleId");
     const roleName = localStorage.getItem("selectedRoleName");
@@ -5931,12 +6084,68 @@ function loadDashboardFromHome() {
     .then(html => {
         document.getElementById("mainContent").innerHTML = html;
 
-        document.querySelector(".heading").textContent =
+        document.querySelector(".heading-main").textContent =
+            "CONKRAFT";
+        document.querySelector(".heading-sub").textContent =
             "Contract Labor Management System";
         initDashboardCharts(); 
+        renderComplianceCharts(); // compliance overview charts
+                    renderBillChart();
+        
     })
     .catch(err => console.error(err));
-}
+} */
+function loadDashboardFromHome() {
+	  const roleId   = localStorage.getItem("selectedRoleId");
+	  const roleName = localStorage.getItem("selectedRoleName");
+
+	  if (!roleId || !roleName) {
+	    console.warn("No role stored — dashboard cannot load.");
+	    return;
+	  }
+
+	  const loader = document.getElementById("loader");
+	  if (loader) loader.style.display = "flex";
+
+	  // Update role and sidebar first
+	  fetch('/CWFM/updateRole', {
+	    method: 'POST',
+	    headers: { 'Content-Type': 'application/json' },
+	    body: JSON.stringify({ roleId, roleName })
+	  })
+	  .then(res => res.json())
+	  .then(data => {
+	    updateSidebar(data, roleName);
+	    return fetch('/CWFM/dashboard/dashboardPage');
+	  })
+	  .then(res => res.text())
+	  .then(html => {
+	    // Replace dashboard content
+	    const mainContent = document.getElementById("mainContent");
+	    mainContent.innerHTML = html;
+
+	    // ✅ Use your helper to reset heading
+	   // ✅ Rebuild heading structure to match login style
+    const headingElement = document.querySelector('.top-nav .center-heading');
+    if (headingElement) {
+      headingElement.innerHTML = `
+        <div class="heading-main">CONKRAFT</div>
+        <div class="heading-sub">Contract Labor Management System</div>
+      `;
+    }
+
+	    // Initialize charts
+	    if (typeof initDashboardCharts === "function") initDashboardCharts();
+	    if (typeof renderComplianceCharts === "function") renderComplianceCharts();
+	    if (typeof renderBillChart === "function") renderBillChart();
+	  })
+	  .catch(err => console.error("Dashboard load error:", err))
+	  .finally(() => {
+	    if (loader) loader.style.display = "none";
+	  });
+	}
+
+
 function showLoader() {
     document.getElementById("loaderOverlay").style.display = "flex";
 }
@@ -6170,8 +6379,182 @@ window.onclick = function(event) {
     });
 };
 
+ function renderComplianceChart(id, percent, color) {
+   const canvas = document.getElementById(id);
+   if (!canvas) return;
+   const ctx = canvas.getContext('2d');
 
-</script>
+   new Chart(ctx, {
+     type: 'doughnut',
+     data: {
+       datasets: [{
+         data: [percent, 100 - percent],
+         backgroundColor: [color, '#e0e0e0'],
+         borderWidth: 0
+       }]
+     },
+     options: {
+       responsive: true,
+       maintainAspectRatio: false,
+       cutout: '75%',
+       plugins: {
+         legend: { display: false },
+         tooltip: { enabled: false }
+       }
+     }
+   });
+ }
+
+ function renderComplianceCharts() {
+   renderComplianceChart('workOrderChart', parseInt(document.getElementById('workOrderText').innerText), '#f39c12');
+   renderComplianceChart('licenseChart', parseInt(document.getElementById('licenseText').innerText), '#2ecc71');
+   renderComplianceChart('wcChart', parseInt(document.getElementById('wcText').innerText), '#378ADD');
+   renderComplianceChart('esicChart', parseInt(document.getElementById('esicText').innerText), '#9b59b6');
+ }
+
+ window.addEventListener('load', renderComplianceCharts);
+ 
+ function renderBillChart() {
+   const canvas = document.getElementById('billChart');
+   if (!canvas) return;
+
+   const ctx = canvas.getContext('2d');
+
+   const approvedCount = parseInt(document.getElementById('approvedText')?.innerText || 0);
+   const pendingCount  = parseInt(document.getElementById('pendingText')?.innerText || 0);
+   const rejectedCount = parseInt(document.getElementById('rejectedText')?.innerText || 0);
+   const totalCount    = parseInt(document.getElementById('totalText')?.innerText || 0);
+
+   if (totalCount <= 0) {
+     console.warn("No bill data available for chart.");
+     return;
+   }
+
+   if (window.billChartInstance) {
+     window.billChartInstance.destroy();
+   }
+
+   // ✅ Create chart
+   window.billChartInstance = new Chart(ctx, {
+     type: 'doughnut',
+     data: {
+       labels: ['Approved', 'Pending Approval', 'Rejected'],
+       datasets: [{
+         data: [approvedCount, pendingCount, rejectedCount],
+         backgroundColor: ['#2ecc71', '#f39c12', '#e74c3c'],
+         borderWidth: 0
+       }]
+     },
+     options: {
+       responsive: true,
+       maintainAspectRatio: false,
+       cutout: '70%',
+       plugins: {
+         legend: { display: false },
+         tooltip: {
+           callbacks: {
+             label: function(context) {
+               const label = context.label || '';
+               const value = context.raw || 0;
+               const percent = ((value / totalCount) * 100).toFixed(0);
+               return `${label}: ${value} (${percent}%)`;
+             }
+           }
+         }
+       }
+     },
+     plugins: [{
+       id: 'centerText',
+       afterDraw(chart) {
+         const { ctx, chartArea: { width, height } } = chart;
+         ctx.save();
+
+         // ✅ Center coordinates
+         const centerX = chart.getDatasetMeta(0).data[0].x;
+         const centerY = chart.getDatasetMeta(0).data[0].y;
+
+         // ✅ Draw total count
+         ctx.font = 'bold 22px sans-serif';
+         ctx.fillStyle = '#333';
+         ctx.textAlign = 'center';
+         ctx.textBaseline = 'middle';
+         ctx.fillText(totalCount, centerX, centerY - 10);
+
+         // ✅ Draw label below
+         ctx.font = '14px sans-serif';
+         ctx.fillStyle = '#666';
+         ctx.fillText('Total Bills', centerX, centerY + 15);
+
+         ctx.restore();
+       }
+     }]
+   });
+ }
+
+ document.addEventListener('DOMContentLoaded', renderBillChart);
+
+ function renderContractorDeptCharts() {
+	  const container = document.getElementById("contractorDeptDataContainer");
+	  if (!container) return; // not EIC role
+
+	  const items = container.querySelectorAll(".contractorDeptItem");
+	  const labels = [];
+	  const data = [];
+
+	  items.forEach(item => {
+	    labels.push(item.getAttribute("data-label"));
+	    data.push(parseInt(item.getAttribute("data-value")) || 0);
+	  });
+
+	  const canvas = document.getElementById("contractorDeptChart");
+	  if (!canvas) return;
+	  const ctx = canvas.getContext("2d");
+
+	  new Chart(ctx, {
+	    type: "bar",
+	    data: {
+	      labels: labels,
+	      datasets: [{
+	        label: "Workmen Count",
+	        data: data,
+	        backgroundColor: "#1D9E75"
+	      }]
+	    },
+	    options: {
+	      responsive: true,
+	      maintainAspectRatio: false,
+	      plugins: {
+	        legend: { display: false },
+	        tooltip: {
+	          callbacks: {
+	            label: function(context) {
+	              return "Workmen: " + context.parsed.y;
+	            }
+	          }
+	        }
+	      },
+	      scales: {
+	        x: {
+	          ticks: {
+	            autoSkip: false,
+	            maxRotation: 60,
+	            minRotation: 30
+	          }
+	        },
+	        y: {
+	          beginAtZero: true,
+	          title: {
+	            display: true,
+	            text: "Workmen Count"
+	          }
+	        }
+	      }
+	    }
+	  });
+	}
+ document.addEventListener('DOMContentLoaded', renderContractorDeptCharts());
+ </script>
+
 </body>
 
 </html>

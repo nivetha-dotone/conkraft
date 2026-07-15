@@ -160,4 +160,97 @@ public class DashboardDTO {
     public void setPeContractorList(List<PEContractorDTO> peContractorList) {
         this.peContractorList = peContractorList;
     }
+    
+    public int getExpiredworkorders() {
+		return expiredworkorders;
+	}
+
+	public void setExpiredworkorders(int expiredworkorders) {
+		this.expiredworkorders = expiredworkorders;
+	}
+
+	private int expiredworkorders;
+	private int expiredLicensess;
+
+	public int getExpiredLicensess() {
+		return expiredLicensess;
+	}
+
+	public void setExpiredLicensess(int expiredLicensess) {
+		this.expiredLicensess = expiredLicensess;
+	}
+	private int expiredgatepasses;
+
+	public int getExpiredgatepasses() {
+		return expiredgatepasses;
+	}
+
+	public void setExpiredgatepasses(int expiredgatepasses) {
+		this.expiredgatepasses = expiredgatepasses;
+	}
+	private int blackliestedGP;
+
+	public int getBlackliestedGP() {
+		return blackliestedGP;
+	}
+
+	public void setBlackliestedGP(int blackliestedGP) {
+		this.blackliestedGP = blackliestedGP;
+	}
+	private int pendingBills;
+
+	public int getPendingBills() {
+		return pendingBills;
+	}
+
+	public void setPendingBills(int pendingBills) {
+		this.pendingBills = pendingBills;
+	}
+	
+	private List<WorkordersDTO> workorderList;
+
+	public List<WorkordersDTO> getWorkorderList() {
+		return workorderList;
+	}
+
+	public void setWorkorderList(List<WorkordersDTO> workorderList) {
+		this.workorderList = workorderList;
+	}
+	private List<LicensesDTO> LicenseList;
+
+	public List<LicensesDTO> getLicenseList() {
+		return LicenseList;
+	}
+
+	public void setLicenseList(List<LicensesDTO> licenseList) {
+		LicenseList = licenseList;
+	}
+	private List<WCDTO> WCList;
+
+	public List<WCDTO> getWCList() {
+		return WCList;
+	}
+
+	public void setWCList(List<WCDTO> wCList) {
+		WCList = wCList;
+	}
+	private List<ESICDTO> ESICList;
+
+	public List<ESICDTO> getESICList() {
+		return ESICList;
+	}
+
+	public void setESICList(List<ESICDTO> eSICList) {
+		ESICList = eSICList;
+	}
+	private List<BillStatusDTO> billList;
+	public List<BillStatusDTO> getBillList() {
+		return billList; 
+		}
+	public void setBillList(List<BillStatusDTO> billList) { 
+		this.billList = billList;
+		}
+
+
+	
 }
