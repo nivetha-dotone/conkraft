@@ -2114,7 +2114,7 @@ window.onload = function() {
 	  if (selectedRoleId) {
 	    localStorage.setItem("selectedRoleId", selectedRoleId);
 	    localStorage.setItem("selectedRoleName", selectedRoleName);
-
+console.log(selectedRoleName);//role name (eic)
 	    if (selectedRoleName === 'System Admin') {
 	      showAdminMenu();
 	    } else {
@@ -2143,7 +2143,7 @@ window.onload = function() {
 	      const mainContent = document.getElementById("mainContent");
 	      mainContent.innerHTML = html;
 
-	      // ✅ Wait for DOM update before initializing charts
+	     /*  // ✅ Wait for DOM update before initializing charts
 	       setTimeout(() => {
 	        if (typeof initDashboardCharts === 'function') {
 	          initDashboardCharts(); // your global charts (plant/status)
@@ -2159,9 +2159,39 @@ window.onload = function() {
 	        if (typeof renderBillChart === 'function') renderBillChart();
 
 	        // ✅ Call it safely like your other charts
-	        if (typeof renderContractorDeptCharts === "function") renderContractorDeptCharts();
-	      }, 400); // small delay ensures canvases are ready
-	    }) 
+	         // ✅ Contractor chart (EIC role only)
+      if (selectedRoleName === 'EIC' && typeof renderContractorDeptCharts === 'function') {
+        console.log("✅ EIC role detected, rendering Contractor + Department chart...");
+        renderContractorDeptCharts();
+      } else {
+        console.log("ℹ️ Skipping Contractor chart — not EIC role.");
+      }
+	      }, 500); // small delay ensures canvases are ready
+	    })  */
+	      // ✅ Wait for DOM update before initializing charts
+	      setTimeout(() => {
+	        console.log("✅ Dashboard HTML injected, initializing charts...");
+
+	        if (typeof initDashboardCharts === "function") initDashboardCharts();
+	        if (typeof renderComplianceCharts === "function") {
+	          try { renderComplianceCharts(); } catch (e) { console.warn("⚠️ Compliance charts skipped:", e.message); }
+	        }
+	        if (typeof renderBillChart === "function") renderBillChart();
+
+	        // ✅ Contractor chart (EIC role only)
+	        if (selectedRoleName.toLowerCase() === "eic" && typeof renderContractorDeptCharts === "function") {
+	          console.log("✅ EIC role detected, rendering Contractor + Department chart...");
+	          renderContractorDeptCharts();
+	        } else {
+	          console.log("ℹ️ Skipping Contractor chart — not EIC role.");
+	        }
+	        if (typeof renderContractorWorkmenChart === 'function') {
+	        	  console.log("✅ Contractor role detected, rendering Contractor Wise Workmen chart...");
+	        	  renderContractorWorkmenChart();
+	        	}
+
+	      }, 400); // slightly longer delay ensures canvases are ready
+	    })
 	   /*  setTimeout(() => {
 	    	  if (typeof initDashboardCharts === 'function') initDashboardCharts();
 	    	  if (typeof renderComplianceCharts === 'function') renderComplianceCharts();
@@ -6135,10 +6165,44 @@ function loadDashboardFromHome() {
     }
 
 	    // Initialize charts
-	    if (typeof initDashboardCharts === "function") initDashboardCharts();
+	   /*  if (typeof initDashboardCharts === "function") initDashboardCharts();
 	    if (typeof renderComplianceCharts === "function") renderComplianceCharts();
 	    if (typeof renderBillChart === "function") renderBillChart();
-	  })
+	    if (selectedRoleName === "Eic" && typeof renderContractorDeptCharts === "function") {
+	          console.log("✅ EIC role detected, rendering Contractor + Department chart...");
+	          renderContractorDeptCharts();
+	        } else {
+	          console.log("ℹ️ Skipping Contractor chart — not EIC role.");
+	        }
+	        if (typeof renderContractorWorkmenChart === 'function') {
+	        	  console.log("✅ Contractor role detected, rendering Contractor Wise Workmen chart...");
+	        	  renderContractorWorkmenChart();
+	        	}
+	  }) */
+    setTimeout(() => {
+        console.log("✅ Dashboard HTML injected, initializing charts...");
+
+        if (typeof initDashboardCharts === "function") initDashboardCharts();
+        if (typeof renderComplianceCharts === "function") {
+          try { renderComplianceCharts(); } catch (e) { console.warn("⚠️ Compliance charts skipped:", e.message); }
+        }
+        if (typeof renderBillChart === "function") renderBillChart();
+
+        // ✅ Contractor chart (EIC role only)
+        if (roleName.toLowerCase() === "eic" && typeof renderContractorDeptCharts === "function") {
+          console.log("✅ EIC role detected, rendering Contractor + Department chart...");
+          renderContractorDeptCharts();
+        } else {
+          console.log("ℹ️ Skipping Contractor chart — not EIC role.");
+        }
+
+        // ✅ Contractor-wise Workmen chart
+        if (typeof renderContractorWorkmenChart === "function") {
+          console.log("✅ Contractor role detected, rendering Contractor Wise Workmen chart...");
+          renderContractorWorkmenChart();
+        }
+      }, 400); // small delay ensures canvases are ready
+    })
 	  .catch(err => console.error("Dashboard load error:", err))
 	  .finally(() => {
 	    if (loader) loader.style.display = "none";
@@ -6213,7 +6277,7 @@ function loadCharts() {
     });
 }
 
-function renderPlantChart(data) {
+ function renderPlantChart(data) {
 
     const ctx = document.getElementById('plantChart');
     if (!ctx) return;
@@ -6228,20 +6292,30 @@ function renderPlantChart(data) {
             labels: data.plantLabels,
             datasets: [{
                 data: data.plantData,
-                backgroundColor: '#1D9E75'
+                backgroundColor: '#1D9E75',
+                	 borderColor: '#1D9E75', // ✅ adds visible border for small bars
+                    borderWidth: 1.5
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
+              legend: { display: false },
+              tooltip: {
+                enabled: true,
+                mode: 'nearest', // ✅ ensures tooltip appears even for thin bars
+                intersect: false,
+                callbacks: {
+                  label: function (context) {
+                    return 'Workmen: ' + context.parsed.y;
+                  }
                 }
+              }
             }
         }
     });
-}
+} 
 
 /* DONUT CHART */
 function renderStatusChart(data) {
@@ -6493,11 +6567,12 @@ window.onclick = function(event) {
 
  document.addEventListener('DOMContentLoaded', renderBillChart);
 
- function renderContractorDeptCharts() {
+ /* function renderContractorDeptCharts() {
 	  const container = document.getElementById("contractorDeptDataContainer");
 	  if (!container) return; // not EIC role
 
 	  const items = container.querySelectorAll(".contractorDeptItem");
+	  console.log(items);
 	  const labels = [];
 	  const data = [];
 
@@ -6552,7 +6627,234 @@ window.onclick = function(event) {
 	    }
 	  });
 	}
- document.addEventListener('DOMContentLoaded', renderContractorDeptCharts());
+ document.addEventListener('DOMContentLoaded', renderContractorDeptCharts()); */
+ function renderContractorDeptCharts() {
+	  console.log("▶ Starting Contractor + Department chart rendering...");
+
+	  const container = document.getElementById("contractorDeptDataContainer");
+	  if (!container) {
+	    console.warn("⚠️ contractorDeptDataContainer not found — dashboard may not be loaded yet.");
+	    return;
+	  }
+
+	  const items = container.querySelectorAll(".contractorDeptItem");
+	  if (!items.length) {
+	    console.warn("⚠️ No contractorDeptItem elements found — check JSP data loop.");
+	    return;
+	  }
+
+	  const labels = [];
+	  const data = [];
+
+	  // ✅ Filter out entries with 0 workmen count
+	  items.forEach((item, index) => {
+	    const label = item.getAttribute("data-label");
+	    const value = parseInt(item.getAttribute("data-value")) || 0;
+	    if (value > 0) {
+	      labels.push(label);
+	      data.push(value);
+	      console.log(`📊 [${index}] ${label} → ${value}`);
+	    }
+	  });
+
+	  const canvas = document.getElementById("contractorDeptChart");
+	  if (!canvas) {
+	    console.error("❌ contractorDeptChart canvas not found.");
+	    return;
+	  }
+
+	  const ctx = canvas.getContext("2d");
+
+	  // ✅ Dynamically expand chart width based on label count
+	  const chartWidth = Math.max(labels.length * 90, 800);
+	  canvas.style.width = chartWidth + "px";
+
+	  // ✅ Calculate max value rounded up to nearest 50
+	  const maxValue = Math.max(...data);
+	  const roundedMax = Math.ceil(maxValue / 50) * 50;
+
+	  // ✅ Add buffer so top tick (450) is visible
+	  const adjustedMax = roundedMax + 50;
+
+	  new Chart(ctx, {
+	    type: "bar",
+	    data: {
+	      labels: labels,
+	      datasets: [{
+	        label: "Workmen Count",
+	        data: data,
+	        backgroundColor: "#1D9E75",
+	        borderColor: "#1D9E75",
+	        borderWidth: 1.5,
+	        barPercentage: 0.8,
+	        categoryPercentage: 0.9
+	      }]
+	    },
+	    options: {
+	      responsive: true,
+	      maintainAspectRatio: false,
+	      layout: { padding: { bottom: 20 } },
+	      plugins: {
+	        legend: { display: false },
+	        tooltip: {
+	          enabled: true,
+	          mode: "nearest",
+	          intersect: false,
+	          callbacks: {
+	            label: context => "Workmen: " + context.parsed.y
+	          }
+	        }
+	      },
+	      scales: {
+	        x: {
+	          ticks: {
+	            autoSkip: false,
+	            maxRotation: 60,
+	            minRotation: 60,
+	            font: { size: 11, weight: "500" },
+	            callback: function(value, index) {
+	              // ✅ Wrap long labels into multiple lines
+	              const label = this.getLabelForValue(value);
+	              const words = label.split(" ");
+	              const lines = [];
+	              let currentLine = "";
+
+	              words.forEach(word => {
+	                if ((currentLine + word).length > 20) {
+	                  lines.push(currentLine.trim());
+	                  currentLine = word + " ";
+	                } else {
+	                  currentLine += word + " ";
+	                }
+	              });
+	              lines.push(currentLine.trim());
+	              return lines; // Chart.js renders multi-line labels
+	            }
+	          },
+	          grid: { drawOnChartArea: false }
+	        },
+	        y: {
+	          beginAtZero: true,
+	          min: 0,
+	          max: adjustedMax, // ✅ ensures 450 appears
+	          title: { display: true, text: "Workmen Count" },
+	          ticks: {
+	            stepSize: 50,
+	            callback: value => value // ✅ ensures all tick labels render
+	          },
+	          grid: { drawBorder: false }
+	        }
+	      },
+	      elements: {
+	        bar: {
+	          borderRadius: 2,
+	          hoverBorderWidth: 2
+	        }
+	      }
+	    }
+	  });
+
+	  console.log("✅ Contractor + Department chart rendered successfully with full names and visible top tick!");
+	}
+
+
+
+
+ function renderContractorWorkmenChart() {
+	  console.log("▶ Rendering Contractor Wise Workmen chart...");
+
+	  const container = document.getElementById("contractorWorkmenDataContainer");
+	  if (!container) {
+	    console.error("❌ contractorWorkmenDataContainer not found.");
+	    return;
+	  }
+
+	  const items = container.querySelectorAll(".contractorWorkmenItem");
+	  if (!items.length) {
+	    console.error("❌ No contractorWorkmenItem elements found.");
+	    return;
+	  }
+
+	  const labels = [];
+	  const data = [];
+
+	  // ✅ Filter out contractors with 0 workmen
+	  items.forEach(item => {
+	    const label = item.getAttribute("data-label");
+	    const value = parseInt(item.getAttribute("data-value")) || 0;
+	    if (value > 0) {
+	      labels.push(label);
+	      data.push(value);
+	    }
+	  });
+
+	  const ctx = document.getElementById("contractorWorkmenChart").getContext("2d");
+
+	  new Chart(ctx, {
+	    type: "bar",
+	    data: {
+	      labels: labels,
+	      datasets: [{
+	        label: "Workmen Count",
+	        data: data,
+	        backgroundColor: "#1D9E75",
+	        borderColor: "#1D9E75",
+	        borderWidth: 1.5, // ✅ adds a visible border for small bars
+	        barPercentage: 0.8,
+	        categoryPercentage: 0.9
+	      }]
+	    },
+	    options: {
+	      responsive: true,
+	      maintainAspectRatio: false,
+	      plugins: {
+	        legend: { display: false },
+	        tooltip: {
+	          enabled: true,
+	          mode: "nearest",
+	          intersect: false, // ✅ ensures tooltip appears even for thin bars
+	          callbacks: {
+	            label: function (context) {
+	              return "Workmen: " + context.parsed.y;
+	            }
+	          }
+	        }
+	      },
+	      scales: {
+	        x: {
+	          ticks: {
+	            autoSkip: false,
+	            maxRotation: 90,
+	            minRotation: 90,
+	            font: { size: 11, weight: "500" },
+	            callback: function(value, index, ticks) {
+	              return this.getLabelForValue(value);
+	            }
+	          },
+	          grid: { drawOnChartArea: false }
+	        },
+	        y: {
+	          beginAtZero: true,
+	          title: {
+	            display: true,
+	            text: "Workmen Count"
+	          },
+	          ticks: { stepSize: 25 },
+	          grid: { drawBorder: false }
+	        }
+	      },
+	      elements: {
+	        bar: {
+	          borderRadius: 2, // ✅ gives small bars a rounded edge for visibility
+	          hoverBorderWidth: 2 // ✅ highlights bar on hover
+	        }
+	      }
+	    }
+	  });
+
+	  console.log("✅ Contractor Wise Workmen chart rendered successfully!");
+	}
+
  </script>
 
 </body>

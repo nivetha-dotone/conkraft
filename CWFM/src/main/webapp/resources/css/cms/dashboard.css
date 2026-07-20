@@ -679,4 +679,109 @@ button:hover {
 .modal-lg {
     width: 85%;
     max-width: 1200px;
+}.sec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
 }
+/* Section container */
+.section.plant-section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Header */
+.section.plant-section .sec-header {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* KPI card (alternate IDs to avoid conflict) */
+.kpi-card-alt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  padding: 25px 30px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Content alignment */
+.kpi-content-alt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Plant name styling */
+.kpi-title-alt {
+  font-weight: 700;
+  font-size: 16px;
+  color: #333;
+  text-align: center;
+}
+
+/* Row alignment — ✅ icons and text on same line */
+.kpi-row-alt {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px; /* space between contractor and workmen sections */
+}
+
+/* Individual KPI item */
+.kpi-item-alt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Icon background styling */
+.icon-bg-alt {
+  width: 45px;
+  height: 45px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 22px;
+}
+
+/* Background colors matching KPI cards */
+.orange-bg-alt {
+  background-color: #f39c12;
+}
+
+.blue-bg-alt {
+  background-color: #378ADD;
+}
+
+/* Text styling */
+.kpi-text-alt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-label-alt {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.kpi-number-alt {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000;
+}
+
+
