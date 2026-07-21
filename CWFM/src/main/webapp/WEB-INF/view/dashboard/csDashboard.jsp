@@ -585,6 +585,62 @@ font-size: medium;
   background: rgba(0, 0, 0, 0.4);
   padding: 5px 0;
 }
+/* General KPI Card Styling */
+.kpi-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.kpi-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 130px; /* ✅ uniform height for all cards */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* AI Assistance Card */
+.kpi-card.teal {
+  border-top: 4px solid #009688;
+}
+
+.ai-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #00695c;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  width: 100%;
+  height: 100%;
+}
+
+.ai-left {
+  flex: 1;
+}
+
+.ai-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Image Styling */
+.ai-right {
+  flex-shrink: 0;
+}
+
+.ai-image {
+  width: 45px; /* ✅ very small image */
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+}
 
 </style>
 
@@ -606,6 +662,52 @@ font-size: medium;
  -->
   <!-- KPI ROW -->
 <!-- KPI ROW -->
+<%-- <div class="kpi-row">
+  <div class="kpi-card green">
+    <div class="kpi-content">
+      <div class="kpiicon-bg green"><i class="fa-solid fa-users kpiicongreen"></i></div>
+      <div class="kpi-text">
+        <div class="lbl">ACTIVE WORKMEN</div>
+        <div class="num">${dashboard.activeWorkmen}</div>
+<!--         <div class="trend up">↑ 8.5% vs last month</div> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-card orange">
+    <div class="kpi-content">
+      <div class="kpiicon-bg orange"><i class="fa-solid fa-file-contract kpiiconornge"></i></div>
+      <div class="kpi-text">
+        <div class="lbl">ACTIVE WORK ORDERS</div>
+        <div class="num">${dashboard.activeWO}</div>
+       <!--  <div class="trend up">↑ 12.0% vs last month</div> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-card red">
+    <div class="kpi-content">
+      <div class="kpiicon-bg red"><i class="fa-solid fa-id-card kpiiconred"></i></div>
+      <div class="kpi-text">
+        <div class="lbl">ACTIVE LL</div>
+        <div class="num">${dashboard.activeLL}</div>
+        <!-- <div class="trend neutral">→ No change</div> -->
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-card blue">
+    <div class="kpi-content">
+      <div class="kpiicon-bg blue"><i class="fa-solid fa-building kpiiconblue"></i></div>
+      <div class="kpi-text">
+        <div class="lbl">ACTIVE WC</div>
+        <div class="num">${dashboard.activeWC}</div>
+        <!-- <div class="trend up">↑ 5.2% vs last month</div> -->
+      </div>
+    </div>
+  </div>
+</div> --%>
+
 <div class="kpi-row">
   <div class="kpi-card green">
     <div class="kpi-content">
@@ -650,9 +752,18 @@ font-size: medium;
       </div>
     </div>
   </div>
+  <!-- AI Assistance Card -->
+<div class="kpi-card teal" id="kpi-ai">
+    <div class="kpi-content ai-card">
+      <div class="ai-left">
+        <div class="ai-title">AI ASSISTENCE</div>
+      </div>
+      <div class="ai-right">
+        <img src="resources/img/ai-image.png" alt="AI Assistance" class="ai-image">
+      </div>
+    </div>
+  </div>
 </div>
-
-
 
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
@@ -943,22 +1054,22 @@ font-size: medium;
  <div class="section quick-actions">
   <div class="sec-header">QUICK ACTIONS</div>
   <div class="action-grid">
-  <div class="action-box">
+  <!-- <div class="action-box"> -->
       <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i></i><span>Add Workmen</span></button>
-   </div>   
-   <div class="action-box">
+   <!-- </div> -->   
+   <!-- <div class="action-box"> -->
       <button class="action-btn red" onclick="loadCommonList('/reports/list', 'Workmen Report');"><i class="fa-solid fa-file-circle-plus icon orange"></i><span>Workmen Report</span></button>
-    </div>
-    <div class="action-box">  
+    <!-- </div> -->
+   <!--  <div class="action-box"> -->  
       <button class="action-btn orange" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');"><i class="fa-solid fa-file-invoice-dollar icon blue"></i><span>Verify Bill</span></button>
-    </div>
-     <div class="action-box">
+    <!-- </div> -->
+     <!-- <div class="action-box"> -->
        <button class="action-btn blue" onclick="redirectToContractorRenew()"> <i class="fa-solid fa-user-tie icon purple"></i><span>Add Contractor</span></button>
-     </div>
-     <div class="action-box">
+     <!-- </div> -->
+     <!-- <div class="action-box"> -->
        <button  class="action-btn purple" onclick="loadCommonList('/requestor/mFaceRegistration', 'Face Registration');"><i class="fa-solid fa-face-smile icon teal"></i><span>Face Registration</span></button>
-     </div>
-     <div class="action-box">
+    <!--  </div> -->
+     <!-- <div class="action-box"> -->
        <button class="action-btn teal" onclick="loadCommonList('/requestor/mobilePunchFace', 'Mobile Punch');"><i class="fa-solid fa-mobile-screen-button icon red"></i><span>Mobile Punch</span></button>
      </div>
     </div>
@@ -1016,14 +1127,14 @@ font-size: medium;
     </div>
   </div>
 
-<div class="security-banner" id="kpi-security-banner">
+<!-- <div class="security-banner" id="kpi-security-banner">
   <div class="banner-content">
     <div class="banner-left">
       <div class="banner-icon">
         
       </div>
       <div class="banner-text">
-        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
+        <div class="title">Securing <span class="highlight">Workforce.</span></div>
         <div class="title"> AI ASSISTENCE</div>
       </div>
     </div>
@@ -1031,7 +1142,7 @@ font-size: medium;
       <img src='resources/img/ai-image.png' alt="Workforce Security" />
     </div>
   </div>
-</div>
+</div> -->
 
  <!--  <div class="kpi-card teal" id="kpi-ai">
   <div class="kpi-content">

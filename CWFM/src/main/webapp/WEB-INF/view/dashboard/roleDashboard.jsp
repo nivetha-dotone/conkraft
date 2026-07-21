@@ -13,6 +13,66 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
 
 <script src="resources/js/cms/workmen.js"></script>
+<style>
+/* General KPI Card Styling */
+.kpi-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.kpi-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 130px; /* ✅ uniform height for all cards */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* AI Assistance Card */
+.kpi-card.teal {
+  border-top: 4px solid #009688;
+}
+
+.ai-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #00695c;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  width: 100%;
+  height: 100%;
+}
+
+.ai-left {
+  flex: 1;
+}
+
+.ai-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Image Styling */
+.ai-right {
+  flex-shrink: 0;
+}
+
+.ai-image {
+  width: 45px; /* ✅ very small image */
+  height: auto;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+</style>
+
 </head>
 <div class="db">
 
@@ -91,7 +151,21 @@
       </div>
     </div>
   </div>
+  <!-- AI Assistance Card -->
+<div class="kpi-card teal" id="kpi-ai">
+    <div class="kpi-content ai-card">
+      <div class="ai-left">
+        <div class="ai-title">AI ASSISTENCE</div>
+      </div>
+      <div class="ai-right">
+        <img src="resources/img/ai-image.png" alt="AI Assistance" class="ai-image">
+      </div>
+    </div>
+  </div>
 </div>
+
+
+  
 
     <%-- <!-- WORKFORCE -->
     <div class="sec-label">Workforce Distribution</div>
