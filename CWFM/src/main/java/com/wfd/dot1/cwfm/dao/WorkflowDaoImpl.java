@@ -105,6 +105,9 @@ public class WorkflowDaoImpl implements WorkflowDao{
 	public String insertWorkflow() {
 	    return QueryFileWatcher.getQuery("INSERT_WORKFLOW");
 	}
+	public String insertApproverHierarchy() {
+	    return QueryFileWatcher.getQuery("INSERT_WORKFLOW_APPROVER_HIERARCHY");
+	}
 	@Override
 	public void saveWorkflow(WorkflowRequestDto request) {
         // Check if workflow already exists
@@ -170,8 +173,8 @@ public class WorkflowDaoImpl implements WorkflowDao{
         actionStatusMap.put(GatePassType.CONTRACTORRENEWAL.getName(), GatePassType.CONTRACTORRENEWAL.getStatus());
         actionStatusMap.put(GatePassType.PROJECT.getName(), GatePassType.PROJECT.getStatus());
      // Insert approver hierarchy
-        String insertApprover = "INSERT INTO CMSAPPROVERHIERARCHY (WORKFLOWTYPEID, ACTION_ID, ACTION_NAME,ROLE_ID,ROLE_NAME, [INDEX]) VALUES (?, ?, ?, ?,?,?)";
-       
+      //  String insertApprover = "INSERT INTO CMSAPPROVERHIERARCHY (WORKFLOWTYPEID, ACTION_ID, ACTION_NAME,ROLE_ID,ROLE_NAME, [INDEX]) VALUES (?, ?, ?, ?,?,?)";
+        String insertApprover =insertApproverHierarchy();
         if(request.getWorkflowType() == WorkFlowType.AUTO.getWorkFlowTypeId()) {
         	ApproverDto approver = new ApproverDto();
         	// Get action ID from map using the action name
@@ -201,13 +204,25 @@ public class WorkflowDaoImpl implements WorkflowDao{
         }
         }
 	}
-        
+	public String getModuleNameForAction() {
+	    return QueryFileWatcher.getQuery("GET_MODULENAME_FOR_WORKFLOW");
+	}
+	public String checkApproverStatusForOnboardingAction() {
+	    return QueryFileWatcher.getQuery("CHECK_APPROVERS_STATUS_FOR_ONBOARDING_ACTION");
+	}
+	public String checkApproverStatusForContrenewalAction() {
+	    return QueryFileWatcher.getQuery("CHECK_APPROVERS_STATUS_FOR_CONTRENEWAL_ACTION");
+	}
+	public String checkApproverStatusForBillverificationAction() {
+	    return QueryFileWatcher.getQuery("CHECK_APPROVERS_STATUS_FOR_BILLVERIFICATION_ACTION");
+	}
 	@Override
 	public int getPendingGatePassCount(Long unitId, String actionName, String moduleId) {
 
 	    try {
 
-	    	String moduleNameQuery = "SELECT GMNAME FROM CMSGENERALMASTER WHERE GMID = ?";
+	    	//String moduleNameQuery = "SELECT GMNAME FROM CMSGENERALMASTER WHERE GMID = ?";
+	    	String moduleNameQuery =getModuleNameForAction();
 	        String moduleName = jdbcTemplate.queryForObject(moduleNameQuery, String.class, moduleId);
 
 	        if (moduleName == null || moduleName.trim().isEmpty()) {
@@ -223,35 +238,35 @@ public class WorkflowDaoImpl implements WorkflowDao{
 	        switch (normalizedModule) {
 
 	            case "workmenonboarding":
-
-	                sql = "SELECT COUNT(*) " +
-	                      "FROM GATEPASSMAIN gpm " +
-	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = gpm.GatePassTypeId " +
-	                      "WHERE gpm.GatePassStatus = '3' " +
-	                      "AND gpm.UnitId = ? " +
-	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+                    sql=checkApproverStatusForOnboardingAction();
+//	                sql = "SELECT COUNT(*) " +
+//	                      "FROM GATEPASSMAIN gpm " +
+//	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = gpm.GatePassTypeId " +
+//	                      "WHERE gpm.GatePassStatus = '3' " +
+//	                      "AND gpm.UnitId = ? " +
+//	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
 
 	                params = new Object[]{unitId, actionName};
 	                break;
 
 
 	            case "contractorrenewal":
-
-	                sql = "SELECT COUNT(*) " +
-	                      "FROM CMSContractorRegistration cmsr " +
-	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = cmsr.ACTIONID " +
-	                      "WHERE cmsr.STATUS = '3' " +
-	                      "AND cmsr.UnitId = ? " +
-	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+                   sql=checkApproverStatusForContrenewalAction();
+//	                sql = "SELECT COUNT(*) " +
+//	                      "FROM CMSContractorRegistration cmsr " +
+//	                      "JOIN GatePassTypeMaster gtm ON gtm.TypeId = cmsr.ACTIONID " +
+//	                      "WHERE cmsr.STATUS = '3' " +
+//	                      "AND cmsr.UnitId = ? " +
+//	                      "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
 
 	                params = new Object[]{unitId, actionName};
 	                break;
 	                
 	            case "billverification":
-
-	                sql = "select count(*) from CMSWageCostWorkFlow cmswc join GatePassTypeMaster gtm on gtm.TypeId=cmswc.ACTIONID \r\n"
-	                		+ "where cmswc.STATUS in (3) and cmswc.UnitId=? "
-	                     + "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
+                    sql=checkApproverStatusForBillverificationAction();
+//	                sql = "select count(*) from CMSWageCostWorkFlow cmswc join GatePassTypeMaster gtm on gtm.TypeId=cmswc.ACTIONID \r\n"
+//	                		+ "where cmswc.STATUS in (3) and cmswc.UnitId=? "
+//	                     + "AND LOWER(REPLACE(gtm.TypeName, ' ', '')) = LOWER(REPLACE(?, ' ', ''))";
 
 	                params = new Object[]{unitId, actionName};
 	                break;

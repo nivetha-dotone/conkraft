@@ -166,15 +166,18 @@ public class EntrypassStatusDaoImpl implements EntrypassStatusDao {
 	     }
 	     return resultList;
 	 }
-
+	 public String getHistoryofEP() {
+		    return QueryFileWatcher.getQuery("GET_HISTORY_OF_EP");
+		}
 	 @Override
 	 public List<GatePassListingDto> getHistoryofEP(String aadharNumber) {
-	     String sql = "SELECT gpm.transactionId, gpm.gatePassId, gpm.firstName, gpm.lastName, " +
-	                  "gpm.GatePassTypeId, gpm.GatePassStatus, " +
-	                  "cpe.NAME AS UnitName " +
-	                  "FROM GATEPASSMAIN gpm " +
-	                  "JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UNITID = gpm.UnitId " +
-	                  "WHERE gpm.AadharNumber = ?";
+		 String sql = getHistoryofEP();
+//	     String sql = "SELECT gpm.transactionId, gpm.gatePassId, gpm.firstName, gpm.lastName, " +
+//	                  "gpm.GatePassTypeId, gpm.GatePassStatus, " +
+//	                  "cpe.NAME AS UnitName " +
+//	                  "FROM GATEPASSMAIN gpm " +
+//	                  "JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UNITID = gpm.UnitId " +
+//	                  "WHERE gpm.AadharNumber = ?";
 
 	     List<GatePassListingDto> listDto = new ArrayList<>();
 
@@ -239,15 +242,18 @@ public class EntrypassStatusDaoImpl implements EntrypassStatusDao {
 
 	     return listDto;
 	 }
+	 public String getEntryPassStatusReport() {
+		    return QueryFileWatcher.getQuery("GET_ENTRYPASS_STATUS_REPORT");
+		}
 	@Override
 	public List<EntryPassStatusDto> getEntryPassStatusReport(String unitId) {
-		String sql = "select  ROW_NUMBER() OVER (\r\n"
-				+ "        ORDER BY TransactionId\r\n"
-				+ "    ) AS SNo,TransactionId,EntryPassNo,UnitId,PrincipalEmployer,FirstName,LastName,Department,VendorCode,\r\n"
-				+ " VendorName,WorkOrder,(userAccount + ' - ' + ISNULL(EICFirstName,'') + ' ' + ISNULL(EICLastName,'')) AS EicNumber,EntryPassAction,EntryPassType,Status, LastApprovers,NextApprovers\r\n"
-				+ " from VW_GATEPASS_APPROVAL_REPORT \r\n"
-				+ " where unitid=?";
-
+//		String sql = "select  ROW_NUMBER() OVER (\r\n"
+//				+ "        ORDER BY TransactionId\r\n"
+//				+ "    ) AS SNo,TransactionId,EntryPassNo,UnitId,PrincipalEmployer,FirstName,LastName,Department,VendorCode,\r\n"
+//				+ " VendorName,WorkOrder,(userAccount + ' - ' + ISNULL(EICFirstName,'') + ' ' + ISNULL(EICLastName,'')) AS EicNumber,EntryPassAction,EntryPassType,Status, LastApprovers,NextApprovers\r\n"
+//				+ " from VW_GATEPASS_APPROVAL_REPORT \r\n"
+//				+ " where unitid=?";
+		String sql = getEntryPassStatusReport();
    List<EntryPassStatusDto> listDto = new ArrayList<>();
 
    SqlRowSet rs = jdbcTemplate.queryForRowSet(sql, unitId);

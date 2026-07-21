@@ -325,8 +325,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	@Override
 	public Long saveContractor(Contractor contractor) {
 	    KeyHolder keyHolder = new GeneratedKeyHolder();
-	    //String sql=saveContractorTemplate();
-	    String sql = "INSERT INTO CMSCONTRACTOR(name, ADDRESS, city,ISBLOCKED, CODE) VALUES (?, ?, ?,0, ?)";
+	    String sql=saveContractorTemplate();
+	    //String sql = "INSERT INTO CMSCONTRACTOR(name, ADDRESS, city,ISBLOCKED, CODE) VALUES (?, ?, ?,0, ?)";
 
 	    jdbcTemplate.update(connection -> {
 	        PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -355,9 +355,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	
 	@Override
 	public void savePemm(CMSContrPemm pemm) {
-		//String sql=savePemmForContTemplate();
-	    String sql = "INSERT INTO CMSCONTRPEMM (CONTRACTORID, UNITID, MANAGERNM, LICENSENUM, VALIDFROMDT, VALIDTODT, COVERAGE, TOTALSTRENGTH, MAXNOEMP, NATUREOFWORK, PFNUM, PFAPPLYDT, ESIWC, ESIVALIDFROM, ESIVALIDTO) " +
-	                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql=savePemmForContTemplate();
+//	    String sql = "INSERT INTO CMSCONTRPEMM (CONTRACTORID, UNITID, MANAGERNM, LICENSENUM, VALIDFROMDT, VALIDTODT, COVERAGE, TOTALSTRENGTH, MAXNOEMP, NATUREOFWORK, PFNUM, PFAPPLYDT, ESIWC, ESIVALIDFROM, ESIVALIDTO) " +
+//	                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	    jdbcTemplate.update(connection -> {
 	        PreparedStatement ps = connection.prepareStatement(sql);
@@ -424,8 +424,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
     @Override
     public void savecsc(CMSSubContractor csc) {
-    	//String sql=saveCMSSUBCONTForContTemplate();
-        String sql = "insert into CMSSUBCONTRACTOR(ID,CONTRACTOR_ID,SUB_CONTRACTOR_ID,WORKORDER_NO,UNITID)values( (SELECT COALESCE(MAX(ID), 0) + 1 FROM CMSSUBCONTRACTOR),?,?,?,?)";
+    	String sql=saveCMSSUBCONTForContTemplate();
+        //String sql = "insert into CMSSUBCONTRACTOR(ID,CONTRACTOR_ID,SUB_CONTRACTOR_ID,WORKORDER_NO,UNITID)values( (SELECT COALESCE(MAX(ID), 0) + 1 FROM CMSSUBCONTRACTOR),?,?,?,?)";
         jdbcTemplate.update(sql,csc.getContractorId(),csc.getSubContractId(),csc.getWorkOrderNumber(),csc.getUnitId());
     }
 
@@ -679,28 +679,29 @@ public class FileUploadDaoImpl implements FileUploadDao {
 //	     );
 //		 
 //	 }hema code
+		
 		@Override
 		public void saveWorkorderToStaging(KTCWorkorderStaging w) {
 
-		    String sql =
-		        "INSERT INTO KTC_WORKORDER_STAGING_ON_REQ ("
-		      + " WORKORDER_NUM, ITEM_NUM, SVC_LN_ITEM_NUM, SVC_LN_ITEM_DEL, "
-		      + " SVC_NUM, SVC_LN_ITEM_NAME, DELV_COMPLETION_SW, ITEM_CHANGED_ON_DATE, "
-		      + " VENDOR_CODE, VENDOR_NAME, VENDOR_ADDRESS, BLOCKED_PO, "
-		      + " WORKORDER_VALID_FROM, WORKORDER_VALID_TO, SAP_WORKORDER_TYPE, "
-		      + " UNIT_CODE, SEC_NAME, DEPT_NAME, GL_CODE, COST_CENTRE_CODE, "
-		      + " JOB_NAME, RATE, QTY, UOM, WORKORDER_RELEASED_SW, "
-		      + " PM_WORKORDER_NUM, WBS_ELEMENT, QTY_COMPLETED, NATURE_OF_JOB, "
-		      + " WORKORDER_RELEASED_DATE, SERVICE_ENTRY_CREATE_DATE, "
-		      + " SERVICE_ENTRY_UPDATED_DATE, PURCHASE_ORG_LEVEL, COMPANY_CODE, "
-		      + " EIC_NUM, RECORD_CREATED_ON, RECORD_UPDATED_ON, "
-		      + " RECORD_PROCESSED, RECORD_STATUS ) "
-		      + "VALUES ("
-		      + " ?,?,?,?,?,?,?,?,?,?,"
-		      + " ?,?,?,?,?,?,?,?,?,?,"
-		      + " ?,?,?,?,?,?,?,?,?,?,"
-		      + " ?,?,?,?,?,?,?,?,?"
-		      + ")";
+		    String sql =saveWorkorderToStaging();
+//		        "INSERT INTO KTC_WORKORDER_STAGING_ON_REQ ("
+//		      + " WORKORDER_NUM, ITEM_NUM, SVC_LN_ITEM_NUM, SVC_LN_ITEM_DEL, "
+//		      + " SVC_NUM, SVC_LN_ITEM_NAME, DELV_COMPLETION_SW, ITEM_CHANGED_ON_DATE, "
+//		      + " VENDOR_CODE, VENDOR_NAME, VENDOR_ADDRESS, BLOCKED_PO, "
+//		      + " WORKORDER_VALID_FROM, WORKORDER_VALID_TO, SAP_WORKORDER_TYPE, "
+//		      + " UNIT_CODE, SEC_NAME, DEPT_NAME, GL_CODE, COST_CENTRE_CODE, "
+//		      + " JOB_NAME, RATE, QTY, UOM, WORKORDER_RELEASED_SW, "
+//		      + " PM_WORKORDER_NUM, WBS_ELEMENT, QTY_COMPLETED, NATURE_OF_JOB, "
+//		      + " WORKORDER_RELEASED_DATE, SERVICE_ENTRY_CREATE_DATE, "
+//		      + " SERVICE_ENTRY_UPDATED_DATE, PURCHASE_ORG_LEVEL, COMPANY_CODE, "
+//		      + " EIC_NUM, RECORD_CREATED_ON, RECORD_UPDATED_ON, "
+//		      + " RECORD_PROCESSED, RECORD_STATUS ) "
+//		      + "VALUES ("
+//		      + " ?,?,?,?,?,?,?,?,?,?,"
+//		      + " ?,?,?,?,?,?,?,?,?,?,"
+//		      + " ?,?,?,?,?,?,?,?,?,?,"
+//		      + " ?,?,?,?,?,?,?,?,?"
+//		      + ")";
 
 		    jdbcTemplate.update(sql,
 		        /* 01 */ w.getWorkOrderNumber(),
@@ -1924,11 +1925,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		public String insertBulkRenewGatepassTransactionMapping() {
 			return QueryFileWatcher.getQuery("INSERT_BULK_RENEW_IN_GATEPASSTRNSACTIONMAPPING");
 		}
+		public String checkWorkorderExists() {
+			return QueryFileWatcher.getQuery("CHECK_WORKORDER_EXISTS");
+		}
 		//String sql = WorkorderExists();
 		@Override
 		public Map<String, Object> workorderExists(String workorderNumber, String gpContId) {
 
-		    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? AND CONTRACTORID=?";
+		    String sql = checkWorkorderExists();
+		    		//"SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? AND CONTRACTORID=?";
 
 		    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, gpContId);
 
@@ -2468,29 +2473,38 @@ public class FileUploadDaoImpl implements FileUploadDao {
 				    Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gmName,gmTypeId);
 				    return count != null && count > 0;
 			}
+		 public String activeGatepassExists() {
+			    return QueryFileWatcher.getQuery("IS_ACTIVE_GATEPASS_EXISTS");
+		    }
 		 @Override
 			public boolean activeGatepassExists(String gatepassNumber) {
-				String sql="select count(*) from GATEPASSMAIN where GatePassId=? and GatePassTypeId in (1,2,12,15) and GatePassStatus=4";
-				//String sql=gatepassNumberExists();
+				//String sql="select count(*) from GATEPASSMAIN where GatePassId=? and GatePassTypeId in (1,2,12,15) and GatePassStatus=4";
+				String sql=activeGatepassExists();
 				  Integer count = jdbcTemplate.queryForObject(sql, Integer.class, gatepassNumber);
 				    return count != null && count > 0;
 				}
-		 
+		 public String workorderExistsForPlantAndContractor() {
+			    return QueryFileWatcher.getQuery("IS_WORKORDER_EXISTS_WITH_PLANT_CONTRACTOR");
+		    }
 		 @Override
 			public Map<String, Object>  workorderExistsForPlantAndContractor(String workorderNumber,Integer unitId){
 
-			    String sql = "SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? and UNITID=?";
+			    String sql =workorderExistsForPlantAndContractor();
+			    		//"SELECT WORKORDERID, VALIDDT FROM CMSWORKORDER WHERE SAP_WORKORDER_NUM=? and UNITID=?";
 
 			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber,unitId);
 
 			    return list.isEmpty() ? null : list.get(0);
 			}
+		 public String licenseExistsWithWorkorder() {
+			    return QueryFileWatcher.getQuery("IS_LICENSE_EXISTS_WITH_WORKORDER");
+		    }
 		 @Override
 			public Map<String, Object> licenseExistsWithWorkorder(String workorderNumber, String wcesicNumber){
-
-			    String sql = "select llwc.WOLLID AS WCID,wc.WC_FROM_DTM as VALIDFROM, wc.WC_TO_DTM as VALIDTO,wc.LICENCE_TYPE as LICENSETYPE from CMSWORKORDER wo \r\n"
-			    		+ "join CMSWORKORDER_LLWC llwc on llwc.WONUMBER=wo.SAP_WORKORDER_NUM\r\n"
-			    		+ "join CMSCONTRACTOR_WC wc on  wc.WC_CODE=llwc.LICENSE_NUMBER where wo.SAP_WORKORDER_NUM=? and wc.WC_CODE=?";
+			 String sql =licenseExistsWithWorkorder();
+//			    String sql = "select llwc.WOLLID AS WCID,wc.WC_FROM_DTM as VALIDFROM, wc.WC_TO_DTM as VALIDTO,wc.LICENCE_TYPE as LICENSETYPE from CMSWORKORDER wo \r\n"
+//			    		+ "join CMSWORKORDER_LLWC llwc on llwc.WONUMBER=wo.SAP_WORKORDER_NUM\r\n"
+//			    		+ "join CMSCONTRACTOR_WC wc on  wc.WC_CODE=llwc.LICENSE_NUMBER where wo.SAP_WORKORDER_NUM=? and wc.WC_CODE=?";
 
 			    List<Map<String, Object>> list = jdbcTemplate.queryForList(sql, workorderNumber, wcesicNumber);
 
@@ -2635,8 +2649,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		   @Override
 		    public void insertIntraPlantTransferTemp(GatePassMain gm, String createdBy, String dot){
 			try {
-		    	//String sql=insertUnitTradeSkillMapping();
-		        String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		    	String sql=insertIntoTempSamePlantDiffContIntraPlantTransferQuery();
+		        //String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		        jdbcTemplate.update(sql,   gm.getGatePassId(),gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),
 		                gm.getWcEsicId(),gm.getLlId(),gm.getEsicNumber(),parseSqlDate(gm.getEffectiveFromDate()), parseSqlDate(dot) , createdBy);
 		        updateGatepassMainIntraPlantTransfer(gm,createdBy,dot);
@@ -2645,14 +2659,16 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        throw new RuntimeException("Transaction failed, rolling back", e); //  important
 		    }
 		    }
-		   
+		public String updateGtepassmainForIntraplanttransfer() {
+			return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_FOR_INTRAPLANT_TRNASFER");
+		}
 		@Transactional(rollbackFor = Exception.class)
 		@Override
 		public void updateGatepassMainIntraPlantTransfer(GatePassMain gm, String createdBy, String dot) {
 
 		    try {
-		        String sql = "update gatepassmain set UnitId=?,ContractorId=?,DepartmentId=?,AreaId=?,EicId=?,WorkorderId=?,WcEsicNo=?,LLNo=?,EsicNumber=?,DOT=?,UpdatedBy=?,UpdatedDate=GETDATE(),GatePassTypeId=? where GatePassId=?";
-
+		        //String sql = "update gatepassmain set UnitId=?,ContractorId=?,DepartmentId=?,AreaId=?,EicId=?,WorkorderId=?,WcEsicNo=?,LLNo=?,EsicNumber=?,DOT=?,UpdatedBy=?,UpdatedDate=GETDATE(),GatePassTypeId=? where GatePassId=?";
+		    	String sql =updateGtepassmainForIntraplanttransfer();
 		        int rows = jdbcTemplate.update(sql,gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),gm.getWcEsicNo(),gm.getLlNo(),
 		                         gm.getEsicNumber(),dot,createdBy,GatePassType.RENEW.getStatus(),gm.getGatePassId());
 
@@ -2761,12 +2777,14 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        throw new RuntimeException("Transaction failed, rolling back", e);
 		    }
 		}
-
+		public String updateCmspersonDot() {
+			return QueryFileWatcher.getQuery("UPDATE_CMSPERSON_DOT");
+		}
 		private long updateCmsPerson(GatePassMain gpm,String dot) {
 
 		    try {
-		        String updateSql = "UPDATE CMSPERSON SET DATEOFTERMINATION = ?, ESICNUMBER = ? WHERE EMPLOYEECODE = ?";
-
+		        //String updateSql = "UPDATE CMSPERSON SET DATEOFTERMINATION = ?, ESICNUMBER = ? WHERE EMPLOYEECODE = ?";
+		        String updateSql =updateCmspersonDot();
 		        int rows = jdbcTemplate.update(updateSql,dot,gpm.getEsicNumber(),gpm.getGatePassId());
 
 		        //  If no row updated - throw exception
@@ -2777,8 +2795,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        }
 
 		        //  Fetch employee ID
-		        String selectSql = "SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
-
+		        //String selectSql = "SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
+		        String selectSql = getEmployeeIdFromCmspersonQuery();
 		        Long personId = jdbcTemplate.queryForObject(selectSql,new Object[]{gpm.getGatePassId()},Long.class);
 
 		        //  Validate result
@@ -2796,13 +2814,21 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        throw new RuntimeException("Failed to update CMSPERSON", e);
 		    }
 		}
-
+		public String getDetailsFromGatepassmain() {
+			return QueryFileWatcher.getQuery("GET_DETAILS_FROM_GATEPASSMAIN");
+		}
+		public String updateExistingRecordToYesterdayInJobhist() {
+			return QueryFileWatcher.getQuery("UPDATE_EXISTING_RECORD_TO_YESTERDAY_IN_JOBHIST");
+		}
+		public String insertNewRecordInJobhist() {
+			return QueryFileWatcher.getQuery("INSERT_NEW_RECORD_IN_JOBHIST");
+		}
 		private boolean updateCmsPersonJobHist(GatePassMain gpm, long personId) {
 		 try {
 
 		        // STEP 1: Get data from GATEPASSMAIN
-		        String fetchSql ="select TradeId,SkillId from GATEPASSMAIN where GatePassId=?";
-		               
+		        //String fetchSql ="select TradeId,SkillId from GATEPASSMAIN where GatePassId=?";
+		        String fetchSql  =getDetailsFromGatepassmain();     
 
 		        GatePassMain data = jdbcTemplate.queryForObject(
 		                fetchSql,
@@ -2818,17 +2844,17 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        );
 
 		        // STEP 2: Expire existing record with gpm.effectivedate-1
-		        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, ?) WHERE EMPLOYEEID = ? " ;
-		               
+		        //String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, ?) WHERE EMPLOYEEID = ? " ;
+		        String updateSql = updateExistingRecordToYesterdayInJobhist();
 
 		        jdbcTemplate.update(updateSql, gpm.getEffectiveFromDate(),personId);
 
 		        // STEP 3: Insert new record
-		        String insertSql =
-		                "INSERT INTO CMSPERSONJOBHIST ( " +
-		                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
-		                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
-		                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+		        String insertSql =insertNewRecordInJobhist();
+//		                "INSERT INTO CMSPERSONJOBHIST ( " +
+//		                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+//		                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+//		                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
 
 		        int inserted = jdbcTemplate.update(
 		                insertSql,
@@ -2865,6 +2891,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	public String getCustomDefIDforreasoning() {
 		return QueryFileWatcher.getQuery("GET_CUSTOMDEFID_FOR_REASONING");
 	}
+	public String insertCustomdatadefinitionIntraplantTransfer() {
+		return QueryFileWatcher.getQuery("INSERT_CUSTOMDATA_DEFINTION_INTRAPLANT_TRANSFER");
+	}
 	private boolean updateCmsPersonCustDataIntaPlantTransferEffectiveTillStatus(long personId, String gatepassType, GatePassMain gpm) {
 
 	    try {
@@ -2899,10 +2928,10 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        LocalDate effectiveDate =((java.sql.Date) parsedDate).toLocalDate();
 	        LocalDate effectiveTillDate =effectiveDate.minusDays(1);
 
-	        
-	        String sql = "INSERT INTO CMSPERSONCUSTOMDATA "
-	                + "(EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY) "
-	                + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)";
+	        String sql =insertCustomdatadefinitionIntraplantTransfer(); 
+//	        String sql = "INSERT INTO CMSPERSONCUSTOMDATA "
+//	                + "(EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY) "
+//	                + "VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)";
 
 	        //  Insert GatePass Type and status
 	        int count1 = jdbcTemplate.update(sql,personId,gatePassTypeDefId,gatepassType,java.sql.Date.valueOf(effectiveTillDate),gpm.getCreatedBy());
@@ -2991,7 +3020,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	}
 	
 	public String updateValidtodot() {
-	    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_TO_RENEW");
+	    return QueryFileWatcher.getQuery("UPDATE_VALIDITY_ACTIVE_RECORD_BULKRENEW");
 	}
 
 	public String updateValidfromdotnextday() {
@@ -3009,8 +3038,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        // ================= UPDATE ACTIVE =================
 	        if (activeId != null) {
 	        	//String sqlActive = updateValidtodot();
-	            String sql = "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ?, VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
-
+	            //String sql = "UPDATE CMSPERSONSTATUSMM SET VALIDTO = ?, VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+	            String sql = updateValidtodot();
 	            int count1 = jdbcTemplate.update(sql,java.sql.Date.valueOf(dotDate),java.sql.Date.valueOf(effectiveFrom),activeId);
 	            // int count1 = jdbcTemplate.update(sqlActive,java.sql.Date.valueOf(dotDate),activeId);
 		        //int count3 = jdbcTemplate.update(sqlActiveEffectiveFrom,java.sql.Date.valueOf(effectiveFromDate),activeId);
@@ -3279,11 +3308,14 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
 	    return null;
 	}
+	public String getContractorDetailsForIntraPlantTransferQuery() {
+		return QueryFileWatcher.getQuery("GET_CONTRACTOR_DETAILS_FOR_INTRAPLANT_TRANSFER");
+	}
 	@Override
 	public List<String> getContractorDetailsForIntraPlantTransfer(String gatepassNumber) {
 		//String sql =getContractorDetailsForCancel();
-		String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID,DOJ FROM GATEPASSMAIN WHERE GATEPASSID = ?";
-
+		//String sql = "SELECT UNITID, CONTRACTORID, DEPARTMENTID,DOJ FROM GATEPASSMAIN WHERE GATEPASSID = ?";
+		String sql = getContractorDetailsForIntraPlantTransferQuery();
 	    try {
 	        return jdbcTemplate.queryForObject(sql, new Object[]{gatepassNumber}, (rs, rowNum) -> {
 	            List<String> list = new ArrayList<>();
@@ -3297,21 +3329,27 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        return null;
 	    }
 	}
+	public String getEmployeeIdFromCmspersonQuery() {
+		return QueryFileWatcher.getQuery("GET_EMPLOYEEID_FROM_CMSPERSON");
+	}
+	public String getMaxValidFromCmspersonJobHistQuery() {
+		return QueryFileWatcher.getQuery("GET_MAX_VALIDFROM_FROM_JOBHIST");
+	}
 	@Override
 	public String getLastEffectiveFromDateFromJobHist(String gatepassNumber,java.util.Date effectiveFrom) {
 
 	    try {
 	        // STEP 1 : GET EMPLOYEE ID
-	        String empSql ="SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
-
+	        //String empSql ="SELECT EMPLOYEEID FROM CMSPERSON WHERE EMPLOYEECODE = ?";
+	        String empSql =getEmployeeIdFromCmspersonQuery();
 	        Integer employeeId =jdbcTemplate.queryForObject(empSql,Integer.class,gatepassNumber);
 
 	        if (employeeId == null) {
 	            return null;
 	        }
 	        // STEP 2 : GET MAX VALIDFROM
-	        String validSql ="SELECT MAX(VALIDFROM) FROM CMSPERSONJOBHIST WHERE EMPLOYEEID = ? AND VALIDFROM > ?";
-
+	       // String validSql ="SELECT MAX(VALIDFROM) FROM CMSPERSONJOBHIST WHERE EMPLOYEEID = ? AND VALIDFROM > ?";
+	        String validSql =getMaxValidFromCmspersonJobHistQuery();
 	        java.sql.Date maxValidFrom =jdbcTemplate.queryForObject(validSql,java.sql.Date.class,employeeId, new java.sql.Date(effectiveFrom.getTime()));
 
 	        return maxValidFrom != null? maxValidFrom.toString(): null;
@@ -3322,13 +3360,22 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        return null;
 	    }
 	}
+	public String getDataFromGatepassmainForBulkRenew() {
+		return QueryFileWatcher.getQuery("GET_DATA_FROM_GATEPASSMAIN_FOR_BULKRENEW");
+	}
+	public String updateExistingRecordInJobhistForBulkRenew() {
+		return QueryFileWatcher.getQuery("UPDATE_EXISTING_RECORD_IN_JOBHIST_FOR_BULKRENEW");
+	}
+	public String insertNewRecordInJobhistForBulkRenew() {
+		return QueryFileWatcher.getQuery("INSERT_NEW_RECORD_IN_JOBHIST_FOR_BULKRENEW");
+	}
 	private boolean updateCmsPersonJobHistBulkRenew(GatePassMain gpm, long personId) {
 
 	    try {
 
 	        // STEP 1: Get data from GATEPASSMAIN
-	        String fetchSql ="select TradeId,SkillId,DepartmentId,AreaId,UnitId,ContractorId,DOJ,EicId from GATEPASSMAIN where GatePassId=?";
-	               
+	        //String fetchSql ="select TradeId,SkillId,DepartmentId,AreaId,UnitId,ContractorId,DOJ,EicId from GATEPASSMAIN where GatePassId=?";
+	        String fetchSql =  getDataFromGatepassmainForBulkRenew();     
 
 	        GatePassMain data = jdbcTemplate.queryForObject(
 	                fetchSql,
@@ -3349,7 +3396,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        );
 
 	        // STEP 2: Expire existing record
-	        String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
+	        //String updateSql ="UPDATE CMSPERSONJOBHIST SET VALIDTO = DATEADD(DAY, -1, GETDATE()) WHERE EMPLOYEEID = ? " ;
+	        String updateSql =updateExistingRecordInJobhistForBulkRenew();
 	               
 
 	        jdbcTemplate.update(updateSql, personId);
@@ -3364,11 +3412,11 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        }
 	        
 	        // STEP 3: Insert new record
-	        String insertSql =
-	                "INSERT INTO CMSPERSONJOBHIST ( " +
-	                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
-	                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
-	                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
+	        String insertSql =insertNewRecordInJobhistForBulkRenew();
+//	                "INSERT INTO CMSPERSONJOBHIST ( " +
+//	                "EMPLOYEEID, TRADEID,SKILLID,UNITID, CONTRACTORID, DEPARTMENTID, " +
+//	                "SUBDEPARTMENTID, WORKORDERID, EICID, VALIDFROM, VALIDTO ,UPDATEDTM) " +
+//	                "VALUES (?,?,?,?,?,?,?, ?, ?,?,?,getdate())";
 
 	        int inserted = jdbcTemplate.update(
 	                insertSql,
@@ -3400,12 +3448,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	    }
 	}
 	//same plant doff contractor for intra plant transfer
+	public String getAllDeatilsOfWorkmenBasedOnGatePass() {
+		return QueryFileWatcher.getQuery("GET_ALL_DETAILS_OF_WORKMEN_BASED_ON_GATEPASS");
+	}
 	@Override
 	public GatePassMain getAllDeatilsOfWorkmenBasedOnGatePass(String gatepassId) {
 
 	    try {
-
-	        String sql = "SELECT * FROM GATEPASSMAIN WHERE GATEPASSID = ?";
+	    	 String sql = getAllDeatilsOfWorkmenBasedOnGatePass();
+	       // String sql = "SELECT * FROM GATEPASSMAIN WHERE GATEPASSID = ?";
 
 	        return jdbcTemplate.queryForObject(
 	                sql,
@@ -3473,12 +3524,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        return null;
 	    }
 	}
-	
+	public String insertIntoTempSamePlantDiffContIntraPlantTransferQuery() {
+		return QueryFileWatcher.getQuery("INSERT_INTO_TEMP_SAMEPLANT_DIFFCONT_INTRAPLANT_TRANSFER");
+	}
 	@Transactional(rollbackFor = Exception.class)
 	   @Override
 	    public void insertSamePlantDiffContIntraPlantTransfer(GatePassMain gm, String createdBy, String dot){
 		try {
-	        String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			String sql =insertIntoTempSamePlantDiffContIntraPlantTransferQuery(); 
+	        //String sql = "INSERT INTO CMSRequestItemIntraPlantTransfer (GatepassId,unitId,contractorId,DepartmentId,AreaId,EICId,workorderId,wcesicId,LLId,Esic,EffectiveDate,Dot,updatedBy) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	        jdbcTemplate.update(sql,   gm.getGatePassId(),gm.getUnitId(),gm.getContractor(),gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getWorkorder(),
 	                gm.getWcEsicId(),gm.getLlId(),gm.getEsicNumber(),parseSqlDate(gm.getEffectiveFromDate()), parseSqlDate(dot) , createdBy);
 	        updateGatepassMainStatusCancelForIntrPlant(gm, dot,createdBy );
@@ -3487,10 +3541,13 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        throw new RuntimeException("Transaction failed, rolling back", e); //  important
 	    }
 	    }
-	
+	public String updateGatepassMainStatusCancelForIntrPlantQuery() {
+		return QueryFileWatcher.getQuery("UPDATE_GATEPASSMAIN_FOR_CANCEL_IN_INTRAPLANT_TRANSFER");
+	}
 	@Transactional(rollbackFor = Exception.class)
 	private void updateGatepassMainStatusCancelForIntrPlant(GatePassMain gm,String dot,String createdBy) {
-		 String sql = "update GATEPASSMAIN set GatePassTypeId =?,Reasoning=? ,DOT=DATEADD(DAY, -1, ?)  where GatePassId=?";
+		// String sql = "update GATEPASSMAIN set GatePassTypeId =?,Reasoning=? ,DOT=DATEADD(DAY, -1, ?)  where GatePassId=?";
+		 String sql =updateGatepassMainStatusCancelForIntrPlantQuery();
 	    jdbcTemplate.update(sql,GatePassType.CANCEL.getStatus() ,gm.getReasoning(),parseSqlDate(gm.getEffectiveFromDate()),gm.getGatePassId());
 	  
 	    int cancelled =insertCancelGatepassTransactionMapping(gm,createdBy);
@@ -3597,6 +3654,12 @@ public class FileUploadDaoImpl implements FileUploadDao {
 //
 //	    return updated;
 //	}
+	public String updatePersonstatusmmForActive() {
+		return QueryFileWatcher.getQuery("UPDATE_CMSPERSONSTATUSMM_ACTIVE_RECORD");
+	}
+	public String updatePersonstatusmmForInactive() {
+		return QueryFileWatcher.getQuery("UPDATE_CMSPERSONSTATUSMM_INACTIVE_RECORD");
+	}
 	public boolean updatePersonStatusValidity(Long activeId,Long inactiveId,String effectiveFromDate) {
 
 	    boolean updated = false;
@@ -3606,8 +3669,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        // ACTIVE record:
 	        // VALIDTO = effectiveFromDate - 1 day
 	        if (activeId != null) {
-
-	            String sqlActive ="UPDATE CMSPERSONSTATUSMM SET VALIDTO = DATEADD(DAY, -1, ?) WHERE PERSONSTATUSMMID = ?";
+	        	String sqlActive = updatePersonstatusmmForActive();
+	            //String sqlActive ="UPDATE CMSPERSONSTATUSMM SET VALIDTO = DATEADD(DAY, -1, ?) WHERE PERSONSTATUSMMID = ?";
 
 	            int count1 = jdbcTemplate.update(sqlActive,parseSqlDate(effectiveFromDate),activeId);
 
@@ -3617,8 +3680,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        // INACTIVE record:
 	        // VALIDFROM = effectiveFromDate
 	        if (inactiveId != null) {
-
-	            String sqlInactive ="UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
+	        	 String sqlInactive =updatePersonstatusmmForInactive();
+	            //String sqlInactive ="UPDATE CMSPERSONSTATUSMM SET VALIDFROM = ? WHERE PERSONSTATUSMMID = ?";
 
 	            int count2 = jdbcTemplate.update(sqlInactive,parseSqlDate(effectiveFromDate),inactiveId);
 
@@ -3634,6 +3697,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        throw new RuntimeException("Failed to update CMSPERSONSTATUSMM validity dates while canceling the record",e);
 	    }
 	}
+	public String gatepassmainInsertionForSamePlantDiffContQuery() {
+		return QueryFileWatcher.getQuery("GATEPASSMAIN_INSERTION_FOR_PLANT_DIFF_CONT");
+	}
 	@Transactional(rollbackFor = Exception.class)
 	public int gatepassmainInsertionForSamePlantDiffCont(GatePassMain gm, String dot) {
 		 int result = 0;
@@ -3647,16 +3713,16 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		gm.setTransactionId(transactionId);
 		//gm.setGatePassType(gatepassTypeId);
 
-	    String query =
-	            "INSERT INTO GATEPASSMAIN (TransactionId,GatePassId, GatePassTypeId, GatePassStatus, AadharNumber, FirstName, LastName, "
-	            + "DOB, Gender, RelativeName, IdMark, MobileNumber , MaritalStatus , UnitId, ContractorId, WorkorderId, TradeId, SkillId, "
-	            + "DepartmentId, AreaId, EicId, NatureOfJob, WcEsicNo, HazardousArea, AccessAreaId, UanNumber, HealthCheckDate,pfnumber,esicNumber,"
-	            + " BloodGroupId, Accommodation, AcademicId, Technical, IfscCode, AccountNumber,EmergencyContactName,EmergencyContactNumber, "
-	            + "WorkmenWageCategoryId, BonusPayoutId, PfCap,ZoneId, Basic, DA, HRA, WashingAllowance, OtherAllowance, UniformAllowance,AadharDocName, "
-	            + "PhotoName, BankDocName, PoliceVerificationDocName, IdProof2DocName, MedicalDocName, EducationDocName, Form11DocName, TrainingDocName, "
-	            + "OtherDocName,WorkFlowType,Comments,Address,DOJ,pfapplicable,policeverificationDate, DOT,UpdatedBy, UpdatedDate,OnboardingType,LLNo,"
-	            + "AppointmentDocName,disability,WorkmenType,Proficiency) VALUES  (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  "
-	            + "?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,?,?,?,?,?,?,?, GETDATE(),?,?,?,?,?,?)";
+	    String query =gatepassmainInsertionForSamePlantDiffContQuery();
+//	            "INSERT INTO GATEPASSMAIN (TransactionId,GatePassId, GatePassTypeId, GatePassStatus, AadharNumber, FirstName, LastName, "
+//	            + "DOB, Gender, RelativeName, IdMark, MobileNumber , MaritalStatus , UnitId, ContractorId, WorkorderId, TradeId, SkillId, "
+//	            + "DepartmentId, AreaId, EicId, NatureOfJob, WcEsicNo, HazardousArea, AccessAreaId, UanNumber, HealthCheckDate,pfnumber,esicNumber,"
+//	            + " BloodGroupId, Accommodation, AcademicId, Technical, IfscCode, AccountNumber,EmergencyContactName,EmergencyContactNumber, "
+//	            + "WorkmenWageCategoryId, BonusPayoutId, PfCap,ZoneId, Basic, DA, HRA, WashingAllowance, OtherAllowance, UniformAllowance,AadharDocName, "
+//	            + "PhotoName, BankDocName, PoliceVerificationDocName, IdProof2DocName, MedicalDocName, EducationDocName, Form11DocName, TrainingDocName, "
+//	            + "OtherDocName,WorkFlowType,Comments,Address,DOJ,pfapplicable,policeverificationDate, DOT,UpdatedBy, UpdatedDate,OnboardingType,LLNo,"
+//	            + "AppointmentDocName,disability,WorkmenType,Proficiency) VALUES  (?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  "
+//	            + "?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,  ?, ?, ?, ?, ?,?,?,?,?,?,?,?, GETDATE(),?,?,?,?,?,?)";
 	    result = jdbcTemplate.update(query,transactionId,gatePassId,gm.getGatePassType(),gatepassStatus,gm.getAadhaarNumber(),gm.getFirstName(),gm.getLastName(),
 	            gm.getDateOfBirth(),gm.getGender(),gm.getRelationName(),gm.getIdMark(),gm.getMobileNumber(),gm.getMaritalStatus(),gm.getUnitId(),gm.getContractor(),gm.getWorkorder(),gm.getTrade(),gm.getSkill(),
 	            gm.getDepartment(),gm.getSubdepartment(),gm.getEic(),gm.getNatureOfJob(),gm.getWcEsicNo(),gm.getHazardousArea(),gm.getAccessArea(),gm.getUanNumber(),gm.getHealthCheckDate(),gm.getPfNumber(),gm.getEsicNumber(),
@@ -3913,6 +3979,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	    }
 	    return result;
 	}
+	public String getActiveCustomDefintion() {
+		return QueryFileWatcher.getQuery("GET_ACTIVE_CUSTOM_DEFINITIONS");
+	}
 	@Transactional(rollbackFor = Exception.class)
 	public boolean updateCmsPersonCustDataIntaPlantTransfer(Long  personId, GatePassMain gpm,String dot){
 	      try {
@@ -3921,7 +3990,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		    String sql = saveCMSPERSONCUSTDATA(); 
 
 		    // Fetch all active custom definitions
-		    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+		    //String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+		    String defSql =getActiveCustomDefintion();
 		    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
 
 

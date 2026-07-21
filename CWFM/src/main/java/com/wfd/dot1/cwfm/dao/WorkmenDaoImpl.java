@@ -4219,6 +4219,9 @@ public boolean updateGatePassMainWithReasoningTab(GatePassActionDto dto, Multipa
         return false;
     }
 }
+public String getActiveCustomDefintion() {
+	return QueryFileWatcher.getQuery("GET_ACTIVE_CUSTOM_DEFINITIONS");
+}
 @Transactional(rollbackFor = Exception.class)
 @Override
 public boolean saveCMSPERSONCUSTDATA(GatePassMain gp, long employeeId) {
@@ -4230,7 +4233,8 @@ public boolean saveCMSPERSONCUSTDATA(GatePassMain gp, long employeeId) {
     // VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)
 
     // Fetch all active custom definitions
-    String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+    //String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+    String defSql =getActiveCustomDefintion();
     List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
 
     boolean isQuick = "quick".equalsIgnoreCase(gp.getOnboardingType());
@@ -4351,11 +4355,13 @@ public Map<String, Object> getWorkmenDetailsByAadhar(String aadharNumber) {
 
     return list.isEmpty() ? null : list.get(0);
 }
-
+private String getContractWorkmenReportQuery() {
+	return QueryFileWatcher.getQuery("GET_CONTRACTOR_WORKMEN_REPORT");
+}
 @Override
 public List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId, String contractorId) {
-    String sql = "EXEC dbo.usp_GetApprovedGatePassExportDetails @UnitId = ?, @ContractorId = ?";
-
+    //String sql = "EXEC dbo.usp_GetApprovedGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+    String sql =getContractWorkmenReportQuery();
     return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
             new RowMapper<ContractWorkmenReportDTO>() {
                 @Override
@@ -4416,14 +4422,14 @@ public List<ContractWorkmenReportDTO> getContractWorkmenReportData(String unitId
             });
 }
 
-private String getContractWorkmenReportQuery() {
-	// TODO Auto-generated method stub
-	return QueryFileWatcher.getQuery("WORKMEN_REPORT");
+public String getInactiveWorkmenReportData() {
+    return QueryFileWatcher.getQuery("GET_INACTIVE_WORKMEN_REPORT_DATA");
 }
+
 @Override
 public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId, String contractorId) {
-    String sql = "EXEC dbo.usp_GetInactiveGatePassExportDetails @UnitId = ?, @ContractorId = ?";
-
+   // String sql = "EXEC dbo.usp_GetInactiveGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+    String sql =getInactiveWorkmenReportData();
     return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
             new RowMapper<ContractWorkmenReportDTO>() {
                 @Override
@@ -4482,11 +4488,14 @@ public List<ContractWorkmenReportDTO> getInactiveWorkmenReportData(String unitId
                     return dto;
                 }
             });
+}
+public String getPoliceverificationWorkmenReportData() {
+    return QueryFileWatcher.getQuery("GET_POLICEVERIFICATION_WORKMEN_REPORT_DATA");
 }
 @Override
 public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(String unitId, String contractorId) {
-    String sql = "EXEC dbo.usp_GetPoliceverificationGatePassExportDetails @UnitId = ?, @ContractorId = ?";
-
+    //String sql = "EXEC dbo.usp_GetPoliceverificationGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+    String sql = getPoliceverificationWorkmenReportData();
     return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
             new RowMapper<ContractWorkmenReportDTO>() {
                 @Override
@@ -4547,10 +4556,13 @@ public List<ContractWorkmenReportDTO> getPoliceverificationWorkmenReportData(Str
                 }
             });
 }
+public String getPolicyExpiryWorkmenReportData() {
+    return QueryFileWatcher.getQuery("GET_POLICY_EXPIRY_WORKMEN_REPORT_DATA");
+}
 @Override
 public List<ContractWorkmenReportDTO> getPolicyExpiryWorkmenReportData(String unitId, String contractorId) {
-    String sql = "EXEC dbo.usp_policyExpiryGatePassExportDetails @UnitId = ?, @ContractorId = ?";
-
+    //String sql = "EXEC dbo.usp_policyExpiryGatePassExportDetails @UnitId = ?, @ContractorId = ?";
+    String sql = getPolicyExpiryWorkmenReportData();
     return jdbcTemplate.query(sql, new Object[] { Long.parseLong(unitId), Long.parseLong(contractorId) },
             new RowMapper<ContractWorkmenReportDTO>() {
                 @Override
@@ -4925,11 +4937,13 @@ public boolean isActionDoneToday(String gatePassId, Long typeId) {
 
     return !result.isEmpty();
 }
-
+public String getoldDotFromActiveRecord() {
+    return QueryFileWatcher.getQuery("GET_OLD_DOT_FROM_ACTIVE_RECORDS");
+}
 @Override
 public String getoldDotFromActiveRecord(Long activeId) {
-
-	String query="select CONVERT(varchar, VALIDTO, 23) AS  VALIDTO from CMSPERSONSTATUSMM where PERSONSTATUSMMID=?";
+	String query=getoldDotFromActiveRecord();
+	//String query="select CONVERT(varchar, VALIDTO, 23) AS  VALIDTO from CMSPERSONSTATUSMM where PERSONSTATUSMMID=?";
 	String oldDot = null;
 	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,activeId);
 	if(rs.next()) {

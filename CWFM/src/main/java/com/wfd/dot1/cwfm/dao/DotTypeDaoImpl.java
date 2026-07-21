@@ -38,12 +38,20 @@ public class DotTypeDaoImpl implements DotTypeDao {
 		        return null;
 		    }
 	 }
+	 public String getExistingDotType() {
+		    return QueryFileWatcher.getQuery("GET_EXISTING_DOT_TYPE");
+		}
+	 public String updateDotType() {
+		    return QueryFileWatcher.getQuery("UPDATE_DOT_TYPE");
+		}
 	    @Override
 	    public void insertWorkflowType(Long principalEmployerId, int workflowType, String createdBy) {
-	    	String sql = "select  gwt.WorkflowType,gwt.WorkflowTypeId	from GATEPASSWORKFLOWTYPE gwt where  gwt.UnitID=? ";
+	    	//String sql = "select  gwt.WorkflowType,gwt.WorkflowTypeId	from GATEPASSWORKFLOWTYPE gwt where  gwt.UnitID=? ";
+	    	String sql =getExistingDotType();
 	    	SqlRowSet rs = jdbcTemplate.queryForRowSet(sql,principalEmployerId);
 			if(rs.next()) {// DOT already exists update otherwise insert
-				String updateQuery = "update GATEPASSWORKFLOWTYPE set WorkflowType=? where WorkflowTypeId=?";
+				//String updateQuery = "update GATEPASSWORKFLOWTYPE set WorkflowType=? where WorkflowTypeId=?";
+				String updateQuery =updateDotType() ;
 		       jdbcTemplate.update(updateQuery,  workflowType, rs.getInt("WorkflowTypeId"));
 			}else {
 				String query = insertWorkflowType();

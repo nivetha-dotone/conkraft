@@ -55,15 +55,17 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
                 new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
                 contractorId);
     }
-
+    public String saveUploadMaster() {
+		return QueryFileWatcher.getQuery("SAVE_RECONCILEIATION_MASTER");
+	}
     @Override
     public Long saveUploadMaster(Long contractorId, String reconType, String fileName, String filePath,
                                  String overallStatus, int totalCount, int verifiedCount, int unverifiedCount,
                                  String uploadedBy) {
-
-        String sql = "INSERT INTO RECONCILIATION_UPLOAD " +
-                     "(CONTRACTOR_ID, RECON_TYPE, FILE_NAME, FILE_PATH, OVERALL_STATUS, TOTAL_COUNT, VERIFIED_COUNT, UNVERIFIED_COUNT, UPLOADED_BY, UPLOADED_DATE) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+    	String sql =saveUploadMaster();
+//        String sql = "INSERT INTO RECONCILIATION_UPLOAD " +
+//                     "(CONTRACTOR_ID, RECON_TYPE, FILE_NAME, FILE_PATH, OVERALL_STATUS, TOTAL_COUNT, VERIFIED_COUNT, UNVERIFIED_COUNT, UPLOADED_BY, UPLOADED_DATE) " +
+//                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -83,13 +85,15 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
 
         return keyHolder.getKey().longValue();
     }
-
+    public String saveMismatchList() {
+		return QueryFileWatcher.getQuery("SAVE_MISMATCH_RECONCILEIATION_MASTER");
+	}
     @Override
     public void saveMismatchList(Long uploadId, List<ReconciliationMismatchDTO> mismatchList) {
-
-        String sql = "INSERT INTO RECONCILIATION_MISMATCH " +
-                     "(UPLOAD_ID, GATEPASS_ID, WORKMEN_NAME, DB_NUMBER, DOC_NUMBER, DB_AMOUNT, DOC_AMOUNT, MISMATCH_REASON, RECON_TYPE, CREATED_DATE) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
+    	 String sql =saveMismatchList();
+//        String sql = "INSERT INTO RECONCILIATION_MISMATCH " +
+//                     "(UPLOAD_ID, GATEPASS_ID, WORKMEN_NAME, DB_NUMBER, DOC_NUMBER, DB_AMOUNT, DOC_AMOUNT, MISMATCH_REASON, RECON_TYPE, CREATED_DATE) " +
+//                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
