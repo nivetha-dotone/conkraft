@@ -41,7 +41,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #00695c;
+  background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
   border-radius: 8px;
   padding: 10px 14px;
   color: #fff;
@@ -152,14 +152,22 @@
     </div>
   </div>
   <!-- AI Assistance Card -->
-<div class="kpi-card teal" id="kpi-ai">
+<div class="security-banner" id="kpi-ai">
     <div class="kpi-content ai-card">
-      <div class="ai-left">
-        <div class="ai-title">AI ASSISTENCE</div>
-      </div>
-      <div class="ai-right">
+       <a href="javascript:void(0);"
+   class="dashboard-tile"
+   onclick="openChatBotModal();">
+
+    <div class="tile-content">
+        <i class="fa fa-comments"></i>
+        <span>Conkraft Assistant</span>
+    </div>
+
+  <!--  </div> -->
+      </div></a>
+      <!-- <div class="ai-right">
         <img src="resources/img/ai-image.png" alt="AI Assistance" class="ai-image">
-      </div>
+      </div> -->
     </div>
   </div>
 </div>

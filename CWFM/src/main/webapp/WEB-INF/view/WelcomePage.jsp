@@ -19,6 +19,8 @@
 <!-- jQuery first -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+
+
 <!-- jQuery UI after jQuery -->
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -30,10 +32,14 @@
 <!-- Include Digiboost Web SDK digilocker-->
     <script src="https://cdn.jsdelivr.net/gh/surepassio/surepass-digiboost-web-sdk@latest/index.min.js"></script>
     
+
  <link rel="stylesheet" type="text/css" href="resources/css/cms/dashboard.css" />
  <link rel="stylesheet" type="text/css" href="resources/css/cms/newdashboard.css" />  
  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
  <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+  
+ <link rel="stylesheet" type="text/css" href="resources/css/cms/chatbot.css">
+
          <script src="resources/js/cms/requestorList.js"></script>
         <script src="resources/js/cms/plantZoneMappingList.js"></script>  
      <script src="resources/js/cms/requestorHRList.js"></script>
@@ -63,6 +69,11 @@
 
   <script src="resources/js/cms/tradeSkill.js"></script>
  <script src="resources/js/cms/history.js"></script>
+ <script>
+    window.applicationContextPath =
+    	'<%= request.getContextPath() %>';
+</script>
+ <script src="resources/js/cms/chatbot.js"></script>
 
 
     <script>

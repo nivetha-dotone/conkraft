@@ -9,6 +9,13 @@ public class WorkOrderDTO {
     private String aadharNumber;
     private String fullname;
     private String contractorId;
+    private Integer workOrderCount;
+	public Integer getWorkOrderCount() {
+		return workOrderCount;
+	}
+	public void setWorkOrderCount(Integer workOrderCount) {
+		this.workOrderCount = workOrderCount;
+	}
 	public String getContractorId() {
 		return contractorId;
 	}
