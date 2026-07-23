@@ -13,4 +13,6 @@ public interface DashboardDao {
                                   List<PersonOrgLevel> contList);
 
     List<WorkOrderDTO> getWorkmenByWO(long woId, String contractorId);
+
+	 List<String> getAllowedPagesForRole(String roleId);
 }

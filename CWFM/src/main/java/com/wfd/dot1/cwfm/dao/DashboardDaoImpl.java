@@ -253,6 +253,7 @@ public class DashboardDaoImpl implements DashboardDao {
 	}
     private void loadWorkordersExpiry(DashboardDTO dashboard, String peIds, String contIds) {
     	String sql = loadWorkordersExpiry();
+    	//String sql = "EXEC GetWorkordersExpiry ?, ?";
 //        String sql = "select count(*) as expiredworkorders from GATEPASSMAIN gpm\r\n"
 //        		+ "INNER JOIN CMSWORKORDER wo ON wo.WORKORDERID = gpm.WorkorderId\r\n"
 //        		+ "WHERE\r\n"
@@ -277,6 +278,7 @@ public class DashboardDaoImpl implements DashboardDao {
 	}
     private void loadLicensesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
         	String sql = loadLicensesExpiry();
+        	//String sql = "EXEC GetLicensesExpiry ?, ?";
 //        String sql = "select count(*) as LicenseExpired from GATEPASSMAIN gpm\r\n"
 //        		+ "INNER JOIN CMSWORKORDER_LLWC ccwc ON ccwc.WOLLID = gpm.WcEsicNo\r\n"
 //        		+ "INNER JOIN CMSWORKORDER_LLWC ll ON ll.WOLLID = gpm.LLNo \r\n"
@@ -298,11 +300,13 @@ public class DashboardDaoImpl implements DashboardDao {
                 dashboard.setExpiredLicensess(rs.getInt("LicenseExpired")); 
         }, peIds, contIds);
     }
+    
     public String gatepassesExpiry() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_EXPIRED_GATEPASSES");
 	}
     private void gatepassesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
     	String sql = gatepassesExpiry();
+    	//String sql = "EXEC GetGatepassesExpiry ?, ?";
 //        String sql = "select count(*) as ExpiredGatepasses from GATEPASSMAIN gpm\r\n"
 //        		+ "WHERE  gpm.DOT >= CAST(GETDATE() AS DATE)\r\n"
 //        		+ "     AND gpm.DOT <= DATEADD(DAY, 30, CAST(GETDATE() AS DATE))\r\n"
@@ -322,7 +326,7 @@ public class DashboardDaoImpl implements DashboardDao {
     private void blackliestedGatepasses(DashboardDTO dashboard) {
     	 String sql =blackliestedGatepasses();
         //String sql = "select count(*) as BlackliestedGatepasses from GATEPASSMAIN where GatePassTypeId=6";
-
+    	 //String sql = "EXEC GetBlacklistedGatepasses";
         jdbcTemplate.query(sql, rs -> {
            
                 dashboard.setBlackliestedGP(rs.getInt("BlackliestedGatepasses"));
@@ -335,7 +339,7 @@ public class DashboardDaoImpl implements DashboardDao {
     	 String sql =pendingBills();
 //        String sql = "select count(*) as PendingBills from CMSWageCostWorkFlow wc where Status=3 and wc.UnitId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))"
 //        		 + "AND wc.ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
-
+    	 //String sql = "EXEC GetPendingBills ?, ?";
         jdbcTemplate.query(sql, rs -> {
            
                 dashboard.setPendingBills(rs.getInt("PendingBills"));
@@ -356,7 +360,7 @@ public class DashboardDaoImpl implements DashboardDao {
 //                FROM STRING_SPLIT(?, ',')
 //            )
 //        """;
-
+    	//String sql = "EXEC GetWorkOrderCompliance ?";
         List<WorkordersDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
             int total = rs.getInt("TotalWorkOrders");
             int active = rs.getInt("ActiveWorkOrders");
@@ -403,8 +407,8 @@ public class DashboardDaoImpl implements DashboardDao {
 	}
     private void wcCompliance(DashboardDTO dashboard ,String contIds) {
     	String sql =wcCompliance();
-        //String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('WC') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
-
+       // String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('WC') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+    	 //String sql = "EXEC GetWCCompliance ?";
         List<WCDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
             int total = rs.getInt("TotalLL");
             int active = rs.getInt("ActiveLLs");
@@ -428,7 +432,7 @@ public class DashboardDaoImpl implements DashboardDao {
     private void esicCompliance(DashboardDTO dashboard ,String contIds) {
     	String sql =esicCompliance();
         //String sql = "SELECT COUNT(*) AS TotalLL,SUM(CASE WHEN WC_TO_DTM >= GETDATE() THEN 1 ELSE 0 END) AS ActiveLLs FROM CMSCONTRACTOR_WC where LICENCE_TYPE IN ('ESIC') and  ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
-
+    	//String sql = "EXEC GetESICCompliance ?";
         List<ESICDTO> list = jdbcTemplate.query(sql, new Object[]{contIds}, (rs, rowNum) -> {
             int total = rs.getInt("TotalLL");
             int active = rs.getInt("ActiveLLs");
@@ -462,7 +466,7 @@ public class DashboardDaoImpl implements DashboardDao {
 //                SELECT TRY_CAST(value AS INT) FROM STRING_SPLIT(?, ',')
 //            )
        // """;
-
+    	  //String sql = "EXEC GetBillVerificationStatus ?";
         List<BillStatusDTO> list = jdbcTemplate.query(sql, new Object[]{contractorIds}, (rs, rowNum) -> {
             int approved = rs.getInt("ApprovedCount");
             int rejected = rs.getInt("RejectedCount");
@@ -487,7 +491,15 @@ public class DashboardDaoImpl implements DashboardDao {
 
         dashboard.setBillList(list);
     }
-
+    public String getAllowedPagesForRole() {
+	    return QueryFileWatcher.getQuery("GET_ALLOWED_PAGES_FOR_ROLE_QUICKACTIONS");
+	}
+    @Override
+    public List<String> getAllowedPagesForRole(String roleId) {
+        //String sql = "EXEC GetAllowedPagesForRole ?"; // call stored procedure
+    	String sql =getAllowedPagesForRole();
+        return jdbcTemplate.query(sql, new Object[]{roleId}, (rs, rowNum) -> rs.getString("PageUrl"));
+    }
 
 
 

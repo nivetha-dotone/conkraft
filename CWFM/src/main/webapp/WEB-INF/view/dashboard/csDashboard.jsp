@@ -200,7 +200,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 5px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
@@ -595,6 +595,31 @@ font-size: medium;
   padding: 5px 0;
 }
 
+
+/* ////////////// */
+.kpi-row {
+  display: flex;
+  justify-content: space-between; /* Equal gaps between cards */
+  align-items: center;
+  padding: 0 20px; /* Equal gap at start and end */
+  gap: 20px; /* Equal gap between cards */
+  flex-wrap: wrap; /* Responsive layout */
+}
+
+.kpi-card {
+  flex: 1;
+  min-width: 220px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 15px;
+}
+
+/* .security-banner {
+  margin-top: 20px;
+  padding: 0 20px; /* Match row padding for alignment */
+} */
+
 </style>
 
 
@@ -659,6 +684,33 @@ font-size: medium;
       </div>
     </div>
   </div>
+  <div class="security-banner" id="kpi-security-banner">
+  <div class="banner-content">
+    <div class="banner-left">
+      <div class="banner-icon">
+        
+      </div>
+      <div class="banner-text">
+        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
+      <!--   <div class="title"> 
+        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a> -->
+       <a href="javascript:void(0);"
+   class="dashboard-tile"
+   onclick="openChatBotModal();">
+
+    <div class="tile-content">
+        <i class="fa fa-comments"></i>
+        <span>Conkraft Assistant</span>
+    </div>
+
+  <!--  </div> -->
+      </div></a>
+    </div>
+    <div class="banner-right">
+      <img src='resources/img/ai-image.png' alt="Workforce Security" />
+    </div>
+  </div>
+</div>
 </div>
 
 
@@ -952,30 +1004,29 @@ font-size: medium;
  <div class="section quick-actions">
   <div class="sec-header">QUICK ACTIONS</div>
   <div class="action-grid">
-  <div class="action-box">
-      <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i></i><span>Add Workmen</span></button>
-   </div>   
-   <div class="action-box">
+
+  <!-- <div class="action-box"> -->
+      <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Workmen</span></button>
+   <!-- </div> -->   
+   <button class="action-btn teal" onclick="loadCommonList('/contractworkmen/renewFilter', 'Renew');"><i class="fa-solid fa-rotate-right icon teal"></i><span>Renew Workmen</span></button>
+   <!-- <div class="action-box"> -->
+
       <button class="action-btn red" onclick="loadCommonList('/reports/list', 'Workmen Report');"><i class="fa-solid fa-file-circle-plus icon orange"></i><span>Workmen Report</span></button>
-    </div>
-    <div class="action-box">  
       <button class="action-btn orange" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');"><i class="fa-solid fa-file-invoice-dollar icon blue"></i><span>Verify Bill</span></button>
-    </div>
-     <div class="action-box">
-       <button class="action-btn blue" onclick="redirectToContractorRenew()"> <i class="fa-solid fa-user-tie icon purple"></i><span>Add Contractor</span></button>
-     </div>
-     <div class="action-box">
+
+    <!-- </div> -->
+     <!-- <div class="action-box"> -->
+       <button class="action-btn blue" onclick="redirectToContractorRenew()"> <i class="fa-solid fa-user-tie icon purple"></i><span>Policy Renewal</span></button>
+     <!-- </div> -->
+     <!-- <div class="action-box"> -->
+
        <button  class="action-btn purple" onclick="loadCommonList('/requestor/mFaceRegistration', 'Face Registration');"><i class="fa-solid fa-face-smile icon teal"></i><span>Face Registration</span></button>
-     </div>
-     <div class="action-box">
        <button class="action-btn teal" onclick="loadCommonList('/requestor/mobilePunchFace', 'Mobile Punch');"><i class="fa-solid fa-mobile-screen-button icon red"></i><span>Mobile Punch</span></button>
+       
+       <button class="action-btn teal" onclick="loadCommonList('/entryPassStatus/list', 'Gate Pass Status');"><i class="fa-solid fa-id-card icon teal"></i><span>GatePass Status Report</span></button>
      </div>
     </div>
   </div>
-
-
-</div>
-  
 
 
 
@@ -1025,16 +1076,16 @@ font-size: medium;
     </div>
   </div>
 
-<div class="security-banner" id="kpi-security-banner">
+<!-- <div class="security-banner" id="kpi-security-banner">
   <div class="banner-content">
     <div class="banner-left">
       <div class="banner-icon">
         
       </div>
       <div class="banner-text">
-        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
-      <!--   <div class="title"> 
-        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a> -->
+        <div class="title">Securing <span class="highlight">Workforce.</span></div>
+        <div class="title"> 
+        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a>
        <a href="javascript:void(0);"
    class="dashboard-tile"
    onclick="openChatBotModal();">
@@ -1044,14 +1095,14 @@ font-size: medium;
         <span>Conkraft Assistant</span>
     </div>
 
-  <!--  </div> -->
+   </div>
       </div></a>
     </div>
     <div class="banner-right">
       <img src='resources/img/ai-image.png' alt="Workforce Security" />
     </div>
   </div>
-</div>
+</div> -->
 
  <!--  <div class="kpi-card teal" id="kpi-ai">
   <div class="kpi-content">

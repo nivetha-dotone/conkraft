@@ -70,6 +70,390 @@
   border-radius: 6px;
   object-fit: cover;
 }
+.quick-actions {
+  background: #fff;
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.quick-actions {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+      margin-bottom: 20px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.action-btn {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 20px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transform: scale(1.05);
+}
+
+.icon {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+/* Icon colors */
+.icon.green { color: #2ecc71; }
+.icon.orange { color: #f39c12; }
+.icon.blue { color: #378ADD; }
+.icon.purple { color: #9b59b6; }
+.icon.teal { color: #1abc9c; }
+.icon.red { color: #e74c3c; }
+
+.action-btn span {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+/* Color themes for each button */
+.action-btn.green { background-color: #fff; }
+.action-btn.orange { background-color: #fff; }
+.action-btn.blue { background-color:  #fff; }
+.action-btn.purple { background-color:  #fff; }
+.action-btn.teal { background-color:  #fff; }
+.action-btn.red { background-color:  #fff; }
+
+.action-box {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.action-box:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: scale(1.03);
+}
+.security-banner {
+  background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
+  border-radius: 12px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.banner-icon i {
+  font-size: 48px;
+  color: #a8f0b5;
+}
+
+.banner-text .title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.banner-text .highlight {
+  color: #a8f0b5;
+}
+
+.banner-text .subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.banner-right img {
+  height: 103px;;
+  opacity: 0.95;
+}
+.coverage-section {
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+/* ///////////////// */
+.db {
+  width: 100%;
+  padding: 0 30px; /* Equal left & right padding for all rows */
+  box-sizing: border-box;
+  margin-left: -6px;
+}
+
+.kpi-row,
+.quick-actions-row,
+.chart-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 20px; /* Equal gap between cards */
+  margin-bottom: 25px; /* Equal vertical spacing between rows */
+}
+
+.kpi-card,
+.action-card,
+.chart-card {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.section.contractor-workmen {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px 30px; /* ✅ same left/right spacing as Quick Actions */
+  margin: 0 25px 25px 25px; /* ✅ adds equal gap from page edges */
+  box-sizing: border-box;
+  margin-bottom:20px;
+}
+
+.section.contractor-workmen .sec-header {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.chart-box {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.chart-container {
+  min-width: 100%;
+  height: 650px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.card.warn {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px 30px; /* internal spacing */
+  margin: 0 30px 25px 30px; /* ✅ equal gap from left and right edges */
+  box-sizing: border-box;
+  overflow-x: auto; /* allows scroll if table overflows */
+}
+
+.sec-header {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 30px 15px 30px; /* ✅ aligns header with box margins */
+  color: #333;
+}
+
+.ct {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.view-all {
+  color: #378ADD;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-right: 10px; /* ✅ adds small space at right end */
+  box-sizing: border-box;
+}
+
+.atbl {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 100%;
+}
+
+.atbl th, .atbl td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.atbl th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+}
+.card.highlight-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px 30px; /* internal spacing */
+  margin: 0 30px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
+  box-sizing: border-box;
+}
+
+.sec-header {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 30px 15px 30px; /* ✅ aligns header with box margins */
+  color: #333;
+}
+
+.ct {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.view-all {
+  color: #378ADD;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 10px;
+  margin-left: 28px;
+    margin-bottom: 10px;
+}
+
+.mini-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.mini-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.mini-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.mini-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #E67E22;
+  margin-top: 8px;
+}
+
+.mini-date {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+  padding: 20px;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  padding: 25px 30px; /* internal spacing */
+  margin: 0 30px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.sec-header {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 30px 15px 30px; /* ✅ aligns header with box margins */
+  color: #333;
+}
+
+.ct {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.card-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding-right: 10px; /* ✅ adds small space at right end */
+  box-sizing: border-box;
+}
+
+.mini-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.mini-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.mini-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #008080;
+  margin-top: 8px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #777;
+  font-size: 14px;
+  padding: 20px;
+}
 
 </style>
 
@@ -152,8 +536,16 @@
     </div>
   </div>
   <!-- AI Assistance Card -->
-<div class="security-banner" id="kpi-ai">
-    <div class="kpi-content ai-card">
+<div class="security-banner" id="kpi-security-banner">
+  <div class="banner-content">
+    <div class="banner-left">
+      <div class="banner-icon">
+        
+      </div>
+      <div class="banner-text">
+        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
+      <!--   <div class="title"> 
+        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a> -->
        <a href="javascript:void(0);"
    class="dashboard-tile"
    onclick="openChatBotModal();">
@@ -165,10 +557,12 @@
 
   <!--  </div> -->
       </div></a>
-      <!-- <div class="ai-right">
-        <img src="resources/img/ai-image.png" alt="AI Assistance" class="ai-image">
-      </div> -->
     </div>
+    <div class="banner-right">
+      <img src='resources/img/ai-image.png' alt="Workforce Security" />
+    </div>
+  </div>
+</div>
   </div>
 </div>
 
@@ -336,6 +730,52 @@
 </c:if>
     
 </div>
+<div class="row row-3col">
+<div class="section quick-actions">
+  <div class="sec-header"><span>QUICK ACTIONS</span></div>
+  <div class="action-grid">
+   <%-- <c:if test="${UserPermission.addRights eq 1 }">
+      <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Workmen</span></button>
+      </c:if> --%>
+       <c:if test="${fn:contains(allowedPages, '/contractworkmen/list')}">
+            <button class="action-btn green" onclick="loadCommonList('/contractworkmen/list', 'Create');"><i class="fa-solid fa-user-plus icon green"></i><span>View Workmens</span></button>
+      </c:if>
+      <c:if test="${!fn:contains(allowedPages, '/contractworkmen/list')}">
+           <button class="action-btn green" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-user-plus icon green"></i><span>View Workmens</span></button>
+      </c:if>
+      <c:if test="${fn:contains(allowedPages, '/data/importExport')}">
+           <button class="action-btn teal" onclick="loadCommonList('/data/importExport', 'Master Data Import');"><i class="fa-solid fa-file-import icon teal"></i><span>Import Tools</span></button>
+      </c:if>
+       <c:if test="${!fn:contains(allowedPages, '/data/importExport')}">
+            <button class="action-btn teal" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-file-import icon teal"></i></i><span>Import Tools</span></button>
+      </c:if>
+       <c:if test="${fn:contains(allowedPages, '/reports/list')}">
+            <button class="action-btn red" onclick="loadCommonList('/reports/list', 'Workmen Report');"><i class="fa-solid fa-file-circle-plus icon orange"></i><span>Workmen Report</span></button>
+      </c:if>
+       <c:if test="${!fn:contains(allowedPages, '/reports/list')}">
+            <button class="action-btn red" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-file-circle-plus icon orange"></i><span>Workmen Report</span></button>
+      </c:if>
+      <c:if test="${fn:contains(allowedPages, '/billVerification/listingFilter')}">
+            <button class="action-btn orange" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');"><i class="fa-solid fa-file-invoice-dollar icon blue"></i><span>Verify Bill</span></button>
+      </c:if>
+      <c:if test="${!fn:contains(allowedPages, '/billVerification/listingFilter')}">
+            <button class="action-btn orange" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-file-invoice-dollar icon blue"></i><span>Verify Bill</span></button>
+      </c:if>
+      <c:if test="${fn:contains(allowedPages, '/contractworkmen/renewFilter')}">
+            <button class="action-btn teal" onclick="loadCommonList('/contractworkmen/renewFilter', 'Renew');"><i class="fa-solid fa-rotate-right icon purple"></i><span>Renew Workmen</span></button>
+      </c:if>
+      <c:if test="${!fn:contains(allowedPages, '/contractworkmen/renewFilter')}">
+             <button class="action-btn teal" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-rotate-right icon purple"></i><span>Renew Workmen</span></button>
+       </c:if>
+       <c:if test="${fn:contains(allowedPages, '/entryPassStatus/list')}">
+            <button class="action-btn teal" onclick="loadCommonList('/entryPassStatus/list', 'Gate Pass Status');"><i class="fa-solid fa-id-card icon teal"></i><span>GatePass Status Report</span></button>
+      </c:if>
+       <c:if test="${!fn:contains(allowedPages, '/entryPassStatus/list')}">
+           <button class="action-btn teal" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-id-card icon teal"></i><span>GatePass Status Report</span></button>
+      </c:if>
+     </div>
+    </div>
+</div>
     <!-- CONTRACTOR WISE WORKMEN -->
     <c:if test="${isHR || isSecurity || isSafety || isMedical || isSystemAdmin}">
         <%-- <div class="sec-label">Contractor Wise Workmen</div>
@@ -356,6 +796,7 @@
             </c:choose>
         </div> --%>
       <!-- <div class="sec-label">Contractor Wise Workmen</div> -->
+      <div class="section contractor-workmen">
 <div class="sec-header">
       <span>CONTRACTOR WISE WORKMEN</span>
     </div>
@@ -365,7 +806,7 @@
     <canvas id="contractorWorkmenChart"></canvas>
   </div>
 </div>
-
+</div>
 <!-- Hidden elements to pass data -->
 <div id="contractorWorkmenDataContainer" style="display:none;">
   <c:forEach var="c" items="${dashboard.contractorWorkmenList}">
@@ -509,11 +950,12 @@
     <c:if test="${isEIC}">
         <!-- <div class="sec-label">Contractor + Department Wise Workmen</div> -->
  <!-- <div class="sec-label" style="overflow-x:auto; width:100%;">Contractor + Department Wise Workmen</div> -->
+ <div class="section contractor-workmen">
  <div class="sec-header" style="overflow-x:auto; width:100%;"><span>CONTRACTOR DEPARTMENT WISE WORKMEN</span></div>
   <div class="chart-box" style="height:300px;">
     <canvas id="contractorDeptChart"></canvas>
   </div>
-
+</div>
   <!-- Hidden elements to pass data -->
   <div id="contractorDeptDataContainer" style="display:none;">
     <c:forEach var="d" items="${dashboard.contractorDeptWorkmenList}">

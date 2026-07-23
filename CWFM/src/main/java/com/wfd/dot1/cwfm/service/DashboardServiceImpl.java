@@ -47,4 +47,8 @@ public class DashboardServiceImpl implements DashboardService {
     public List<WorkOrderDTO> getWorkmenByWO(long woId, String contractorId) {
         return dao.getWorkmenByWO(woId, contractorId);
     }
+    @Override
+    public List<String> getAllowedPagesForRole(String roleId){
+        return dao.getAllowedPagesForRole(roleId);
+    }
 }

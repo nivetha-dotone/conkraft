@@ -65,6 +65,11 @@ public class DashboardController {
         model.addAttribute("isEIC", isEIC);
         model.addAttribute("isSystemAdmin", isSystemAdmin);
 
+
+        // 🔥 Fetch role rights from DB
+        List<String> allowedPages = service.getAllowedPagesForRole(user.getRoleId());
+        model.addAttribute("allowedPages", allowedPages);
+        
         // 🔥 Decide which JSP to load
         if (isContractorSupervisor) {
             return "dashboard/csDashboard";

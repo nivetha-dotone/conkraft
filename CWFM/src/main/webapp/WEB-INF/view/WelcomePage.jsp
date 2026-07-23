@@ -3033,6 +3033,7 @@ table.dataTable {
     padding: 0;
     font-family: 'Titillium Web', sans-serif;
     overflow-y: scroll; /* Adds a vertical scroll bar */
+        background-color: white;
 }
 
 /* Top Navigation Bar Styles */

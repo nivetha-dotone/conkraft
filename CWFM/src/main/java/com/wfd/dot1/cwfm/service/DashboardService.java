@@ -11,4 +11,7 @@ public interface DashboardService {
     DashboardDTO getDashboard(MasterUser user);
 
     List<WorkOrderDTO> getWorkmenByWO(long woId, String contractorId);
+
+	List<String> getAllowedPagesForRole(String roleId);
+    
 }
