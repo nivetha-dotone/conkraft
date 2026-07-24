@@ -282,4 +282,19 @@ public interface WorkmenDao {
 	public boolean isActionDoneToday(String gatePassId, Long gatePassTypeId);
 
 	public String getoldDotFromActiveRecord(Long activeId);
+
+	String saveFullTimeContractorGatePass(GatePassMain gatePassMain);
+
+	public long saveFullTimeContractorIntoCMSPerson(CMSPerson person);
+
+	public boolean saveFullTimeContractorIntoCMSPERSONJOBHIST(GatePassMain gpm, long employeeId);
+
+	public boolean saveFullTimeContractorCMSPERSONSTATUSMM(GatePassMain gpm, long employeeId);
+
+	public boolean saveFullTimeContractorCMSPERSONCUSTOMDATA(GatePassMain gpm, long personInsert);
+
+	public GatePassMain getFullTimeIndividualContractWorkmenDetails(String transactionId);
+
+	List<GatePassListingDto> getFullTimeContGatePassListingDetails(String unitId, String deptId, String userId,
+			String gatePassTypeId, String type, List<PersonOrgLevel> contList);
 }

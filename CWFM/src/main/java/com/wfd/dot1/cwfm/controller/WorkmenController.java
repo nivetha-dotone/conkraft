@@ -381,57 +381,57 @@ public class WorkmenController {
     
     private static final String ROOT_DIRECTORY = "D:/wfd_cwfm/ep_docs/";
 
-//    public String uploadDocuments( MultipartFile aadharFile,
-//                                         MultipartFile policeFile,
-//                                         MultipartFile profilePic,
-//                                         MultipartFile appointmentFile,
-//                                         String userId,
-//                                         String gatePassId) {
-//
-//        // Create directory path
-//        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
-//        
-//        try {
-//            // Ensure the directory exists, if not create it
-//            Path path = Paths.get(directoryPath);
-//            if (!Files.exists(path)) {
-//                Files.createDirectories(path);
-//            }
-//
-//            // Save Aadhar PDF
-//            if (!aadharFile.isEmpty()) {
-//            	  String ext = getExtension(aadharFile);
-//                String aadharFilePath = directoryPath + "aadhar"+ext;
-//                saveFile(aadharFile, aadharFilePath);
-//            }
-//
-//            // Save Police Verification PDF
-//            if (!policeFile.isEmpty()) {
-//            	String ext = getExtension(policeFile);
-//                String policeFilePath = directoryPath + "police"+ext;
-//                saveFile(policeFile, policeFilePath);
-//            }
-//            
-//            // Save Profile Pic
-//            if(!profilePic.isEmpty()) {
-//            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
-//            	saveFile(profilePic,profilePicPath);
-//            }
-//            //Save appointment PDF
-//            if (!appointmentFile.isEmpty()) {
-//            	String ext = getExtension(appointmentFile);
-//                String appointmentFilePath = directoryPath + "appointment"+ext;
-//                saveFile(appointmentFile, appointmentFilePath);
-//            }
-//
-//            // Return success message
-//            return "success";
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return "failed";
-//        }
-//    }
+    public String uploadFullTimeContractorDocuments( MultipartFile aadharFile,
+                                         MultipartFile policeFile,
+                                         MultipartFile profilePic,
+                                         MultipartFile appointmentFile,
+                                         String userId,
+                                         String gatePassId) {
+
+        // Create directory path
+        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
+        
+        try {
+            // Ensure the directory exists, if not create it
+            Path path = Paths.get(directoryPath);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+
+            // Save Aadhar PDF
+            if (!aadharFile.isEmpty()) {
+            	  String ext = getExtension(aadharFile);
+                String aadharFilePath = directoryPath + "aadhar"+ext;
+                saveFile(aadharFile, aadharFilePath);
+            }
+
+            // Save Police Verification PDF
+            if (!policeFile.isEmpty()) {
+            	String ext = getExtension(policeFile);
+                String policeFilePath = directoryPath + "police"+ext;
+                saveFile(policeFile, policeFilePath);
+            }
+            
+            // Save Profile Pic
+            if(!profilePic.isEmpty()) {
+            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
+            	saveFile(profilePic,profilePicPath);
+            }
+            //Save appointment PDF
+            if (!appointmentFile.isEmpty()) {
+            	String ext = getExtension(appointmentFile);
+                String appointmentFilePath = directoryPath + "appointment"+ext;
+                saveFile(appointmentFile, appointmentFilePath);
+            }
+
+            // Return success message
+            return "success";
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "failed";
+        }
+    }
     public String uploadDocuments(MultipartFile aadharFile,
             MultipartFile policeFile,
             MultipartFile profilePic,
@@ -917,51 +917,51 @@ return "failed";
     }
 
 
-//
-//
-//    private String uploadAdditionalDocuments(List<MultipartFile> additionalFiles,
-//    		List<String> documentTypes,
-//    		String userId,
-//    		String gatePassId) {
-//    	// Create directory path
-//    	String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
-//
-//    	try {
-//    		// Ensure the directory exists, if not create it
-//    		Path path = Paths.get(directoryPath);
-//    		if (!Files.exists(path)) {
-//    			Files.createDirectories(path);
-//    		}
-//
-//    		for (int i = 0; i < additionalFiles.size(); i++) {
-//    			MultipartFile file = additionalFiles.get(i);
-//    			String docType = documentTypes.get(i);
-//    			 docType = docType.toLowerCase();
-//    			 String originalFileName = file.getOriginalFilename();
-//
-//                 // ✅ Extract extension (.pdf, .jpg, .png)
-//                 String extension = "";
-//                 if (originalFileName != null && originalFileName.contains(".")) {
-//                     extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-//                 }
-//
-//                 // ✅ Create new file name
-//                 String fileName = docType + extension;
-//                 String filePath = directoryPath + fileName;
-//
-//    			// Save the file
-//    			if (!file.isEmpty()) {
-//    				saveFile(file, filePath);
-//    			}
-//    		}
-//
-//    		return "success";
-//
-//    	} catch (IOException e) {
-//    		log.error("Failed to save additional documents: ", e);
-//    		return "failed";
-//    	}
-//    }
+
+
+    private String uploadFullTimeContractorAdditionalDocuments(List<MultipartFile> additionalFiles,
+    		List<String> documentTypes,
+    		String userId,
+    		String gatePassId) {
+    	// Create directory path
+    	String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+
+    	try {
+    		// Ensure the directory exists, if not create it
+    		Path path = Paths.get(directoryPath);
+    		if (!Files.exists(path)) {
+    			Files.createDirectories(path);
+    		}
+
+    		for (int i = 0; i < additionalFiles.size(); i++) {
+    			MultipartFile file = additionalFiles.get(i);
+    			String docType = documentTypes.get(i);
+    			 docType = docType.toLowerCase();
+    			 String originalFileName = file.getOriginalFilename();
+
+                 // ✅ Extract extension (.pdf, .jpg, .png)
+                 String extension = "";
+                 if (originalFileName != null && originalFileName.contains(".")) {
+                     extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                 }
+
+                 // ✅ Create new file name
+                 String fileName = docType + extension;
+                 String filePath = directoryPath + fileName;
+
+    			// Save the file
+    			if (!file.isEmpty()) {
+    				saveFile(file, filePath);
+    			}
+    		}
+
+    		return "success";
+
+    	} catch (IOException e) {
+    		log.error("Failed to save additional documents: ", e);
+    		return "failed";
+    	}
+    }
     private String uploadAdditionalDocuments(List<MultipartFile> additionalFiles,
             List<String> documentTypes,
             String userId,
@@ -4123,5 +4123,275 @@ return "failed";
         boolean isDoneToday = workmenService.isActionDoneToday(gatePassId, gatePassTypeId);
 
         return ResponseEntity.ok(isDoneToday);
+    }
+    
+    @GetMapping("/fullTimeContractorOnboardingList")
+    public String fullTimeContractorOnboardingList(HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+		request.setAttribute("userId", user.getUserId());
+   		request.setAttribute("roleId", user.getRoleId());
+   		request.setAttribute("roleName", user.getRoleName());
+		
+		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+    	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+    			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+    	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+    	//List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
+    	
+    	List<PrincipalEmployer> listDto =new ArrayList<PrincipalEmployer>();
+        CMSRoleRights rr =new CMSRoleRights();
+        rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/contractworkmen/fullTimeContractorOnboardingList");
+   	    listDto = peService.getAllPrincipalEmployer(user.getUserAccount());
+   	    request.setAttribute("UserPermission", rr);
+    	request.setAttribute("principalEmployers", peList);
+    	  //request.setAttribute("Dept", departments);
+    	  
+		return "contractWorkmen/fullTimeContractorOBList";
+	}
+    @GetMapping("/fullTimeContractorGatepass")
+    public String fullTimeContractorGatepass(HttpServletRequest request,HttpServletResponse response) {
+	
+		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+    	log.info("Entered into addQuickOBForm"+user.getUserId());
+    	
+    	String transactionId= workmenService.generateTransactionId();
+    	request.setAttribute("transactionId", transactionId);
+    	// workmenService.createDraftGatepass(transactionId,String.valueOf(user.getUserId()));
+    	List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+    	Map<String,List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+    			.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+    	List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+    	//List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new ArrayList<>());
+    	//List<PersonOrgLevel> subdepartments = groupedByLevelDef.getOrDefault("Area", new ArrayList<>());
+    	request.setAttribute("PrincipalEmployer", peList);
+    	 // request.setAttribute("Dept", departments);
+         // request.setAttribute("Subdept", subdepartments);
+          
+        //Skills
+		//List<Skill> skillList = workmenService.getAllSkill();
+		//request.setAttribute("Skills", skillList);
+		//Eic 
+		//List<MasterUser> eicList = workmenService.getAllEicManager(user.getUserAccount());
+		//request.setAttribute("EIC", eicList);
+		//Get All GeneralMaster
+		List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMaster();
+
+		// Grouping the CmsGeneralMaster objects by gmType
+		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmList.stream()
+		        .collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
+
+		// Define the types and their corresponding request attribute names
+		Map<String, String> attributeMapping = Map.of(
+		        "GENDER", "GenderOptions",
+		        "BLOODGROUP", "BloodGroup",
+		        "ACCESSAREA", "AccessArea",
+		        "ACADEMICS", "Academics",
+		       // "WAGECATEGORY", "WageCategory",
+		        //"BONUSPAYOUT", "BonusPayout",
+		       // "ZONE", "Zone",
+		        "WORKMENTYPE","WorkmenType",
+		        "PROFICIENCY","Proficiency"
+		);
+
+		// Iterate over the attribute mappings and set the request attributes dynamically
+		attributeMapping.forEach((type, attributeName) -> {
+		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+		    request.setAttribute(attributeName, gmList1);
+		});
+
+        return "contractWorkmen/fullTimeContractorOB";
+    }
+    @PostMapping("/saveFullTimeContractorGatePass")
+    @ResponseBody
+    public ResponseEntity<String> saveFullTimeContractorGatePass(
+            @RequestParam("jsonData") String jsonData,
+            @RequestParam(value = "aadharFile", required = false) MultipartFile aadharFile,
+            @RequestParam(value = "policeFile", required = false) MultipartFile policeFile,
+            @RequestParam(value = "profilePic", required = false) MultipartFile profilePic,
+            @RequestParam(value = "appointmentFile", required = false) MultipartFile appointmentFile,
+            @RequestParam(value = "additionalFiles", required = false) List<MultipartFile> additionalFiles,
+            @RequestParam(value = "documentTypes", required = false) List<String> documentTypes,
+            HttpServletRequest request, HttpServletResponse response) {
+    	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+
+        String transactionId = null;
+        GatePassMain gatePassMain;
+
+        try {
+            // Convert the JSON string back to the GatePassMain object
+            ObjectMapper objectMapper = new ObjectMapper();
+            gatePassMain = objectMapper.readValue(jsonData, GatePassMain.class);
+            //GatePassMain existing = workmenService.getIndividualContractWorkmenDraftDetails(gatePassMain.getTransactionId());
+            // Log the received GatePassMain object
+            log.info("Received GatePassMain: {}", gatePassMain);
+
+            gatePassMain.setCreatedBy(String.valueOf(user.getUserId()));
+            gatePassMain.setAadharDocName((aadharFile != null && !aadharFile.isEmpty()) ? "aadhar": "");
+            gatePassMain.setPoliceVerificationDocName((policeFile != null && !policeFile.isEmpty()) ? "police": "");
+            gatePassMain.setAppointmentDocName((appointmentFile != null && !appointmentFile.isEmpty()) ? "appointment": "");
+
+            // ✅ PROFILE (ORIGINAL FILENAME)
+            if (profilePic != null && !profilePic.isEmpty()) {
+                gatePassMain.setPhotoName(profilePic.getOriginalFilename());
+            }  else {
+                gatePassMain.setPhotoName("");
+            }
+         // Mapping document types to their corresponding setter methods
+            Map<String, Consumer<String>> docTypeSetterMap = new HashMap<>();
+            docTypeSetterMap.put("Bank", gatePassMain::setBankDocName);
+            docTypeSetterMap.put("Id2", gatePassMain::setIdProof2DocName);
+            docTypeSetterMap.put("Other", gatePassMain::setOtherDocName);
+            docTypeSetterMap.put("Medical", gatePassMain::setMedicalDocName);
+            docTypeSetterMap.put("Education", gatePassMain::setEducationDocName);
+            docTypeSetterMap.put("Training", gatePassMain::setTrainingDocName);
+            docTypeSetterMap.put("Form11", gatePassMain::setForm11DocName);
+            Map<String, Consumer<String>> setterMap = new HashMap<>();
+            setterMap.put("bank", gatePassMain::setBankDocName);
+            setterMap.put("id2", gatePassMain::setIdProof2DocName);
+            setterMap.put("other", gatePassMain::setOtherDocName);
+            setterMap.put("medical", gatePassMain::setMedicalDocName);
+            setterMap.put("education", gatePassMain::setEducationDocName);
+            setterMap.put("training", gatePassMain::setTrainingDocName);
+            setterMap.put("form11", gatePassMain::setForm11DocName);
+
+            if (additionalFiles != null
+                    && documentTypes != null
+                    && additionalFiles.size() == documentTypes.size()) {
+
+                for (int i = 0; i < additionalFiles.size(); i++) {
+
+                    MultipartFile file = additionalFiles.get(i);
+
+                    String docType = documentTypes.get(i).toLowerCase();
+
+                    if (file != null && !file.isEmpty()) {
+
+                        Consumer<String> setter = setterMap.get(docType);
+
+                        if (setter != null) {
+                            setter.accept(docType);
+                        }
+                    }
+                }
+            }
+            
+            	transactionId = workmenService.saveFullTimeContractorGatePass(gatePassMain);
+            
+            if (transactionId != null) {
+
+            	// String oldTransactionId=workmenDao.getTransactionIdByGatePassId(gatePassMain.getGatePassId());
+            	 if (aadharFile != null && !aadharFile.isEmpty() || policeFile!=null && !policeFile.isEmpty() || appointmentFile!=null && !appointmentFile.isEmpty()) {
+            		 uploadFullTimeContractorDocuments(aadharFile, policeFile,profilePic,appointmentFile, String.valueOf(user.getUserId()), transactionId);
+                 }
+                 // Upload additional files
+                 if (additionalFiles != null && documentTypes != null) {
+                	 uploadFullTimeContractorAdditionalDocuments(additionalFiles, documentTypes, String.valueOf(user.getUserId()), transactionId);
+                 }
+                return new ResponseEntity<>("contractWorkmen/fullTimeContractorOnboardingList", HttpStatus.OK);
+            }
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            
+        } catch (Exception e) {
+            log.error("Error saving data: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("Error saving data: " + e.getMessage());
+        }
+    }
+    @PostMapping("/getFullTimeContractorgatePassListingDetails")
+    public ResponseEntity<List<GatePassListingDto>> getFullTimeContractorgatePassListingDetails(
+    		@RequestParam(value = "principalEmployerId", required = false) String principalEmployerId,
+    		@RequestParam(value = "deptId", required = false) String deptId,
+    		@RequestParam(value = "businessType", required = false) String businessType,
+    		@RequestParam(value = "type", required = false) String type,
+    		HttpServletRequest request,HttpServletResponse response) {
+    	
+    	try {
+			HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (deptId == null || deptId.trim().isEmpty() || deptId.equalsIgnoreCase("Select Department")) {
+			    deptId = null;
+			}
+			List<GatePassListingDto> listDto = new ArrayList<GatePassListingDto>();
+			List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+
+	        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+	                .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+	        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+			if(user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
+				if("fulltimecontractor".equals(type)) {
+					listDto= workmenService.getFullTimeContGatePassListingDetails(principalEmployerId,deptId,String.valueOf(user.getUserId()),GatePassType.FULLTIMECONTRACTOR.getStatus(),type,contList);
+				}
+    		}	
+				if (listDto.isEmpty()) {
+					return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+				}
+			
+			return new ResponseEntity<>(listDto, HttpStatus.OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+    }
+    @GetMapping("/viewFullTimeContractor/{transactionId}")
+    public String viewFullTimeIndividualContractWorkmenDetails(@PathVariable("transactionId") String transactionId,HttpServletRequest request,HttpServletResponse response) {
+    	log.info("Entered into viewFullTimeIndividualContractWorkmenDetails: "+transactionId);
+    	GatePassMain gatePassMainObj =null;
+    	HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+    	try {
+    		gatePassMainObj = workmenService.getFullTimeIndividualContractWorkmenDetails(transactionId);
+    		request.setAttribute("GatePassObj", gatePassMainObj);
+          
+    		if(null != gatePassMainObj.getPhotoName()) {
+       		 String profilePicFilePath =  "/imageinline/"+user.getUserId()+"/" + transactionId + "/" +gatePassMainObj.getPhotoName();
+       		 request.setAttribute("imagePath", profilePicFilePath);
+       		}
+    		 
+    		//Get All GeneralMaster
+    		List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMasterForGatePass(gatePassMainObj);
+    		for (CmsGeneralMaster generalMaster : gmList) {
+    		    String gmType = generalMaster.getGmType();
+    		if ("GENDER".equals(gmType)) {
+    	        gatePassMainObj.setGender(generalMaster.getGmName()); 
+    	    } else if ("BLOODGROUP".equals(gmType)) {
+    	        gatePassMainObj.setBloodGroup(generalMaster.getGmName()); 
+    	    } else if ("ACADEMICS".equals(gmType)) {
+    	        gatePassMainObj.setAcademic(generalMaster.getGmName()); 
+    	    } else if ("ACCESSAREA".equals(gmType)) {
+    	        gatePassMainObj.setAccessArea(generalMaster.getGmName()); 
+    	    } else if("DEPARTMENT".equals(gmType)){
+    	    	gatePassMainObj.setDepartment(generalMaster.getGmName());
+    	    } else if("AREA".equals(gmType)) {
+    	    	gatePassMainObj.setSubdepartment(generalMaster.getGmName());
+    	    } else if("WORKMENTYPE".equals(gmType)) {
+    	    	gatePassMainObj.setWorkmenType(generalMaster.getGmName());
+    		}
+    		}
+    		List<CmsGeneralMaster> gmLists = workmenService.getAllGeneralMaster();
+
+    		// Grouping the CmsGeneralMaster objects by gmType
+    		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmLists.stream()
+    		        .collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
+
+    		// Define the types and their corresponding request attribute names
+    		Map<String, String> attributeMapping = Map.of(
+    		        "ONBOARDINGDOCTYPE","onboardingDocType"
+    		);
+
+    		// Iterate over the attribute mappings and set the request attributes dynamically
+    		attributeMapping.forEach((type, attributeName) -> {
+    		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+    		    request.setAttribute(attributeName, gmList1);
+    		});
+    		 
+    	}catch(Exception e) {
+    		log.error("Error getting workmen details ", e);
+    	}
+    	log.info("Exiting from viewFullTimeIndividualContractWorkmenDetails: "+transactionId);
+    	
+    		return "contractWorkmen/fullTimeContractorOnboardingView";
     }
     }

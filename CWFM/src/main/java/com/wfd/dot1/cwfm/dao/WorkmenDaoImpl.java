@@ -4951,4 +4951,437 @@ public String getoldDotFromActiveRecord(Long activeId) {
 	}
 	return oldDot;
 }
+@Transactional(rollbackFor = Exception.class)
+@Override
+public String saveFullTimeContractorGatePass(GatePassMain gatePassMain) {
+    log.info("Entering into saveGatePass dao method");
+    String transId=gatePassMain.getTransactionId();
+   
+	
+    	log.info("Gatepass generated for Aadhaar: " + gatePassMain.getAadhaarNumber() + " is: " + transId);
+        Object[] parameters = prepareFullTimeContractorGatePassParameters(transId, gatePassMain); 
+        try {
+        	String query = getSaveContractWorkmen();
+            int result = jdbcTemplate.update(query, parameters);
+            if (result > 0) {
+                log.info("GatePass saved successfully for transId: " + transId);
+            } else {
+                log.warn("Failed to save GatePass for transId: " + transId);
+                throw new RuntimeException("Failed to save GatePass transId: " + transId);
+            }
+        } catch (Exception e) {
+            log.error("Error saving GatePass for transId: " + transId, e);
+            //return null;
+            throw new RuntimeException(e);
+        }
+        return transId;
+}
+private Object[] prepareFullTimeContractorGatePassParameters(String transId, GatePassMain gatePassMain) {
+	//String gatePassType = gatePassMain.getOnboardingType().equals("project")?GatePassType.PROJECT.getStatus():GatePassType.CREATE.getStatus();
+    return new Object[]{
+    		transId," ",
+    		gatePassMain.getGatePassAction(),
+        gatePassMain.getGatePassStatus(),
+        gatePassMain.getAadhaarNumber(),
+        gatePassMain.getFirstName(),
+        gatePassMain.getLastName(),
+        gatePassMain.getDateOfBirth(),
+        gatePassMain.getGender(),
+        gatePassMain.getRelationName(),
+        gatePassMain.getIdMark(),
+        gatePassMain.getMobileNumber(),
+        gatePassMain.getMaritalStatus(),
+        gatePassMain.getPrincipalEmployer(),
+        gatePassMain.getContractor(),
+        gatePassMain.getWorkorder()!=null?gatePassMain.getWorkorder():"",
+        gatePassMain.getTrade()!=null?gatePassMain.getTrade():"",
+        gatePassMain.getSkill()!=null?gatePassMain.getSkill():"",
+        gatePassMain.getDepartment(),
+        gatePassMain.getSubdepartment(),
+        gatePassMain.getEic()!=null?gatePassMain.getEic():"",
+        gatePassMain.getNatureOfJob()!=null?gatePassMain.getNatureOfJob():"",
+        gatePassMain.getWcEsicNo()!=null?gatePassMain.getWcEsicNo():"",
+        gatePassMain.getHazardousArea()!=null?gatePassMain.getHazardousArea():"",
+        gatePassMain.getAccessArea()!=null?gatePassMain.getAccessArea():"",
+        gatePassMain.getUanNumber()!=null?gatePassMain.getUanNumber():"",
+        gatePassMain.getHealthCheckDate()!=null?gatePassMain.getHealthCheckDate():"",
+        gatePassMain.getPfNumber()!=null?gatePassMain.getPfNumber():"",
+        gatePassMain.getEsicNumber()!=null?gatePassMain.getEsicNumber():"",
+        gatePassMain.getBloodGroup(),
+        gatePassMain.getAccommodation(),
+        gatePassMain.getAcademic(),
+        gatePassMain.getTechnical(),
+        gatePassMain.getIfscCode(),
+        gatePassMain.getAccountNumber(),
+        gatePassMain.getEmergencyName(),
+        gatePassMain.getEmergencyNumber(),
+        gatePassMain.getWageCategory()!=null?gatePassMain.getWageCategory():"",
+        gatePassMain.getBonusPayout()!=null?gatePassMain.getBonusPayout():"",
+        gatePassMain.getPfCap()!=null?gatePassMain.getPfCap():"",
+        gatePassMain.getZone()!=null?gatePassMain.getZone():"",
+        gatePassMain.getBasic()!=null?gatePassMain.getBasic():"",
+        gatePassMain.getDa()!=null?gatePassMain.getDa():"",
+        gatePassMain.getHra()!=null?gatePassMain.getHra():"",
+        gatePassMain.getWashingAllowance()!=null?gatePassMain.getWashingAllowance():"",
+        gatePassMain.getOtherAllowance()!=null?gatePassMain.getOtherAllowance():"",
+        gatePassMain.getUniformAllowance()!=null?gatePassMain.getUniformAllowance():"",
+        gatePassMain.getAadharDocName(),gatePassMain.getPhotoName(),gatePassMain.getBankDocName(),
+        gatePassMain.getPoliceVerificationDocName(),gatePassMain.getIdProof2DocName(),gatePassMain.getMedicalDocName(),
+        gatePassMain.getEducationDocName(),gatePassMain.getForm11DocName(),gatePassMain.getTrainingDocName(),gatePassMain.getOtherDocName(),
+        gatePassMain.getWorkFlowType(),
+        gatePassMain.getComments()!=null?gatePassMain.getComments():"",
+        		gatePassMain.getAddress()!=null?gatePassMain.getAddress():"",
+        				gatePassMain.getDoj(),gatePassMain.getPfApplicable()!=null?gatePassMain.getPfApplicable():"",gatePassMain.getPoliceVerificationDate()!=null?gatePassMain.getPoliceVerificationDate():"",gatePassMain.getDot()!=null?gatePassMain.getDot():"",
+        gatePassMain.getUserId(),
+        gatePassMain.getOnboardingType(),gatePassMain.getLlNo()!=null?gatePassMain.getSkill():"",gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency()!=null?gatePassMain.getSkill():""
+        };
+
+}
+@Transactional(rollbackFor = Exception.class)
+@Override
+public long saveFullTimeContractorIntoCMSPerson(CMSPerson person) {
+	String sql= saveIntoCMSPerson();
+   // String sql = "INSERT INTO CMSPERSON (EMPLOYEECODE, FIRSTNAME, RELATIONNAME, LASTNAME, DATEOFBIRTH, DATEOFJOINING, " +
+   //         "DATEOFTERMINATION, BLOODGROUP, HAZARDOUSAREA, GENDER, ACADEMICS, ACCOMODATION, BANKBRANCH, ACCOUNTNO, " +
+   //         "EMERGENCYNAME, EMERGENCYNUMBER, MOBILENUMBER, ACCESSLEVEL, ESICNUMBER, UANNUMBER, ISPFELIGIBLE, IDMARK, " +
+   //         "PANNO, UPDATEDBY, AADHARNUMBER) " +
+   //         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    KeyHolder keyHolder = new GeneratedKeyHolder();
+    Object terminationValue = 
+            (person.getDateOfTermination() == null || person.getDateOfTermination().toString().trim().isEmpty())
+                    ? " " : person.getDateOfTermination();
+    
+    Object[] parameters = new Object[]{
+        person.getEmployeeCode(),
+        person.getFirstName(),
+        person.getRelationName(),
+        person.getLastName(),
+        person.getDateOfBirth(),
+        person.getDateOfJoining(),
+       // person.getDateOfTermination(),
+        terminationValue,
+        person.getBloodGroup(),
+        person.getHazardousArea(),
+        person.getGender(),
+        person.getAcademics(),
+        person.getAccomodation(),
+        person.getBankBranch(),
+        person.getAccountNo(),
+        person.getEmergencyName(),
+        person.getEmergencyNumber(),
+        person.getMobileNumber(),
+        person.getAccessLevel(),
+        person.getEsicNumber(),
+        person.getUanNumber(),
+        person.getIsPfEligible(),
+        person.getIdMark(),
+        person.getPanNumber(),
+        person.getUpdatedBy(),
+        person.getAadharNumber(),
+        
+    };
+
+    try {
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            for (int i = 0; i < parameters.length; i++) {
+                ps.setObject(i + 1, parameters[i]);
+            }
+            return ps;
+        }, keyHolder);
+
+        Number generatedId = keyHolder.getKey();
+        if (generatedId != null) {
+            return generatedId.longValue();  // return EMPLOYEEID
+        } else {
+            log.warn("Insert succeeded but no EMPLOYEEID returned for EmployeeCode: " + person.getEmployeeCode());
+            return -1;
+        }
+    } catch (Exception e) {
+        log.error("Error inserting into CMSPerson for EmployeeCode: " + person.getEmployeeCode(), e);
+        return -1;
+    }
+}
+@Transactional(rollbackFor = Exception.class)
+@Override
+public boolean saveFullTimeContractorIntoCMSPERSONJOBHIST(GatePassMain gpm, long employeeId) {
+	boolean result = false;
+	String sql = saveIntoCMSPERSONJOBHIST();
+	// String sql = "INSERT INTO CMSPERSONJOBHIST ( EMPLOYEEID , TRADEID , SKILLID , UNITID , CONTRACTORID , DEPARTMENTID , "
+	// 		+ " SUBDEPARTMENTID , WORKORDERID , EICID , VALIDFROM , VALIDTO  ) "
+	// 		+ "     VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+     Object[] parameters = new Object[] {employeeId,gpm.getTrade(),gpm.getSkill(),gpm.getUnitId(),gpm.getContractor(),gpm.getDepartment(),
+    		 gpm.getSubdepartment(),gpm.getWorkorder(),gpm.getEic(),gpm.getDoj(), "1/1/3000"};
+     try {
+     int status = jdbcTemplate.update(sql, parameters);
+     if (status > 0) {
+     	result=true;
+     }else {
+         log.warn("Failed to create GatePass action for GatePassId: " + gpm.getGatePassId());
+     }
+     }catch (Exception e) {
+         log.error("Error creating GatePass action for GatePassId: " + gpm.getGatePassId(), e);
+         return false;
+     }
+     return result;
+}
+@Transactional(rollbackFor = Exception.class)
+@Override
+public boolean saveFullTimeContractorCMSPERSONSTATUSMM(GatePassMain gpm, long employeeId) {
+	
+	boolean result = false;
+	String sql = saveCMSPERSONSTATUSMM();
+	// String sql = "INSERT INTO CMSPERSONSTATUSMM ( EMPLOYEEID , ISACTIVE , VALIDFROM , VALIDTO)  VALUES (?,?,?,? )";
+    Object[] parameters = new Object[] {employeeId,1,gpm.getDoj(),"1/1/3000"};
+    try {
+    int status = jdbcTemplate.update(sql, parameters);
+    if (status > 0) {
+    	result=true;
+    }else {
+        log.warn("Failed to create GatePass action for GatePassId: " + gpm.getGatePassId());
+    }
+    }catch (Exception e) {
+        log.error("Error creating GatePass action for GatePassId: " + gpm.getGatePassId(), e);
+        return false;
+    }
+    return result;
+}
+@Transactional(rollbackFor = Exception.class)
+@Override
+public boolean saveFullTimeContractorCMSPERSONCUSTOMDATA(GatePassMain gp, long employeeId) {
+
+    String sql = saveCMSPERSONCUSTDATA(); 
+    // Expected SQL:
+    // INSERT INTO CMSPERSONCUSTOMDATA
+    // (EMPLOYEEID, CSTMDEFID, CUSTOMDATATEXT, EFFECTIVEFROM, EFFECTIVETILL, CREATEDTM, UPDATEDTM, UPDATEDBY)
+    // VALUES (?, ?, ?, CONVERT(date, GETDATE()), ?, GETDATE(), GETDATE(), ?)
+
+    // Fetch all active custom definitions
+    //String defSql = "SELECT CSTMDEFID, CSTMDEFNAME FROM CMSPERSONCUSTOMDATADEFINITION WHERE ISACTIVE = 1";
+    String defSql =getActiveCustomDefintion();
+    List<Map<String, Object>> defList = jdbcTemplate.queryForList(defSql);
+
+
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    for (Map<String, Object> def : defList) {
+
+        int defId = (Integer) def.get("CSTMDEFID");
+        String fieldName = (String) def.get("CSTMDEFNAME");
+
+
+        String value = mapGatePassValue(fieldName, gp);
+
+        // Skip null/empty values
+        if (value == null || value.trim().isEmpty()) {
+            continue;
+        }
+
+        // ✅ Set EFFECTIVETILL conditionally
+        Object effectiveTill = "GatePassType".equalsIgnoreCase(fieldName)
+                ? "3000-01-01"              // only GatePassType gets DOT
+                : "3000-01-01";           // others get default
+
+        batchArgs.add(new Object[]{
+                employeeId,        // ?
+                defId,             // ?
+                value,             // ?
+                effectiveTill,     // ? (EFFECTIVETILL)
+                gp.getCreatedBy()  // ?
+        });
+    }
+
+    if (batchArgs.isEmpty()) {
+        return false; // nothing to insert
+    }
+
+    jdbcTemplate.batchUpdate(sql, batchArgs);
+
+    return true; // records inserted
+}
+public String getFullTimeContractWorkmenDetailsByTransId() {
+    return QueryFileWatcher.getQuery("GET_FULL_TIME_CONTRACTOR_WORKMEN_BY_TRANSACTIONID");
+}
+@Override
+public GatePassMain getFullTimeIndividualContractWorkmenDetails(String transactionId) {
+	log.info("Entering into getIndividualContractWorkmenDetails dao method ");
+	GatePassMain dto = null;
+	String query = getFullTimeContractWorkmenDetailsByTransId();
+	log.info("Query to getIndividualContractWorkmenDetails "+query);
+	SqlRowSet rs = jdbcTemplate.queryForRowSet(query,transactionId);
+	if(rs.next()) {
+		dto = new GatePassMain();
+		dto.setTransactionId(rs.getString("TransactionId"));
+		dto.setGatePassId(rs.getString("GatePassId"));
+		dto.setUnitId(rs.getString("peId"));
+		dto.setGatePassAction(rs.getString("GatePassTypeId"));
+		dto.setGatePassStatus(rs.getString("GatePassStatus"));
+		dto.setAadhaarNumber(rs.getString("AadharNumber"));
+		dto.setFirstName(rs.getString("FirstName"));
+		dto.setLastName(rs.getString("LastName"));
+		dto.setDateOfBirth(rs.getString("DOB"));
+		dto.setGender(rs.getString("Gender"));
+		dto.setRelationName(rs.getString("RelativeName"));
+		dto.setIdMark(rs.getString("IdMark"));
+		dto.setMobileNumber(rs.getString("MobileNumber"));
+		dto.setMaritalStatus(rs.getString("MaritalStatus"));
+		dto.setPrincipalEmployer(rs.getString("UnitId"));
+		dto.setContractor(rs.getString("ContractorId"));
+		//dto.setWorkorder(rs.getString("WorkorderId"));
+		//dto.setTrade(rs.getString("TradeId"));
+		//dto.setSkill(rs.getString("SkillId"));
+		dto.setDepartment(rs.getString("DepartmentId"));
+		dto.setSubdepartment(rs.getString("AreaId"));
+		//dto.setEic(rs.getString("EicId"));
+//		dto.setNatureOfJob(rs.getString("NatureOfJob"));
+//		dto.setWcEsicNo(rs.getString("WcEsicNo"));
+//		dto.setHazardousArea(rs.getString("HazardousArea"));
+//		dto.setAccessArea(rs.getString("AccessAreaId"));
+//		dto.setUanNumber(rs.getString("UanNumber"));
+//		dto.setHealthCheckDate(rs.getString("HealthCheckDate"));
+//		dto.setPfNumber(rs.getString("pfnumber"));
+//		dto.setEsicNumber(rs.getString("esicNumber"));
+		dto.setBloodGroup(rs.getString("BloodGroupId"));
+		dto.setAccommodation(rs.getString("Accommodation"));
+		dto.setAcademic(rs.getString("AcademicId"));
+		dto.setTechnical(rs.getString("Technical"));
+		dto.setIfscCode(rs.getString("IfscCode"));
+		dto.setAccountNumber(rs.getString("AccountNumber"));
+		dto.setEmergencyName(rs.getString("EmergencyContactName"));
+		dto.setEmergencyNumber(rs.getString("EmergencyContactNumber"));
+//		dto.setWageCategory(rs.getString("WorkmenWageCategoryId"));
+//		dto.setBonusPayout(rs.getString("BonusPayoutId"));
+//		dto.setZone(rs.getString("ZoneId"));
+//		dto.setBasic(new BigDecimal(rs.getString("Basic")));
+//		dto.setDa(new BigDecimal(rs.getString("DA")));
+//		dto.setHra(new BigDecimal(rs.getString("HRA")));
+//		dto.setWashingAllowance(new BigDecimal(rs.getString("WashingAllowance")));
+//		dto.setOtherAllowance(new BigDecimal(rs.getString("OtherAllowance")));
+//		dto.setUniformAllowance(new BigDecimal(rs.getString("UniformAllowance")));
+//		dto.setPfCap(rs.getString("PfCap"));
+		dto.setCreatedBy(rs.getString("UpdatedBy"));
+		dto.setAadharDocName(rs.getString("AadharDocName"));
+		dto.setPhotoName(rs.getString("PhotoName"));
+		dto.setPoliceVerificationDocName(rs.getString("PoliceVerificationDocName"));
+		dto.setBankDocName(rs.getString("BankDocName"));
+		dto.setIdProof2DocName(rs.getString("IdProof2DocName"));
+		dto.setMedicalDocName(rs.getString("MedicalDocName"));
+		dto.setForm11DocName(rs.getString("Form11DocName"));
+		dto.setOtherDocName(rs.getString("OtherDocName"));
+		dto.setTrainingDocName(rs.getString("TrainingDocName"));
+		dto.setEducationDocName(rs.getString("EducationDocName"));
+		dto.setComments(rs.getString("Comments"));
+		dto.setAddress(rs.getString("Address"));
+		dto.setDoj(rs.getString("DOJ"));
+		//dto.setPfApplicable(rs.getString("pfapplicable"));
+		dto.setPoliceVerificationDate(rs.getString("policeverificationDate"));
+		//dto.setDot(rs.getString("DOT"));
+		dto.setOnboardingType(rs.getString("OnboardingType"));
+		//dto.setLlNo(rs.getString("LLNo"));
+		dto.setAppointmentDocName(rs.getString("AppointmentDocName"));
+		dto.setDisability(rs.getString("disability"));
+		dto.setWorkmenType(rs.getString("WorkmenType"));
+		//dto.setReasoning(rs.getString("Reasoning"));
+//		dto.setExitLetterDocName(rs.getString("ExitLetterDocName"));
+//		dto.setFNFDocName(rs.getString("FNFDocName"));
+//		dto.setFeedbackFormDocName(rs.getString("FeedbackFormDocName"));
+//		dto.setRateManagerDocName(rs.getString("RateManagerDocName"));
+//		dto.setLOCDocName(rs.getString("LOCDocName"));
+//		dto.setProficiency(rs.getString("Proficiency"));
+//		dto.setTrainingId(rs.getString("TRAININGID"));
+		}
+	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+transactionId);
+	return dto;
+}
+@Override
+public List<GatePassListingDto> getFullTimeContGatePassListingDetails(
+        String unitId,
+        String deptId,
+        String userId,
+        String gatePassTypeId,
+        String type,
+        List<PersonOrgLevel> contList) {
+
+    log.info("Entering into getGatePassListingDetails dao method");
+
+    List<GatePassListingDto> listDto = new ArrayList<>();
+
+    String query = getAllGatePassForContractor();
+
+    List<String> contractorIds = new ArrayList<>();
+
+    if (contList != null && !contList.isEmpty()) {
+        contractorIds = contList.stream()
+                .map(PersonOrgLevel::getId) // change getter if needed
+                .filter(Objects::nonNull)
+                .map(String::valueOf)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    String contractorFilter = "";
+
+    if (!contractorIds.isEmpty()) {
+        String inClause = contractorIds.stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        contractorFilter = " AND gpm.ContractorId IN (" + inClause + ") ";
+    }
+
+    query = query.replace("{CONTRACTOR_FILTER}", contractorFilter);
+
+    log.info("Query to getGatePassListingDetails {}", query);
+
+    List<Object> params = new ArrayList<>();
+
+    // first SELECT params
+    params.add(gatePassTypeId);
+    params.add(deptId);
+    params.add(deptId);
+    params.add(unitId);
+    params.add(type);
+    params.addAll(contractorIds);
+
+    // UNION SELECT params
+    params.add(gatePassTypeId);
+    params.add(type);
+    params.addAll(contractorIds);
+
+    SqlRowSet rs = jdbcTemplate.queryForRowSet(query, params.toArray());
+
+    while (rs.next()) {
+        GatePassListingDto dto = new GatePassListingDto();
+
+        dto.setTransactionId(rs.getString("TransactionId"));
+        dto.setGatePassId(rs.getString("GatePassId"));
+        dto.setFirstName(rs.getString("FirstName"));
+        dto.setLastName(rs.getString("LastName"));
+        dto.setGender(rs.getString("GMNAME"));
+        dto.setDateOfBirth(rs.getString("DOB"));
+        dto.setAadhaarNumber(rs.getString("AadharNumber"));
+        dto.setContractorName(rs.getString("ContractorName"));
+        dto.setVendorCode(rs.getString("VendorCode"));
+        dto.setUnitName(rs.getString("UnitName"));
+
+        String gatePassType = rs.getString("GatePassTypeId");
+
+        if (GatePassType.FULLTIMECONTRACTOR.getStatus().equals(gatePassType)) {
+            dto.setGatePassType("Full Time Contractor");
+        }
+
+        String status = rs.getString("GatePassStatus");
+
+         if (GatePassStatus.APPROVED.getStatus().equals(status)) {
+            dto.setStatus("Approved");
+        } 
+
+        dto.setOnboardingType(type);
+        listDto.add(dto);
+    }
+
+    log.info("Exiting from getGatePassListingDetails dao method {}", listDto.size());
+    return listDto;
+}
 }

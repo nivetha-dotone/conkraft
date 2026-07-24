@@ -1769,14 +1769,16 @@ showLoader();
     // xhr.setRequestHeader("Content-Type", "application/json");
 
     xhr.onload = function () {
-		showLoader();
+		hideLoader();
         if (xhr.status === 200) {
             console.log("Cancel Saved:", xhr.responseText);
             sessionStorage.setItem("successMessage", "Gatepass cancel request raised successfully!");
             loadCommonList('/contractworkmen/cancelFilter', 'Cancel List');
+            hideLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass cancel request!");
+            hideLoader();
         }
     };
 
@@ -1822,12 +1824,12 @@ if(isValid){
            console.log("Data saved successfully:", xhr.responseText);
 		   sessionStorage.setItem("successMessage", "Gatepass cancel request approved/rejected successfully!");
          loadCommonList('/contractworkmen/cancelFilter', 'Cancel List');
-         //hideLoader();
+         hideLoader();
        } else {
            // Handle error response
            console.error("Error saving data:", xhr.statusText);
 		   sessionStorage.setItem("errorMessage", "Failed to approve/reject Gatepass cancel request!");
-		   //hideLoader();
+		   hideLoader();
        }
    };
    
@@ -1896,11 +1898,12 @@ showLoader();
     // xhr.setRequestHeader("Content-Type", "application/json");
 
     xhr.onload = function () {
-		showLoader();
+		hideLoader();
         if (xhr.status === 200) {
             console.log("Saved:", xhr.responseText);
             sessionStorage.setItem("successMessage", "Gatepass block request raised successfully!");
             loadCommonList('/contractworkmen/blockListFilter', 'Block List');
+            hideLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass block request!");
@@ -1950,12 +1953,12 @@ showLoader();
 	           console.log("Data saved successfully:", xhr.responseText);
 			   sessionStorage.setItem("successMessage", "Gatepass block request approved/rejected successfully!");
 	         loadCommonList('/contractworkmen/blockListFilter', 'Block List');
-	         //hideLoader();
+	         hideLoader();
 	       } else {
 	           // Handle error response
 	           console.error("Error saving data:", xhr.statusText);
 			   sessionStorage.setItem("errorMessage", "Failed to approve/reject Gatepass block request!");
-			  // hideLoader();
+			   hideLoader();
 	       }
 	   };
 	   
@@ -2041,14 +2044,16 @@ console.log("checkTypeId =", checkTypeId);
     // ❌ DO NOT set Content-Type manually for FormData
 
     xhr.onload = function () {
-		showLoader();
+		hideLoader();
         if (xhr.status === 200) {
             console.log("Unblock saved:", xhr.responseText);
             sessionStorage.setItem("successMessage", "Gatepass unblock request raised successfully!");
             loadCommonList('/contractworkmen/unblockListFilter', 'Unblock List');
+            hideLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass unblock request!");
+            hideLoader();
         }
     };
 
@@ -2170,14 +2175,16 @@ showLoader();
     // xhr.setRequestHeader("Content-Type", "application/json");
 
     xhr.onload = function () {
-		showLoader();
+		hideLoader();
         if (xhr.status === 200) {
             console.log("Saved:", xhr.responseText);
             sessionStorage.setItem("successMessage", "Gatepass blacklist request raised successfully!");
             loadCommonList('/contractworkmen/blackListFilter', 'Black List');
+            hideLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass blacklist request!");
+            hideLoader();
         }
     };
 
@@ -2227,6 +2234,7 @@ const data = {
 					       } else {
 					           // Handle error response
 					           console.error("Error saving data:", xhr.statusText);
+					           hideLoader();
 					       }
 					   };
 					   
@@ -2319,14 +2327,16 @@ console.log("checkTypeId =", checkTypeId);
     // xhr.setRequestHeader("Content-Type", "application/json");
 
     xhr.onload = function () {
-		showLoader();
+		hideLoader();
         if (xhr.status === 200) {
             console.log("Deblack saved:", xhr.responseText);
             sessionStorage.setItem("successMessage", "Gatepass deblacklist request raised successfully!");
             loadCommonList('/contractworkmen/deblackListFilter', 'Deblack List');
+            hideLoader();
         } else {
             console.error("Error:", xhr.responseText);
             sessionStorage.setItem("errorMessage", "Failed to raise Gatepass deblacklist request!");
+            hideLoader();
         }
     };
 
@@ -6658,4 +6668,394 @@ function checkSameDayValidation(gatePassId, gatePassTypeId, callback) {
             callback(false);
         }
     });
+}
+function redirectToWorkmenFullTimeContractorAdd(){
+	// Fetch the content of add.jsp using AJAX
+	    var xhr = new XMLHttpRequest();
+	    xhr.onreadystatechange = function() {
+	        if (xhr.readyState == 4 && xhr.status == 200) {
+	            // Update the mainContent element with the fetched content
+	            document.getElementById("mainContent").innerHTML = xhr.responseText;
+				setDateRange();
+				initializeAutoSelects();
+	        }
+	    };
+	    xhr.open("GET", "/CWFM/contractworkmen/fullTimeContractorGatepass", true);
+	    xhr.send();
+}
+
+function saveFullTimeContractorGatePass(userId) {
+	showLoader();
+	
+	// ✅ Clear all previous errors first
+    $("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    
+    let basicValid = true;
+    let employmentValid = true;
+    let otherValid = true;
+    let documentValid = true;
+    
+    var aadharFile = $("#aadharFile").prop("files")[0];
+    var policeFile = $("#policeFile").prop("files")[0];
+	var profilePic = $("#imageFile").prop("files")[0];
+	var appointmentFile = $("#appointmentFile").prop("files")[0];
+    // Validate the files (optional)
+   // if (!validateFullTimeContractorFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
+   //     documentValid = false; // Stop the upload if validation fails
+   //     hideLoader();
+   // }
+    if (!validateBasicData()) {
+        basicValid = false;
+        hideLoader();
+    }
+    if (!validateFullTimeContractorEmploymentInformation()) {
+        employmentValid = false;
+        hideLoader();
+    }
+    if (!validateOtherInformation()) {
+        otherValid = false;
+        hideLoader();
+    }
+    console.log("basicValid: " + basicValid);
+    console.log("employmentValid: " + employmentValid);
+    console.log("otherValid: " + otherValid);
+    console.log("documentValid: " + documentValid);
+    
+    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
+
+    if (!basicValid) errorTabs.push("Basic");
+    if (!employmentValid) errorTabs.push("Employment");
+    if (!otherValid) errorTabs.push("Other");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        hideLoader();
+        return;
+    }
+    
+ const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
+    if (basicValid && employmentValid && otherValid && documentValid) {
+        const data = new FormData();
+        const jsonData = {
+			transactionId:$("#transactionId").val().trim(),
+			gatePassId:$("#gatePassId").val().trim(),
+            aadhaarNumber: $("#aadharNumber").val().trim(),
+            firstName: $("#firstName").val().trim(),
+            lastName: $("#lastName").val().trim(),
+            dateOfBirth: $("#dateOfBirth").val().trim(),
+            gender: $("#gender").val(),
+            relationName: $("#relationName").val().trim(),
+            idMark: $("#idMark").val(),
+            mobileNumber: $("#mobileNumber").val().trim(),
+            maritalStatus: $("#maritalStatus").val(),
+            principalEmployer: $("#principalEmployer").val(),
+            contractor: $("#contractor").val(),
+            department: $("#department").val(),
+            subdepartment: $("#subdepartment").val(),
+            bloodGroup: $("#bloodGroup").val(),
+            accommodation: $("#accommodation").val(),
+            academic: $("#academic").val(),
+            technical: $("#technical").val(),
+            ifscCode: $("#ifscCode").val().trim(),
+            accountNumber: $("#accountNumber").val().trim(),
+            emergencyName: $("#emergencyName").val().trim(),
+            emergencyNumber: $("#emergencyNumber").val().trim(),
+            userId: userId,
+            gatePassAction: "save",
+            comments: $("#comments").val().trim(),
+			address:$("#address").val().trim(),
+			doj:$("#doj").val(),
+            policeVerificationDate: $("#policeVerificationDate").val().trim(),
+            disability:$("#disability").val(),
+            workmenType:$("#workmenType").val(),
+            unitId: $("#principalEmployer").val(),
+        };
+
+        // Serialize the JSON object to a string
+		const jsonString = JSON.stringify(jsonData);
+
+		// Append the JSON data to FormData
+		data.append("jsonData", jsonString);
+
+        // Append the files to the FormData
+        if (aadharFile) {
+            data.append("aadharFile", aadharFile);
+        }
+        if (policeFile) {
+            data.append("policeFile", policeFile);
+        }
+		if(profilePic){
+			data.append("profilePic",profilePic);
+		}
+		if(appointmentFile){
+			data.append("appointmentFile",appointmentFile);
+		}
+		
+    	const additionalFields = document.querySelectorAll('.document-field');
+    additionalFields.forEach((field, index) => {
+        const docType = field.querySelector('select[name="documentType"]').value;
+        const fileInput = field.querySelector('input[type="file"]');
+
+        if (docType && fileInput.files[0]) {
+            data.append('additionalFiles', fileInput.files[0]);
+            data.append('documentTypes', docType);
+        }
+    });
+        
+		/*// Log FormData content
+for (const [key, value] of data.entries()) {
+    console.log(key, value instanceof File ? value.name : value); // Log filename if it's a File
+}*/
+        // Send the data to the server using AJAX
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/CWFM/contractworkmen/saveFullTimeContractorGatePass", true);
+
+        xhr.onload = function () {
+			hideLoader();
+            if (xhr.status === 200) {
+                console.log("Data saved successfully:", xhr.responseText);
+				sessionStorage.setItem("successMessage", "FullTimeContractor Gatepass request raised successfully!");
+                loadCommonList('/contractworkmen/fullTimeContractorOnboardingList', 'Full Time Contractor List');
+				//hideLoader();
+            } else {
+                console.error("Error saving data:", xhr.status, xhr.responseText);
+				sessionStorage.setItem("errorMessage", "Failed to save fultime contractor Gatepass request!");
+            }
+        };
+
+        xhr.onerror = function () {
+            console.error("Request failed");
+			sessionStorage.setItem("errorMessage", "Failed to save fultime contractor Gatepass request!");
+			hideLoader();
+        };
+
+        // Send the FormData object
+        xhr.send(data);
+    } else {
+        console.error("Validation failed for one or more fields.");
+    }
+}
+function validateFullTimeContractorEmploymentInformation(){
+	let isValid = true;
+    const principalEmp = $("#principalEmployer").val();
+     if (principalEmp === "") {
+        $("#error-principalEmployer").show();
+        isValid = false;
+    }else{
+		$("#error-principalEmployer").hide();
+	}
+	const cont = $("#contractor").val();
+     if (cont === "") {
+        $("#error-contractor").show();
+        isValid = false;
+    }else{
+		$("#error-contractor").hide();
+	}
+	const dept = $("#department").val();
+     if (dept === "") {
+        $("#error-department").show();
+        isValid = false;
+    }else{
+		$("#error-department").hide();
+	}
+	const subdept = $("#subdepartment").val();
+     if (subdept === "") {
+        $("#error-area").show();
+        isValid = false;
+    }else{
+		$("#error-area").hide();
+	}
+	
+	return isValid;
+}
+function validateFullTimeContractorFiles(aadharFile, policeFile, profilePc,appointmentFile) {
+    let valid = true;
+
+    // Aadhar File - Mandatory & Size check
+     if (aadharFile.size > 5 * 1024 * 1024) {
+        $("#aadharError").text("Aadhar file must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#aadharError").text("");
+    }
+
+    // Police Verification File - Mandatory & Size check
+    if (policeFile.size > 5 * 1024 * 1024) {
+        $("#policeError").text("Police file must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#policeError").text("");
+    }
+//appointment File - Mandatory & Size check
+ if (appointmentFile.size > 5 * 1024 * 1024) {
+        $("#appointmentError").text("Appointment file must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#appointmentError").text("");
+    }
+// Police Verification Date - Mandatory  check
+const policeVerificationDate = $("#policeVerificationDate").val().trim();
+    if (policeVerificationDate === "") {
+        $("#error-policeVerificationDate").show();
+        valid = false;
+    }else {
+        $("#error-policeVerificationDate").hide("");
+    }
+    
+    // Profile Photo - Mandatory & Size check
+    if (profilePc.size > 5 * 1024 * 1024) {
+        $("#profilePcError").text("Photo/Image must be less than 5MB").addClass("error-bold");
+        valid = false;
+    } else {
+        $("#profilePcError").text("");
+    }
+
+	const comments = $("#comments").val().trim();
+		    if (comments === "") {
+		        $("#error-comments").show();
+		        valid = false;
+		    }else{
+				 $("#error-comments").hide();
+			}
+			// Accept Checkbox validation
+			    if (!$("#acceptCheck").is(":checked")) {
+			        $("#acceptError").show();
+			        valid = false;
+			    } else {
+			        $("#acceptError").hide();
+			    }
+			    if (valid) {
+    $("#docTabGlobalError").hide();
+}		
+    return valid;
+}
+function goBackToFullTimeContractoronboardingList() {
+    	 loadCommonList('/contractworkmen/fullTimeContractorOnboardingList', 'Full Time Contractor List');
+    }
+    function searchFullTimeContractorGatePassBasedOnPE(type) {
+					    var principalEmployerId = $('#principalEmployerId').val();
+					    
+						var deptId=$("#deptId").val();
+					    $.ajax({
+					        url: '/CWFM/contractworkmen/getFullTimeContractorgatePassListingDetails',
+					        type: 'POST',
+					        data: {
+					            principalEmployerId: principalEmployerId,
+								deptId:deptId,
+								type:type
+					        },
+					        success: function(response) {
+					            var tableBody = $('#workmenTable tbody');
+								// 🔄 Clear previous DataTable and its config
+								           if ($.fn.DataTable.isDataTable('#workmenTable')) {
+								               $('#workmenTable').DataTable().destroy();
+								           }
+										   tableBody.empty();
+					            if (Array.isArray(response) &&response.length > 0) {
+					                $.each(response, function(index, wo) {
+					                    var row = '<tr  >' +
+												'<td  ><input type="checkbox" name="selectedWOs" value="' + wo.transactionId + '" class="bulk-check"  data-transaction="'+wo.transactionId+'"	data-gatepass="'+wo.gatePassId+'"  data-type="'+wo.gatePassTypeId+'"></td>'+
+												//'<td  >' + wo.transactionId + '</td>' +
+												
+												 '<td>' +
+        '<a href="#" class="transaction-link" ' +
+        'onclick="redirectToFullTimeContractorWorkmenViewLink(\'' + wo.transactionId + '\', \'' + wo.status + '\'); return false;">' +
+        wo.transactionId +
+        '</a>' +
+    '</td>' +
+												 '<td  >' + wo.gatePassId + '</td>' +
+					                              '<td  >' + wo.firstName+' ' +wo.lastName + '</td>' +
+												 
+												  
+												  
+												  '<td  >' + wo.aadhaarNumber + '</td>' +	
+												  '<td  >' + wo.contractorName + '</td>' +	
+												 
+												  '<td  >' +wo.unitName + '</td>' +	
+												  '<td  >' + wo.gatePassType + '</td>' +
+												  '<td  >' + toCapitalCase(wo.onboardingType) + '</td>' +
+												  '<td  >' + wo.status + '</td>' +				                             
+					                              '</tr>';
+					                    tableBody.append(row);
+					                });
+									
+					            } 								
+
+																	            // ✅ Always init after rows are drawn
+																	            initWorkmenTable("workmenTable");
+																	        },
+					       
+					        error: function(xhr, status, error) {
+					            console.error("Error fetching data:", error);
+					        }
+					    });
+					}
+					
+					function redirectToFullTimeContractorWorkmenView() {
+    var selectedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+    if (selectedCheckboxes.length !== 1) {
+        alert("Please select exactly one row to view.");
+        return;
+    }
+    
+    var selectedRow = selectedCheckboxes[0].closest('tr');
+    var transactionId = selectedRow.querySelector('[name="selectedWOs"]').value;
+    //var gatePassType = selectedRow.cells[7].innerText.trim(); // Adjust index if needed
+    var status = selectedRow.cells[9].innerText.trim(); // Adjust index if needed
+
+         if (status.toLowerCase() == "draft") {
+             alert("Status 'Draft' record can not View.");
+            return;
+           }
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+             setDateRange();
+        }
+    };
+    xhr.open("GET", "/CWFM/contractworkmen/viewFullTimeContractor/" + transactionId, true);
+    xhr.send();
+}
+function redirectToFullTimeContractorWorkmenViewLink(transactionId, status) {
+
+    if (!transactionId || transactionId.trim() === '') {
+        alert("Invalid Transaction Id");
+        return;
+    }
+
+    if (status && status.toLowerCase() === "draft") {
+        alert("Status 'Draft' record cannot be viewed.");
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+
+        if (xhr.readyState === 4) {
+
+            if (xhr.status === 200) {
+
+                document.getElementById("mainContent").innerHTML = xhr.responseText;
+ setDateRange();
+            } else {
+
+                alert("Failed to load view page.");
+            }
+        }
+    };
+
+    xhr.open("GET", "/CWFM/contractworkmen/viewFullTimeContractor/" + encodeURIComponent(transactionId), true);
+
+    xhr.send();
 }

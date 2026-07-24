@@ -19,7 +19,8 @@ public enum GatePassType {
 	PROJECT("12","PROJECT GATEPASS"),
 	CONTRACTOREGISTRATION("13","CONTRACTOR REGISTRATION"),
 	BULKCANCEL("14","BULKCANCEL"),
-	BULKRENEW("15","BULKRENEW");
+	BULKRENEW("15","BULKRENEW"),
+	FULLTIMECONTRACTOR("16","FULLTIMECONTRACTOR");
 	private String status;
 	private String name;
 	private GatePassType(String status, String name) {

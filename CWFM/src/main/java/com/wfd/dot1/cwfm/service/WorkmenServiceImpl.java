@@ -1847,4 +1847,138 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public boolean isActionDoneToday(String  gatePassId, Long gatePassTypeId) {
 		return workmenDao.isActionDoneToday(gatePassId,gatePassTypeId);
 	}
+	@Override
+	public String saveFullTimeContractorGatePass(GatePassMain gatePassMain) {
+		String transactionId =null;
+		
+		try {
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			if(ALLOW.equals(allowPlantOnboarding)) {
+			//int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
+			//gatePassMain.setWorkFlowType(workFlowTypeId);
+			//int dotTypeId = workmenDao.getDOTTYpe(gatePassMain.getPrincipalEmployer());
+			//gatePassMain.setDotType(dotTypeId);
+			
+			//String dot = this.getDOT(gatePassMain);
+			//gatePassMain.setDot(dot);
+			    gatePassMain.setGatePassAction(GatePassType.FULLTIMECONTRACTOR.getStatus());
+			    gatePassMain.setOnboardingType("fulltimecontractor");
+				gatePassMain.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        String today = LocalDate.now().format(formatter);
+		        gatePassMain.setDoj(today);
+				 transactionId = workmenDao.saveFullTimeContractorGatePass(gatePassMain);
+
+				 String gatePassId = workmenDao.updateGatePassIdByTransactionId(transactionId);
+				gatePassMain.setGatePassId(gatePassId);
+				GatePassStatusLogDto dto =new GatePassStatusLogDto();
+				dto.setTransactionId(transactionId);
+				dto.setGatePassId(gatePassId);
+				dto.setGatePassType(GatePassType.FULLTIMECONTRACTOR.getStatus());
+				dto.setStatus(Integer.parseInt(GatePassStatus.APPROVED.getStatus()));
+				dto.setComments(gatePassMain.getComments());
+				dto.setUpdatedBy(gatePassMain.getUserId());
+				workmenDao.saveGatePassStatusLog(dto);
+				
+				
+
+				boolean cmsDone = this.cmsPersonInsertFullTimeContractor(gatePassMain);
+
+		        if (!cmsDone) {
+		            throw new RuntimeException("CMS Person Insert failed for fulltime contractor unexpectedly.");
+		        }
+		        try {
+		        	String wfdIntegration = this.getWFDIntegration();
+		        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+		        		//api.addOnBoardingDetailsActual(dto.getTransactionId());
+		        		//needs to be add
+		        	}
+		        	}catch(Exception e) {
+		       }
+
+				return transactionId;
+			
+			}else {
+				return allowPlantOnboarding;
+			}
+		}catch(Exception e) {
+			
+		}
+		return transactionId;
+	}
+	@Transactional
+	public boolean cmsPersonInsertFullTimeContractor(GatePassMain gpm) {
+    
+	    long personId = saveFullTimeContractorIntoCMSPerson(gpm);
+	    if (!logAndCheck("CMSPERSON", personId > 0)) return false;
+
+	    if (!logAndCheck("CMSPERSONJOBHIST", saveFullTimeContractorIntoCMSPERSONJOBHIST(gpm, personId)))
+	        return false;
+
+	    if (!logAndCheck("CMSPERSONSTATUSMM", saveFullTimeContractorCMSPERSONSTATUSMM(gpm, personId)))
+	        return false;
+
+	    //gpm.setGatePassStatus(GatePassStatus.APPROVED.getStatus());
+
+	    return logAndCheck("CMSPERSONCUSTOMDATA", saveFullTimeContractorCMSPERSONCUSTOMDATA(gpm, personId));
+ }
+	public long saveFullTimeContractorIntoCMSPerson(GatePassMain gpm) {
+	    try {
+	        CMSPerson person = new CMSPerson();
+
+	        person.setEmployeeCode(gpm.getGatePassId());
+	        person.setFirstName(gpm.getFirstName());
+	        person.setLastName(gpm.getLastName());
+	        person.setRelationName(gpm.getRelationName() != null ? gpm.getRelationName() : " ");
+	        person.setDateOfBirth(gpm.getDateOfBirth());
+	        person.setDateOfJoining(gpm.getDoj());
+	        person.setDateOfTermination(gpm.getDot() != null ? gpm.getDot().toString() : " ");
+	        person.setBloodGroup(gpm.getBloodGroup() != null && !gpm.getBloodGroup().trim().isEmpty()? Integer.parseInt(gpm.getBloodGroup()): 0);
+	        person.setHazardousArea(gpm.getHazardousArea() != null ? gpm.getHazardousArea() : " ");
+	        person.setGender(Integer.parseInt(gpm.getGender()));
+	        person.setAcademics(gpm.getAcademic() != null && !gpm.getAcademic().trim().isEmpty()? Integer.parseInt(gpm.getAcademic()): 0);
+	        person.setAccomodation(gpm.getAccommodation() != null&& gpm.getAccommodation().trim().equalsIgnoreCase("Yes") ? 1 : 0);
+	        person.setBankBranch(gpm.getIfscCode());
+	        person.setAccountNo(gpm.getAccountNumber() != null && !gpm.getAccountNumber().trim().isEmpty()? gpm.getAccountNumber(): " ");
+	        person.setEmergencyName(gpm.getEmergencyName());
+	        person.setEmergencyNumber(gpm.getEmergencyNumber());
+	        person.setMobileNumber(gpm.getMobileNumber());
+	        person.setAccessLevel(gpm.getAccessArea() != null && !gpm.getAccessArea().trim().isEmpty()? Integer.parseInt(gpm.getAccessArea()): 0);
+	        person.setEsicNumber(gpm.getEsicNumber() != null ? gpm.getEsicNumber() : " ");
+	        person.setUanNumber(gpm.getUanNumber() != null ? gpm.getUanNumber() : " ");
+	        person.setIsPfEligible("Yes".equalsIgnoreCase(gpm.getPfApplicable()) ? 1 : 0);
+	        person.setIdMark(gpm.getIdMark() != null ? gpm.getIdMark() : " ");
+	        person.setPanNumber(gpm.getPfNumber() != null ? gpm.getPfNumber() : " ");
+	        person.setAadharNumber(gpm.getAadhaarNumber());
+	        person.setUpdatedBy(gpm.getCreatedBy());
+
+	        return workmenDao.saveFullTimeContractorIntoCMSPerson(person);
+
+	    } catch (Exception e) {
+	        log.error("Error while saving Full Time Contractor into CMSPerson. GatePassId: {}, Aadhaar: {}",
+	                gpm.getGatePassId(), gpm.getAadhaarNumber(), e);
+
+	        throw new RuntimeException("Failed to save Full Time Contractor into CMSPerson", e);
+	    }
+	}
+public boolean saveFullTimeContractorIntoCMSPERSONJOBHIST(GatePassMain gpm,long employeeId) {
+	
+	return workmenDao.saveFullTimeContractorIntoCMSPERSONJOBHIST(gpm,employeeId);
+}
+public boolean saveFullTimeContractorCMSPERSONSTATUSMM(GatePassMain gpm,long employeeId) {
+	
+	return workmenDao.saveFullTimeContractorCMSPERSONSTATUSMM(gpm,employeeId);
+}
+private boolean saveFullTimeContractorCMSPERSONCUSTOMDATA(GatePassMain gpm, long personInsert) {
+
+	return workmenDao.saveFullTimeContractorCMSPERSONCUSTOMDATA(gpm, personInsert);
+}
+@Override
+public GatePassMain getFullTimeIndividualContractWorkmenDetails(String transactionId) {
+	return workmenDao.getFullTimeIndividualContractWorkmenDetails(transactionId);
+}
+@Override
+public List<GatePassListingDto> getFullTimeContGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type,List<PersonOrgLevel> contList) {
+	return workmenDao.getFullTimeContGatePassListingDetails(unitId,deptId,userId,gatePassTypeId,type,contList);
+}
 }

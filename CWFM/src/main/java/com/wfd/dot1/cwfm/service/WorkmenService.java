@@ -172,5 +172,12 @@ public interface WorkmenService {
 	public List<ApproveRejectGatePassDto> getExistingTrainingRecords(String transactionId);
 
 	public boolean isActionDoneToday(String gatePassId, Long gatePassTypeId);
+
+	String saveFullTimeContractorGatePass(GatePassMain gatePassMain);
+
+	public GatePassMain getFullTimeIndividualContractWorkmenDetails(String transactionId);
+
+	public List<GatePassListingDto> getFullTimeContGatePassListingDetails(String principalEmployerId, String deptId,
+			String valueOf, String status, String type, List<PersonOrgLevel> contList);
 	
 }	
