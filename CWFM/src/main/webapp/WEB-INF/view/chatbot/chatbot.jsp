@@ -1,105 +1,105 @@
 <%@ page language="java"
          contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
-
 <div id="conkraftChatBot"
      class="conkraft-chatbot"
-     data-context-path="${pageContext.request.contextPath}">
+     data-user-name="" default='User'/>"
+     <input type="hidden" id="firstName" value="${firstName}">
 
     <!-- Header -->
     <div class="chatbot-header">
 
-    <div class="chatbot-header-left">
+        <div class="chatbot-header-left">
 
-        <div class="chatbot-avatar">
-            <i class="fas fa-robot"></i>
-        </div>
-
-        <div class="chatbot-heading">
-
-            <div class="chatbot-title">
-                Conkraft AI Assistant
+            <div class="chatbot-avatar">
+                <i class="fas fa-robot"></i>
             </div>
 
-            <div class="chatbot-status">
-                <span class="chatbot-status-dot"></span>
-                Online
+            <div class="chatbot-heading">
+
+                <div class="chatbot-title">
+                    Conkraft AI Assistant
+                </div>
+
+                <div class="chatbot-status">
+                    <span class="chatbot-status-dot"></span>
+                    Online
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="chatbot-header-right">
+
+            <div class="chatbot-language-wrapper">
+
+                <i class="fas fa-globe"></i>
+
+                <select id="chatbotLanguage"
+                        class="chatbot-language-select"
+                        title="Select voice language">
+
+                    <option value="en-IN">English</option>
+                    <option value="hi-IN">हिन्दी</option>
+                    <option value="ta-IN">தமிழ்</option>
+                    <option value="te-IN">తెలుగు</option>
+                    <option value="gu-IN">ગુજરાતી</option>
+                    <option value="kn-IN">ಕನ್ನಡ</option>
+                    <option value="ml-IN">മലയാളം</option>
+                    <option value="mr-IN">मराठी</option>
+                    <option value="bn-IN">বাংলা</option>
+                    <option value="pa-IN">ਪੰਜਾਬੀ</option>
+                    <option value="ur-IN">اردو</option>
+
+                </select>
+
+            </div>
+
+            <div class="chatbot-header-actions">
+
+                <button type="button"
+                        id="clearChatButton"
+                        class="chatbot-header-button"
+                        title="Clear conversation">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+
+                <button type="button"
+                        id="minimizeChatBotButton"
+                        class="chatbot-header-button"
+                        title="Minimize">
+                    <i class="fas fa-minus"></i>
+                </button>
+
+                <button type="button"
+                        id="maximizeChatBotButton"
+                        class="chatbot-header-button"
+                        title="Maximize">
+                    <i class="fas fa-expand"></i>
+                </button>
+
+                <button type="button"
+                        id="closeChatBotButton"
+                        class="chatbot-header-button"
+                        title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+
             </div>
 
         </div>
 
     </div>
 
-    <div class="chatbot-header-right">
-
-        <!-- Language selector -->
-        <div class="chatbot-language-wrapper">
-
-            <i class="fas fa-globe"></i>
-
-            <select id="chatbotLanguage"
-                    class="chatbot-language-select"
-                    title="Select voice language">
-
-                <option value="en-IN">English</option>
-                <option value="hi-IN">हिन्दी</option>
-                <option value="ta-IN">தமிழ்</option>
-                <option value="te-IN">తెలుగు</option>
-                <option value="gu-IN">ગુજરાતી</option>
-                <option value="kn-IN">ಕನ್ನಡ</option>
-                <option value="ml-IN">മലയാളം</option>
-                <option value="mr-IN">मराठी</option>
-                <option value="bn-IN">বাংলা</option>
-                <option value="pa-IN">ਪੰਜਾਬੀ</option>
-                <option value="ur-IN">اردو</option>
-
-            </select>
-
-        </div>
-
-        <div class="chatbot-header-actions">
-
-            <button type="button"
-                    id="clearChatButton"
-                    class="chatbot-header-button"
-                    title="Clear conversation">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-
-            <button type="button"
-                    id="minimizeChatBotButton"
-                    class="chatbot-header-button"
-                    title="Minimize">
-                <i class="fas fa-minus"></i>
-            </button>
-
-            <button type="button"
-                    id="maximizeChatBotButton"
-                    class="chatbot-header-button"
-                    title="Maximize">
-                <i class="fas fa-expand"></i>
-            </button>
-
-            <button type="button"
-                    id="closeChatBotButton"
-                    class="chatbot-header-button"
-                    title="Close">
-                <i class="fas fa-times"></i>
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-    <!-- Scrollable messages area -->
+    <!-- Messages -->
     <div id="chatMessages"
          class="chatbot-messages"
          aria-live="polite"
          aria-label="Chat messages">
 
-        <div class="chat-message bot-message">
+        <div id="chatbotWelcomeMessage"
+             class="chat-message bot-message welcome-message">
 
             <div class="message-avatar">
                 <i class="fas fa-robot"></i>
@@ -107,37 +107,11 @@
 
             <div class="message-wrapper">
 
-                <div class="message-bubble">
+                <div class="message-bubble welcome-bubble">
 
-                    Hello 👋
-                    <br><br>
-
-                    I can help you with the following.
-                    <br><br>
-
-                    1. Pending Approvals
-                    <br>
-                    2. Active Contractors
-                    <br>
-                    3. Today's Gatepasses
-                    <br>
-                    4. Work Orders
-                    <br>
-                    5. Principal Employers
-                    <br>
-                    6. License Expiry
-                    <br>
-                    7. Search Contractor
-                    <br><br>
-
-                    Examples
-                    <br><br>
-
-                    Pending Approvals
-                    <br>
-                    Today's Gatepasses
-                    <br>
-                    Search Contractor ABC Pvt Ltd
+                    <div id="chatbotWelcomeContent"
+                         class="chatbot-welcome">
+                    </div>
 
                 </div>
 
@@ -150,6 +124,10 @@
         </div>
 
     </div>
+
+    <!-- Keep your existing suggestions and input sections here -->
+
+</div>
 
     <!-- Horizontal suggestions -->
     <div id="chatSuggestions"

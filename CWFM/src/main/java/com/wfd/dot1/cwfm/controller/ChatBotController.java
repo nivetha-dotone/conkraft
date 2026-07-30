@@ -5,6 +5,7 @@ package com.wfd.dot1.cwfm.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,9 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.wfd.dot1.cwfm.dto.ChatRequest;
 import com.wfd.dot1.cwfm.dto.ChatResponse;
-import com.wfd.dot1.cwfm.pojo.CmsGeneralMaster;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
-import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.service.ChatBotService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,10 +52,29 @@ public class ChatBotController {
 
     }
     
-	@GetMapping("/showChatBot")
-    public String showChatBot(HttpServletRequest request,HttpServletResponse response) {
-	
-	
+    @GetMapping("/showChatBot")
+    public String showChatBot(
+            HttpServletRequest request,
+            Model model) {
+
+        HttpSession session =
+                request.getSession(false);
+
+        MasterUser user =
+                session != null
+                        ? (MasterUser) session.getAttribute("loginuser")
+                        : null;
+
+        String firstName = "User";
+
+        if (user != null
+                && user.getFirstName() != null
+                && !user.getFirstName().trim().isEmpty()) {
+
+            firstName = user.getFirstName().trim();
+        }
+
+        model.addAttribute("firstName", firstName);
 
         return "chatbot/chatbot";
     }

@@ -4141,7 +4141,7 @@ background:white;
 <% 
     String initials = (String) session.getAttribute("userInitials");
     MasterUser user = (MasterUser) session.getAttribute("loginuser");
-    
+    String firstName = user != null && user.getFirstName() != null ? user.getFirstName() : "";
 %>
 
     <!-- Top Navigation Bar -->

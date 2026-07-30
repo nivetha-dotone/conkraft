@@ -182,6 +182,9 @@ function closeChatBotModal() {
        }
 
        restoreChatbotLanguage();
+
+       renderDynamicWelcomeMessage();
+
        bindChatbotEvents();
        initializeDraggablePopup();
        resizeQuestionInput();
@@ -1526,4 +1529,145 @@ function getVoiceRecognitionErrorMessage(errorCode) {
 
             return "Voice recognition failed. Please try again.";
     }
+}
+
+function renderDynamicWelcomeMessage() {
+
+    var chatbot =
+        document.getElementById("conkraftChatBot");
+
+    var welcomeContainer =
+        document.getElementById("chatbotWelcomeContent");
+
+    if (!chatbot || !welcomeContainer) {
+        return;
+    }
+
+	var chatbot = document.getElementById("conkraftChatBot");
+
+	var userName = "User";
+
+	if (chatbot) {
+	    userName =  "User";
+	}
+   
+
+    var greetingInfo =
+        getGreetingByCurrentTime();
+
+    welcomeContainer.innerHTML =
+        '<div class="welcome-title">' +
+
+            '<span class="welcome-emoji">' +
+                escapeHtml(greetingInfo.emoji) +
+            '</span>' +
+
+            '<span>' +
+                escapeHtml(greetingInfo.greeting) +
+                ', ' +
+            '</span>' +
+
+            '<span class="welcome-user-name">' +
+                escapeHtml(userName.trim()) +
+            '</span>' +
+
+            '<span>!</span>' +
+
+        '</div>' +
+
+        '<div class="welcome-subtitle">' +
+            'Welcome to ' +
+            '<strong>Conkraft AI Assistant</strong>.' +
+        '</div>' +
+
+        '<div class="welcome-text">' +
+            'I can assist you with your Contract Workforce Management activities.' +
+        '</div>' +
+
+        '<div class="welcome-question">' +
+            'How may I help you today?' +
+        '</div>';
+}
+function getGreetingByCurrentTime() {
+
+    var currentHour =
+        new Date().getHours();
+
+    if (currentHour >= 5 && currentHour < 12) {
+
+        return {
+            greeting: "Good Morning",
+            emoji: "🌅"
+        };
+    }
+
+    if (currentHour >= 12 && currentHour < 17) {
+
+        return {
+            greeting: "Good Afternoon",
+            emoji: "☀️"
+        };
+    }
+
+    if (currentHour >= 17 && currentHour < 21) {
+
+        return {
+            greeting: "Good Evening",
+            emoji: "🌇"
+        };
+    }
+
+    return {
+        greeting: "Hello",
+        emoji: "👋"
+    };
+}
+function clearConversation() {
+
+    var confirmed =
+        confirm(
+            "Do you want to clear this conversation?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    removeTypingIndicator();
+
+    $("#chatMessages").html(
+        '<div id="chatbotWelcomeMessage" ' +
+             'class="chat-message bot-message">' +
+
+            '<div class="message-avatar">' +
+                '<i class="fas fa-robot"></i>' +
+            '</div>' +
+
+            '<div class="message-wrapper">' +
+
+                '<div class="message-bubble">' +
+
+                    '<div id="chatbotWelcomeContent" ' +
+                         'class="chatbot-welcome">' +
+                    '</div>' +
+
+                '</div>' +
+
+                '<div class="message-time">' +
+                    getCurrentTime() +
+                '</div>' +
+
+            '</div>' +
+
+        '</div>'
+    );
+
+    renderDynamicWelcomeMessage();
+
+    $("#chatQuestion")
+        .val("")
+        .focus();
+
+    resizeQuestionInput();
+    scrollChatToBottom();
 }
