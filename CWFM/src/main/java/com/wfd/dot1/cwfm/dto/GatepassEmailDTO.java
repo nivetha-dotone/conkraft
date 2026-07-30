@@ -13,6 +13,27 @@ public class GatepassEmailDTO {
 	private String esic;
 	private String transactionid;
 	private String unitId;
+	private String gatePassTypeId;
+	private String gatePassTypeName;
+	private String gatepassid;
+	public String getGatepassid() {
+		return gatepassid;
+	}
+	public void setGatepassid(String gatepassid) {
+		this.gatepassid = gatepassid;
+	}
+	public String getGatePassTypeId() {
+		return gatePassTypeId;
+	}
+	public void setGatePassTypeId(String gatePassTypeId) {
+		this.gatePassTypeId = gatePassTypeId;
+	}
+	public String getGatePassTypeName() {
+		return gatePassTypeName;
+	}
+	public void setGatePassTypeName(String gatePassTypeName) {
+		this.gatePassTypeName = gatePassTypeName;
+	}
 	public String getUnitId() {
 		return unitId;
 	}

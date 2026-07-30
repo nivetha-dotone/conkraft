@@ -30,82 +30,133 @@ public class GatepassEmailServiceImpl implements GatepassEmailService{
 	    private GatepassEmailDao gatepassEmaildao;
 
 //	 @Override
-//	 @Scheduled(cron = "*/60 * * * * ?")
+//	 @Scheduled(cron = "0 0 10 * * ?")
+	// cron = "*/10 * * * * ?"
 //	 public void setupCreateApprovalPendingMail() {
+//
 //	     try {
 //	         log.info("Gatepass Email Service Start");
-//
 //	         List<GatepassEmailDTO> createApprovalPending = gatepassEmaildao.getCreateApprovalPendingRecords();
-//
 //	         String regardsEmail = gatepassEmaildao.getRegardsEmail();
-//
 //	         for (GatepassEmailDTO gatepass : createApprovalPending) {
-//
-//	             // Skip if contractor email is not available
-//	             if (gatepass.getContractorMail() == null ||
-//	                 gatepass.getContractorMail().trim().isEmpty()) {
-//	                 continue;
-//	             }
-//
-//	             // Create list with only one record
 //	             List<GatepassEmailDTO> singleRecord = new ArrayList<>();
 //	             singleRecord.add(gatepass);
+//	             String bodyMail = buildHtmlTable(singleRecord, regardsEmail);
+//	             String subject = "Gatepass Pending Approval - " + gatepass.getTransactionid();
 //
-//	             // Build HTML for only this record
-//	             String bodyMail = this.buildHtmlTable(singleRecord, regardsEmail);
+//	              // Contractor Mail
+//	             if (gatepass.getContractorMail() != null&& !gatepass.getContractorMail().trim().isEmpty()) {
+//	                 Set<String> contractorMail = new HashSet<>();
+//	                 contractorMail.add(gatepass.getContractorMail());
+//	                 sendHtmlMail(contractorMail, subject, bodyMail);
+//	                 log.info("Contractor Mail Sent : {}", gatepass.getTransactionid());
+//	             }
 //
-//	             Set<String> mailSends = new HashSet<>();
-//	             mailSends.add(gatepass.getContractorMail());
-//
-//	             String subject = "Gatepass Pending Approval - "
-//	                     + gatepass.getTransactionid();   // or TransactionId
-//
-//	             sendHtmlMail(mailSends, subject, bodyMail);
-//
-//	             log.info("Mail sent for GatePass : {}", gatepass.getTransactionid());
+//	              // Approver Mails
+//	             Set<String> approverMails =gatepassEmaildao.getCreateApproverMails(gatepass.getUnitId(),gatepass.getUnitCode());
+//	             if (approverMails != null && !approverMails.isEmpty()) {
+//	                 sendHtmlMail(approverMails, subject, bodyMail);
+//	                 log.info("Approver Mail Sent : {} -> {}",gatepass.getTransactionid(),approverMails);
+//	             }
 //	         }
 //
 //	     } catch (Exception e) {
-//	         log.error("Error while sending Gatepass pending approval emails", e);
+//
+//	         log.error("Error while sending Gatepass mails", e);
+//
 //	     }
 //	 }
 	 @Override
 	 @Scheduled(cron = "0 0 10 * * ?")
-	// cron = "*/10 * * * * ?"
 	 public void setupCreateApprovalPendingMail() {
 
-	     try {
-	         log.info("Gatepass Email Service Start");
-	         List<GatepassEmailDTO> createApprovalPending = gatepassEmaildao.getCreateApprovalPendingRecords();
-	         String regardsEmail = gatepassEmaildao.getRegardsEmail();
-	         for (GatepassEmailDTO gatepass : createApprovalPending) {
-	             List<GatepassEmailDTO> singleRecord = new ArrayList<>();
-	             singleRecord.add(gatepass);
-	             String bodyMail = buildHtmlTable(singleRecord, regardsEmail);
-	             String subject = "Gatepass Pending Approval - " + gatepass.getTransactionid();
+		    try {
+		        log.info("Gatepass Email Service Start");
+		        List<GatepassEmailDTO> createApprovalPending = gatepassEmaildao.getCreateApprovalPendingRecords();
+		        String regardsEmail = gatepassEmaildao.getRegardsEmail();
+		        for (GatepassEmailDTO gatepass : createApprovalPending) {
 
-	              // Contractor Mail
-	             if (gatepass.getContractorMail() != null&& !gatepass.getContractorMail().trim().isEmpty()) {
-	                 Set<String> contractorMail = new HashSet<>();
-	                 contractorMail.add(gatepass.getContractorMail());
-	                 sendHtmlMail(contractorMail, subject, bodyMail);
-	                 log.info("Contractor Mail Sent : {}", gatepass.getTransactionid());
-	             }
+		            // 1. Create email body for this ONE gatepass
+		            List<GatepassEmailDTO> singleRecord = new ArrayList<>();
+		            singleRecord.add(gatepass);
+		            String bodyMail = buildHtmlTable(singleRecord, regardsEmail);
 
-	              // Approver Mails
-	             Set<String> approverMails =gatepassEmaildao.getCreateApproverMails(gatepass.getUnitId(),gatepass.getUnitCode());
-	             if (approverMails != null && !approverMails.isEmpty()) {
-	                 sendHtmlMail(approverMails, subject, bodyMail);
-	                 log.info("Approver Mail Sent : {} -> {}",gatepass.getTransactionid(),approverMails);
-	             }
-	         }
+		            String subject = "Gatepass Pending Approval - " + gatepass.getTransactionid();
 
-	     } catch (Exception e) {
+		            // 2. Send mail to CONTRACTOR
+		            if (gatepass.getContractorMail() != null && !gatepass.getContractorMail().trim().isEmpty()) {
+		                Set<String> contractorMail = new HashSet<>();
+		                contractorMail.add(gatepass.getContractorMail().trim());
+		                sendHtmlMail(contractorMail,subject,bodyMail);
+		                log.info("Contractor mail sent. TransactionId={}, To={}",gatepass.getTransactionid(),gatepass.getContractorMail());
+		            }
+		            // 3. Get APPROVER email list
 
-	         log.error("Error while sending Gatepass mails", e);
-
-	     }
-	 }
+		            Set<String> approverMails = gatepassEmaildao.getCreateApproverMails(gatepass.getUnitId(),gatepass.getUnitCode());
+		           
+		            // 4. Send ONE MAIL PER APPROVER
+		            if (approverMails != null && !approverMails.isEmpty()) {
+		                for (String approverMail : approverMails) {
+		                    // Ignore null / blank email
+		                    if (approverMail == null || approverMail.trim().isEmpty()) {
+		                        continue;
+		                    }
+		                    Set<String> singleApproverMail = new HashSet<>();
+		                    singleApproverMail.add(approverMail.trim());
+		                    sendHtmlMail(singleApproverMail,subject,bodyMail);
+		                    log.info("Approver mail sent. TransactionId={}, To={}",gatepass.getTransactionid(),approverMail);
+		                }
+		            }
+		        }
+		    } catch (Exception e) {
+		        log.error("Error while sending Gatepass pending approval mails",e);
+		    }
+		}
+//	 @Scheduled(cron = "*/10 * * * * ?")
+//	 public void setupBlockApprovalPendingMail() {
+//
+//		    try {
+//		        log.info("Gatepass Email Service Start");
+//		        List<GatepassEmailDTO> createApprovalPending = gatepassEmaildao.getBlockApprovalPendingRecords();
+//		        String regardsEmail = gatepassEmaildao.getRegardsEmail();
+//		        for (GatepassEmailDTO gatepass : createApprovalPending) {
+//
+//		            // 1. Create email body for this ONE gatepass
+//		            List<GatepassEmailDTO> singleRecord = new ArrayList<>();
+//		            singleRecord.add(gatepass);
+//		            String bodyMail = buildHtmlTable(singleRecord, regardsEmail);
+//
+//		            String subject = "Gatepass Block Approval Pending - " + gatepass.getGatepassid();
+//
+//		            // 2. Send mail to CONTRACTOR
+//		            if (gatepass.getContractorMail() != null && !gatepass.getContractorMail().trim().isEmpty()) {
+//		                Set<String> contractorMail = new HashSet<>();
+//		                contractorMail.add(gatepass.getContractorMail().trim());
+//		                sendHtmlMail(contractorMail,subject,bodyMail);
+//		                log.info("Contractor mail sent. TransactionId={}, To={}",gatepass.getGatepassid(),gatepass.getContractorMail());
+//		            }
+//		            // 3. Get APPROVER email list
+//
+//		            Set<String> approverMails = gatepassEmaildao.getBlockApproverMails(gatepass.getUnitId(),gatepass.getUnitCode());
+//		           
+//		            // 4. Send ONE MAIL PER APPROVER
+//		            if (approverMails != null && !approverMails.isEmpty()) {
+//		                for (String approverMail : approverMails) {
+//		                    // Ignore null / blank email
+//		                    if (approverMail == null || approverMail.trim().isEmpty()) {
+//		                        continue;
+//		                    }
+//		                    Set<String> singleApproverMail = new HashSet<>();
+//		                    singleApproverMail.add(approverMail.trim());
+//		                    sendHtmlMail(singleApproverMail,subject,bodyMail);
+//		                    log.info("Block Approver mail sent. TransactionId={}, To={}",gatepass.getTransactionid(),approverMail);
+//		                }
+//		            }
+//		        }
+//		    } catch (Exception e) {
+//		        log.error("Error while sending Gatepass pending approval mails",e);
+//		    }
+//		}
 	  public String buildHtmlTable(List<GatepassEmailDTO> list, String regards) {
 	        StringBuilder html = new StringBuilder();
 	        html.append("<html><body>");
@@ -136,7 +187,7 @@ public class GatepassEmailServiceImpl implements GatepassEmailService{
 	            helper.setTo(to.toArray(new String[0]));
 	            helper.setSubject(subject);
 	            helper.setText(htmlContent, true);
-	            helper.setFrom("dot1track-noreply@dot1.in");
+	            helper.setFrom("hemalatha.karanam@dot1.in");
 	            helper.setCc("nivetha.mohansingh@dot1.in");
 	            mailSender.send(message);
 
