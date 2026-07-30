@@ -72,6 +72,7 @@ import com.wfd.dot1.cwfm.pojo.Trade;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.pojo.Zone;
 import com.wfd.dot1.cwfm.service.CommonService;
+import com.wfd.dot1.cwfm.service.GatepassEmailService;
 import com.wfd.dot1.cwfm.service.PrincipalEmployerService;
 import com.wfd.dot1.cwfm.service.WorkmenService;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
@@ -99,6 +100,9 @@ public class WorkmenController {
 	
 	@Autowired
 	WorkmenDao workmenDao;
+	
+	@Autowired
+	GatepassEmailService gatepassEmailService;
 	
 	@Autowired
 	VerhoeffAlgorithm verhoeff;
@@ -4393,5 +4397,14 @@ return "failed";
     	log.info("Exiting from viewFullTimeIndividualContractWorkmenDetails: "+transactionId);
     	
     		return "contractWorkmen/fullTimeContractorOnboardingView";
+    }
+    @GetMapping({"/checkCreateApprovalPendingMAil"})
+    public ResponseEntity<String> checkCreateApprovalPendingMAil() {
+        try {
+        	gatepassEmailService.setupCreateApprovalPendingMail();
+            return ResponseEntity.ok("Workorder expiry emails triggered successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending workorder expiry emails: " + e.getMessage());
+        }
     }
     }
