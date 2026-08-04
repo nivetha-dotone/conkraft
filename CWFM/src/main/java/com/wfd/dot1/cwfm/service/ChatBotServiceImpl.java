@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.wfd.dot1.cwfm.dao.ChatBotDAO;
 import com.wfd.dot1.cwfm.dto.ActiveContractorDTO;
+import com.wfd.dot1.cwfm.dto.ChatBotVideoDTO;
 import com.wfd.dot1.cwfm.dto.ChatRequest;
 import com.wfd.dot1.cwfm.dto.ChatResponse;
 import com.wfd.dot1.cwfm.dto.ContractorDTO;
@@ -23,6 +24,7 @@ import com.wfd.dot1.cwfm.dto.PrincipalEmployerDTO;
 import com.wfd.dot1.cwfm.dto.SuggestedQuestion;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
 import com.wfd.dot1.cwfm.enums.IntentType;
+import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.util.IntentMatcher;
 import com.wfd.dot1.cwfm.util.ResponseType;
@@ -46,15 +48,51 @@ public class ChatBotServiceImpl implements ChatBotService {
 
         switch (intent) {
 
-        case PENDING_APPROVALS:
+//        case PENDING_APPROVALS:
 
-            return handlePendingApprovals(request);
+//            return handlePendingApprovals(request);
+            
+        case CREATE_PENDING_APPROVALS:
 
+            return handleCreatePendingApprovals(request);
+            
+        case PROJECT_PENDING_APPROVALS:
+
+            return handleProjectPendingApprovals(request);
+            
+        case BLOCK_PENDING_APPROVALS:
+
+            return handleBlockPendingApprovals(request);
+            
+        case UNBLOCK_PENDING_APPROVALS:
+
+            return handleUnblockPendingApprovals(request);
+            
+        case BLACKLIST_PENDING_APPROVALS:
+
+            return handleBlacklistPendingApprovals(request);
+            
+        case DEBLACKLIST_PENDING_APPROVALS:
+
+            return handleDeblacklistPendingApprovals(request);
+
+        case CANCEL_PENDING_APPROVALS:
+
+            return handleCancelPendingApprovals(request);
+
+        case RENEW_PENDING_APPROVALS:
+
+            return handleRenewPendingApprovals(request);
+            
+        case QUICK_PENDING_APPROVALS:
+
+            return handleQuickPendingApprovals(request);
+            
         case ACTIVE_CONTRACTORS:
 
             return handleActiveContractors(request);
 
-        case GATEPASS_COUNT:
+        case TODAY_GATEPASSES:
 
             return handleGatepass(request);
 
@@ -64,7 +102,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 
         case PRINCIPAL_EMPLOYER:
 
-            return handlePrincipalEmployers();
+            return handlePrincipalEmployers(request);
 
         case CONTRACTOR_SEARCH:
 
@@ -73,6 +111,10 @@ public class ChatBotServiceImpl implements ChatBotService {
         case LICENSE_EXPIRY:
 
             return handleLicenseExpiry(request);
+            
+        case REGULAR_GATEPASS_VIDEO:
+
+            return handleCreateGatepassVideo();
 
         case HELP:
 
@@ -125,6 +167,228 @@ public class ChatBotServiceImpl implements ChatBotService {
         return response;
 
     }
+    private ChatResponse handleCreatePendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+
+        List<GatePassMain> records = chatBotDAO.getCreatePendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Regular Pending Records");
+        response.setData(records);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleQuickPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+
+        List<GatePassMain> records = chatBotDAO.getQuickPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Quick Pending Records");
+        response.setData(records);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleProjectPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+
+        List<GatePassMain> projrecords =
+                chatBotDAO.getProjectPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Project Pending Records");
+        response.setData(projrecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleBlockPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> blockRecords = chatBotDAO.getBlockPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Block Pending Records");
+        response.setData(blockRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleUnblockPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> unblockRecords = chatBotDAO.getUnblockPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Unblock Pending Records");
+        response.setData(unblockRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleBlacklistPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> blackRecords = chatBotDAO.getBlacklistPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Blacklist Pending Records");
+        response.setData(blackRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleDeblacklistPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> deblackRecords = chatBotDAO.getDeblacklistPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Deblacklist Pending Records");
+        response.setData(deblackRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleCancelPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> cancelRecords =
+                chatBotDAO.getCancelPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Cancel Pending Records");
+        response.setData(cancelRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    private ChatResponse handleRenewPendingApprovals(ChatRequest request) {
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> renewRecords =
+                chatBotDAO.getRenewPendingApprovals(peList,contList);
+
+        ChatResponse response = new ChatResponse();
+
+        response.setSuccess(true);
+        response.setResponseType(ResponseType.PENDING_APPROVAL_TABLE);
+        response.setResponse("Renew Pending Records");
+        response.setData(renewRecords);
+        response.setSuggestions(getSuggestions());
+
+        return response;
+    }
+    
     private ChatResponse handleActiveContractors(ChatRequest request) {
 
         List<PersonOrgLevel> orgLevel =
@@ -151,87 +415,68 @@ public class ChatBotServiceImpl implements ChatBotService {
         return response;
     }
     
-    /**
-     * Gatepass Count
-     */
-    private ChatResponse handleGatepass(ChatRequest request){
+    private ChatResponse handleGatepass(ChatRequest request) {
 
-        Integer gatepassCount =
-                chatBotDAO.getTodayGatePassCount(
-                        request.getPrincipalEmployerId());
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
 
-        GatepassDTO dto =
-                new GatepassDTO();
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
 
-        dto.setTodayGatepasses(gatepassCount);
+        List<PersonOrgLevel> peList =
+                groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<GatePassMain> todayGatepasses =
+                chatBotDAO.getTodayGatePass(peList,contList);
 
-        ChatResponse response =
-                new ChatResponse();
+        ChatResponse response = new ChatResponse();
 
         response.setSuccess(true);
-
-        response.setResponseType(ResponseType.CARD);
-
+        response.setResponseType(ResponseType.TODAY_GATEPASS_TABLE);
         response.setResponse("Today's Gatepasses");
-
-        response.setData(dto);
-
+        response.setData(todayGatepasses);
         response.setSuggestions(getSuggestions());
 
         return response;
-
     }
-
-
     /**
      * Work Order Count
      */
     private ChatResponse handleWorkOrders(ChatRequest request){
 
-        Integer workOrderCount =
-                chatBotDAO.getWorkOrderCount(
-                        request.getPrincipalEmployerId());
+        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<WorkOrderDTO> workorderlist = chatBotDAO.getWorkOrderList(peList,contList);
 
-        WorkOrderDTO dto =
-                new WorkOrderDTO();
-
-        dto.setWorkOrderCount(workOrderCount);
-
-        ChatResponse response =
-                new ChatResponse();
-
+        ChatResponse response = new ChatResponse();
         response.setSuccess(true);
-
-        response.setResponseType(ResponseType.CARD);
-
+        response.setResponseType(ResponseType.WORKORDERS_LIST);
         response.setResponse("Work Orders");
-
-        response.setData(dto);
-
+        response.setData(workorderlist);
         response.setSuggestions(getSuggestions());
-
         return response;
-
     }
     
     /**
      * Principal Employer List
      */
-    private ChatResponse handlePrincipalEmployers() {
+    private ChatResponse handlePrincipalEmployers(ChatRequest request) {
 
-        List<PrincipalEmployerDTO> peList =
-                chatBotDAO.getPrincipalEmployers();
-
+    	
+    	List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PrincipalEmployerDTO> principalemployerList = chatBotDAO.getPrincipalEmployers(peList);
         ChatResponse response = new ChatResponse();
 
         response.setSuccess(true);
-
-        response.setResponseType(ResponseType.TABLE);
-
-        response.setResponse("Principal Employer List");
-
-        response.setData(peList);
-
+        response.setResponseType(ResponseType.PE_LIST);
+        response.setResponse("Principal Employers List");
+        response.setData(principalemployerList);
         response.setSuggestions(getSuggestions());
 
         return response;
@@ -331,37 +576,61 @@ public class ChatBotServiceImpl implements ChatBotService {
 
     }
     
-    /**
-     * License Expiry
-     */
-    private ChatResponse handleLicenseExpiry(ChatRequest request) {
+  //      License Expiry
+   private ChatResponse handleLicenseExpiry(ChatRequest request) {
 
-        Integer expiryCount =
-                chatBotDAO.getLicenseExpiryCount(
-                        request.getPrincipalEmployerId());
-
-        LicenseExpiryDTO dto =
-                new LicenseExpiryDTO();
-
-        dto.setExpiryCount(expiryCount);
-
-        ChatResponse response =
-                new ChatResponse();
+    	
+    	List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(request.getUser().getUserAccount());
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream().collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+        List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+        List<PersonOrgLevel> contList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+        List<LicenseExpiryDTO> licenseList = chatBotDAO.getLicenseExpiryList(peList,contList);
+        ChatResponse response = new ChatResponse();
 
         response.setSuccess(true);
-
-        response.setResponseType(ResponseType.CARD);
-
+        response.setResponseType(ResponseType.LICENSE_LIST);
         response.setResponse("License Expiry");
-
-        response.setData(dto);
-
+        response.setData(licenseList);
         response.setSuggestions(getSuggestions());
 
         return response;
 
     }
+   
+   private ChatResponse handleCreateGatepassVideo() {
 
+	    ChatBotVideoDTO video = chatBotDAO.getTrainingVideo("Create Gatepass");
+
+	    ChatResponse response =
+	            new ChatResponse();
+
+	    if (video == null) {
+
+	        response.setSuccess(false);
+	        response.setResponseType(ResponseType.TEXT);
+	        response.setResponse("Video not found.");
+
+	        return response;
+	    }
+
+	    String videoUrl = video.getVideoUrl();
+
+	    if (videoUrl != null) {
+
+	        videoUrl = videoUrl.replace("/view?usp=drive_link", "/preview");
+	        videoUrl = videoUrl.replace("/view?usp=sharing", "/preview");
+	        videoUrl = videoUrl.replace("/view", "/preview");
+
+	        video.setVideoUrl(videoUrl);
+	    }
+
+	    response.setSuccess(true);
+	    response.setResponseType(ResponseType.VIDEO);
+	    response.setData(video);
+
+	    return response;
+
+	}
 
     /**
      * Help Response
@@ -394,7 +663,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 
         builder.append("6. License Expiry\n");
 
-        builder.append("7. Search Contractor\n\n");
+        //builder.append("7. Search Contractor\n\n");
 
         builder.append("Examples\n\n");
 
@@ -402,7 +671,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 
         builder.append("Today's Gatepasses\n");
 
-        builder.append("Search Contractor ABC Pvt Ltd");
+        //builder.append("Search Contractor ABC Pvt Ltd");
 
         response.setResponse(builder.toString());
 
@@ -472,9 +741,9 @@ public class ChatBotServiceImpl implements ChatBotService {
                 new SuggestedQuestion(
                         "License Expiry"));
 
-        suggestions.add(
-                new SuggestedQuestion(
-                        "Search Contractor ABC Pvt Ltd"));
+//        suggestions.add(
+//                new SuggestedQuestion(
+//                        "Search Contractor ABC Pvt Ltd"));
 
         return suggestions;
 

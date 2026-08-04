@@ -10,6 +10,35 @@ public class WorkOrderDTO {
     private String fullname;
     private String contractorId;
     private Integer workOrderCount;
+    private String peCode;
+    private String contCode;
+    private String validFrom;
+    private String validTo;
+    
+	public String getPeCode() {
+		return peCode;
+	}
+	public void setPeCode(String peCode) {
+		this.peCode = peCode;
+	}
+	public String getContCode() {
+		return contCode;
+	}
+	public void setContCode(String contCode) {
+		this.contCode = contCode;
+	}
+	public String getValidFrom() {
+		return validFrom;
+	}
+	public void setValidFrom(String validFrom) {
+		this.validFrom = validFrom;
+	}
+	public String getValidTo() {
+		return validTo;
+	}
+	public void setValidTo(String validTo) {
+		this.validTo = validTo;
+	}
 	public Integer getWorkOrderCount() {
 		return workOrderCount;
 	}

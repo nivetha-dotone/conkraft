@@ -10,8 +10,22 @@ public class PrincipalEmployerDTO implements Serializable {
     private String principalEmployerId;
 
     private String principalEmployerName;
+    
+    private String pecode;
 
-    public String getPrincipalEmployerId() {
+    public String getPecode() {
+		return pecode;
+	}
+
+	public void setPecode(String pecode) {
+		this.pecode = pecode;
+	}
+
+	public static long getSerialversionuid() {
+		return serialVersionUID;
+	}
+
+	public String getPrincipalEmployerId() {
         return principalEmployerId;
     }
 

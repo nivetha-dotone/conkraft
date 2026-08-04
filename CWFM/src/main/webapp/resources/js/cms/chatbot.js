@@ -212,20 +212,47 @@ function bindChatbotEvents() {
     $("#sendChatButton")
         .off("click.chatbot")
         .on("click.chatbot", function () {
-            sendChatMessage();
+            var question = $("#chatQuestion").val().trim();
+
+        if (!question) {
+            return;
+        }
+
+        // * Pending Approvals
+        if (question.toLowerCase() === "pending approvals" ||question.toLowerCase() === "pending approvals." ||question.toLowerCase() === "pending approval" ||question.toLowerCase() === "pending approval.") {
+
+            showPendingApprovalsFlow();
+
+            return;
+        }
+         sendChatMessage();
         });
 
     $("#chatQuestion")
         .off("keydown.chatbot")
         .on("keydown.chatbot", function (event) {
 
-            if (
-                event.key === "Enter" &&
-                !event.shiftKey
-            ) {
-                event.preventDefault();
-                sendChatMessage();
+            //if (
+            //    event.key === "Enter" &&
+            //    !event.shiftKey
+          //  ) {
+           //     event.preventDefault();
+           //     sendChatMessage();
+           // }
+           if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            var question = $(this).val().trim();
+            if (!question) {
+                return;
             }
+
+           //  * If user types "Pending Approvals" * and presses Enter, show nested options.
+            if (question.toLowerCase() === "pending approvals" || question.toLowerCase() === "pending approval" ||question.toLowerCase() === "pending approvals." ||question.toLowerCase() === "pending approval." ) {
+                showPendingApprovalsFlow();
+                return;
+            }
+            sendChatMessage();
+        }
         });
 
     $("#chatQuestion")
@@ -297,11 +324,17 @@ function bindChatbotEvents() {
             if (!question) {
                 return;
             }
+           if (question === "Pending Approvals") {
 
-            $("#chatQuestion").val(question);
+            showPendingApprovalsFlow();
 
-            resizeQuestionInput();
-            sendChatMessage();
+            return;
+        }
+        $("#chatQuestion").val(question);
+
+        resizeQuestionInput();
+
+        sendChatMessage();
         });
 
     $("#chatBotPopupOverlay")
@@ -433,7 +466,7 @@ function sendChatMessage() {
             }
 
             renderBotResponse(response);
-
+         
             if (
                 Array.isArray(response.suggestions)
             ) {
@@ -523,7 +556,65 @@ function sendChatMessage() {
            String(response.responseType || "TEXT").toUpperCase();
 
        switch (responseType) {
+        case "PENDING_APPROVAL_TABLE":
 
+            appendPendingApprovalTable(
+                response.response,
+                response.data,
+                response.success === false
+            );
+
+            break;
+            
+             case "TODAY_GATEPASS_TABLE":
+
+            appendTodaysGatepassTable(
+                response.response,
+                response.data,
+                response.success === false
+            );
+
+            break;
+            
+            case "WORKORDERS_LIST":
+
+            appendWorkordersTable(
+                response.response,
+                response.data,
+                response.success === false
+            );
+
+            break;
+            
+           case "PE_LIST":
+
+            appendPrincipalEmployerTable(
+                response.response,
+                response.data,
+                response.success === false
+            );
+
+            break;
+            
+          case "LICENSE_LIST":
+
+            appendLicenseExpiryTable(
+                response.response,
+                response.data,
+                response.success === false
+            );
+
+            break;
+            
+          case "VIDEO":
+
+              appendBotVideo(
+              response.data,
+              response.success===false
+               );
+
+            break;
+            
            case "CARD":
 
                /*
@@ -1670,4 +1761,1041 @@ function clearConversation() {
 
     resizeQuestionInput();
     scrollChatToBottom();
+}
+function renderPendingApprovalTypes() {
+
+    var pendingTypes = [
+        "Regular",
+        "Quick",
+        "Project",
+        "Block",
+        "Unblock",
+        "Blacklist",
+        "Deblacklist",
+        "Cancel",
+        "Renew"
+        
+    ];
+
+    var html =
+        '<div class="chat-response-card pending-approval-card">' +
+
+            '<div class="chat-response-card-title">' +
+                'Select Pending Approval Type' +
+            '</div>' +
+
+            '<div class="pending-approval-options">';
+
+    $.each(
+        pendingTypes,
+        function (index, type) {
+
+            html +=
+                '<button ' +
+                    'type="button" ' +
+                    'class="pending-approval-option" ' +
+                    'data-pending-type="' +
+                        escapeHtml(type) +
+                    '">' +
+                    escapeHtml(type) +
+                '</button>';
+        }
+    );
+
+    html +=
+            '</div>' +
+        '</div>';
+
+    appendBotHtml(
+        html,
+        false
+    );
+
+    bindPendingApprovalEvents();
+}
+function bindPendingApprovalEvents() {
+
+    $(".pending-approval-option")
+        .off("click.chatbotPending")
+        .on("click.chatbotPending", function () {
+
+            var pendingType =
+                $(this).attr(
+                    "data-pending-type"
+                );
+
+            if (!pendingType) {
+                return;
+            }
+
+            console.log(
+                "Selected Pending Approval Type:",
+                pendingType
+            );
+
+            /** Create the actual chatbot question.*/
+            var question =
+                "Pending Approvals - " +
+                pendingType;
+
+            /*
+             * Use your EXISTING chatbot flow.
+             * This will:
+             * 1. show user message
+             * 2. call /CWFM/chatbot/ask
+             * 3. render backend response
+             */
+            $("#chatQuestion")
+                .val(question);
+
+            resizeQuestionInput();
+
+            sendChatMessage();
+        });
+}
+function appendPendingApprovalTable(title, data, isError) {
+
+   
+    if (!Array.isArray(data) || data.length === 0) {
+
+        appendBotText(
+            title? title + "\nNo records found." : "No pending approval records found.",
+            isError
+        );
+
+        return;
+    }
+
+    /*
+     * Fixed columns for Pending Approvals
+     *
+     * Do NOT use Object.keys(row) here.
+     *
+     * This guarantees that the table always
+     * appears in the required order.
+     */
+    var columns = [
+        "transactionId",
+        "aadhaarNumber",
+        "gatePassId",
+        "gatePassStatus"
+    ];
+
+    var tableHtml =
+        '<div class="chat-response-card">' +
+
+            '<div class="chat-response-card-title">' +
+                escapeHtml(
+                    title || "Pending Approvals"
+                ) +
+                ' (' +
+                data.length +
+                ')' +
+            '</div>' +
+
+            '<div class="chat-table-wrapper">' +
+
+                '<table class="chat-response-table">' +
+
+                    '<thead>' +
+                        '<tr>';
+
+    /*
+     * Header
+     */
+    $.each(columns, function(i, column) {
+
+        tableHtml +=
+            "<th>" +
+                escapeHtml(
+                    getPendingApprovalTableHeading(
+                        column
+                    )
+                ) +
+            "</th>";
+
+    });
+
+    tableHtml +=
+                    "</tr>" +
+                    "</thead>" +
+                    "<tbody>";
+
+    /*
+     * Data
+     */
+    $.each(data, function(i, row) {
+
+        tableHtml += "<tr>";
+
+        $.each(columns, function(j, column) {
+
+            var value =
+                getPendingApprovalValue(
+                    row,
+                    column
+                );
+
+            tableHtml +=
+                "<td>" +
+                    escapeHtml(
+                        formatValue(value)
+                    ) +
+                "</td>";
+
+        });
+
+        tableHtml += "</tr>";
+
+    });
+
+    tableHtml +=
+                    "</tbody>" +
+                "</table>" +
+            "</div>" +
+        "</div>";
+
+    /*
+     * Reuse your existing bot HTML renderer
+     */
+    appendBotHtml(
+        tableHtml,
+        isError
+    );
+}
+function getPendingApprovalTableHeading(column) {
+
+    switch (column) {
+
+        case "transactionId":
+            return "Transaction ID";
+
+        case "aadhaarNumber":
+            return "Aadhar Number";
+
+        case "gatePassId":
+            return "GatePass ID";
+
+        case "gatePassStatus":
+            return "Status";
+
+        default:
+            return formatPropertyName(column);
+    }
+}
+function getPendingApprovalValue(row, column) {
+
+    switch (column) {
+
+        case "transactionId":
+
+            return row.transactionId !== undefined
+                ? row.transactionId
+                : row.TransactionId;
+
+
+        case "aadhaarNumber":
+
+            if (row.aadhaarNumber !== undefined) {
+                return row.aadhaarNumber;
+            }
+
+            if (row.aadharNumber !== undefined) {
+                return row.aadharNumber;
+            }
+
+            if (row.aadhar !== undefined) {
+                return row.aadhar;
+            }
+
+            if (row.AadharNumber !== undefined) {
+                return row.AadharNumber;
+            }
+
+            return "";
+
+
+        case "gatePassId":
+
+            return row.gatePassId !== undefined
+                ? row.gatePassId
+                : row.GatePassId;
+
+
+        case "gatePassStatus":
+
+            return row.gatePassStatus !== undefined
+                ? row.gatePassStatus
+                : row.GatePassStatus;
+
+
+        default:
+
+            return row[column];
+    }
+}
+function showPendingApprovalsFlow() {
+     //* Show "Pending Approvals" as USER message
+
+    var question = "Pending Approvals";
+    appendUserMessage(question);
+    
+ //Show the nested approval type options
+    renderPendingApprovalTypes();
+}
+function appendTodaysGatepassTable(title, data, isError) {
+
+   
+    if (!Array.isArray(data) || data.length === 0) {
+
+        appendBotText(
+            title? title + "\nNo records found." : "No records found for today's gatepass.",
+            isError
+        );
+
+        return;
+    }
+
+    var columns = [
+        "transactionId",
+        "aadhaarNumber",
+        "gatePassId",
+        "gatePassStatus",
+        "onboardingType"
+    ];
+
+    var tableHtml =
+        '<div class="chat-response-card">' +
+
+            '<div class="chat-response-card-title">' +
+                escapeHtml(
+                    title || "today's gatepasses"
+                ) +
+                ' (' +
+                data.length +
+                ')' +
+            '</div>' +
+
+            '<div class="chat-table-wrapper">' +
+
+                '<table class="chat-response-table">' +
+
+                    '<thead>' +
+                        '<tr>';
+
+    /*
+     * Header
+     */
+    $.each(columns, function(i, column) {
+
+        tableHtml +=
+            "<th>" +
+                escapeHtml(
+                    getTodaysGatepassTableHeading(
+                        column
+                    )
+                ) +
+            "</th>";
+
+    });
+
+    tableHtml +=
+                    "</tr>" +
+                    "</thead>" +
+                    "<tbody>";
+
+    /*
+     * Data
+     */
+    $.each(data, function(i, row) {
+
+        tableHtml += "<tr>";
+
+        $.each(columns, function(j, column) {
+
+            var value =
+                getTodaysGatepassValue(
+                    row,
+                    column
+                );
+
+            tableHtml +=
+                "<td>" +
+                    escapeHtml(
+                        formatValue(value)
+                    ) +
+                "</td>";
+
+        });
+
+        tableHtml += "</tr>";
+
+    });
+
+    tableHtml +=
+                    "</tbody>" +
+                "</table>" +
+            "</div>" +
+        "</div>";
+
+    /*
+     * Reuse your existing bot HTML renderer
+     */
+    appendBotHtml(
+        tableHtml,
+        isError
+    );
+}
+function getTodaysGatepassTableHeading(column) {
+
+    switch (column) {
+
+        case "transactionId":
+            return "Transaction ID";
+
+        case "aadhaarNumber":
+            return "Aadhar Number";
+
+        case "gatePassId":
+            return "GatePass ID";
+
+        case "gatePassStatus":
+            return "Status";
+            
+            case "onboardingType":
+            return "GatePass Type";
+
+        default:
+            return formatPropertyName(column);
+    }
+}
+function getTodaysGatepassValue(row, column) {
+
+    switch (column) {
+
+        case "transactionId":
+
+            return row.transactionId !== undefined
+                ? row.transactionId
+                : row.TransactionId;
+
+
+        case "aadhaarNumber":
+
+            if (row.aadhaarNumber !== undefined) {
+                return row.aadhaarNumber;
+            }
+
+            if (row.aadharNumber !== undefined) {
+                return row.aadharNumber;
+            }
+
+            if (row.aadhar !== undefined) {
+                return row.aadhar;
+            }
+
+            if (row.AadharNumber !== undefined) {
+                return row.AadharNumber;
+            }
+
+            return "";
+
+
+        case "gatePassId":
+
+            return row.gatePassId !== undefined
+                ? row.gatePassId
+                : row.GatePassId;
+
+
+        case "gatePassStatus":
+
+            return row.gatePassStatus !== undefined
+                ? row.gatePassStatus
+                : row.GatePassStatus;
+
+         case "onboardingType":
+
+            var type = row.onboardingType !== undefined
+                ? row.onboardingType
+                : row.OnboardingType;
+
+            if (!type) {
+                return "";
+            }
+
+            switch (type.toLowerCase()) {
+
+                case "regular":
+                    return "Regular";
+
+                case "project":
+                    return "Project";
+
+                case "quick":
+                    return "Quick";
+
+                case "renew":
+                    return "Renew";
+
+                case "block":
+                    return "Block";
+
+                case "unblock":
+                    return "Unblock";
+
+                case "blacklist":
+                    return "Blacklist";
+
+                case "deblacklist":
+                    return "Deblacklist";
+
+                case "cancel":
+                    return "Cancel";
+
+                default:
+                    // Capitalize first letter for any other value
+                    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+            }
+        default:
+
+            return row[column];
+    }
+}
+function appendWorkordersTable(title, data, isError) {
+
+   
+    if (!Array.isArray(data) || data.length === 0) {
+
+        appendBotText(
+            title? title + "\nNo records found." : "No Workorder records found.",
+            isError
+        );
+
+        return;
+    }
+
+    var columns = [
+        "woNumber",
+        "peCode",
+        "contCode",
+        "validFrom",
+        "validTo",
+        "workmenCount"
+    ];
+
+    var tableHtml =
+        '<div class="chat-response-card">' +
+
+            '<div class="chat-response-card-title">' +
+                escapeHtml(
+                    title || "workorders"
+                ) +
+                ' (' +
+                data.length +
+                ')' +
+            '</div>' +
+
+            '<div class="chat-table-wrapper">' +
+
+                '<table class="chat-response-table">' +
+
+                    '<thead>' +
+                        '<tr>';
+
+    /*
+     * Header
+     */
+    $.each(columns, function(i, column) {
+
+        tableHtml +=
+            "<th>" +
+                escapeHtml(
+                    getWorkordersTableHeading(
+                        column
+                    )
+                ) +
+            "</th>";
+
+    });
+
+    tableHtml +=
+                    "</tr>" +
+                    "</thead>" +
+                    "<tbody>";
+
+    /*
+     * Data
+     */
+    $.each(data, function(i, row) {
+
+        tableHtml += "<tr>";
+
+        $.each(columns, function(j, column) {
+
+            var value =
+                getWorkorderValue(
+                    row,
+                    column
+                );
+
+            tableHtml +=
+                "<td>" +
+                    escapeHtml(
+                        formatValue(value)
+                    ) +
+                "</td>";
+
+        });
+
+        tableHtml += "</tr>";
+
+    });
+
+    tableHtml +=
+                    "</tbody>" +
+                "</table>" +
+            "</div>" +
+        "</div>";
+
+    /*
+     * Reuse your existing bot HTML renderer
+     */
+    appendBotHtml(
+        tableHtml,
+        isError
+    );
+}
+function getWorkordersTableHeading(column) {
+
+    switch (column) {
+
+        case "woNumber":
+            return "Workorder Number";
+
+        case "peCode":
+            return "PE Code";
+
+        case "contCode":
+            return "Contractor Code";
+
+        case "validFrom":
+            return "Valid From";
+            
+            case "validTo":
+            return "Valid To";
+            
+            case "workmenCount":
+            return "Workmen Count";
+
+        default:
+            return formatPropertyName(column);
+    }
+}
+function getWorkorderValue(row, column) {
+
+    switch (column) {
+
+        case "woNumber":
+
+            return row.woNumber !== undefined
+                ? row.woNumber
+                : row.WoNumber;
+
+
+       case "peCode":
+
+            return row.peCode !== undefined
+                ? row.peCode
+                : row.PeCode;
+
+
+        case "contCode":
+
+            return row.contCode !== undefined
+                ? row.contCode
+                : row.ContCode;
+
+
+        case "validFrom":
+
+            return row.validFrom !== undefined
+                ? row.validFrom
+                : row.ValidFrom;
+                
+        case "validTo":
+
+            return row.validTo !== undefined
+                ? row.validTo
+                : row.ValidTo;
+                
+        case "workmenCount":
+
+            return row.workmenCount !== undefined
+                ? row.workmenCount
+                : row.WorkmenCount;
+
+        
+        default:
+
+            return row[column];
+    }
+}
+function appendPrincipalEmployerTable(title, data, isError) {
+
+   
+    if (!Array.isArray(data) || data.length === 0) {
+
+        appendBotText(
+            title? title + "\nNo records found." : "No Principal Employers records found.",
+            isError
+        );
+
+        return;
+    }
+
+    var columns = [
+        "principalEmployerName",
+        "pecode"
+    ];
+
+    var tableHtml =
+        '<div class="chat-response-card">' +
+
+            '<div class="chat-response-card-title">' +
+                escapeHtml(
+                    title || "principal employers list"
+                ) +
+                ' (' +
+                data.length +
+                ')' +
+            '</div>' +
+
+            '<div class="chat-table-wrapper">' +
+
+                '<table class="chat-response-table">' +
+
+                    '<thead>' +
+                        '<tr>';
+
+    /*
+     * Header
+     */
+    $.each(columns, function(i, column) {
+
+        tableHtml +=
+            "<th>" +
+                escapeHtml(
+                    getprincipalemployersTableHeading(
+                        column
+                    )
+                ) +
+            "</th>";
+
+    });
+
+    tableHtml +=
+                    "</tr>" +
+                    "</thead>" +
+                    "<tbody>";
+
+    /*
+     * Data
+     */
+    $.each(data, function(i, row) {
+
+        tableHtml += "<tr>";
+
+        $.each(columns, function(j, column) {
+
+            var value =
+                getprincipalemployersValue(
+                    row,
+                    column
+                );
+
+            tableHtml +=
+                "<td>" +
+                    escapeHtml(
+                        formatValue(value)
+                    ) +
+                "</td>";
+
+        });
+
+        tableHtml += "</tr>";
+
+    });
+
+    tableHtml +=
+                    "</tbody>" +
+                "</table>" +
+            "</div>" +
+        "</div>";
+
+    /*
+     * Reuse your existing bot HTML renderer
+     */
+    appendBotHtml(
+        tableHtml,
+        isError
+    );
+}
+function getprincipalemployersTableHeading(column) {
+
+    switch (column) {
+
+        case "principalEmployerName":
+            return "Name";
+
+        case "pecode":
+            return "Code";
+
+        default:
+            return formatPropertyName(column);
+    }
+}
+function getprincipalemployersValue(row, column) {
+
+    switch (column) {
+
+        case "principalEmployerName":
+
+            return row.principalEmployerName !== undefined
+                ? row.principalEmployerName
+                : row.PrincipalEmployerName;
+
+       case "pecode":
+
+            return row.pecode !== undefined
+                ? row.pecode
+                : row.pecode;
+
+        default:
+
+            return row[column];
+    }
+}
+function appendLicenseExpiryTable(title, data, isError) {
+
+   
+    if (!Array.isArray(data) || data.length === 0) {
+
+        appendBotText(
+            title? title + "\nNo records found." : "No License Expiry records found.",
+            isError
+        );
+
+        return;
+    }
+
+    var columns = [
+        "licenseNumber",
+        "contractorName",
+        "validTo",
+        "daysLeft"
+    ];
+
+    var tableHtml =
+        '<div class="chat-response-card">' +
+
+            '<div class="chat-response-card-title">' +
+                escapeHtml(
+                    title || "license expiry"
+                ) +
+                ' (' +
+                data.length +
+                ')' +
+            '</div>' +
+
+            '<div class="chat-table-wrapper">' +
+
+                '<table class="chat-response-table">' +
+
+                    '<thead>' +
+                        '<tr>';
+
+    /*
+     * Header
+     */
+    $.each(columns, function(i, column) {
+
+        tableHtml +=
+            "<th>" +
+                escapeHtml(
+                    getLicenseExpiryTableHeading(
+                        column
+                    )
+                ) +
+            "</th>";
+
+    });
+
+    tableHtml +=
+                    "</tr>" +
+                    "</thead>" +
+                    "<tbody>";
+
+    /*
+     * Data
+     */
+    $.each(data, function(i, row) {
+
+        tableHtml += "<tr>";
+
+        $.each(columns, function(j, column) {
+
+            var value =
+                getLicenseExpiryValue(
+                    row,
+                    column
+                );
+
+            tableHtml +=
+                "<td>" +
+                    escapeHtml(
+                        formatValue(value)
+                    ) +
+                "</td>";
+
+        });
+
+        tableHtml += "</tr>";
+
+    });
+
+    tableHtml +=
+                    "</tbody>" +
+                "</table>" +
+            "</div>" +
+        "</div>";
+
+    /*
+     * Reuse your existing bot HTML renderer
+     */
+    appendBotHtml(
+        tableHtml,
+        isError
+    );
+}
+function getLicenseExpiryTableHeading(column) {
+
+    switch (column) {
+
+        case "licenseNumber":
+            return "License Number";
+
+        case "contractorName":
+            return "Contractor Name";
+
+       case "validTo":
+            return "Expiry Date";
+
+        case "daysLeft":
+            return "Days Left";
+
+        default:
+            return formatPropertyName(column);
+    }
+}
+function getLicenseExpiryValue(row, column) {
+
+    switch (column) {
+
+        case "licenseNumber":
+
+            return row.licenseNumber !== undefined
+                ? row.licenseNumber
+                : row.LicenseNumber;
+
+       case "contractorName":
+
+            return row.contractorName !== undefined
+                ? row.contractorName
+                : row.ContractorName;
+                
+      case "validTo":
+
+            return row.validTo !== undefined
+                ? row.validTo
+                : row.ValidTo;
+
+       case "daysLeft":
+
+            return row.daysLeft !== undefined
+                ? row.daysLeft
+                : row.DaysLeft;
+
+        default:
+
+            return row[column];
+    }
+}
+function appendBotVideo(video,isError){
+
+    if(!video){
+        return;
+    }
+
+    var html='';
+
+    html+=
+    '<div class="chat-response-card">';
+
+    html+=
+    '<div class="chat-response-card-title">';
+
+    html+=escapeHtml(video.videoTitle);
+
+    html+='</div>';
+
+    html+='<div class="chat-video-wrapper">';
+
+    html+='<iframe ';
+
+    html+='src="'+convertDriveLink(video.videoUrl)+'" ';
+
+    html+='width="100%" ';
+
+    html+='height="250" ';
+
+    html+='frameborder="0" ';
+
+    html+='allowfullscreen>';
+
+    html+='</iframe>';
+
+    html+='</div>';
+
+    if(video.videoDescription){
+
+        html+='<div class="chat-video-description">';
+
+        html+=escapeHtml(video.videoDescription);
+
+        html+='</div>';
+
+    }
+
+    html+='</div>';
+
+    appendBotHtml(html,isError);
+
+}
+function convertDriveLink(url){
+
+    if(!url){
+
+        return "";
+
+    }
+
+    if(url.indexOf("/preview")!=-1){
+
+        return url;
+
+    }
+
+    return url.replace("/view","/preview");
+
 }

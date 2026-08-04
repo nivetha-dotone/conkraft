@@ -67,7 +67,7 @@ public class GatepassEmailServiceImpl implements GatepassEmailService{
 //	     }
 //	 }
 	 @Override
-	 @Scheduled(cron = "0 0 10 * * ?")
+	 @Scheduled(cron = "0 0 0 * * ?")
 	 public void setupCreateApprovalPendingMail() {
 
 		    try {

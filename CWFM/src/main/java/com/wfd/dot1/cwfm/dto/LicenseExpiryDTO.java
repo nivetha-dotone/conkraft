@@ -23,9 +23,17 @@ public class LicenseExpiryDTO implements Serializable {
     
     private Integer expiryCount;
     
-    
+    private String validTo;
 
-    public Integer getExpiryCount() {
+    public String getValidTo() {
+		return validTo;
+	}
+
+	public void setValidTo(String validTo) {
+		this.validTo = validTo;
+	}
+
+	public Integer getExpiryCount() {
 		return expiryCount;
 	}
 
