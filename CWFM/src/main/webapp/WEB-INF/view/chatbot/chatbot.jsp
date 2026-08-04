@@ -1,6 +1,15 @@
 <%@ page language="java"
          contentType="text/html; charset=UTF-8"
          pageEncoding="UTF-8" %>
+<%@ page import="com.wfd.dot1.cwfm.pojo.MasterUser" %>
+           <%
+    	MasterUser user = (MasterUser) session.getAttribute("loginuser");
+     String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
+        String roleName = user != null ? user.getRoleName() : "";
+        String roleId = user!=null?user.getRoleId():"";
+        String contextPath =  request.getContextPath() ;
+		%>
+		
 <div id="conkraftChatBot"
      class="conkraft-chatbot"
      data-user-name="" default='User'/>"
@@ -138,13 +147,13 @@
                 data-question="Pending Approvals">
             Pending Approvals
         </button>
-
+ <% if (user != null && !"Contractor".equals(roleName)) { %>
         <button type="button"
                 class="suggestion-button"
                 data-question="Active Contractors">
             Active Contractors
         </button>
-
+<% } %>
         <button type="button"
                 class="suggestion-button"
                 data-question="Today's Gatepasses">
@@ -169,11 +178,11 @@
             License Expiry
         </button>
 
-        <button type="button"
+      <!--   <button type="button"
                 class="suggestion-button"
                 data-question="Search Contractor">
             Search Contractor
-        </button>
+        </button> -->
 
     </div>
 

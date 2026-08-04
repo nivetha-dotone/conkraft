@@ -24,6 +24,7 @@ import com.wfd.dot1.cwfm.dto.PrincipalEmployerDTO;
 import com.wfd.dot1.cwfm.dto.SuggestedQuestion;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
 import com.wfd.dot1.cwfm.enums.IntentType;
+import com.wfd.dot1.cwfm.enums.UserRole;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.util.IntentMatcher;
@@ -118,7 +119,7 @@ public class ChatBotServiceImpl implements ChatBotService {
 
         case HELP:
 
-            return buildHelpResponse();
+            return buildHelpResponse(request);
 
         default:
 
@@ -634,8 +635,9 @@ public class ChatBotServiceImpl implements ChatBotService {
 
     /**
      * Help Response
+     * @param request 
      */
-    private ChatResponse buildHelpResponse() {
+    private ChatResponse buildHelpResponse(ChatRequest request) {
 
         ChatResponse response =
                 new ChatResponse();
@@ -643,34 +645,57 @@ public class ChatBotServiceImpl implements ChatBotService {
         response.setSuccess(true);
 
         response.setResponseType(ResponseType.TEXT);
+        StringBuilder builder = new StringBuilder();
+        if(request.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())){
 
-        StringBuilder builder =
-                new StringBuilder();
+        	builder.append("Hello 👋\n\n");
 
-        builder.append("Hello 👋\n\n");
+            builder.append("I can help you with the following.\n\n");
 
-        builder.append("I can help you with the following.\n\n");
+            builder.append("1. Pending Approvals\n");
 
-        builder.append("1. Pending Approvals\n");
+            //builder.append("2. Active Contractors\n");
 
-        builder.append("2. Active Contractors\n");
+            builder.append("2. Today's Gatepasses\n");
 
-        builder.append("3. Today's Gatepasses\n");
+            builder.append("3. Work Orders\n");
 
-        builder.append("4. Work Orders\n");
+            builder.append("4. Principal Employers\n");
 
-        builder.append("5. Principal Employers\n");
+            builder.append("5. License Expiry\n");
 
-        builder.append("6. License Expiry\n");
+            //builder.append("7. Search Contractor\n\n");
 
-        //builder.append("7. Search Contractor\n\n");
+            builder.append("Examples\n\n");
 
-        builder.append("Examples\n\n");
+            builder.append("Pending Approvals\n");
 
-        builder.append("Pending Approvals\n");
+            builder.append("Today's Gatepasses\n");
+        }else {
+        	 builder.append("Hello 👋\n\n");
 
-        builder.append("Today's Gatepasses\n");
+             builder.append("I can help you with the following.\n\n");
 
+             builder.append("1. Pending Approvals\n");
+
+             builder.append("2. Active Contractors\n");
+
+             builder.append("3. Today's Gatepasses\n");
+
+             builder.append("4. Work Orders\n");
+
+             builder.append("5. Principal Employers\n");
+
+             builder.append("6. License Expiry\n");
+
+             //builder.append("7. Search Contractor\n\n");
+
+             builder.append("Examples\n\n");
+
+             builder.append("Pending Approvals\n");
+
+             builder.append("Today's Gatepasses\n");		
+        }
         //builder.append("Search Contractor ABC Pvt Ltd");
 
         response.setResponse(builder.toString());

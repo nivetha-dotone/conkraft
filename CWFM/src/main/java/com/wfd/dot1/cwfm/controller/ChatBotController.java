@@ -36,6 +36,7 @@ public class ChatBotController {
 		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
         request.setSessionId(session.getId());
         request.setUser(user);
+        request.setRoleName(user.getRoleName());
         //Object user=session.getAttribute("USERID");
 
         if(user!=null){

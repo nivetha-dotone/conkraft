@@ -14,8 +14,18 @@ public class ChatRequest implements Serializable{
     private String sessionId;
 
     private String userId;
+    
+    private String roleName;
 
-    private String principalEmployerId;
+    public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
+	}
+
+	private String principalEmployerId;
     
     private MasterUser user;
     
