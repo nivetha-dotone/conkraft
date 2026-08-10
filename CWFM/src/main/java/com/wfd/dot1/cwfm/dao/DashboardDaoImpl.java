@@ -17,12 +17,15 @@ import com.wfd.dot1.cwfm.dto.DashboardDTO;
 import com.wfd.dot1.cwfm.dto.DepartmentWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.ESICDTO;
 import com.wfd.dot1.cwfm.dto.ExpiryDTO;
+import com.wfd.dot1.cwfm.dto.GatepassExpiryDTO;
+import com.wfd.dot1.cwfm.dto.LLLicensesDTO;
 import com.wfd.dot1.cwfm.dto.LicensesDTO;
 import com.wfd.dot1.cwfm.dto.PEContractorDTO;
 import com.wfd.dot1.cwfm.dto.PlantWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.PvcTypeDTO;
 import com.wfd.dot1.cwfm.dto.WCDTO;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
+import com.wfd.dot1.cwfm.dto.WorkorderAlertsDTO;
 import com.wfd.dot1.cwfm.dto.WorkordersDTO;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
@@ -61,7 +64,7 @@ public class DashboardDaoImpl implements DashboardDao {
         loadContractorDeptWorkmen(dashboard, peIds);
         loadPlantContractorWorkmen(dashboard, peIds);
         loadWorkordersExpiry( dashboard,  peIds,  contIds) ;
-        loadLicensesExpiry( dashboard,  peIds,  contIds) ;
+       // loadLicensesExpiry( dashboard,  peIds,  contIds) ;
         loadLicensesExpiry( dashboard,  peIds,  contIds) ;
         gatepassesExpiry( dashboard,  peIds,  contIds) ;
         blackliestedGatepasses(dashboard) ;
@@ -254,51 +257,42 @@ public class DashboardDaoImpl implements DashboardDao {
     private void loadWorkordersExpiry(DashboardDTO dashboard, String peIds, String contIds) {
     	String sql = loadWorkordersExpiry();
     	//String sql = "EXEC GetWorkordersExpiry ?, ?";
-//        String sql = "select count(*) as expiredworkorders from GATEPASSMAIN gpm\r\n"
-//        		+ "INNER JOIN CMSWORKORDER wo ON wo.WORKORDERID = gpm.WorkorderId\r\n"
-//        		+ "WHERE\r\n"
-//        		+ "    gpm.UnitId IN (\r\n"
-//        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
-//        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
-//        		+ "    )\r\n"
-//        		+ "AND\r\n"
-//        		+ "    gpm.ContractorId IN (\r\n"
-//        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
-//        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
-//        		+ "    ) AND gpm.GatePassStatus = 4 AND gpm.GatePassTypeId IN (1, 2, 12, 15) \r\n"
-//        		+ "AND (CAST(wo.VALIDDT AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)))";
+    	
+    	 List<WorkorderAlertsDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+    		 WorkorderAlertsDTO dto = new WorkorderAlertsDTO();
+             dto.setWorkorderNumber(rs.getString("workorderNumber"));
+             dto.setExpiryDate(rs.getString("ExpiryDate"));
+             dto.setDaysLeft(rs.getInt("DaysLeft"));
+             dto.setWorkorderExpiryCount(rs.getString("expiredworkorders"));
+             return dto;
+         }, peIds,contIds);
 
-        jdbcTemplate.query(sql, rs -> {
-           
-                dashboard.setExpiredworkorders(rs.getInt("expiredworkorders"));      
-        }, peIds, contIds);
+         dashboard.setWorkorderalertsList(list);
     }
+  
+    
     public String loadLicensesExpiry() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_EXPIRED_LICENSES");
 	}
     private void loadLicensesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
         	String sql = loadLicensesExpiry();
         	//String sql = "EXEC GetLicensesExpiry ?, ?";
-//        String sql = "select count(*) as LicenseExpired from GATEPASSMAIN gpm\r\n"
-//        		+ "INNER JOIN CMSWORKORDER_LLWC ccwc ON ccwc.WOLLID = gpm.WcEsicNo\r\n"
-//        		+ "INNER JOIN CMSWORKORDER_LLWC ll ON ll.WOLLID = gpm.LLNo \r\n"
-//        		+ "INNER JOIN CMSCONTRACTOR_WC cwc ON  cwc.WC_CODE=ccwc.LICENSE_NUMBER\r\n"
-//        		+ "WHERE \r\n"
-//        		+ "    gpm.UnitId IN (\r\n"
-//        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
-//        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
-//        		+ "    )\r\n"
-//        		+ "AND\r\n"
-//        		+ "    gpm.ContractorId IN (\r\n"
-//        		+ "        SELECT TRY_CAST(value AS INT)\r\n"
-//        		+ "        FROM STRING_SPLIT(?, ',')\r\n"
-//        		+ "    ) AND gpm.GatePassStatus = 4 AND gpm.GatePassTypeId IN (1, 2, 12, 15) \r\n"
-//        		+ "AND (CAST(cwc.WC_TO_DTM AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)))";
 
-        jdbcTemplate.query(sql, rs -> {
-           
-                dashboard.setExpiredLicensess(rs.getInt("LicenseExpired")); 
-        }, peIds, contIds);
+//        jdbcTemplate.query(sql, rs -> {
+//           
+//                dashboard.setExpiredLicensess(rs.getInt("LicenseExpired")); 
+//        }, peIds, contIds);
+        	
+        	 List<LLLicensesDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+        		 LLLicensesDTO dto = new LLLicensesDTO();
+                 dto.setLicenseNumber(rs.getString("licenseNumber"));
+                 dto.setExpiryDate(rs.getString("expierddate"));
+                 dto.setDaysLeft(rs.getInt("DaysLeft"));
+                 dto.setLicenseType(rs.getString("licenseType"));
+                 return dto;
+             }, peIds,contIds);
+
+             dashboard.setLLLicenseList(list);
     }
     
     public String gatepassesExpiry() {
@@ -307,18 +301,17 @@ public class DashboardDaoImpl implements DashboardDao {
     private void gatepassesExpiry(DashboardDTO dashboard, String peIds, String contIds) {
     	String sql = gatepassesExpiry();
     	//String sql = "EXEC GetGatepassesExpiry ?, ?";
-//        String sql = "select count(*) as ExpiredGatepasses from GATEPASSMAIN gpm\r\n"
-//        		+ "WHERE  gpm.DOT >= CAST(GETDATE() AS DATE)\r\n"
-//        		+ "     AND gpm.DOT <= DATEADD(DAY, 30, CAST(GETDATE() AS DATE))\r\n"
-//        		+ "	and gpm.UnitId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))\r\n"
-//        		+ "      AND gpm.GatePassStatus = 4\r\n"
-//        		+ "	   AND gpm.GatePassTypeId IN (1, 2, 12, 15)\r\n"
-//        		+ "      AND gpm.ContractorId  IN (SELECT TRY_CAST(value AS INT)  FROM STRING_SPLIT(?, ','))";
+    	
+    	List<GatepassExpiryDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+    		GatepassExpiryDTO dto = new GatepassExpiryDTO();
+            dto.setGatepassId(rs.getString("gatepassid"));
+            dto.setExpiryDate(rs.getString("dot"));
+            dto.setDaysLeft(rs.getInt("DaysLeft"));
+            dto.setFullName(rs.getString("FullName"));
+            return dto;
+        }, peIds,contIds);
 
-        jdbcTemplate.query(sql, rs -> {
-           
-                dashboard.setExpiredgatepasses(rs.getInt("ExpiredGatepasses"));
-        }, peIds, contIds);
+        dashboard.setGatepassExpiryList(list);
     }
     public String blackliestedGatepasses() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_BLACKLISTED_GATEPASSES");

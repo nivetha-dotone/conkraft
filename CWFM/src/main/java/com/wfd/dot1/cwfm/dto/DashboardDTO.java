@@ -207,7 +207,16 @@ public class DashboardDTO {
 		this.pendingBills = pendingBills;
 	}
 	
+	public List<WorkorderAlertsDTO> getWorkorderalertsList() {
+		return workorderalertsList;
+	}
+
+	public void setWorkorderalertsList(List<WorkorderAlertsDTO> workorderalertsList) {
+		this.workorderalertsList = workorderalertsList;
+	}
+
 	private List<WorkordersDTO> workorderList;
+	private List<WorkorderAlertsDTO> workorderalertsList;
 
 	public List<WorkordersDTO> getWorkorderList() {
 		return workorderList;
@@ -217,6 +226,8 @@ public class DashboardDTO {
 		this.workorderList = workorderList;
 	}
 	private List<LicensesDTO> LicenseList;
+	
+	private List<LLLicensesDTO> LLLicenseList;
 
 	public List<LicensesDTO> getLicenseList() {
 		return LicenseList;
@@ -251,6 +262,22 @@ public class DashboardDTO {
 		this.billList = billList;
 		}
 
+	public List<LLLicensesDTO> getLLLicenseList() {
+		return LLLicenseList;
+	}
+
+	public void setLLLicenseList(List<LLLicensesDTO> lLLicenseList) {
+		LLLicenseList = lLLicenseList;
+	}
+	private List<GatepassExpiryDTO> gatepassExpiryList;
+
+	public List<GatepassExpiryDTO> getGatepassExpiryList() {
+		return gatepassExpiryList;
+	}
+
+	public void setGatepassExpiryList(List<GatepassExpiryDTO> gatepassExpiryList) {
+		this.gatepassExpiryList = gatepassExpiryList;
+	}
 
 	
 }

@@ -15,10 +15,18 @@
 <script src="resources/js/cms/workmen.js"></script>
 <style>
 /* General KPI Card Styling */
-.kpi-row {
+/* .kpi-row {
   display: flex;
   justify-content: space-between;
   gap: 20px;
+} */
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* ✅ 4 KPI + 1 Assistant tile */
+  gap: 20px;
+  margin-bottom: 20px;
+  align-items: stretch;
 }
 
 .kpi-card {
@@ -149,7 +157,7 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transform: scale(1.03);
 }
-.security-banner {
+/* .security-banner {
   background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
   border-radius: 12px;
   color: #fff;
@@ -171,7 +179,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
-}
+} */
 
 .banner-icon i {
   font-size: 48px;
@@ -204,7 +212,7 @@
 }
 /* ///////////////// */
 .db {
-  width: 100%;
+  width: 102%;
   padding: 0 30px; /* Equal left & right padding for all rows */
   box-sizing: border-box;
   margin-left: -6px;
@@ -237,7 +245,7 @@
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 25px 30px; /* ✅ same left/right spacing as Quick Actions */
-  margin: 0 25px 25px 25px; /* ✅ adds equal gap from page edges */
+  margin: 0 2px 17px 25px; /* ✅ adds equal gap from page edges */
   box-sizing: border-box;
   margin-bottom:20px;
 }
@@ -266,7 +274,7 @@
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 25px 30px; /* internal spacing */
-  margin: 0 30px 25px 30px; /* ✅ equal gap from left and right edges */
+  margin: 0 7px 25px 30px; /* ✅ equal gap from left and right edges */
   box-sizing: border-box;
   overflow-x: auto; /* allows scroll if table overflows */
 }
@@ -321,7 +329,7 @@
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 25px 30px; /* internal spacing */
-  margin: 0 30px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
+  margin: 0 8px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
   box-sizing: border-box;
 }
 
@@ -399,7 +407,7 @@
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   padding: 25px 30px; /* internal spacing */
-  margin: 0 30px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
+  margin: 0 7px 25px 30px; /* ✅ equal left/right gap like Active Work Orders */
   box-sizing: border-box;
   overflow-x: auto;
 }
@@ -453,6 +461,50 @@
   color: #777;
   font-size: 14px;
   padding: 20px;
+}
+
+/* Assistant Banner */
+.security-banner {
+    background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
+    border-radius: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.banner-text {
+  font-weight: 600;
+  color: #004d47;
+  font-size: 14px;
+}
+
+.banner-right img {
+  width: 90px; /* ✅ small image size */
+  height: auto;
+  border-radius: 6px;
+}
+
+/* Responsive behavior */
+@media (max-width: 1200px) {
+  .kpi-row {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
 }
 
 </style>
@@ -689,7 +741,7 @@
         </div>
     </c:if> --%>
     <!-- PLANT WISE CONTRACTOR + WORKMEN -->
-<c:if test="${isHR || isSecurity || isSafety || isMedical || isEIC || isSystemAdmin}">
+<%-- <c:if test="${isHR || isSecurity || isSafety || isMedical || isEIC}">
   <div class="section plant-section">
     <div class="sec-header">
       <span>PLANT WISE CONTRACTOR WORKMEN</span>
@@ -727,7 +779,7 @@
       </div>
     </div>
   </div>
-</c:if>
+</c:if> --%>
     
 </div>
 <div class="row row-3col">

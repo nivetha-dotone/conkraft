@@ -6,9 +6,9 @@ body {
   color: #333;
 }
 
-.dashboard {
+/* .dashboard {
   padding: 20px;
-}
+} */
 
 /* ===== HEADER ===== */
 .header-bar {
@@ -234,7 +234,10 @@ body {
 }
 
 .dashboard {
-  padding: 20px;
+    width: 102%;
+    padding: 0 30px;
+    box-sizing: border-box;
+    margin-left: -6px;
 }
 
 .kpi-row {
@@ -273,6 +276,7 @@ body {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
+  margin-right: -17px;
 }
 
 /* 3-column row */

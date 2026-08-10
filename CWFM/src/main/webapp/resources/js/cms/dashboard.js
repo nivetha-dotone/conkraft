@@ -26,3 +26,21 @@ function openCoverageModal() {
 	  document.getElementById('coverageModal').style.display = 'none';
 	}
 	
+function openLicenseExpiryPopup() {
+  document.getElementById("licenseexpiryModal").style.display = "flex";
+}
+function closeLicenseExpiryPopup() {
+  document.getElementById("licenseexpiryModal").style.display = "none";
+}
+function openWorkorderExpiryPopup() {
+  document.getElementById("workorderexpiryModal").style.display = "flex";
+}
+function closeWorkorderExpiryPopup() {
+  document.getElementById("workorderexpiryModal").style.display = "none";
+}	
+function openGatepassExpiryPopup() {
+  document.getElementById("gatepassexpiryModal").style.display = "flex";
+}
+function closeGatepassExpiryPopup() {
+  document.getElementById("gatepassexpiryModal").style.display = "none";
+}	

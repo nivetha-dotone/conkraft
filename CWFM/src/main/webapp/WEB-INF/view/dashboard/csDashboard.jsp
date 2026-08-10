@@ -111,14 +111,6 @@
   padding: 15px;
 }
 
-.sec-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: #333;
-}
 
 /* .view-all {
   font-size: 13px;
@@ -193,16 +185,17 @@
 .icon-bg.purple { background-color: #f3e9ff; color: #9b59b6; }
 .icon-bg.blue { background-color: #e8f1ff; color: #378ADD; }
 
+/* Assistant Banner */
 .security-banner {
-  background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
-  border-radius: 12px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
+    background: linear-gradient(90deg, #6dc7f8, rgb(0 0 0 / 10%));
+    border-radius: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
 
 .banner-content {
   display: flex;
@@ -214,9 +207,25 @@
 .banner-left {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 }
 
+.banner-text {
+  font-weight: 600;
+  color: #004d47;
+  font-size: 14px;
+  white-space: nowrap; /* ✅ ensures text stays on one line */
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+
+/* Responsive behavior */
+@media (max-width: 1200px) {
+  .kpi-row {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
 .banner-icon i {
   font-size: 48px;
   color: #a8f0b5;
@@ -237,8 +246,9 @@
 }
 
 .banner-right img {
-  height: 103px;;
-  opacity: 0.95;
+    height: auto;
+    width: 90px;
+    border-radius: 6px;
 }
 .coverage-section {
   background: #fff;
@@ -345,7 +355,7 @@
 .close-btn {
   cursor: pointer;
   font-size: 18px;
-  color: #555;
+  color:#007bff;
 }
 
 .modal-body {
@@ -598,12 +608,13 @@ font-size: medium;
 
 /* ////////////// */
 .kpi-row {
-  display: flex;
-  justify-content: space-between; /* Equal gaps between cards */
-  align-items: center;
-  padding: 0 20px; /* Equal gap at start and end */
-  gap: 20px; /* Equal gap between cards */
-  flex-wrap: wrap; /* Responsive layout */
+ display: flex;
+    justify-content: space-between;
+    grid-template-columns: repeat(5, 1fr); /* ✅ 4 KPI + 1 Assistant tile */
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 37px;
+    margin-top: 23px;
 }
 
 .kpi-card {
@@ -619,6 +630,112 @@ font-size: medium;
   margin-top: 20px;
   padding: 0 20px; /* Match row padding for alignment */
 } */
+/* .lastrowkpi {
+display: flex;
+  width: 100%;
+  max-width: 1400px; /* ✅ keeps consistent width with other rows */
+  margin: 0 auto;    /* ✅ centers the row horizontally */
+  padding: 0 20px;   /* ✅ equal left and right spacing */
+  box-sizing: border-box;
+}*/
+
+.kpi-row4.row4 {
+  display: grid;
+  margin-left: 20px;
+  gap:25px;
+}
+
+/* Overlay covers entire screen */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* dim background */
+  display: none; /* hidden by default */
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* above header */
+}
+
+/* Centered modal box */
+.modal-box {
+  background: #fff;
+  border-radius: 8px;
+  width: 60%;
+  max-width: 800px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  position: relative;
+}
+
+/* Header styling */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+/* Body content */
+.modal-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Expiry item styling */
+.expiry-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.dot.red {
+  height: 10px;
+  width: 10px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}
+.expiry-table-container {
+  width: 100%;
+  max-height: 400px; /* adjust height as needed */
+  overflow-y: auto;  /* vertical scrollbar */
+  overflow-x: auto;  /* horizontal scrollbar if needed */
+  border: 1px solid #ddd;
+  margin-top: 10px;
+}
+
+.expiry-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.expiry-table th, .expiry-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.expiry-table th {
+  background-color: #f4f4f4;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  color: #777;
+  padding: 20px;
+}
+.lastdashboard {
+    width: 102%;
+    padding: 0 30px;
+    box-sizing: border-box;
+    margin-left: -6px;
+}
 
 </style>
 
@@ -712,7 +829,7 @@ font-size: medium;
   </div>
 </div>
 </div>
-
+</div>
 
 
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
@@ -733,7 +850,7 @@ font-size: medium;
   </div>
 
   <!-- Supervisor Coverage -->
-<div class="section coverage-section">
+<%-- <div class="section coverage-section">
   <div class="sec-header">
     <span>SUPERVISOR COVERAGE</span>
     <c:if test="${fn:length(dashboard.plantContrWorkmenList) > 5}">
@@ -765,7 +882,7 @@ font-size: medium;
       </c:if>
     </c:forEach>
   </div>
-</div>
+</div> --%>
 
 <!-- MODAL FOR VIEW ALL -->
 <div id="coverageModal" class="modal-overlay">
@@ -805,7 +922,7 @@ font-size: medium;
 
 
   <!-- ALERTS & NOTIFICATIONS -->
-<div class="section alerts">
+<%-- <div class="section alerts">
   <div class="sec-header">
     <span>ALERTS & NOTIFICATIONS</span>
   </div>
@@ -831,18 +948,55 @@ font-size: medium;
         <c:otherwise>High</c:otherwise>
       </c:choose>
     </div>
+  </div> --%>
+
+
+<div class="section alerts">
+  <div class="sec-header">
+    <span>ALERTS & NOTIFICATIONS</span>
   </div>
 
+  <!-- LICENSES -->
+  <c:set var="licenseCount" value="${fn:length(dashboard.LLLicenseList)}" />
+  <c:set var="licenseStatus"
+         value="${licenseCount <= 30 ? 'low' :
+                 (licenseCount <= 60 ? 'medium' : 'high')}" />
+
+  <div class="alert-item ${licenseStatus}" onclick="openLicenseExpiryPopup()">
+    <div class="alert-left">
+       <div class="icon-bg red"><i class="fa-solid fa-shield-heart"></i></div>
+       <div class="alert-text">
+         <div class="alert-title">
+           <a href="javascript:void(0)" onclick="openLicenseExpiryPopup()">
+             ${licenseCount} Licenses Expiring Soon
+           </a>
+         </div>
+         <div class="alert-sub">Within next 30 days</div>
+       </div>
+    </div>
+    <div class="alert-right ${licenseStatus}-label">
+      <c:choose>
+        <c:when test="${licenseStatus == 'low'}">Low</c:when>
+        <c:when test="${licenseStatus == 'medium'}">Medium</c:when>
+        <c:otherwise>High</c:otherwise>
+      </c:choose>
+    </div>
+  </div>
   <!-- WORK ORDERS -->
+  <c:set var="workOrderCount" value="${fn:length(dashboard.workorderalertsList)}" />
   <c:set var="workOrderStatus"
-         value="${dashboard.expiredworkorders <= 30 ? 'low' :
-                 (dashboard.expiredworkorders <= 60 ? 'medium' : 'high')}" />
+         value="${workOrderCount <= 30 ? 'low' :
+                 (workOrderCount<= 60 ? 'medium' : 'high')}" />
 
   <div class="alert-item ${workOrderStatus}">
     <div class="alert-left">
        <div class="icon-bg orange"><i class="fa-solid fa-triangle-exclamation"></i></div>
       <div class="alert-text">
-        <div class="alert-title">${dashboard.expiredworkorders} Work Orders Expiring</div>
+        <div class="alert-title">
+           <a href="javascript:void(0)" onclick="openWorkorderExpiryPopup()">
+             ${workOrderCount} Work Orders Expiring
+           </a>
+        </div>
         <div class="alert-sub">Within next 30 days</div>
       </div>
     </div>
@@ -856,15 +1010,20 @@ font-size: medium;
   </div>
 
   <!-- GATE PASSES -->
+   <c:set var="gatepassCount" value="${fn:length(dashboard.gatepassExpiryList)}" />
   <c:set var="gatePassStatus"
-         value="${dashboard.expiredgatepasses <= 30 ? 'low' :
-                 (dashboard.expiredgatepasses <= 60 ? 'medium' : 'high')}" />
+         value="${gatepassCount <= 30 ? 'low' :
+                 (gatepassCount <= 60 ? 'medium' : 'high')}" />
 
   <div class="alert-item ${gatePassStatus}">
     <div class="alert-left">
       <div class="icon-bg purple"><i class="fa-solid fa-ban"></i></div>
       <div class="alert-text">
-        <div class="alert-title">${dashboard.expiredgatepasses} Gate Passes Expiring</div>
+        <div class="alert-title">
+          <a href="javascript:void(0)" onclick="openGatepassExpiryPopup()">
+            ${gatepassCount} Gate Passes Expiring
+          </a>
+        </div>
         <div class="alert-sub">Action Required Within next 30 days</div>
       </div>
     </div>
@@ -877,38 +1036,126 @@ font-size: medium;
     </div>
   </div>
 
-  <!-- PF CHALLAN -->
-<%--   <c:set var="gatePassStatus"
-         value="${dashboard.expiredgatepasses <= 30 ? 'low' :
-                 (dashboard.expiredgatepasses <= 60 ? 'medium' : 'high')}" />
-                 <div class="alert-item ${gatePassStatus}">
-    <div class="alert-left">
-      <div class="icon-bg purple"><i class="fa-solid fa-ban"></i></div>
-      <div class="alert-text">
-        <div class="alert-title">${dashboard.expiredgatepasses} Gate Passes Expiring</div>
-        <div class="alert-sub">Action Required Within next 30 days</div>
-      </div>
+</div>
+
+<!-- license Expiry Modal (hidden until opened) -->
+<div id="licenseexpiryModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>All Expiring Licenses</span>
+      <span class="close-btn" onclick="closeLicenseExpiryPopup()">✖</span>
     </div>
-    <div class="alert-right ${gatePassStatus}-label">
+    <div class="modal-body">
       <c:choose>
-        <c:when test="${gatePassStatus == 'low'}">Low</c:when>
-        <c:when test="${gatePassStatus == 'medium'}">Medium</c:when>
-        <c:otherwise>High</c:otherwise>
+        <c:when test="${not empty dashboard.LLLicenseList}">
+          <table class="expiry-table">
+            <thead>
+              <tr>
+                <th>License Number</th>
+                <th>License Type</th>
+                <th>Expiry Date</th>
+                <th>Days Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              <c:forEach var="item" items="${dashboard.LLLicenseList}">
+                <tr>
+                  <td>${item.licenseNumber}</td>
+                  <td>${item.licenseType}</td>
+                  <td>${item.expiryDate}</td>
+                  <td>${item.daysLeft}</td>
+                </tr>
+              </c:forEach>
+            </tbody>
+          </table>
+        </c:when>
+        <c:otherwise>
+          <div class="empty-state">No expiring licenses found</div>
+        </c:otherwise>
       </c:choose>
     </div>
-  </div> --%>
-  
-  <!-- <div class="alert-item medium">
-    <div class="alert-left">
-      <div class="icon-bg blue"><i class="fa-solid fa-file-invoice"></i></div>
-      <div class="alert-text">
-        <div class="alert-title">PF Challan Pending</div>
-        <div class="alert-sub">4 contractors pending submission</div>
-      </div>
-    </div>
-    <div class="alert-right medium-label">Medium</div>
-  </div> -->
+  </div>
 </div>
+<!-- Workorder Expiry Modal (hidden until opened) -->
+<div id="workorderexpiryModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>All Expiring Workorders</span>
+      <span class="close-btn" onclick="closeWorkorderExpiryPopup()">✖</span>
+    </div>
+
+    <div class="modal-body">
+      <c:choose>
+        <c:when test="${not empty dashboard.workorderalertsList}">
+          <table class="expiry-table">
+            <thead>
+              <tr>
+                <th>WorkOrder Number</th>
+                <th>Expiry Date</th>
+                <th>Days Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              <c:forEach var="item" items="${dashboard.workorderalertsList}">
+                <tr>
+                  <td>${item.workorderNumber}</td>
+                  <td>${item.expiryDate}</td>
+                  <td>${item.daysLeft}</td>
+                </tr>
+              </c:forEach>
+            </tbody>
+          </table>
+        </c:when>
+        <c:otherwise>
+          <div class="empty-state">No expiring workorders found</div>
+        </c:otherwise>
+      </c:choose>
+    </div>
+  </div>
+</div>
+
+<!-- gatepass Expiry Modal (hidden until opened) -->
+<div id="gatepassexpiryModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>All Expiring GatePasses</span>
+      <span class="close-btn" onclick="closeGatepassExpiryPopup()">✖</span>
+    </div>
+
+    <div class="modal-body">
+      <c:choose>
+        <c:when test="${not empty dashboard.gatepassExpiryList}">
+          <table class="expiry-table">
+            <thead>
+              <tr>
+                <th>GatePassId</th>
+                <th>Full Name</th>
+                <th>Expiry Date</th>
+                <th>Days Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              <c:forEach var="item" items="${dashboard.gatepassExpiryList}">
+                <tr>
+                  <td>${item.gatepassId}</td>
+                  <td>${item.fullName}</td>
+                  <td>${item.expiryDate}</td>
+                  <td>${item.daysLeft}</td>
+                </tr>
+              </c:forEach>
+            </tbody>
+          </table>
+        </c:when>
+        <c:otherwise>
+          <div class="empty-state">No expiring Gatepasses found</div>
+        </c:otherwise>
+      </c:choose>
+    </div>
+  </div>
+</div>
+
+
+
 
 </div>
 
@@ -1031,29 +1278,9 @@ font-size: medium;
 
 
  <!-- ROW 4 KPI CARDS -->
-<div class="kpi-row row4">
-  <!-- <div class="kpi-card green" id="kpi-contractors">
-    <div class="kpi-content">
-      <div class="icon-bg green"><i class="fa-solid fa-user-tie icon"></i></div>
-      <div class="kpi-text">
-        <div class="lbl">TOTAL CONTRACTORS</div>
-        <div class="num">11</div>
-        <div class="trend">↑ 3% vs last month</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="kpi-card blue" id="kpi-gatepasses">
-    <div class="kpi-content">
-      <div class="icon-bg blue"><i class="fa-solid fa-id-card icon"></i></div>
-      <div class="kpi-text">
-        <div class="lbl">TOTAL GATE PASSES</div>
-        <div class="num">11</div>
-        <div class="trend">↑ 15.8% vs last month</div>
-      </div>
-    </div>
-  </div> -->
-
+  <div class="lastdashboard">  
+<div class="kpi-row row4"> 
+ 
   <div class="kpi-card orange" id="kpi-bills">
     <div class="kpi-content">
       <div class="icon-bg orange"><i class="fa-solid fa-file-invoice-dollar icon"></i></div>
@@ -1075,73 +1302,9 @@ font-size: medium;
       </div>
     </div>
   </div>
-
-<!-- <div class="security-banner" id="kpi-security-banner">
-  <div class="banner-content">
-    <div class="banner-left">
-      <div class="banner-icon">
-        
-      </div>
-      <div class="banner-text">
-        <div class="title">Securing <span class="highlight">Workforce.</span></div>
-        <div class="title"> 
-        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a>
-       <a href="javascript:void(0);"
-   class="dashboard-tile"
-   onclick="openChatBotModal();">
-
-    <div class="tile-content">
-        <i class="fa fa-comments"></i>
-        <span>Conkraft Assistant</span>
-    </div>
-
-   </div>
-      </div></a>
-    </div>
-    <div class="banner-right">
-      <img src='resources/img/ai-image.png' alt="Workforce Security" />
-    </div>
-  </div>
-</div> -->
-
- <!--  <div class="kpi-card teal" id="kpi-ai">
-  <div class="kpi-content">
-    <div class="ai-image-box">
-      <img src="resources/img/ai-image.png" alt="AI Assistance" class="ai-image">
-      <div class="ai-overlay">AI Assistance</div>
-    </div>
-  </div>
-</div> -->
-
 </div>
-  </div>
-  <!-- SECURITY WORKFORCE BANNER -->
-<!-- <div class="security-banner" id="kpi-security-banner">
-  <div class="banner-content">
-    <div class="banner-left">
-      <div class="banner-icon">
-        <i class="fa-solid fa-shield"></i>
-      </div>
-      <div class="banner-text">
-        <div class="title">Securing <span class="highlight">Workforce.</span></div>
-        <div class="subtitle">Empowering Enterprises.</div>
-      </div>
-    </div>
-    <div class="banner-right">
-      <img src='resources/img/workforce-security.png' alt="Workforce Security" />
-    </div>
-  </div>
-</div>  -->
+</div>
 
-  <!-- COMPLIANCE CALENDAR -->
-  <!-- <div class="section calendar">
-    <div class="sec-header">Compliance Calendar</div>
-    <div class="calendar-box">
-      <div class="date">July 2026</div>
-      <div class="desc">Stay Ahead of Compliance</div>
-      <button>Open Calendar</button>
-    </div>
-  </div> -->
 
 <div class="modal fade"
      id="chatBotModal"
