@@ -1686,7 +1686,7 @@ label {
                   <td>
   <!-- Label -->
   <label for="imageFile">
-    <span class="required-field">*</span>
+    <!-- <span class="required-field">*</span> -->
     <spring:message code="label.uploadPhoto"/>
   </label>
 
@@ -1737,7 +1737,7 @@ class="btn btn-default"
            
                 <tr>
                 	<td>
-                        <label for="aadharFile"><span class="required-field">*</span><spring:message code="label.uploadAadharCard"/></label>
+                        <label for="aadharFile"><spring:message code="label.uploadAadharCard"/></label>
                          <input type="file" id="aadharFile" name="aadharFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('aadharFile','aadharFileName')" />
                             <span id="aadharFileName" style="margin-left:10px;color:black;">
                                    <c:out value="${fileMap['aadhar']}" default=""/>
@@ -1745,7 +1745,7 @@ class="btn btn-default"
                         <div id="aadharError"></div> 
                    </td>
                 		<td>
-                		 	<label for="appointmentFile"><span class="required-field">*</span><spring:message code="label.uploadappointmentCard"/></label>
+                		 	<label for="appointmentFile"><spring:message code="label.uploadappointmentCard"/></label>
        					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
        					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;">
        					 	   <c:out value="${fileMap['appointment']}" default=""/>
@@ -1755,7 +1755,7 @@ class="btn btn-default"
                 </tr>  	
                <tr>
                 	  <td>
-                			<label for="policeFile"><span class="required-field">*</span><spring:message code="label.uploadPoliceVerificationReport"/></label> 
+                			<label for="policeFile"><spring:message code="label.uploadPoliceVerificationReport"/></label> 
                 			<input type="file"	id="policeFile" name="policeFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('policeFile', 'policeFileName')">
                 			  <span id="policeFileName" style="margin-left: 10px;color:black;">
                 			  <c:out value="${fileMap['police']}" default=""/>
@@ -1764,7 +1764,7 @@ class="btn btn-default"
 						</td>
 						
 					
-                         <td><label for="policeDate"><span class="required-field">*</span><spring:message code="label.policeVerificationDate"/></label>
+                         <td><label for="policeDate"><spring:message code="label.policeVerificationDate"/></label>
                         <!-- <input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  > --> 
                         	 <c:if test="${ empty GatePassObj.policeVerificationDate }">
                         		<input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  >
@@ -1796,7 +1796,7 @@ class="btn btn-default"
         <tr>
             <td colspan="20">
                 <div>
-                    <p id="p3"><b><font color="darkblue" size="3"><span class="required-field">*</span><spring:message code="label.comments"/></font></b></p>
+                    <p id="p3"><b><font color="darkblue" size="3"><spring:message code="label.comments"/></font></b></p>
                     <hr10 style="color:rgb(0, 102, 204);">
                 </div>
             </td>

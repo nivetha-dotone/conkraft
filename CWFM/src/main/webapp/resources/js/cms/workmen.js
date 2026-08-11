@@ -846,10 +846,9 @@ function validateOtherInformation(){
     } else {
     $("#error-accountNumber").hide();
     }
-
 	const emergencyName = $("#emergencyName").val().trim();
 	const firstnameRegex = /^[A-Za-z\s]{2,}$/;
-    if (emergencyName && !firstnameRegex.test(emergencyName)) {
+    if (!firstnameRegex.test(emergencyName)) {
         $("#error-emergencyName").show();
         isValid = false;
     }else{
@@ -857,7 +856,7 @@ function validateOtherInformation(){
 	}
 	const emergencyNoInput = $("#emergencyNumber").val().trim();
 	const mobileNumberRegex = /^[6-9]\d{9}$/;
-	if (emergencyNoInput && !mobileNumberRegex.test(emergencyNoInput)) {
+	if (!mobileNumberRegex.test(emergencyNoInput)) {
                  $("#error-emergencyNumber").show();
         			isValid = false;
      }else{
@@ -6741,6 +6740,17 @@ function saveFullTimeContractorGatePass(userId) {
         hideLoader();
         return;
     }
+       // ✅ Utility function for Capital Case
+    function toCapitalCase(str) {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+    const firstName = toCapitalCase($("#firstName").val().trim());
+    const lastName = toCapitalCase($("#lastName").val().trim());
+    const relationName = toCapitalCase($("#relationName").val().trim());
     
  const pfApplicable = $("#pfApplicable").is(":checked") ? "Yes" : "No";
     if (basicValid && employmentValid && otherValid && documentValid) {
@@ -6749,11 +6759,11 @@ function saveFullTimeContractorGatePass(userId) {
 			transactionId:$("#transactionId").val().trim(),
 			gatePassId:$("#gatePassId").val().trim(),
             aadhaarNumber: $("#aadharNumber").val().trim(),
-            firstName: $("#firstName").val().trim(),
-            lastName: $("#lastName").val().trim(),
+            firstName: firstName,
+            lastName: lastName,
             dateOfBirth: $("#dateOfBirth").val().trim(),
             gender: $("#gender").val(),
-            relationName: $("#relationName").val().trim(),
+            relationName: relationName,
             idMark: $("#idMark").val(),
             mobileNumber: $("#mobileNumber").val().trim(),
             maritalStatus: $("#maritalStatus").val(),
@@ -6801,7 +6811,7 @@ function saveFullTimeContractorGatePass(userId) {
 		}
 		
     	const additionalFields = document.querySelectorAll('.document-field');
-    additionalFields.forEach((field, index) => {
+        additionalFields.forEach((field, index) => {
         const docType = field.querySelector('select[name="documentType"]').value;
         const fileInput = field.querySelector('input[type="file"]');
 
