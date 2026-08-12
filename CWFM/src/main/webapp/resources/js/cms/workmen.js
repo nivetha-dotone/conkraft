@@ -6003,10 +6003,9 @@ function validateMinimumWage() {
     const wageType = $("#wageCategory option:selected").text().trim().toLowerCase();
 
     const selectedOption = $("#wc").find(":selected");
-	//const licenceType = selectedOption.data("licencetype");
-	const licenceType = selectedOption.attr("data-code");
+    const licenceType = selectedOption.attr("data-code");
 
-
+    // ENTERED WAGE VALUES
     const basic = parseFloat($("#basic").val()) || 0;
     const da = parseFloat($("#da").val()) || 0;
     const hra = parseFloat($("#hra").val()) || 0;
@@ -6014,87 +6013,158 @@ function validateMinimumWage() {
     const other = parseFloat($("#otherAllowance").val()) || 0;
     const uniform = parseFloat($("#uniformAllowance").val()) || 0;
 
+    // Basic + DA
+    const basicDa = basic + da;
+
+    // Total entered wage
     const enteredWage = basic + da + hra + washing + other + uniform;
 
+    // 50% of entered wage
+    const fiftyPercentWage = enteredWage * 0.50;
+
+    // AJAX - GET STATE MINIMUM WAGE
     $.ajax({
         url: "/CWFM/contractworkmen/getMinimumWageDetails",
         type: "GET",
-        async: false,   // IMPORTANT
+        async: false,
         data: {
             principalEmployer: principalEmp,
             zone: zone,
             skill: skill
         },
+
         success: function(response) {
+            // MESSAGES
+            const minWageMsg = $("#msg-minimumWage").text();
+            const esicMonthlyMsg = $("#msg-esicMonthly").text();
+            const esicDailyMsg = $("#msg-esicDaily").text();
+            const notFoundMsg = $("#msg-minimumWageNotFound").text();
 
+            // Message for Basic + DA 50% validation
+            const basicDa50PercentMsg = $("#msg-basicDa50Percent").text();
 
-                const minWageMsg = $("#msg-minimumWage").text();
-                const esicMonthlyMsg = $("#msg-esicMonthly").text();
-                const esicDailyMsg = $("#msg-esicDaily").text();
-                const notFoundMsg = $("#msg-minimumWageNotFound").text(); 
-                
-                            // ⭐ Minimum Wage Not Configured
+            // Message for ESIC Daily Basic + DA validation
+            const esicDailyBasicDaMsg = $("#msg-esicDailyBasicDa").text();
+            // MINIMUM WAGE NOT CONFIGURED
             if (!response || response.basic == null) {
 
                 $("#MinimumWageError").text(notFoundMsg).show();
                 isValid = false;
                 return;
             }
+            
+            // STATE MINIMUM WAGE
+            const stateBasic = parseFloat(response.basic) || 0;
+            const stateDa = parseFloat(response.da) || 0;
+            const stateOther = parseFloat(response.otherAllowance) || 0;
 
-                const stateBasic = parseFloat(response.basic) || 0;
-                const stateDa = parseFloat(response.da) || 0;
-                const stateOther = parseFloat(response.otherAllowance) || 0;
+            // Daily minimum wage
+            const stateMinimum = stateBasic + stateDa + stateOther;
 
-                const stateMinimum = stateBasic + stateDa + stateOther;	
-                // DAILY VALIDATION
-                if (wageType === "daily") {
+            // Monthly minimum wage
+            const monthlyStateMinimum = stateMinimum * 26;
 
-                    if (enteredWage < stateMinimum) {
-                        $("#MinimumWageError").text(minWageMsg).show();
-                        isValid = false;
-                        return;
-                    }
+            // ESIC MONTHLY
+            if (licenceType === "ESIC" && wageType === "monthly") {
+                // 1. Basic + DA <= 21000
+                const esicMonthlyBasicDaValid = basicDa <= 21000;
+                if (!esicMonthlyBasicDaValid) {
+                    $("#MinimumWageError").text(esicMonthlyMsg).show();
+                    isValid = false;
+                    return;
+                }
+                
+                // 2. Entered Wage >= Monthly State Minimum
+                const monthlyMinimumWageValid = enteredWage >= monthlyStateMinimum;
+                if (!monthlyMinimumWageValid) {
+                    $("#MinimumWageError").text(minWageMsg).show();
+                    isValid = false;
+                    return;
+                }
+                
+                // 3. Basic + DA >= 50% of Entered Wage
+                const basicDaFiftyPercentValid = basicDa >= fiftyPercentWage;
+                if (!basicDaFiftyPercentValid) {
+                    $("#MinimumWageError").text(basicDa50PercentMsg).show();
+                    isValid = false;
+                    return;
+                }
+            }
+
+            // WC MONTHLY
+            if (licenceType === "WC" && wageType === "monthly") {
+                // 1. Entered Wage >= Monthly State Minimum
+                const monthlyMinimumWageValid = enteredWage >= monthlyStateMinimum;
+                if (!monthlyMinimumWageValid) {
+                    $("#MinimumWageError").text(minWageMsg).show();
+                    isValid = false;
+                    return;
+                }
+                
+                // 2. Basic + DA >= 50% of Entered Wage
+                const basicDaFiftyPercentValid = basicDa >= fiftyPercentWage;
+
+                if (!basicDaFiftyPercentValid) {
+                    $("#MinimumWageError").text(basicDa50PercentMsg).show();
+                    isValid = false;
+                    return;
+                }
+            }
+
+            // ESIC DAILY
+            if (licenceType === "ESIC" && wageType === "daily") {
+                // 1. Basic + DA * 26 <= 21000
+                const esicDailyBasicDaValid = (basicDa * 26) <= 21000;
+                if (!esicDailyBasicDaValid) {
+                    const monthlyBasicDa = basicDa * 26;
+                    $("#MinimumWageError").text(esicDailyBasicDaMsg).show();
+                    isValid = false;
+                    return;
                 }
 
-                // MONTHLY VALIDATION
-                if (wageType === "monthly") {
-
-                    const monthlyMinimum = stateMinimum * 26;
-
-                    if (enteredWage < monthlyMinimum) {
-                        $("#MinimumWageError").text(minWageMsg).show();
-                        isValid = false;
-                        return;
-                    }
+                // 2. Entered Wage >= Daily State Minimum
+                const dailyMinimumWageValid = enteredWage >= stateMinimum;
+                if (!dailyMinimumWageValid) {
+                    $("#MinimumWageError").text(minWageMsg).show();
+                    isValid = false;
+                    return;
                 }
 
-                // ESIC VALIDATION
-                if (licenceType === "ESIC") {
-
-                    if (wageType === "monthly" && enteredWage >= 21000) {
-                        $("#MinimumWageError").text(esicMonthlyMsg).show();
-                        isValid = false;
-                        return;
-                    }
-
-                    if (wageType === "daily" && enteredWage >= (21000 / 26)) {
-
-                        const limit = (21000 / 26).toFixed(2);
-                        const msg = esicDailyMsg.replace("{0}", limit);
-
-                        $("#MinimumWageError").text(msg).show();
-                        isValid = false;
-                        return;
-                    }
+                // 3. Basic + DA >= 50% of Entered Wage
+                const basicDaFiftyPercentValid = basicDa >= fiftyPercentWage;
+                if (!basicDaFiftyPercentValid) {
+                    $("#MinimumWageError").text(basicDa50PercentMsg).show();
+                    isValid = false;
+                    return;
                 }
+            }
+
+            // WC DAILY
+            if (licenceType === "WC" && wageType === "daily") {
+                // 1. Entered Wage >= Daily State Minimum
+                const dailyMinimumWageValid = enteredWage >= stateMinimum;
+                if (!dailyMinimumWageValid) {
+                    $("#MinimumWageError").text(minWageMsg).show();
+                    isValid = false;
+                    return;
+                }
+
+                // 2. Basic + DA >= 50% of Entered Wage
+                const basicDaFiftyPercentValid = basicDa >= fiftyPercentWage;
+                if (!basicDaFiftyPercentValid) {
+                    $("#MinimumWageError").text(basicDa50PercentMsg).show();
+                    isValid = false;
+                    return;
+                }
+            }
 
         },
+
         error: function() {
             alert("Error while fetching wage details");
             isValid = false;
         }
     });
-
     return isValid;
 }
 function getZones(unitId) {

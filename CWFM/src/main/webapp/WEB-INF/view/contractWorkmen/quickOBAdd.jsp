@@ -1667,6 +1667,10 @@ label {
            
            <label id="msg-minimumWageNotFound" style="display:none;"><spring:message code="error.minimumWage.notFound"/></label>
            
+           <label id="msg-basicDa50Percent" style="display:none;"><spring:message code="error.minimumWage.basicda50percent"/></label>
+           
+           <label id="msg-esicDailyBasicDa"  style="display:none;"><spring:message code="error.minimumWage.esicDailyBasicDa"/></label>
+           
             <table class="ControlLayout" cellspacing="0" cellpadding="0">
                     <tbody>
                             <tr>

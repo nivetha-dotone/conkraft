@@ -140,7 +140,7 @@
 
     <!-- Horizontal suggestions -->
     <div id="chatSuggestions"
-         class="chatbot-suggestions">
+         class="chatbot-suggestions" data-show-active-contractors="<%= user != null && !"Contractor".equals(roleName) %>">
 
         <button type="button"
                 class="suggestion-button"

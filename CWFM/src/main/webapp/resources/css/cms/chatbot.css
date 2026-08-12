@@ -142,6 +142,7 @@
 
     cursor: move;
     user-select: none;
+    margin-top: -23px;
 }
 
 .chatbot-header-left {
@@ -953,6 +954,7 @@
     .chatbot-header {
         min-height: 62px;
         padding: 9px 13px;
+        margin-top: -23px;
     }
 
     .chatbot-avatar {
@@ -1009,6 +1011,7 @@
 
     .chatbot-header {
         cursor: default;
+        margin-top: -23px;
     }
 
     .chatbot-title {
@@ -1190,6 +1193,7 @@
 
 .chatbot-header {
     cursor: move;
+    margin-top: -23px;
 }
 
 .chatbot-language-wrapper,

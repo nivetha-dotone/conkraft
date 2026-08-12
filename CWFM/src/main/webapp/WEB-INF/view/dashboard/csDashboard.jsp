@@ -840,9 +840,9 @@ display: flex;
   <div class="section chart-section">
     <div class="sec-header">
       <span>WORKFORCE DISTRIBUTION</span>
-      <select>
+      <!-- <select>
         <option>All Plants</option>
-      </select>
+      </select> -->
     </div>
     <div  style="height:200px;" class="chart-box">
       <canvas id="plantChart"></canvas>

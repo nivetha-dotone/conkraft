@@ -506,7 +506,6 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
-
 </style>
 
 </head>
@@ -671,9 +670,9 @@
 <div class="section chart-section">
     <div class="sec-header">
       <span>WORKFORCE DISTRIBUTION</span>
-      <select>
+      <!-- <select>
         <option>All Plants</option>
-      </select>
+      </select> -->
     </div>
     <div  style="height:200px;" class="chart-box">
       <canvas id="plantChart"></canvas>
@@ -876,7 +875,7 @@
     <c:if test="${isHR || isSystemAdmin}">
         <!-- <div class="sec-label">Active Work Orders</div> -->
         <div class="sec-header"><span>ACTIVE WORK ORDERS</span></div>
-        <div class="card warn">
+        <div class="card highlight-card">
             <div class="ct">
                 Active Work Orders per Plant
                 <span class="view-all" onclick="openCommonPopup('activeWOModal')">View All</span>

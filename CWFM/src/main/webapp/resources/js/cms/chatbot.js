@@ -962,8 +962,24 @@ function renderSuggestions(suggestions) {
     var container =
         $("#chatSuggestions");
 
+  if (!container.length) {
+        return;
+    }
+    
+     /*
+     * Read the permission that came from JSP.
+     */
+    var showActiveContractors =
+        String(
+            container.attr("data-show-active-contractors")
+        ).toLowerCase() === "true";
+        
     container.empty();
 
+  if (!Array.isArray(suggestions)) {
+        return;
+    }
+      
     $.each(suggestions, function (index, item) {
 
         var question =
@@ -975,6 +991,15 @@ function renderSuggestions(suggestions) {
             return;
         }
 
+      if (
+            question.trim().toLowerCase() ===
+                "active contractors" &&
+            !showActiveContractors
+        ) {
+
+            return;
+        }
+        
         var button =
             $("<button>", {
                 type: "button",
