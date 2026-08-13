@@ -313,7 +313,41 @@ label {
    .ui-datepicker .ui-datepicker-header {
     position: relative;
     padding: .2em 0;
-}     
+}   
+#loaderOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ddd;
+    border-top: 6px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loader-text {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}  
     </style>
    
 		 <%
@@ -343,7 +377,10 @@ label {
       
         </div> 
     </div> 
-
+<div id="loaderOverlay" style="display:none;">
+    <div class="loader"></div>
+    <div class="loader-text">please wait...</div>
+</div>
        
 <div id="tab1" class="tab-content active ">
 

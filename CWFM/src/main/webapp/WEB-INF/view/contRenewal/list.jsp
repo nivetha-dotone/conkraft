@@ -12,7 +12,23 @@
 
 
  <style>
- 
+  .success {
+            color: green;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #e0ffe0;
+            border: 1px solid green;
+            margin-bottom: 1rem;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #ffe0e0;
+            border: 1px solid red;
+            margin-bottom: 1rem;
+        }
  
     body {
         background-color: #FFFFFF; /* White background for the page */
@@ -220,6 +236,7 @@
     	</c:if>
     </div>
 	</div>
+	<div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
 	<div class="table-container">
 		<table id="contractorlisttable" cellspacing="0" cellpadding="0">
 			<thead>

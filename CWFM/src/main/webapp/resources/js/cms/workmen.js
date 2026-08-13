@@ -1166,11 +1166,11 @@ const policeVerificationDate = $("#policeVerificationDate").val().trim();
                 trainingToDate:row.find(".trainingToDate").val(),
                 fromTime:row.find(".fromTime").val(),
                 toTime:row.find(".toTime").val(),
-                faculty:row.find(".faculty").val(),
+                faculty:toTitleCase(row.find(".faculty").val()),
                 marks:row.find(".marks").val(),
                 efficency:row.find(".efficency").val(),
                 nextTrainingDate:row.find(".nextTrainingDate").val(),
-                remarks:row.find(".remarks").val()
+                remarks: toTitleCase(row.find(".remarks").val())
             };
              //OPTIONAL:SKIP EMPTY ROWS
             if (trainingObj.trainingType !== ""|| trainingObj.trainingName !== "") {
@@ -7138,4 +7138,16 @@ function redirectToFullTimeContractorWorkmenViewLink(transactionId, status) {
     xhr.open("GET", "/CWFM/contractworkmen/viewFullTimeContractor/" + encodeURIComponent(transactionId), true);
 
     xhr.send();
+}
+function toTitleCase(value) {
+    if (!value) {
+        return "";
+    }
+
+    return value
+        .trim()
+        .toLowerCase()
+        .replace(/\b\w/g, function(char) {
+            return char.toUpperCase();
+        });
 }

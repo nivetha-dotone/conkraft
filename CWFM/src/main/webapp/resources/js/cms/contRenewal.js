@@ -177,10 +177,43 @@ function toCapitalCase(str) {
        return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
    }
 function saveRenewalDetails() {
+showLoader();
+$("#docTabGlobalError").hide().text("");
+    $("label[id^='error-']").hide();
+    let basicValid = true;
+    let documentsForRenewalFields = true;
+    
     // Step 1: Optional validations
-    if (!validateFormData()) return;
-    if (!validateDocumentsForRenewal()) return;
+    //if (!validateFormData()) return;
+    if (!validateFormData()){
+     basicValid = false;
+        hideLoader();
+    }
+   // if (!validateDocumentsForRenewal()) return;
+   if (!validateDocumentsForRenewal()){
+     documentsForRenewalFields = false;
+        hideLoader();
+    }
+    
+    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
+    let errorTabs = [];
 
+    if (!basicValid) errorTabs.push("Basic");
+    if (!otherFields) errorTabs.push("License");
+
+    // If any tab has errors → show message in Documents tab
+    if (errorTabs.length > 0) {
+
+        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+
+        $("#docTabGlobalError")
+            .text(msg)
+            .show();
+
+        hideLoader();
+        return;
+    }
+    
     const data = new FormData();
 
     const aadharFile = $("#aadharDocId").prop("files")[0];
@@ -272,17 +305,23 @@ function saveRenewalDetails() {
     xhr.open("POST", "/CWFM/renewal/save", true);
 
     xhr.onload = function () {
+    hideLoader();
         if (xhr.status === 200) {
-            alert("Renewal saved successfully!");
-            loadCommonList('/renewal/list', 'Contractor Renewal List');
+            //alert("Renewal saved successfully!");
+             console.log("Contractor Renewal saved successfully:", xhr.responseText);
+		     sessionStorage.setItem("successMessage", "Contractor Renewal saved successfully!");
+             loadCommonList('/renewal/list', 'Contractor Renewal List');
         } else {
-            alert("Failed to save renewal.");
+            //alert("Failed to save renewal.");
+            sessionStorage.setItem("errorMessage", "Failed to save contractor Renewal!");
             console.error("Error:", xhr.status, xhr.responseText);
         }
     };
 
     xhr.onerror = function () {
-        alert("Error occurred while saving renewal.");
+        //alert("Error occurred while saving renewal.");
+        sessionStorage.setItem("errorMessage", "Error occurred while saving contractor renewal.");
+        hideLoader();
     };
 
     xhr.send(data);
@@ -380,6 +419,7 @@ function validateDocumentsForRenewal() {
 }
 
 function saveTab2AndGoToTab3() {
+showLoader();
 	$("#docTabGlobalError").hide().text("");
     $("label[id^='error-']").hide();
     
@@ -388,9 +428,11 @@ function saveTab2AndGoToTab3() {
     
      if (!validateFormData()) {
         basicValid = false;
+         hideLoader();
     }
      if (!validateDocumentsForRenewal()) {
         otherFields = false;
+         hideLoader();
     }
    
    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
@@ -482,8 +524,10 @@ function saveTab2AndGoToTab3() {
     xhr.open("POST", "/CWFM/renewal/save", true);
 
     xhr.onload = function () {
+     hideLoader();
         if (xhr.status === 200) {
-            alert("Basic & license info saved successfully.");
+            //alert("Basic & license info saved successfully.");
+            sessionStorage.setItem("successMessage", "Basic & license info saved successfully!");
 			// ✅ Disable all fields in tab1 and tab2
 			    disableTabs(['tab1', 'tab2']);
 
@@ -492,7 +536,9 @@ function saveTab2AndGoToTab3() {
 			    if (saveButton) saveButton.style.display = 'none';
             populateTab3Data(jsonData.contractorId, jsonData.principalEmployer,jsonData.vendorCode,jsonData.contractorregId);
         } else {
-            alert("Error saving.");
+            //alert("Error saving.");
+            sessionStorage.setItem("errorMessage", "Failed to save Basic & license Information!");
+             hideLoader();
         }
     };
     xhr.send(data);
@@ -584,10 +630,12 @@ function saveWorkOrderInfo() {
     })
     .then(res => {
         if (res.ok) {
-            alert("Work order info saved.");
+            //alert("Work order info saved.");
+            sessionStorage.setItem("successMessage", "Contractor Renewal Saved Successfully!");
             loadCommonList("/renewal/listingFilter", "Contractor Renewal List");
         } else {
-            alert("Failed to save work order info.");
+            //alert("Failed to save work order info.");
+            sessionStorage.setItem("errorMessage", "Failed to Save Contractor Renewal!");
         }
     });
 }
@@ -665,13 +713,15 @@ function searchContRenewBasedOnPE() {
     });
 }
 					function approveRejectContRenew(status){
+					                        showLoader();
 											let isValid=true;
 										
 											 const approvercomments = $("#approvercomments").val().trim();
 										if (approvercomments === "" && status==5) {
 										    $("#error-approvercomments").show();
-										    alert("Comments Required in Comments");
+										    alert("Comments Required in Comments Tab");
 										    isValid = false;
+										     hideLoader();
 										}else{
 											$("#error-approvercomments").hide();
 										}
@@ -690,23 +740,25 @@ function searchContRenewBasedOnPE() {
 										xhr.open("POST", "/CWFM/renewal/approveRejectContRenew", true); // Replace with your actual controller URL
 										xhr.setRequestHeader("Content-Type", "application/json"); // Set content type for JSON
 										xhr.onload = function() {
+										 hideLoader();
 										    if (xhr.status === 200) {
 										        // Handle successful response
 										        console.log("Data saved successfully:", xhr.responseText);
 												sessionStorage.setItem("successMessage", "Contractor Renewal approved/rejected successfully!");
-										      
 										                loadCommonList('/renewal/listingFilter', 'Contractor Renewal');
 										            
 										    } else {
 										        // Handle error response
 										        console.error("Error saving data:", xhr.statusText);
 												sessionStorage.setItem("errorMessage", "Failed to approve/reject Contractor Renewal!");
+												 hideLoader();
 										    }
 										};
 
 										xhr.onerror = function() {
 										    console.error("Request failed");
 											sessionStorage.setItem("errorMessage", "Failed to approve/reject Contractor Renewal!");
+											 hideLoader();
 										};
 
 										// Send the data object as a JSON string
@@ -801,4 +853,11 @@ function redirectToContractorRenewViewById(contractorregId) {
 
     xhr.open("GET", "/CWFM/renewal/view/" + contractorregId, true);
     xhr.send();
+}
+function showLoader() {
+    document.getElementById("loaderOverlay").style.display = "flex";
+}
+
+function hideLoader() {
+    document.getElementById("loaderOverlay").style.display = "none";
 }

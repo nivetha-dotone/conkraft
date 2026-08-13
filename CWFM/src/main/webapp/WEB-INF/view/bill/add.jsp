@@ -290,7 +290,40 @@ label {
             max-height: 100%;
         }
        
-        
+   #loaderOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ddd;
+    border-top: 6px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loader-text {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}     
     </style>
      <%
     MasterUser user = (MasterUser) session.getAttribute("loginuser");
@@ -400,6 +433,10 @@ label {
           <button type="submit" class="btn btn-default process-footer-button-cancel ng-binding" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification List');">Cancel</button>
     </div> 
     </div>
+        <div id="loaderOverlay" style="display:none;">
+    <div class="loader"></div>
+    <div class="loader-text">please wait...</div>
+</div>
         <div id="tab1" class="tab-content active">
         
     <table class="ControlLayout" cellspacing="0" cellpadding="0">
@@ -540,7 +577,7 @@ label {
         <tbody>
              <c:forEach var="report" items="${kronosReports}">
             <tr><td><label  style="font-size: 100%;font-weight: bold;padding;8px;color: #898989;"><span class="required-field">*</span>${report.reportName}</label></td>
-            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf"   data-report-name="${report.reportName}" onchange="showFileNameBill(this, '${report.id}')"/>
+            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf,image/jpeg,image/png"   data-report-name="${report.reportName}" onchange="showFileNameBill(this, '${report.id}')"/>
         	<span id="fileName_${report.id}" style="margin-left:10px;color: black;"></span></td></tr>
         </c:forEach>
             <label id="error-kronosFile" style="color:red; display:none; margin-top:8px;">All Kronos reports are mandatory</label>
@@ -556,7 +593,7 @@ label {
             <tbody>
             	<c:forEach var="stat" items="${statutoryReports}">
            <tr><td> <label  style="font-size: 100%;font-weight: bold;padding;8px;color: #898989;"><span class="required-field">*</span>${stat.attachmentName}</label></td>
-            <td><input type="file" name="statutoryFile_${stat.id}" id="statutoryFile_${stat.id}" accept="application/pdf" onchange="showFileNameBill0(this, '${stat.id}')"/>
+            <td><input type="file" name="statutoryFile_${stat.id}" id="statutoryFile_${stat.id}" accept="application/pdf,image/jpeg,image/png" onchange="showFileNameBill0(this, '${stat.id}')"/>
         	<span id="statfileName_${stat.id}" style="margin-left:10px;color: black;"></span></td></tr>
         </c:forEach>
         <label id="error-statutoryFile" style="color:red; display:none; margin-top:8px;">All Statutory attachments are mandatory</label>

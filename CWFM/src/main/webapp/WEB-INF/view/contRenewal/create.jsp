@@ -17,6 +17,23 @@
    
     <script src="resources/js/jquery.min.js"></script>
     <style>
+      .success {
+            color: green;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #e0ffe0;
+            border: 1px solid green;
+            margin-bottom: 1rem;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            padding: 10px;
+            background-color: #ffe0e0;
+            border: 1px solid red;
+            margin-bottom: 1rem;
+        }
   body {
     margin: 0;
     overflow-x: hidden;
@@ -335,6 +352,40 @@ label {
     position: relative;
     padding: .2em 0;
 }
+#loaderOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #ddd;
+    border-top: 6px solid #1976d2;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loader-text {
+    margin-top: 15px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
     </style>
    
 		 <%
@@ -366,7 +417,10 @@ label {
         </div> 
     </div> 
 
-       
+       <div id="loaderOverlay" style="display:none;">
+    <div class="loader"></div>
+    <div class="loader-text">please wait...</div>
+</div>
 <div id="tab1" class="tab-content active ">
 
     <table cellspacing="0" cellpadding="0">
@@ -594,8 +648,8 @@ label {
 
  <div  class="tab-content "><spring:message code="label.additionalDocumets"/></div>
             <div id="tab2" class="tab-content  ">
-            <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;">
-</div>
+             <div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
+            <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;"></div>
             <div id="validationMessages" style="color: red; font-weight: bold; padding: 10px;"></div>
             <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;background-color: aliceblue;">
                    

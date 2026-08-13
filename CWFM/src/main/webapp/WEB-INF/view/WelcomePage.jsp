@@ -2179,6 +2179,16 @@ console.log(selectedRoleName);//role name (eic)
       }
 	      }, 500); // small delay ensures canvases are ready
 	    })  */
+	    
+	 // ✅ Reset header to match login style
+	      const headingElement = document.querySelector('.top-nav .center-heading');
+	      if (headingElement) {
+	        headingElement.innerHTML = `
+	          <div class="heading-main">CONKRAFT</div>
+	          <div class="heading-sub">Contract Labor Management System</div>
+	        `;
+	      }
+	      
 	      // ✅ Wait for DOM update before initializing charts
 	      setTimeout(() => {
 	        console.log("✅ Dashboard HTML injected, initializing charts...");

@@ -896,7 +896,7 @@ function validateRenewFormData() {
 
 		
 	function saveRegistrationDetails() {
-		
+		showLoader();
 		$("#docTabGlobalError").hide().text("");
     $("label[id^='error-']").hide();
     
@@ -905,9 +905,11 @@ function validateRenewFormData() {
     
      if (!validateFormData()) {
         basicValid = false;
+        hideLoader();
     }
      if (!validateDocuments()) {
         otherFields = false;
+        hideLoader();
     }
    
    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
@@ -1043,17 +1045,24 @@ function validateRenewFormData() {
     xhr.open("POST", "/CWFM/contractor/saveReg", true);
 
     xhr.onload = function () {
+    hideLoader();
         if (xhr.status === 200) {
-            alert("Contractor saved successfully!");
-            loadCommonList('/contractor/contRegList', 'Contractor Master');
+            //alert("Contractor saved successfully!");
+            //loadCommonList('/contractor/contRegList', 'Contractor Master');
+                console.log("Contractor saved successfully:", xhr.responseText);
+				sessionStorage.setItem("successMessage", "Contractor Master saved successfully!");
+				loadCommonList('/contractor/contRegList', 'Contractor Master');
         } else {
-            alert("Failed to save contractor.");
+            //alert("Failed to save contractor.");
             console.error("Error:", xhr.status, xhr.responseText);
+            sessionStorage.setItem("errorMessage", "Failed to save contractor Master!");
         }
     };
 
     xhr.onerror = function () {
-        alert("Error occurred while saving contractor.");
+        //alert("Error occurred while saving contractor.");
+        sessionStorage.setItem("errorMessage", "Error occurred while saving contractor.");
+        hideLoader();
     };
 
     xhr.send(data);
@@ -1508,4 +1517,11 @@ function redirectToContractorRegViewById(contractorregId) {
         true);
 
     xhr.send();
+}
+function showLoader() {
+    document.getElementById("loaderOverlay").style.display = "flex";
+}
+
+function hideLoader() {
+    document.getElementById("loaderOverlay").style.display = "none";
 }

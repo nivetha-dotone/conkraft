@@ -344,7 +344,7 @@ function setDates(selectElement){
 }
 
 function saveBtn() {
-	
+	showLoader();
 	$("#docTabGlobalError").hide().text("");
     $("label[id^='error-']").hide();
     
@@ -354,12 +354,15 @@ function saveBtn() {
     
      if (!validateBillFormData()) {
         basicValid = false;
+        hideLoader();
     }
      if (!validateMandatoryFiles()) {
         filesValid = false;
+        hideLoader();
     }
      if (!validateStatutoryMandatoryFiles()) {
         statutoryfilesValid = false;
+        hideLoader();
     }
     
 	
@@ -467,27 +470,35 @@ function saveBtn() {
 	    processData: false,
 	    contentType: false,
 	    success: function (response, status, xhr) {
-
+        hideLoader();
 	        if (xhr.status === 200) {
-	            alert('Saved successfully!');
+	           // alert('Saved successfully!');
+	            console.log("Bill Verification saved successfully");
+	            sessionStorage.setItem("successMessage", "Bill Verification saved successfully!");
 	            loadCommonList('/billVerification/listingFilter', 'Bill Verification List');
 	        } else {
 	            alert('Unexpected response: ' + xhr.status);
+	            hideLoader();
 	        }
 	    },
 	    error: function (xhr) {
 
 	        // 204 No Content
 	        if (xhr.status === 204) {
-	            alert("Save failed: No data saved (204)");
-	            return;
+	            //alert("Save failed: No data saved (204)");
+	            //return;
+	            sessionStorage.setItem("errorMessage", "Failed to saveBill Verification!");
+                console.error("Error:", xhr.status, xhr.responseText);
+	            hideLoader();
 	        }
 
 	        // 500 + any error with message
 	        if (xhr.responseText) {
 	            alert("Error: " + xhr.responseText);
+	            hideLoader();
 	        } else {
 	            alert("Error occurred. Status: " + xhr.status);
+	            hideLoader();
 	        }
 	    }
 	});
@@ -616,13 +627,15 @@ function showFileNameBill(input, id) {
 
 
 					function approveRejectBill(status){
+					    showLoader();
 						let isValid=true;
 					
 						 const approvercomments = $("#approvercomments").val().trim();
 					if (approvercomments === "" && status==5) {
 					    $("#error-approvercomments").show();
-					    alert("Comments Required in Comments");
+					    alert("Comments Required in Comments Tab");
 					    isValid = false;
+					    hideLoader();
 					}else{
 						$("#error-approvercomments").hide();
 					}
@@ -641,11 +654,11 @@ function showFileNameBill(input, id) {
 					xhr.open("POST", "/CWFM/billVerification/approveRejectBill", true); // Replace with your actual controller URL
 					xhr.setRequestHeader("Content-Type", "application/json"); // Set content type for JSON
 					xhr.onload = function() {
+					hideLoader();
 					    if (xhr.status === 200) {
 					        // Handle successful response
 					        console.log("Data saved successfully:", xhr.responseText);
-							sessionStorage.setItem("successMessage", "Bill approved/rejected successfully!");
-					      
+							sessionStorage.setItem("successMessage", "Bill Verification approved/rejected successfully!");
 					                loadCommonList('/billVerification/listingFilter', 'Bill Verification');
 					            
 					    } else {
@@ -658,6 +671,7 @@ function showFileNameBill(input, id) {
 					xhr.onerror = function() {
 					    console.error("Request failed");
 						sessionStorage.setItem("errorMessage", "Failed to approve/reject Bill!");
+						hideLoader();
 					};
 
 					// Send the data object as a JSON string
@@ -1063,4 +1077,11 @@ function redirectToBillViewById(transactionId) {
     xhr.open("GET", "/CWFM/billVerification/view/" + transactionId, true);
 
     xhr.send();
+}
+function showLoader() {
+    document.getElementById("loaderOverlay").style.display = "flex";
+}
+
+function hideLoader() {
+    document.getElementById("loaderOverlay").style.display = "none";
 }

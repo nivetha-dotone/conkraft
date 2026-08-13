@@ -18,6 +18,7 @@
     <script src="resources/js/cms/report.js"></script>
     <script src="resources/js/cms/bill.js"></script>
     <style>
+    
   body {
     margin: 0;
     overflow-x: hidden;
