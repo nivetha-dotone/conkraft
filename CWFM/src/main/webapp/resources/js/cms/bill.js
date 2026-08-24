@@ -933,135 +933,436 @@ function autoSelectAndTriggerBill(selectId) {
         select.dispatchEvent(new Event("change"));
     }
 }
-$(document).on("change", "select[name='statusValue']", function () {
+ // SPECIAL LICENSE CHECKPOINT
 
-    const row = $(this).closest("tr");
-    const statusText = $(this).find("option:selected").text().trim();
-    const licenseInput = row.find(".license-input");
-    const checkpointName = licenseInput.data("checkpoint");
+const SPECIAL_LICENSE_CHECKPOINT =
+    "Licence copy obtained by Vendor under Contract Labour Act 1970.";
 
-    const workOrder = $("#workorder option:selected").text().trim();
 
-const normalize = (str) =>
-    (str || "")
-        .toLowerCase()
-        .replace(/\./g, "")   // remove only dots
+ // NORMALIZE CHECKPOINT NAME
+function normalizeCheckpoint(value) {
+
+    return (value || "")
+        .toString()
+        .replace(/\u00A0/g, " ")       // non-breaking space
+        .replace(/\s+/g, " ")          // multiple spaces -> one
+        .replace(/\./g, "")            // remove dots
+        .trim()
+        .toLowerCase();
+}
+
+
+ // CHECK WHETHER THIS IS THE SPECIAL LICENSE CHECKPOINT
+function isSpecialLicenseCheckpoint(checkpointName) {
+
+    return normalizeCheckpoint(checkpointName) ===
+           normalizeCheckpoint(SPECIAL_LICENSE_CHECKPOINT);
+}
+
+
+ //GET LICENSE CELL
+function getLicenseCell(row) {
+
+    return row.find(".license-cell");
+}
+
+ // GET VALID UPTO INPUT
+function getValidUptoInput(row) {
+
+    return row.find(".valid-upto-input");
+}
+
+ // CREATE NORMAL TEXTBOX
+function createLicenseTextbox(row) {
+
+    const licenseCell = getLicenseCell(row);
+
+    // Get existing input name before replacing
+    let inputName = licenseCell.find("input, select").attr("name");
+
+    if (!inputName) {
+
+        const id = row.find("input[type='hidden']")
+                     .attr("name")
+                     .replace("id_", "");
+
+        inputName = "licenseNumber_" + id;
+    }
+
+    licenseCell.html(
+        '<input type="text" ' +
+        'class="license-input" ' +
+        'name="' + inputName + '" ' +
+        'placeholder="Enter License Number" />'
+    );
+}
+
+
+ // RESET VALID UPTO TO MANUAL MODE
+
+function resetValidUpto(row) {
+
+    const input = getValidUptoInput(row);
+
+    if (!input.length) {
+        return;
+    }
+
+    // Clear auto populated value
+    input.val("");
+
+    // Remove auto mode
+    input
+        .prop("readonly", false)
+        .removeAttr("data-auto");
+
+    // Recreate datepicker
+    if (input.hasClass("hasDatepicker")) {
+
+        input.datepicker("destroy");
+    }
+
+    input.datepicker({
+        dateFormat: "yy-mm-dd"
+    });
+}
+
+
+ //SET VALID UPTO AUTO MODE
+
+function setValidUptoAuto(row, date) {
+
+    const input = getValidUptoInput(row);
+
+    if (!input.length) {
+        return;
+    }
+
+    // Destroy calendar
+    if (input.hasClass("hasDatepicker")) {
+
+        input.datepicker("destroy");
+    }
+
+    // Set auto date
+    input
+        .val(date)
+        .prop("readonly", true)
+        .attr("data-auto", "1");
+}
+
+
+ // LOAD LICENSE DROPDOWN
+
+function loadLicenseDropdown(row) {
+
+    const workOrder = $("#workorder option:selected")
+        .text()
         .trim();
-        
-    // TARGET CONDITION
-    if (
-    normalize(checkpointName) === normalize("Licence copy obtained by Vendor under Contract Labour Act 1970.")
-    && statusText.toLowerCase() === "yes"
-){
 
-        if (!workOrder) {
-            alert("Please select Work Order first.");
-            $(this).val(""); // reset
+    if (!workOrder) {
+
+        alert("Please select Work Order first.");
+
+        row.find(".statusValue").val("");
+
+        return;
+    }
+
+    const licenseCell = getLicenseCell(row);
+
+    const existingElement =
+        licenseCell.find("input, select").first();
+
+    let inputName = existingElement.attr("name");
+
+    if (!inputName) {
+
+        const id = row.find("input[type='hidden']")
+                     .attr("name")
+                     .replace("id_", "");
+
+        inputName = "licenseNumber_" + id;
+    }
+
+    // Show loading state
+    licenseCell.html(
+        '<select class="license-dropdown" ' +
+        'name="' + inputName + '">' +
+        '<option value="">Loading licenses...</option>' +
+        '</select>'
+    );
+
+    $.ajax({
+
+        url: "/CWFM/billVerification/getLicenseNumbers",
+
+        method: "GET",
+
+        data: {
+            workOrder: workOrder
+        },
+
+        success: function (response) {
+
+            const dropdown =
+                licenseCell.find(".license-dropdown");
+
+            dropdown.empty();
+
+            dropdown.append(
+                '<option value="">Select License</option>'
+            );
+
+            if (response && response.length > 0) {
+
+                response.forEach(function (item) {
+
+                    dropdown.append(
+                        $("<option>", {
+                            value: item.id,
+                            text: item.licenseNumber
+                        })
+                    );
+
+                });
+
+            } else {
+
+                dropdown.append(
+                    '<option value="">No licenses available</option>'
+                );
+            }
+
+        },
+
+        error: function () {
+
+            alert("Failed to load license numbers.");
+
+            // Restore textbox
+            createLicenseTextbox(row);
+
+            // Manual valid upto
+            resetValidUpto(row);
+        }
+    });
+}
+
+
+ // STATUS CHANGE
+
+$(document).on(
+    "change",
+    "select.statusValue",
+    function () {
+
+        const statusSelect = $(this);
+
+        const row = statusSelect.closest("tr");
+
+         // IMPORTANT:Get checkpoint from TR.Do NOT get it from .license-input because.license-input can be replaced by .license-dropdown.
+        const checkpointName =
+            row.attr("data-checkpoint") || "";
+
+        const statusText =
+            statusSelect
+                .find("option:selected")
+                .text()
+                .trim();
+
+        console.log(
+            "Checkpoint:",
+            checkpointName,
+            "Status:",
+            statusText
+        );
+
+
+         // ONLY THIS CHECKPOINT GETS LICENSE DROPDOWN
+
+        if (
+            isSpecialLicenseCheckpoint(checkpointName) &&
+            statusText.toLowerCase() === "yes"
+        ) {
+
+            console.log(
+                "SPECIAL LICENSE CHECKPOINT + YES"
+            );
+
+            loadLicenseDropdown(row);
+
+             // Don't allow previous manual date to remain.
+            const validInput = getValidUptoInput(row);
+
+            if (validInput.length) {
+
+                validInput.val("");
+
+                validInput
+                    .prop("readonly", false)
+                    .removeAttr("data-auto");
+            }
+
             return;
         }
 
-        // 🔁 Call API to get license numbers
+
+         //ACEPT Licence copy obtained by Vendor under Contract Labour Act 1970 MUST HAVE TEXTBOX + MANUAL CALENDAR
+
+        console.log(
+            "Normal license textbox mode"
+        );
+
+         // If dropdown currently exists,convert it back to textbox.
+        if (row.find(".license-dropdown").length > 0) {
+
+            createLicenseTextbox(row);
+        }
+
+         //Enable manual valid-upto calendar.
+        resetValidUpto(row);
+    }
+);
+
+ // LICENSE DROPDOWN CHANGE
+ // This event is ONLY possible for the special checkpoint.
+
+$(document).on(
+    "change",
+    ".license-dropdown",
+    function () {
+
+        const dropdown = $(this);
+
+        const row = dropdown.closest("tr");
+
+        const checkpointName =
+            row.attr("data-checkpoint") || "";
+
+         // Safety check: Never process license date for another checkpoint.
+        if (!isSpecialLicenseCheckpoint(checkpointName)) {
+
+            console.warn(
+                "Ignoring license dropdown for non-license checkpoint."
+            );
+
+            return;
+        }
+
+        const licenseNumber =
+            dropdown
+                .find("option:selected")
+                .text()
+                .trim();
+
+
+        const validInput =
+            getValidUptoInput(row);
+
+
+        if (!validInput.length) {
+            return;
+        }
+
+        //No license selected 
+        if (
+            !licenseNumber ||
+            licenseNumber === "Select License" ||
+            licenseNumber === "No licenses available"
+        ) {
+
+            resetValidUpto(row);
+
+            return;
+        }
+
+
+        console.log(
+            "Selected License:",
+            licenseNumber
+        );
+
+         // Get license validity date
         $.ajax({
-            url: "/CWFM/billVerification/getLicenseNumbers",
+
+            url:
+                "/CWFM/billVerification/getLicenseValidDate",
+
             method: "GET",
-            data: { workOrder: workOrder },
+
+            data: {
+                licenseNumber: licenseNumber
+            },
 
             success: function (response) {
 
-                // Replace input with dropdown
-                let dropdown = `<select name="${licenseInput.attr("name")}" class="license-dropdown">
-                                    <option value="">Select License</option>`;
+                console.log(
+                    "License valid date response:",
+                    response
+                );
 
-                response.forEach(function (item) {
-                    dropdown += `<option value="${item.id}">${item.licenseNumber}</option>`;
-                });
 
-                dropdown += `</select>`;
+                let date = "";
 
-                licenseInput.replaceWith(dropdown);
+
+                if (typeof response === "string") {
+
+                    date = response;
+
+                } else if (
+                    response &&
+                    response.wcToDtm
+                ) {
+
+                    date = response.wcToDtm;
+                }
+
+                 // If date exists
+                if (date) {
+
+                     // Example:2027-09-12 00:00:00  becomes:2027-09-12
+                    date =
+                        date
+                            .toString()
+                            .split(" ")[0]
+                            .trim();
+
+                    setValidUptoAuto(
+                        row,
+                        date
+                    );
+
+                } else {
+
+                     // No date from server:allow manual calendar
+                    resetValidUpto(row);
+                }
             },
 
             error: function () {
-                alert("Failed to load license numbers");
+
+                console.error(
+                    "Failed to get license valid date."
+                );
+
+                resetValidUpto(row);
             }
         });
-
-    } 
-    else {
-    // revert back to textbox if changed back
-    if (licenseInput.length === 0) {
-
-        const id = row.find("input[type='hidden']").attr("name").split('_')[1];
-
-        // ✅ Replace dropdown with textbox
-        row.find("td:eq(2)").html(
-            `<input type="text" 
-                class="license-input"
-                data-checkpoint="Licence copy obtained by Vendor under Contract Labour Act 1970"
-                name="licenseNumber_${id}"
-                placeholder="Enter License Number" />`
-        );
-
-        // ✅ RESET VALID UPTO FIELD (IMPORTANT FIX)
-        const validUptoInput = row.find("input[name^='validUpto_']");
-
-        validUptoInput.val("");                // clear old auto date
-        toggleCalendar(validUptoInput, false); // 🔓 enable calendar
     }
-}
-});
+);
 
-$(document).on("change", ".license-dropdown", function () {
 
-    const row = $(this).closest("tr");
-    const licenseNumber = $(this).find("option:selected").text().trim();
-    const input = row.find("input[name^='validUpto_']");
+ // PREVENT EDITING AUTO DATE
 
-    if (!licenseNumber) return toggleCalendar(input, false);
+$(document).on(
+    "focus",
+    "input.valid-upto-input[data-auto='1']",
+    function () {
 
-    $.get("/CWFM/billVerification/getLicenseValidDate", { licenseNumber })
-        .done(function (res) {
-
-            let date = (typeof res === "string") ? res : res?.wcToDtm;
-
-            if (date) {
-                input.val(date.split(" ")[0]);
-                toggleCalendar(input, true);  // 🔒 disable
-            } else {
-                toggleCalendar(input, false); // 🔓 enable
-            }
-        })
-        .fail(() => toggleCalendar(input, false));
-});
-function toggleCalendar(input, disable) {
-
-    if (disable) {
-        // 🔒 AUTO MODE
-        input.prop("readonly", true).attr("data-auto", "1");
-
-        if (input.hasClass("hasDatepicker")) {
-            input.datepicker("destroy");
-        }
-
-    } else {
-        // 🔓 MANUAL MODE
-
-        // ✅ CLEAR OLD AUTO VALUE (THIS IS YOUR FIX)
-        if (input.attr("data-auto") === "1") {
-            input.val("");   // ← clears previous auto date
-        }
-
-        input.prop("readonly", false).removeAttr("data-auto");
-
-        if (!input.hasClass("hasDatepicker")) {
-            input.datepicker(); // re-enable calendar
-        }
+        this.blur();
     }
-}
-$(document).on("focus", "input[name^='validUpto_'][data-auto='1']", function (e) {
-    e.preventDefault();
-    this.blur();
-});
+);
 function redirectToBillViewById(transactionId) {
 
     var xhr = new XMLHttpRequest();

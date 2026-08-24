@@ -603,48 +603,96 @@ label {
                 
             </div>
         <div id="tab4" class="tab-content">
-            <table cellspacing="0" cellpadding="0" style="width:100%;border: 1px solid #ddd;color:black;">
-               <thead>
-               <tr style="color: #898989;font-weight: bold;">
-               
-               	<td>Check points </td>
-               	<td>Status Y/N </td>
-               	<td>License No./Policy No./Code No. </td>
-               	<td>Date of Compliance/Valid Upto </td>
-               </tr>
-               </thead>    
-            <tbody>
-				<c:forEach var="item" items="${checklistItems}">
-            <tr style="color: #898989;"><td> <input type="hidden" name="id_${item.id}">${item.checkpointName}</td>
-            	<td> <select class="custom-select" id="statusValue" name="statusValue"  >
-                                <option value="">Please select status</option>
-								<c:forEach var="status" items="${ChecklistStatus}">
-								
-                					<option value="${status.gmId}">${status.gmName}</option>
-            					</c:forEach>
-                                </select> </td>
-            	<%-- <td> <c:if test="${item.licenseRequired}">
-                <input type="text" name="licenseNumber_${item.id}" placeholder="Enter License Number" />
-            </c:if> </td> --%>
-            <td>
-    <c:if test="${item.licenseRequired}">
-        <input type="text"
-               class="license-input"
-               data-checkpoint="${item.checkpointName}"
-               data-id="${item.id}"
-               name="licenseNumber_${item.id}"
-               placeholder="Enter License Number" />
-    </c:if>
-</td>
-            	<td> <c:if test="${item.validUptoRequired}">
-                <input type="text" class="compliancedatetimepicker" name="validUpto_${item.id}"  />
-            </c:if> </td>
+
+    <table cellspacing="0" cellpadding="0"
+           style="width:100%; border:1px solid #ddd; color:black;">
+
+        <thead>
+            <tr style="color:#898989; font-weight:bold;">
+                <td>Check points</td>
+                <td>Status Y/N</td>
+                <td>License No./Policy No./Code No.</td>
+                <td>Date of Compliance/Valid Upto</td>
             </tr>
-        </c:forEach>
-   
-      </tbody>
-     </table>
-    </div> 
+        </thead>
+
+        <tbody>
+
+            <c:forEach var="item" items="${checklistItems}">
+
+                <tr  style="color: #898989;" class="checklist-row"
+                    data-checkpoint="${item.checkpointName}">
+
+                    <!-- Checkpoint -->
+                    <td>
+                        <input type="hidden"
+                               name="id_${item.id}"
+                               value="${item.id}" />
+
+                        <span class="checkpoint-name">
+                            ${item.checkpointName}
+                        </span>
+                    </td>
+
+                    <!-- STATUS -->
+                    <td>
+                        <select class="custom-select statusValue"
+                                name="statusValue">
+
+                            <option value="">
+                                Please select status
+                            </option>
+
+                            <c:forEach var="status" items="${ChecklistStatus}">
+
+                                <option value="${status.gmId}">
+                                    ${status.gmName}
+                                </option>
+
+                            </c:forEach>
+
+                        </select>
+                    </td>
+
+                    <!-- LICENSE / POLICY / CODE -->
+                    <td class="license-cell">
+
+                        <c:if test="${item.licenseRequired}">
+
+                            <input type="text"
+                                   class="license-input"
+                                   data-checkpoint="${item.checkpointName}"
+                                   data-id="${item.id}"
+                                   name="licenseNumber_${item.id}"
+                                   placeholder="Enter License Number" />
+
+                        </c:if>
+
+                    </td>
+
+                    <!-- VALID UPTO -->
+                    <td class="valid-upto-cell">
+
+                        <c:if test="${item.validUptoRequired}">
+
+                            <input type="text"
+                                   class="compliancedatetimepicker valid-upto-input"
+                                   name="validUpto_${item.id}"
+                                   autocomplete="off" />
+
+                        </c:if>
+
+                    </td>
+
+                </tr>
+
+            </c:forEach>
+
+        </tbody>
+
+    </table>
+
+</div>
   <div id="tab5" class="tab-content">
    <div id="docTabGlobalError" class="alert alert-danger" style="display:none;font-weight:bold;"></div>
             <div class="Panel">
