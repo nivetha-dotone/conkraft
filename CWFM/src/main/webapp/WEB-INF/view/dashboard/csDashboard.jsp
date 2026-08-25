@@ -801,16 +801,16 @@ display: flex;
       </div>
     </div>
   </div>
-  <!-- <div class="security-banner" id="kpi-security-banner">
+ <div class="security-banner" id="kpi-security-banner">
   <div class="banner-content">
     <div class="banner-left">
       <div class="banner-icon">
         
       </div>
       <div class="banner-text">
-        <div class="title">Securing <span class="highlight">Workforce.</span></div>
+        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
         <div class="title"> 
-        <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a>
+        <!-- <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a> -->
        <a href="javascript:void(0);"
    class="dashboard-tile"
    onclick="openChatBotModal();">
@@ -827,7 +827,7 @@ display: flex;
       <img src='resources/img/ai-image.png' alt="Workforce Security" />
     </div>
   </div>
-</div> -->
+</div> 
 </div>
 </div>
 
