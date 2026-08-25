@@ -358,7 +358,7 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	        	// ---- Workflow ----
 	        	gatePassMain.setGatePassStatus("4");          // 
 	        	gatePassMain.setGatePassAction("CREATE");
-	        	gatePassMain.setWorkFlowType(0);
+	            //gatePassMain.setWorkFlowType(0);
 	        	gatePassMain.setCreatedBy(createdBy);
 	        	gatePassMain.setWorkFlowType(1);
 	        	gatePassMain.setUserId(createdBy);
@@ -398,6 +398,9 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            else if (saveResult.equals("Plant maximum contract workmen count exceeded")) {
 	                errorData.add(Map.of("transactionId", txnId, "error", "Plant maximum contract workmen count exceeded"));
 	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Plant maximum contract workmen count exceeded");
+	            }else if (saveResult.equals("Contractor is Blocked")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "Contractor is Blocked"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Contractor is Blocked");
 	            }
 	            else {
 	                successData.add(Map.of("transactionId", saveResult));

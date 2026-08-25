@@ -3834,7 +3834,15 @@ for (const [key, value] of data.entries()) {
 				sessionStorage.setItem("successMessage", "Gatepass renew request raised successfully!");
                 loadCommonList('/contractworkmen/renewFilter', 'Renew List');
 				//hideLoader();
-            } else {
+            } else if (xhr.status === 400) {  
+				       const msg = xhr.responseText.trim();
+				       console.error("Server validation failed: " + msg);
+					   showLicenseError(msg);
+				       //alert(msg); // or show in UI better
+				       //sessionStorage.setItem("errorMessage", msg);
+					   return;
+				   }
+				   else {
                 console.error("Error saving data:", xhr.status, xhr.responseText);
 				sessionStorage.setItem("errorMessage", "Failed to raise Gatepass renew request!");
             }

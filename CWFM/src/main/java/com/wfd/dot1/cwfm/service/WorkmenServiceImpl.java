@@ -135,7 +135,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 	
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.CREATE.getStatus());
@@ -198,12 +200,16 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowOnboarding;
+			
+			}
+			}else {
+				return allowContractorOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
-			
+			log.info("error saving gatepass for "+ transactionId);
 		}
 		return transactionId;
 	}
@@ -222,6 +228,20 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    }
 
 	    return ALLOW;
+	}
+	
+	private static final String CONTRACTORALLOW = "CONTRACTORALLOW";
+	private static final String CONTRACTORBLOCKED = "Contractor is Blocked";
+
+	private String contractorBlockedCheck(String contractorId) {
+
+	    boolean isBlocked = workmenDao.checkContractorBlocked(contractorId);
+
+	    if (isBlocked) {
+	        return CONTRACTORBLOCKED;
+	    }
+
+	    return CONTRACTORALLOW;
 	}
 	public String workmenCountCheck(GatePassMain gatePassMain) {
 		int activeCount = workmenDao.getActiveWorkmenCount(gatePassMain.getPrincipalEmployer(), gatePassMain.getContractor(), 
@@ -305,13 +325,17 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public String approveRejectGatePass(ApproveRejectGatePassDto dto) {
 		
 		if((dto.getGatePassType().equals(GatePassType.CREATE.getStatus()) || dto.getGatePassType().equals(GatePassType.RENEW.getStatus())
-				|| dto.getGatePassType().equals(GatePassType.BULKRENEW.getStatus()) ) 
+		 || dto.getGatePassType().equals(GatePassType.PROJECT.getStatus()) || dto.getGatePassType().equals(GatePassType.BULKRENEW.getStatus()) ) 
 				&& dto.getStatus().equals(GatePassStatus.APPROVED.getStatus())) {
 			 GatePassMain gatePassMain = workmenDao.getActiveCountDetails(dto.getTransactionId());
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
 			if(!ALLOW.equals(allowPlantOnboarding)) {
 				return allowPlantOnboarding;
+			}
+			if(!CONTRACTORALLOW.equals(allowContractorOnboarding)) {
+				return allowContractorOnboarding;
 			}
 			if(!"allow".equals(allowOnboarding)) {
 				return allowOnboarding;
@@ -970,6 +994,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 	public String renewGatePass(GatePassMain gatePassMain) {
 		String transactionId =gatePassMain.getTransactionId();
 		try {
+			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			if(ALLOW.equals(allowPlantOnboarding)) {
+			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
+			String allowOnboarding = this.workmenCountCheck(gatePassMain);
+			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.RENEW.getStatus());
 			gatePassMain.setWorkFlowType(workFlowTypeId);
 
@@ -1020,6 +1050,15 @@ public class WorkmenServiceImpl implements WorkmenService{
 				workmenDao.saveGatePassStatusLog(dto);
 	
 				
+			}
+			}else {
+				return allowOnboarding;
+			}
+			}else {
+				return allowContractorOnboarding;
+			}
+			}else {
+				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
 			
@@ -1321,7 +1360,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId =gatePassMain.getWorkFlowType();
@@ -1383,7 +1424,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowOnboarding;
-			}}else {
+			}
+			}else {
+				return allowContractorOnboarding;
+			}
+			}else {
 				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
@@ -1398,7 +1443,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
 			int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
@@ -1458,6 +1505,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowOnboarding;
+			}
+			}else {
+				return allowContractorOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;

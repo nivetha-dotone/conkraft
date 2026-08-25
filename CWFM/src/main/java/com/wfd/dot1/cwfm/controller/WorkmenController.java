@@ -615,7 +615,7 @@ return "failed";
             
             
             if (transactionId != null) {
-            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded")) {
+            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked")) {
             		//if user wants we can draft the record
             		//workmenService.draftGatePass(gatePassMain);
                     return new ResponseEntity<>(transactionId, HttpStatus.BAD_REQUEST);
@@ -846,7 +846,7 @@ return "failed";
          try {
         	 result = workmenService.approveRejectGatePass(dto);
          	if(null!=result) {
-         		if (result.contains("mandatory") || result.contains("exceeded")) {
+         		if (result.contains("mandatory") || result.contains("exceeded") || result.contains("Blocked")) {
                     return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
                 }
          		return new ResponseEntity<>(result,HttpStatus.OK);
@@ -2839,7 +2839,11 @@ return "failed";
             }
             }
             transactionId = workmenService.renewGatePass(gatePassMain);
+
             if (transactionId != null) {
+            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked")) {
+                    return new ResponseEntity<>(transactionId, HttpStatus.BAD_REQUEST);
+             }else {
 
             	// String oldTransactionId=workmenDao.getTransactionIdByGatePassId(gatePassMain.getGatePassId());
             	 if (aadharFile != null && !aadharFile.isEmpty() && policeFile!=null && !policeFile.isEmpty() && appointmentFile!=null && !appointmentFile.isEmpty()) {
@@ -2850,10 +2854,10 @@ return "failed";
                      uploadAdditionalDocuments(additionalFiles, documentTypes, String.valueOf(user.getUserId()), transactionId);
                  }
                 return new ResponseEntity<>("contractWorkmen/renewList", HttpStatus.OK);
+             }
             }
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            
-        } catch (Exception e) {
+        }catch (Exception e) {
             log.error("Error saving data: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                  .body("Error saving data: " + e.getMessage());

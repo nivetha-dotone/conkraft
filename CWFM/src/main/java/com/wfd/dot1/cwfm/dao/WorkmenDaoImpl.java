@@ -5384,4 +5384,12 @@ public List<GatePassListingDto> getFullTimeContGatePassListingDetails(
     log.info("Exiting from getGatePassListingDetails dao method {}", listDto.size());
     return listDto;
 }
+@Override
+public boolean checkContractorBlocked(String contractorId) {
+
+    String sql = "SELECT COUNT(*) FROM CMSCONTRACTOR WHERE ISBLOCKED = 1 AND CONTRACTORID = ?";
+
+    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,contractorId);
+    return count != null && count > 0;
+}
 }

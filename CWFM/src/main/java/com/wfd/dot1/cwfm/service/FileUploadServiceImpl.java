@@ -2584,9 +2584,14 @@ public class FileUploadServiceImpl implements FileUploadService {
 		
 		 // ❗ If plant is NOT allowed → return error immediately
 		 String plantValidation = plantCountCheck(gpUnitId);
+		 String contractorBlockedValidation = contractorBlockedCheck(gpContId);
 
 		    if (!ALLOW.equalsIgnoreCase(plantValidation)) {
 		        errors.put("plantCount",plantValidation);
+		        return errors;
+		    }
+		    if (!CONTRACTORALLOW.equalsIgnoreCase(contractorBlockedValidation)) {
+		        errors.put("contractorBlocked",contractorBlockedValidation);
 		        return errors;
 		    }
 	    
@@ -2614,6 +2619,20 @@ public class FileUploadServiceImpl implements FileUploadService {
 	    }
 
 	    return ALLOW;
+	}
+	
+	private static final String CONTRACTORALLOW = "CONTRACTORALLOW";
+	private static final String CONTRACTORBLOCKED = "Contractor is Blocked";
+
+	private String contractorBlockedCheck(String contractorId) {
+
+	    boolean isBlocked = workmenDao.checkContractorBlocked(contractorId);
+
+	    if (isBlocked) {
+	        return CONTRACTORBLOCKED;
+	    }
+
+	    return CONTRACTORALLOW;
 	}
 	public Map<String, String> licenseExistsAndCount(GatePassMain gatePassMain,String gpUnitId,String gpContId, int activeCount) {
 
@@ -2694,10 +2713,10 @@ public class FileUploadServiceImpl implements FileUploadService {
 	        errors.put("llNumber", "LL and WC/ESIC are mandatory");
 	    }if (llMandatory) {
 	    	 errors.put("llNumber", "LL is mandatory");
-	    }
+	    }if (wcEsicMandatory) {
 	    errors.put("wcNumber", "WC/ESIC is mandatory");
 	    }
-
+	   }
 	    if (!wcExists && !esicExists) {
 	        errors.put("wcNumber", "WC/ESIC is mandatory");
 	    }

@@ -297,4 +297,6 @@ public interface WorkmenDao {
 
 	List<GatePassListingDto> getFullTimeContGatePassListingDetails(String unitId, String deptId, String userId,
 			String gatePassTypeId, String type, List<PersonOrgLevel> contList);
+
+	public boolean checkContractorBlocked(String contractorId);
 }
