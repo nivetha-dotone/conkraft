@@ -315,9 +315,12 @@ public class DashboardDaoImpl implements DashboardDao {
 
         dashboard.setGatepassExpiryList(list);
     }
+    public String getWorkmensReachedRetiredAge() {
+	    return QueryFileWatcher.getQuery("WORKMEN_APPROACHING_RETIREMENT_AGE");
+	}
     private void getWorkmensReachedRetiredAge(DashboardDTO dashboard, String peIds, String contIds) {
-    	//String sql = gatepassesExpiry();
-    	String sql = "EXEC GET_WORKMEN_AGE_58 ?, ?";
+    	String sql = getWorkmensReachedRetiredAge();
+    	//String sql = "EXEC GET_WORKMEN_AGE_58 ?, ?";
     	
     	List<WorkmensReachedRetiredAgeDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
     		WorkmensReachedRetiredAgeDTO dto = new WorkmensReachedRetiredAgeDTO();

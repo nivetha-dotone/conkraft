@@ -897,7 +897,7 @@
            <button class="action-btn teal" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-id-card icon teal"></i><span>GatePass Status Report</span></button>
       </c:if>
       <c:if test="${isHR}">
-      <button class="action-btn teal" onclick="openWorkmensRetiredModalPopup()"><i class="fa-solid fa-person-cane icon yellow"></i><span>Workmen Reaching Retired Age</span></button>
+      <button class="action-btn teal" onclick="openWorkmensRetiredModalPopup()"><i class="fa-solid fa-person-cane icon yellow"></i><span><spring:message code="label.workmenApproachingRetirementAge"/></span></button>
       </c:if>
      </div>
     </div>
@@ -980,7 +980,7 @@
           </table>
         </c:when>
         <c:otherwise>
-          <div class="empty-state">No records of Workmen's Approaching Age 58.</div>
+          <div class="empty-state">No records found for Workmens Approaching Retirement Age.</div>
         </c:otherwise>
       </c:choose>
     </div>

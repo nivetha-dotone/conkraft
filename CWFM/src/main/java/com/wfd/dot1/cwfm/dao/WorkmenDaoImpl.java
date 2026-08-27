@@ -5384,11 +5384,15 @@ public List<GatePassListingDto> getFullTimeContGatePassListingDetails(
     log.info("Exiting from getGatePassListingDetails dao method {}", listDto.size());
     return listDto;
 }
+public String checkContractorBlocked() {
+    return QueryFileWatcher.getQuery("CHECK_CONTRACTOR_BLOCKED_IN_CMSCONTRACTOR");
+}
+
 @Override
 public boolean checkContractorBlocked(String contractorId) {
 
-    String sql = "SELECT COUNT(*) FROM CMSCONTRACTOR WHERE ISBLOCKED = 1 AND CONTRACTORID = ?";
-
+    //String sql = "SELECT COUNT(*) FROM CMSCONTRACTOR WHERE ISBLOCKED = 1 AND CONTRACTORID = ?";
+    String sql =checkContractorBlocked();
     Integer count = jdbcTemplate.queryForObject(sql,Integer.class,contractorId);
     return count != null && count > 0;
 }
