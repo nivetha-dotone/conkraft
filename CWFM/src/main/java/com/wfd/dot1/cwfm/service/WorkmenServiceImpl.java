@@ -939,9 +939,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 	}
 
 	@Override
-	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId) {
+	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId,String Comments) {
 		// TODO Auto-generated method stub
-		return workmenDao.getApprovalDetails( transactionId,unitId,gatePassTypeId);
+		return workmenDao.getApprovalDetails( transactionId,unitId,gatePassTypeId,Comments);
 		
 	}
 	

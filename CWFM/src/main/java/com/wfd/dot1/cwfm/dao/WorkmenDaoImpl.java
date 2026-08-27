@@ -1368,7 +1368,7 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
 	 }
 
 	@Override
-	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId) {
+	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId,String comments) {
 		 // Fetch approvers from GATEPASSAPPROVERINFO
         List<ApproverInfo> approverList = this.getApproversByGatePassId(gatePassTypeId,unitId);
 
@@ -1385,7 +1385,7 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
             ApproverStatusDTO dto = new ApproverStatusDTO();
            
             dto.setUserRole(approver.getUserRole().toUpperCase());
-
+            if(!"Workmen Bulk Upload".equals(comments)) {
             if (statusMap.containsKey(approver.getUserRole())) {
                 ApprovalStatus status = statusMap.get(approver.getUserRole());
                 dto.setStatus(status.getStatus() == 4 ? "Approved" : "Rejected");
@@ -1398,6 +1398,7 @@ public int getWorkFlowTypeId(String unitId, String actionId) {
             }
 
             approverStatusList.add(dto);
+            }
         }
 
         return approverStatusList;

@@ -94,7 +94,7 @@ public interface WorkmenDao {
 
 	Map<String, LocalDate> getValidityDates(String workOrderId, String wcId, String llNo);
 
-	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId);
+	public List<ApproverStatusDTO> getApprovalDetails(String transactionId,String unitId,String gatePassTypeId, String Comments);
 
 	public List<Contractor> getAllContractorForAdmin(String unitId);
 

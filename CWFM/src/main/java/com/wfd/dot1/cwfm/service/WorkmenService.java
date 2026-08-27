@@ -66,7 +66,7 @@ public interface WorkmenService {
 
 	public List<GatePassListingDto> getWorkmenDetailBasedOnId(String gatePassId);
 
-	public List<ApproverStatusDTO> getApprovalDetails(String gatePassId,String unitId,String gatePassTypeId);
+	public List<ApproverStatusDTO> getApprovalDetails(String gatePassId,String unitId,String gatePassTypeId, String Comments);
 
 	public List<Contractor> getAllContractorForAdmin(String principalEmployerId);
 

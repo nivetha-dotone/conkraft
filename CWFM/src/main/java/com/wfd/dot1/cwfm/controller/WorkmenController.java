@@ -816,10 +816,11 @@ return "failed";
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		
     		if(gatePassMainObj.getOnboardingType().equals("project")) {
-    			approvers = workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.PROJECT.getStatus());
+    			approvers = workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.PROJECT.getStatus(),gatePassMainObj.getComments());
+    		
     		}else
     		{
-    			approvers = workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.CREATE.getStatus());
+    			approvers = workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.CREATE.getStatus(),gatePassMainObj.getComments());
     		}
     		request.setAttribute("approvers", approvers);
     	}catch(Exception e) {
@@ -1790,7 +1791,8 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.CANCEL.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.CANCEL.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.CANCEL.getStatus(),gatePassMainObj.getComments());
+    		
     		}
     		request.setAttribute("approvers", approvers); 
     		 
@@ -1884,7 +1886,7 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLOCK.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.BLOCK.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.BLOCK.getStatus(),gatePassMainObj.getComments());
     		}
     		request.setAttribute("approvers", approvers); 
     	}catch(Exception e) {
@@ -1986,7 +1988,7 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.UNBLOCK.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.UNBLOCK.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.UNBLOCK.getStatus(),gatePassMainObj.getComments());
     		}
     		request.setAttribute("approvers", approvers); 
     		 
@@ -2083,7 +2085,7 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.BLACKLIST.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.BLACKLIST.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.BLACKLIST.getStatus(),gatePassMainObj.getComments());
     		}
     		request.setAttribute("approvers", approvers); 
     	}catch(Exception e) {
@@ -2185,7 +2187,7 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.DEBLACKLIST.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.DEBLACKLIST.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.DEBLACKLIST.getStatus(),gatePassMainObj.getComments());
     		}
     		request.setAttribute("approvers", approvers); 
     		 
@@ -2961,7 +2963,8 @@ return "failed";
 
     		List<ApproverStatusDTO> approvers = new ArrayList<ApproverStatusDTO>();
     		if(gatePassMainObj.getGatePassAction().equals(GatePassType.RENEW.getStatus())) {
-    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.RENEW.getStatus());
+    			approvers=	workmenService.getApprovalDetails(transactionId,gatePassMainObj.getUnitId(),GatePassType.RENEW.getStatus(),gatePassMainObj.getComments()
+    		);
     		}
     		request.setAttribute("approvers", approvers); 
     	     
