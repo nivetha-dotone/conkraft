@@ -25,6 +25,7 @@ import com.wfd.dot1.cwfm.dto.PlantWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.PvcTypeDTO;
 import com.wfd.dot1.cwfm.dto.WCDTO;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
+import com.wfd.dot1.cwfm.dto.WorkmensReachedRetiredAgeDTO;
 import com.wfd.dot1.cwfm.dto.WorkorderAlertsDTO;
 import com.wfd.dot1.cwfm.dto.WorkordersDTO;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
@@ -67,6 +68,7 @@ public class DashboardDaoImpl implements DashboardDao {
        // loadLicensesExpiry( dashboard,  peIds,  contIds) ;
         loadLicensesExpiry( dashboard,  peIds,  contIds) ;
         gatepassesExpiry( dashboard,  peIds,  contIds) ;
+        getWorkmensReachedRetiredAge( dashboard,  peIds,  contIds) ;
         blackliestedGatepasses(dashboard) ;
         pendingBills( dashboard,  peIds,  contIds) ;
         workOrderCompliance(dashboard,contIds) ;
@@ -312,6 +314,21 @@ public class DashboardDaoImpl implements DashboardDao {
         }, peIds,contIds);
 
         dashboard.setGatepassExpiryList(list);
+    }
+    private void getWorkmensReachedRetiredAge(DashboardDTO dashboard, String peIds, String contIds) {
+    	//String sql = gatepassesExpiry();
+    	String sql = "EXEC GET_WORKMEN_AGE_58 ?, ?";
+    	
+    	List<WorkmensReachedRetiredAgeDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+    		WorkmensReachedRetiredAgeDTO dto = new WorkmensReachedRetiredAgeDTO();
+            dto.setGatepassId(rs.getString("GatePassId"));
+            dto.setFullname(rs.getString("FullName"));
+            dto.setDateOfBirth(rs.getString("dateOfBirth"));
+            dto.setDaysLeft(rs.getInt("DaysLeft"));
+            return dto;
+        }, peIds,contIds);
+
+        dashboard.setWorkmensReachedRetiredAgeList(list);
     }
     public String blackliestedGatepasses() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_BLACKLISTED_GATEPASSES");

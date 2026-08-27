@@ -44,3 +44,9 @@ function openGatepassExpiryPopup() {
 function closeGatepassExpiryPopup() {
   document.getElementById("gatepassexpiryModal").style.display = "none";
 }	
+function openWorkmensRetiredModalPopup() {
+  document.getElementById("workmensRetiredModal").style.display = "flex";
+}
+function closeWorkmensRetiredModalPopup() {
+  document.getElementById("workmensRetiredModal").style.display = "none";
+}	

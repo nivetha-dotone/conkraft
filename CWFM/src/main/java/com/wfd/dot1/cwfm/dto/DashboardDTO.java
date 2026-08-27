@@ -278,6 +278,14 @@ public class DashboardDTO {
 	public void setGatepassExpiryList(List<GatepassExpiryDTO> gatepassExpiryList) {
 		this.gatepassExpiryList = gatepassExpiryList;
 	}
+	public List<WorkmensReachedRetiredAgeDTO> getWorkmensReachedRetiredAgeList() {
+		return WorkmensReachedRetiredAgeList;
+	}
 
+	public void setWorkmensReachedRetiredAgeList(List<WorkmensReachedRetiredAgeDTO> workmensReachedRetiredAgeList) {
+		WorkmensReachedRetiredAgeList = workmensReachedRetiredAgeList;
+	}
+
+	private List<WorkmensReachedRetiredAgeDTO> WorkmensReachedRetiredAgeList;
 	
 }

@@ -129,6 +129,7 @@
 .icon.purple { color: #9b59b6; }
 .icon.teal { color: #1abc9c; }
 .icon.red { color: #e74c3c; }
+.icon.yellow { color: #e74c3c;; }
 
 .action-btn span {
   font-weight: 600;
@@ -506,6 +507,77 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
+/* Modal overlay */
+.modal-body {
+  max-height: 70vh; /* 70% of viewport height */
+  overflow-y: auto;
+  padding: 20px;
+  box-sizing: border-box;
+  max-height: 400px;
+}
+
+/* Table container */
+.expiry-table-container {
+  width: 100%;
+  max-height: 60vh; /* responsive height */
+  overflow-y: auto;
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-top: 10px;
+  box-sizing: border-box;
+  padding-bottom: 5px; /*  ensures last row border is visible */
+}
+
+/* Table styling */
+.expiry-table {
+  width: 100%;
+  border-collapse: collapse;
+   border-bottom: 1px solid #ddd; /*  adds closing line */
+}
+
+.expiry-table th,
+.expiry-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.expiry-table th {
+  background-color: #f4f4f4;
+  font-weight: 600;
+}
+.expiry-table td {
+  background-color: white;
+}
+.expiry-table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Scrollbar styling */
+.expiry-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.expiry-table-container::-webkit-scrollbar-thumb {
+  background-color: #bbb;
+  border-radius: 4px;
+}
+
+.expiry-table-container::-webkit-scrollbar-track {
+  background-color: #f4f4f4;
+}
+
+/* Bottom padding for clean look */
+.expiry-table-container {
+  padding-bottom: 10px;
+}
+
+.expiry-table-container {
+  scrollbar-gutter: stable; /* keeps space for scrollbar */
+}
+
+
 </style>
 
 </head>
@@ -824,6 +896,9 @@
        <c:if test="${!fn:contains(allowedPages, '/entryPassStatus/list')}">
            <button class="action-btn teal" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-id-card icon teal"></i><span>GatePass Status Report</span></button>
       </c:if>
+      <c:if test="${isHR}">
+      <button class="action-btn teal" onclick="openWorkmensRetiredModalPopup()"><i class="fa-solid fa-person-cane icon yellow"></i><span>Workmen Reaching Retired Age</span></button>
+      </c:if>
      </div>
     </div>
 </div>
@@ -869,6 +944,48 @@
 
 
         
+    </c:if>
+
+ <c:if test="${isHR}">
+        <!-- <div class="sec-label">Active Work Orders</div> -->
+
+  <div id="workmensRetiredModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>All Workmens Approaching Retired Age</span>
+      <span class="close-btn" onclick="closeWorkmensRetiredModalPopup()">✖</span>
+    </div>
+    <div class="modal-body">
+      <c:choose>
+        <c:when test="${not empty dashboard.workmensReachedRetiredAgeList}">
+          <table class="expiry-table">
+            <thead>
+              <tr>
+                <th>GatepassId</th>
+                <th>FullName</th>
+                <th>Date of Birth</th>
+                <th>Days Left</th>
+              </tr>
+            </thead>
+            <tbody>
+              <c:forEach var="item" items="${dashboard.workmensReachedRetiredAgeList}">
+                <tr>
+                  <td>${item.gatepassId}</td>
+                  <td>${item.fullname}</td>
+                  <td>${item.dateOfBirth}</td>
+                  <td>${item.daysLeft}</td>
+                </tr>
+              </c:forEach>
+            </tbody>
+          </table>
+        </c:when>
+        <c:otherwise>
+          <div class="empty-state">No records of Workmen's Approaching Age 58.</div>
+        </c:otherwise>
+      </c:choose>
+    </div>
+  </div>
+</div>
     </c:if>
 
     <!-- ACTIVE WORK ORDERS -->
