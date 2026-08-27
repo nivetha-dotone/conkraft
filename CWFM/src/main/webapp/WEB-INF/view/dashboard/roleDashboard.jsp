@@ -952,7 +952,7 @@
   <div id="workmensRetiredModal" class="modal-overlay">
   <div class="modal-box">
     <div class="modal-header">
-      <span>All Workmens Approaching Retired Age</span>
+      <span><spring:message code="label.allWorkmenApproachingRetirementAge"/></span>
       <span class="close-btn" onclick="closeWorkmensRetiredModalPopup()">✖</span>
     </div>
     <div class="modal-body">
