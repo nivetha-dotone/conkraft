@@ -743,6 +743,10 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            	            dto.setGatePassStatus("Pending");
            	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
