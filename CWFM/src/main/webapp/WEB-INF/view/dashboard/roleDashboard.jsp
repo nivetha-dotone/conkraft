@@ -576,6 +576,21 @@
 .expiry-table-container {
   scrollbar-gutter: stable; /* keeps space for scrollbar */
 }
+/* Icon colors */
+.icon.brown   { color: #8B4513; }   /* SaddleBrown for Project */
+.icon.skyblue { color: #1E90FF; }   /* DodgerBlue for Quick */
+
+/* Button background (white with subtle tint) */
+.action-btn.brown {
+  background-color: #ffffff;
+  
+}
+
+.action-btn.skyblue {
+  background-color: #ffffff;
+  
+}
+
 
 
 </style>
@@ -860,12 +875,37 @@
    <%-- <c:if test="${UserPermission.addRights eq 1 }">
       <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Workmen</span></button>
       </c:if> --%>
-       <c:if test="${fn:contains(allowedPages, '/contractworkmen/list')}">
-            <button class="action-btn green" onclick="loadCommonList('/contractworkmen/list', 'Create');"><i class="fa-solid fa-user-plus icon green"></i><span>View Workmens</span></button>
-      </c:if>
-      <c:if test="${!fn:contains(allowedPages, '/contractworkmen/list')}">
-           <button class="action-btn green" onclick="alert('You are not an authorized person to access this page')"><i class="fa-solid fa-user-plus icon green"></i><span>View Workmens</span></button>
-      </c:if>
+    <c:if test="${fn:contains(allowedPages, '/contractworkmen/projectOnboardingList')}">
+    <button class="action-btn brown" 
+            onclick="loadCommonList('/contractworkmen/projectOnboardingList', 'Project GatePass');">
+        <i class="fa-solid fa-clipboard-list icon brown"></i>
+        <span>View Project Workmens</span>
+    </button>
+</c:if>
+<c:if test="${!fn:contains(allowedPages, '/contractworkmen/projectOnboardingList')}">
+    <button class="action-btn brown" 
+            onclick="alert('You are not an authorized person to access this page')">
+        <i class="fa-solid fa-clipboard-list icon brown"></i>
+        <span>View Project Workmens</span>
+    </button>
+</c:if>
+
+<c:if test="${fn:contains(allowedPages, '/contractworkmen/quickOnboardingList')}">
+    <button class="action-btn skyblue" 
+            onclick="loadCommonList('/contractworkmen/quickOnboardingList', 'Quick GatePass');">
+        <i class="fa-solid fa-bolt icon skyblue"></i>
+        <span>View Quick Workmens</span>
+    </button>
+</c:if>
+<c:if test="${!fn:contains(allowedPages, '/contractworkmen/quickOnboardingList')}">
+    <button class="action-btn skyblue" 
+            onclick="alert('You are not an authorized person to access this page')">
+        <i class="fa-solid fa-bolt icon skyblue"></i>
+        <span>View Quick Workmens</span>
+    </button>
+</c:if>
+
+
       <c:if test="${fn:contains(allowedPages, '/data/importExport')}">
            <button class="action-btn teal" onclick="loadCommonList('/data/importExport', 'Master Data Import');"><i class="fa-solid fa-file-import icon teal"></i><span>Import Tools</span></button>
       </c:if>

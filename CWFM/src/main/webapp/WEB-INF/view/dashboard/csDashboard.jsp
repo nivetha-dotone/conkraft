@@ -736,6 +736,26 @@ display: flex;
     box-sizing: border-box;
     margin-left: -6px;
 }
+/* Navy blue icon */
+.icon.navyblue {
+  color: #000080; /* Navy Blue */
+}
+
+/* Button style: white background, no border */
+.action-btn.navyblue {
+  background-color: #ffffff;
+  border: none;
+}
+.approved-link {
+  cursor: pointer;        /*  shows hand cursor */
+  /* color: #28a745;         /* same green as dot */ */
+  
+  
+}
+
+.approved-link:hover {
+  color: grey;         /* darker green on hover */
+}
 
 </style>
 
@@ -1232,9 +1252,9 @@ display: flex;
       <canvas id="billChart"></canvas>
     </div>
     <div class="bill-summary">
-      <div><span class="dot green"></span> Approved <span id="approvedText">${dashboard.billList[0].approvedCount}</span> (${dashboard.billList[0].approvedPercent}%)</div>
-      <div><span class="dot orange"></span> Pending Approval <span id="pendingText">${dashboard.billList[0].pendingCount}</span> (${dashboard.billList[0].pendingPercent}%)</div>
-      <div><span class="dot red"></span> Rejected <span id="rejectedText">${dashboard.billList[0].rejectedCount}</span> (${dashboard.billList[0].rejectedPercent}%)</div>
+      <div><span class="dot green"></span><span class="approved-link" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');">Approved </span><span id="approvedText">${dashboard.billList[0].approvedCount}</span> (${dashboard.billList[0].approvedPercent}%)</div>
+      <div><span class="dot orange"></span><span class="approved-link" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');"> Pending Approval</span> <span id="pendingText">${dashboard.billList[0].pendingCount}</span> (${dashboard.billList[0].pendingPercent}%)</div>
+      <div><span class="dot red"></span><span class="approved-link" onclick="loadCommonList('/billVerification/listingFilter', 'Bill Verification');"> Rejected </span><span id="rejectedText">${dashboard.billList[0].rejectedCount}</span> (${dashboard.billList[0].rejectedPercent}%)</div>
       <span id="totalText" style="display:none">${dashboard.billList[0].totalCount}</span>
     </div>
   </div>
@@ -1253,7 +1273,12 @@ display: flex;
   <div class="action-grid">
 
   <!-- <div class="action-box"> -->
-      <button class="action-btn green" onclick="redirectToWorkmenAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Workmen</span></button>
+      <button class="action-btn green" onclick="redirectToWorkmenProjectAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Project Workmen</span></button>
+      <button class="action-btn navyblue" onclick="redirectToWorkmenQuickAdd()">
+    <i class="fa-solid fa-user-clock icon navyblue"></i>
+    <span>Add Quick Workmen</span>
+</button>
+
    <!-- </div> -->   
    <button class="action-btn teal" onclick="loadCommonList('/contractworkmen/renewFilter', 'Renew');"><i class="fa-solid fa-rotate-right icon teal"></i><span>Renew Workmen</span></button>
    <!-- <div class="action-box"> -->
@@ -1296,8 +1321,9 @@ display: flex;
     <div class="kpi-content">
       <div class="icon-bg red"><i class="fa-solid fa-user-slash icon"></i></div>
       <div class="kpi-text">
-        <div class="lbl">BLACKLISTED WORKMEN</div>
-        <div class="num">${dashboard.blackliestedGP}</div>
+      <c:set var="licenseCount" value="${fn:length(dashboard.blackliestedGPList)}" />
+        <div class="lbl"><a href="javascript:void(0)" onclick="openBlackListGPModalPopup()">BLACKLISTED WORKMEN</a></div>
+        <div class="num">${licenseCount}</div>
         <div class="trend">Across all sites</div>
       </div>
     </div>
@@ -1305,6 +1331,44 @@ display: flex;
 </div>
 </div>
 
+<div id="blacklistedGPModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>All BlackListed GatePasses</span>
+      <span class="close-btn" onclick="closeblacklistedGPModalPopup()">✖</span>
+    </div>
+
+    <div class="modal-body">
+      <c:choose>
+        <c:when test="${not empty dashboard.blackliestedGPList}">
+          <table class="expiry-table">
+            <thead>
+              <tr>
+                <th>GatePassId</th>
+                <th>Full Name</th>
+                <th>Aadhar Number</th>
+                <th>Contractor</th>
+              </tr>
+            </thead>
+            <tbody>
+              <c:forEach var="item" items="${dashboard.blackliestedGPList}">
+                <tr>
+                  <td>${item.gatepassId}</td>
+                  <td>${item.fullname}</td>
+                  <td>${item.aadharNumber}</td>
+                  <td>${item.contractor}</td>
+                </tr>
+              </c:forEach>
+            </tbody>
+          </table>
+        </c:when>
+        <c:otherwise>
+          <div class="empty-state">No BlackListed Gatepasses found</div>
+        </c:otherwise>
+      </c:choose>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade"
      id="chatBotModal"

@@ -188,19 +188,22 @@ public class DashboardDTO {
 	public void setExpiredgatepasses(int expiredgatepasses) {
 		this.expiredgatepasses = expiredgatepasses;
 	}
-	private int blackliestedGP;
+	
+	private List<BlackliestedGPDTO> blackliestedGPList;
 
-	public int getBlackliestedGP() {
-		return blackliestedGP;
-	}
-
-	public void setBlackliestedGP(int blackliestedGP) {
-		this.blackliestedGP = blackliestedGP;
-	}
+	
 	private int pendingBills;
 
 	public int getPendingBills() {
 		return pendingBills;
+	}
+
+	public List<BlackliestedGPDTO> getBlackliestedGPList() {
+		return blackliestedGPList;
+	}
+
+	public void setBlackliestedGPList(List<BlackliestedGPDTO> blackliestedGPList) {
+		this.blackliestedGPList = blackliestedGPList;
 	}
 
 	public void setPendingBills(int pendingBills) {

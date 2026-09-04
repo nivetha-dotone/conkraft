@@ -49,4 +49,10 @@ function openWorkmensRetiredModalPopup() {
 }
 function closeWorkmensRetiredModalPopup() {
   document.getElementById("workmensRetiredModal").style.display = "none";
-}	
+}
+function openBlackListGPModalPopup() {
+  document.getElementById("blacklistedGPModal").style.display = "flex";
+}
+function closeblacklistedGPModalPopup() {
+  document.getElementById("blacklistedGPModal").style.display = "none";
+}		

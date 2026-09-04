@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.AckExpiryDTO;
 import com.wfd.dot1.cwfm.dto.BillStatusDTO;
+import com.wfd.dot1.cwfm.dto.BlackliestedGPDTO;
 import com.wfd.dot1.cwfm.dto.BusinessTypePEDTO;
 import com.wfd.dot1.cwfm.dto.ContractorWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.DashboardDTO;
@@ -69,7 +70,7 @@ public class DashboardDaoImpl implements DashboardDao {
         loadLicensesExpiry( dashboard,  peIds,  contIds) ;
         gatepassesExpiry( dashboard,  peIds,  contIds) ;
         getWorkmensReachedRetiredAge( dashboard,  peIds,  contIds) ;
-        blackliestedGatepasses(dashboard) ;
+        blackliestedGatepasses(dashboard,  peIds,  contIds) ;
         pendingBills( dashboard,  peIds,  contIds) ;
         workOrderCompliance(dashboard,contIds) ;
         llCompliance(dashboard,contIds) ;
@@ -336,14 +337,24 @@ public class DashboardDaoImpl implements DashboardDao {
     public String blackliestedGatepasses() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_BLACKLISTED_GATEPASSES");
 	}
-    private void blackliestedGatepasses(DashboardDTO dashboard) {
+    private void blackliestedGatepasses(DashboardDTO dashboard,String peIds, String contIds) {
     	 String sql =blackliestedGatepasses();
-        //String sql = "select count(*) as BlackliestedGatepasses from GATEPASSMAIN where GatePassTypeId=6";
-    	 //String sql = "EXEC GetBlacklistedGatepasses";
-        jdbcTemplate.query(sql, rs -> {
-           
-                dashboard.setBlackliestedGP(rs.getInt("BlackliestedGatepasses"));
-        });
+//        //String sql = "select count(*) as BlackliestedGatepasses from GATEPASSMAIN where GatePassTypeId=6";
+//    	 //String sql = "EXEC GetBlacklistedGatepasses";
+//        jdbcTemplate.query(sql, rs -> {
+//           
+//                dashboard.setBlackliestedGP(rs.getInt("BlackliestedGatepasses"));
+//        });
+    	 List<BlackliestedGPDTO> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
+    		 BlackliestedGPDTO dto = new BlackliestedGPDTO();
+             dto.setGatepassId(rs.getString("GatePassId"));
+             dto.setFullname(rs.getString("FullName"));
+             dto.setAadharNumber(rs.getString("AadharNumber"));
+             dto.setContractor(rs.getString("ContractorName"));
+             return dto;
+         }, peIds,contIds);
+
+         dashboard.setBlackliestedGPList(list);
     }
     public String pendingBills() {
 	    return QueryFileWatcher.getQuery("DASHBOARD_LOAD_PENDING_BILLS");
