@@ -539,20 +539,54 @@ function initializeDatePicker() {
      }else{
 		 $("#error-address").hide();
 	 }*/
-	 const address = $("#address").val().replace(/\s+/g, " ").trim();
+	/* const address = $("#address").val().replace(/\s+/g, " ").trim();
 
 	 if (address === "") {
 	     $("#error-address").text("Address is required").show();
 	     isValid = false;
-	 } else if (address.length < 5) {
-	     $("#error-address").text("Address is too short").show();
+	 } else if (address.length < 2) {
+	     $("#error-address").text("Enter Proper Address").show();
 	     isValid = false;
 	 } else if (/[<>]/.test(address)) {
 	     $("#error-address").text("Invalid characters in address").show();
 	     isValid = false;
 	 } else {
 	     $("#error-address").hide();
-	 }
+	 }*/
+	
+const address = $("#address").val().replace(/\s+/g, " ").trim();
+
+// Indian PIN code: exactly 6 digits, first digit cannot be 0
+const pincodeRegex = /\b[1-9][0-9]{5}\b/;
+
+if (address === "") {
+
+    $("#error-address").text("Address is required").show();
+
+    isValid = false;
+
+} else if (address.length < 5) {
+
+    $("#error-address").text("Address is too short").show();
+
+    isValid = false;
+
+} else if (/[<>]/.test(address)) {
+
+    $("#error-address").text("Invalid characters in address").show();
+
+    isValid = false;
+
+} else if (!pincodeRegex.test(address)) {
+
+    $("#error-address").text("Address must contain the valid 6 digit pincode").show();
+
+    isValid = false;
+
+} else {
+
+    $("#error-address").hide();
+}
 console.log(isValid);
     return isValid && aadharCheckPassed;
 
@@ -3178,6 +3212,7 @@ function previewImage(event, inputId, displayId) {
 			                                        disability:$("#disability").val(),
                                                     workmenType:$("#workmenType").val(),
                                                     proficiency: $("#proficiency").val(),
+                                                    unitId: $("#principalEmployer").val(),
 													onboardingType:type,
 										        };
 
@@ -3415,6 +3450,7 @@ function previewImage(event, inputId, displayId) {
 											        disability: getSelectVal("disability"),
 											        workmenType: getSelectVal("workmenType"),
 											        proficiency: getSelectVal("proficiency"),
+											        unitId: getSelectVal("principalEmployer"),
 											        onboardingType: type
 											    };
 
@@ -6914,15 +6950,22 @@ for (const [key, value] of data.entries()) {
 				sessionStorage.setItem("successMessage", "FullTimeContractor Gatepass request raised successfully!");
                 loadCommonList('/contractworkmen/fullTimeContractorOnboardingList', 'Full Time Contractor List');
 				//hideLoader();
-            } else {
+            }else if (xhr.status === 400) {  
+				       const msg = xhr.responseText.trim();
+				       console.error("Server validation failed: " + msg);
+					   showLicenseError(msg);
+				       //alert(msg); // or show in UI better
+				       //sessionStorage.setItem("errorMessage", msg);
+					   return;
+				   }else {
                 console.error("Error saving data:", xhr.status, xhr.responseText);
-				sessionStorage.setItem("errorMessage", "Failed to save fultime contractor Gatepass request!");
+				sessionStorage.setItem("errorMessage", "Failed to save fulltime contractor Gatepass request!");
             }
         };
 
         xhr.onerror = function () {
             console.error("Request failed");
-			sessionStorage.setItem("errorMessage", "Failed to save fultime contractor Gatepass request!");
+			sessionStorage.setItem("errorMessage", "Failed to save fulltime contractor Gatepass request!");
 			hideLoader();
         };
 

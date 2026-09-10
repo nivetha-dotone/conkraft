@@ -661,5 +661,13 @@ public String getTrainingId() {
 public void setTrainingId(String trainingId) {
 	this.trainingId = trainingId;
 }
+public String getIsmw() {
+	return ismw;
+}
+public void setIsmw(String ismw) {
+	this.ismw = ismw;
+}
+private String ismw;
+
 
 }

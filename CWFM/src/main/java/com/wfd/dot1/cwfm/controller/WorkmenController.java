@@ -607,6 +607,13 @@ return "failed";
                 }
             }
             
+            // DETERMINE ISMW FROM ADDRESS PINCODE AND PE STATE
+            String address = gatePassMain.getAddress();
+            String unitId = gatePassMain.getUnitId();
+            String ismw = workmenService.determineISMW(address, unitId);
+            gatePassMain.setIsmw(ismw);
+            log.info("ISMW calculated successfully. UnitId={}, Address={}, ISMW={}",unitId,address,ismw);
+
             if("project".equals(gatePassMain.getOnboardingType())) {
             	transactionId = workmenService.saveProjectGatePass(gatePassMain);
             }else {
@@ -615,7 +622,7 @@ return "failed";
             
             
             if (transactionId != null) {
-            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked")) {
+            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked") || transactionId.contains("Migrant")) {
             		//if user wants we can draft the record
             		//workmenService.draftGatePass(gatePassMain);
                     return new ResponseEntity<>(transactionId, HttpStatus.BAD_REQUEST);
@@ -2400,6 +2407,14 @@ return "failed";
                     setterMap.get(docType).accept(null);
                 }
             }
+            
+            // DETERMINE ISMW FROM ADDRESS PINCODE AND PE STATE
+             String address = gatePassMain.getAddress();
+             String unitId = gatePassMain.getUnitId();
+             String ismw = workmenService.determineISMW(address, unitId);
+             gatePassMain.setIsmw(ismw);
+             log.info("ISMW calculated successfully. UnitId={}, Address={}, ISMW={}",unitId,address,ismw);
+
             transactionId = workmenService.draftGatePass(gatePassMain);
 
             if (transactionId != null) {
@@ -2840,10 +2855,16 @@ return "failed";
                 }
             }
             }
+            // DETERMINE ISMW FROM ADDRESS PINCODE AND PE STATE
+            String address = gatePassMain.getAddress();
+            String unitId = gatePassMain.getUnitId();
+            String ismw = workmenService.determineISMW(address, unitId);
+            gatePassMain.setIsmw(ismw);
+            log.info("ISMW calculated successfully. UnitId={}, Address={}, ISMW={}",unitId,address,ismw);
             transactionId = workmenService.renewGatePass(gatePassMain);
 
             if (transactionId != null) {
-            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked")) {
+            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked") || transactionId.contains("Migrant")) {
                     return new ResponseEntity<>(transactionId, HttpStatus.BAD_REQUEST);
              }else {
 
@@ -4285,10 +4306,19 @@ return "failed";
                 }
             }
             
+            // DETERMINE ISMW FROM ADDRESS PINCODE AND PE STATE
+            String address = gatePassMain.getAddress();
+            String unitId = gatePassMain.getUnitId();
+            String ismw = workmenService.determineISMW(address, unitId);
+            gatePassMain.setIsmw(ismw);
+            log.info("ISMW calculated successfully. UnitId={}, Address={}, ISMW={}",unitId,address,ismw);
+            
             	transactionId = workmenService.saveFullTimeContractorGatePass(gatePassMain);
             
             if (transactionId != null) {
-
+            	if (transactionId.contains("mandatory") || transactionId.contains("exceeded") || transactionId.contains("Blocked") || transactionId.contains("Migrant")) {
+                    return new ResponseEntity<>(transactionId, HttpStatus.BAD_REQUEST);
+                }
             	// String oldTransactionId=workmenDao.getTransactionIdByGatePassId(gatePassMain.getGatePassId());
             	 if (aadharFile != null && !aadharFile.isEmpty() || policeFile!=null && !policeFile.isEmpty() || appointmentFile!=null && !appointmentFile.isEmpty()) {
             		 uploadFullTimeContractorDocuments(aadharFile, policeFile,profilePic,appointmentFile, String.valueOf(user.getUserId()), transactionId);

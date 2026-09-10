@@ -910,10 +910,10 @@ label {
            	 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.address"/></label></th>
                 <td>
                 <c:if test="${empty GatePassObj.address }">
-                	<input id="address" name="address" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" autocomplete="off">
+                	<textarea id="address" name="address" style="width: 100%;height: 60px;text-transform: capitalize;" type="text" autocomplete="off"></textarea>
                 </c:if>
                 <c:if test="${not empty GatePassObj.address }">
-                	<input id="address" name="address" style="width: 100%;height: 20px;text-transform: capitalize;" type="text" value="${GatePassObj.address  }" autocomplete="off">
+                	<textarea id="address" name="address" style="width: 100%;height: 60px;text-transform: capitalize;">${GatePassObj.address  }</textarea>
                 </c:if>
                 <div style="text-align: right;">
         <span style="color: #666; font-size: 11px;"><spring:message code="label.addressRegax"/></span>

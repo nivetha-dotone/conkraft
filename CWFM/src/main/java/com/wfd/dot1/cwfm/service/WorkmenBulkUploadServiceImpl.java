@@ -163,17 +163,33 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            fieldErrors.put("EmergencyNumber", "Must be 10 digits");
 	        }
 	        // ➕ Add your other validation rules here (DOJ, account number, etc.)
-	     // --- 5. DOB: Must be ≥ 18 years old ---
-		     if (!isBlank(record.getDateOfBirth())) {
-		        try {
-		             LocalDate dob = LocalDate.parse(record.getDateOfBirth()); // Expected format: yyyy-MM-dd
-		             if (Period.between(dob, LocalDate.now()).getYears() < 18) {
-		                 fieldErrors.put("dateOfBirth", "Age must be 18 years or older");
-		             }
-		         } catch (DateTimeParseException e) {
-		             fieldErrors.put("dateOfBirth", "Invalid date format");
-		         }
-		       }
+	     // --- 5. DOB: Must be ≥ 18 years old and  > 100 years---
+//		     if (!isBlank(record.getDateOfBirth())) {
+//		        try {
+//		             LocalDate dob = LocalDate.parse(record.getDateOfBirth()); // Expected format: yyyy-MM-dd
+//		             if (Period.between(dob, LocalDate.now()).getYears() < 18) {
+//		                 fieldErrors.put("dateOfBirth", "Age must be 18 years or older");
+//		             }
+//		         } catch (DateTimeParseException e) {
+//		             fieldErrors.put("dateOfBirth", "Invalid date format");
+//		         }
+//		       }
+	        if (!isBlank(record.getDateOfBirth())) {
+	            try {
+	                LocalDate dob = LocalDate.parse(record.getDateOfBirth()); // Expected format: yyyy-MM-dd
+	                LocalDate today = LocalDate.now();
+
+	                LocalDate hundredYearsAgo = today.minusYears(100);
+	                LocalDate eighteenYearsAgo = today.minusYears(18);
+	                if (dob.isBefore(hundredYearsAgo)) {
+	                    fieldErrors.put("dateOfBirth","Date of birth must be within the last 100 years");
+	                } else if (dob.isAfter(eighteenYearsAgo)) {
+	                    fieldErrors.put("dateOfBirth","Age must be 18 years or older");
+	                }
+	            } catch (DateTimeParseException e) {
+	                fieldErrors.put("dateOfBirth","Invalid date format. Expected format: yyyy-MM-dd");
+	            }
+	         }
 		     if (!isBlank(record.getPoliceVerificationDate())) {
 		    	    try {
 		    	        LocalDate policeDate = LocalDate.parse(record.getPoliceVerificationDate()); // Format: yyyy-MM-dd
@@ -365,6 +381,14 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	        	gatePassMain.setComments("Workmen Bulk Upload"); 
 	        	gatePassMain.setOnboardingType("regular");
 	        try {
+	        	
+	        	// DETERMINE ISMW FROM ADDRESS PINCODE AND PE STATE
+	            String address = gatePassMain.getAddress();
+	            String unitId = gatePassMain.getUnitId();
+	            String ismw = workmenService.determineISMW(address, unitId);
+	            gatePassMain.setIsmw(ismw);
+	            log.info("ISMW calculated successfully. UnitId={}, Address={}, ISMW={}",unitId,address,ismw);
+	            
 	        	String saveResult = workmenService.saveWorkmenBulkUploadGatePass(gatePassMain);
 
 	            if (saveResult == null) {
@@ -401,6 +425,9 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            }else if (saveResult.equals("Contractor is Blocked")) {
 	                errorData.add(Map.of("transactionId", txnId, "error", "Contractor is Blocked"));
 	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Contractor is Blocked");
+	            }else if (saveResult.equals("Migrant workmen not allowed for selected plant")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "Migrant workmen not allowed for selected plant"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Migrant workmen not allowed for selected plant");
 	            }
 	            else {
 	                successData.add(Map.of("transactionId", saveResult));

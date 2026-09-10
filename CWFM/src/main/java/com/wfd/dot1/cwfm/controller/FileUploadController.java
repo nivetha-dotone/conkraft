@@ -297,7 +297,7 @@ public class FileUploadController {
             fields.add(Map.of("name", "SpecializationName", "type", "Text", "example", "General"));
             fields.add(Map.of("name", "Insurance type", "type", "Text", "example", "WC"));
             fields.add(Map.of("name", "LL number", "type", "Number", "example", "89034774"));
-            fields.add(Map.of("name", "Address", "type", "Text", "example", "Ardante Office One TowerA Banglore"));
+            fields.add(Map.of("name", "Address", "type", "Text", "example", "Ardante Office One TowerA Banglore - 531001"));
             fields.add(Map.of("name", "Zone", "type", "Text", "example", "Zone1"));
             fields.add(Map.of("name", "IdMark", "type", "Text", "example", "A Mole on Right Jaw"));
             fields.add(Map.of("name", "Employee Code", "type", "Text", "example", "910012479"));

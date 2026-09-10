@@ -521,7 +521,7 @@ public class WorkmenDaoImpl implements WorkmenDao{
 	        		gatePassMain.getAddress()!=null?gatePassMain.getAddress():"",
 	        				gatePassMain.getDoj(),gatePassMain.getPfApplicable(),gatePassMain.getPoliceVerificationDate(),gatePassMain.getDot(),
 	        gatePassMain.getUserId(),
-	        gatePassMain.getOnboardingType(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency()
+	        gatePassMain.getOnboardingType(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency(),gatePassMain.getIsmw()
 	        };
 
 	}
@@ -1604,7 +1604,8 @@ private Object[] prepareGatePassDraftParameters(String transId, GatePassMain gat
 	       gatePassMain.getOnboardingType(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName()!=null?gatePassMain.getAppointmentDocName():" ",
 	        	gatePassMain.getDisability()!=null?gatePassMain.getDisability():" ",
 	        			gatePassMain.getWorkmenType()!=null?gatePassMain.getWorkmenType():" ",
-	        					gatePassMain.getProficiency()!=null?gatePassMain.getProficiency():" "
+	        					gatePassMain.getProficiency()!=null?gatePassMain.getProficiency():" ",
+	        							gatePassMain.getIsmw()!=null?gatePassMain.getIsmw():" "
 	    };
 	}
 public String getContractWorkmenDraftDetails() {
@@ -1828,7 +1829,7 @@ private Object[] prepareGatePassParameters1(String transId, GatePassMain gatePas
         gatePassMain.getComments()!=null?gatePassMain.getComments():"",
         		gatePassMain.getAddress()!=null?gatePassMain.getAddress():"",
         				gatePassMain.getDoj(),gatePassMain.getPfApplicable(),gatePassMain.getPoliceVerificationDate(),gatePassMain.getDot(),
-        gatePassMain.getUserId(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency(),transId
+        gatePassMain.getUserId(),gatePassMain.getLlNo(),gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency(),gatePassMain.getIsmw(),transId
     };
 }
 
@@ -1945,6 +1946,8 @@ public GatePassMain getIndividualContractWorkmenDetailsByTransId(String transact
 		dto.setLOCDocName(rs.getString("LOCDocName"));
 		dto.setProficiency(rs.getString("Proficiency"));
 		dto.setTrainingId(rs.getString("TRAININGID"));
+		dto.setIsmw(rs.getString("ISMW"));
+
 		}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+transactionId);
 	return dto;
@@ -2979,6 +2982,9 @@ private String mapGatePassValue(String field, GatePassMain gp) {
         case "TrainingId":
             return gp.getTrainingId();
             
+        case "ISMW":
+            return gp.getIsmw();
+            
         default:
             return null;
     }
@@ -3608,7 +3614,7 @@ private Object[] prepareRenewGatePassParameters1(String transId, GatePassMain ga
         gatePassMain.getAadharDocName(),gatePassMain.getPhotoName(),gatePassMain.getBankDocName(),
         gatePassMain.getPoliceVerificationDocName(),gatePassMain.getIdProof2DocName(),gatePassMain.getMedicalDocName(),
         gatePassMain.getEducationDocName(),gatePassMain.getForm11DocName(),gatePassMain.getTrainingDocName(),gatePassMain.getOtherDocName(),
-        gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency(),transId
+        gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency(),gatePassMain.getIsmw(),transId
     };
 }
 @Override
@@ -5035,7 +5041,7 @@ private Object[] prepareFullTimeContractorGatePassParameters(String transId, Gat
         				gatePassMain.getDoj(),gatePassMain.getPfApplicable()!=null?gatePassMain.getPfApplicable():"",gatePassMain.getPoliceVerificationDate()!=null?gatePassMain.getPoliceVerificationDate():"",gatePassMain.getDot()!=null?gatePassMain.getDot():"",
         gatePassMain.getUserId(),
         gatePassMain.getOnboardingType(),gatePassMain.getLlNo()!=null?gatePassMain.getSkill():"",gatePassMain.getAppointmentDocName(),gatePassMain.getDisability(),gatePassMain.getWorkmenType(),gatePassMain.getProficiency()!=null?gatePassMain.getSkill():""
-        };
+        	,gatePassMain.getIsmw()!=null?gatePassMain.getIsmw():""};
 
 }
 @Transactional(rollbackFor = Exception.class)
@@ -5396,5 +5402,50 @@ public boolean checkContractorBlocked(String contractorId) {
     String sql =checkContractorBlocked();
     Integer count = jdbcTemplate.queryForObject(sql,Integer.class,contractorId);
     return count != null && count > 0;
+}
+
+public String getStateByPincode() {
+    return QueryFileWatcher.getQuery("GET_STATE_BY_PINCODE");
+}
+
+@Override
+public String getStateByPincode(String pincode) {
+
+    //String sql = "SELECT TOP 1 State FROM CMSPINCODEMASTER_TEMP  WHERE Pincode = ?";
+	String sql =getStateByPincode(); 
+    try {
+        return jdbcTemplate.queryForObject(sql,String.class,pincode);
+    } catch (EmptyResultDataAccessException e) {
+        return null;
+    }
+}
+public String getPEStateByUnitId() {
+    return QueryFileWatcher.getQuery("GET_PE_STATE_BY_UNITID");
+}
+
+@Override
+public String getPEStateByUnitId(String unitId) {
+	 String sql =getPEStateByUnitId();
+   // String sql = "SELECT TOP 1 cmss.STATENM FROM CMSPESTATE pes join CMSSTATE cmss on cmss.STATEID=pes.STATEID WHERE pes.UNITID = ?";
+    try {
+        return jdbcTemplate.queryForObject(sql,String.class,unitId);
+    } catch (EmptyResultDataAccessException e) {
+        return null;
+    }
+}
+public String checkISMWPrincipalEmployer() {
+    return QueryFileWatcher.getQuery("CHECK_ISMW_APPLICABILITY_IN_PRINCIPALEMPLOYER");
+}
+@Override
+public boolean checkISMWPrincipalEmployer(String unitId) {
+	String sql =checkISMWPrincipalEmployer();
+//    String sql =
+//        "SELECT ISMWAPPLICABILITY " +
+//        "FROM CMSPRINCIPALEMPLOYER " +
+//        "WHERE UNITID = ?";
+
+    Integer result = jdbcTemplate.queryForObject(sql, Integer.class, unitId);
+
+    return result != null && result == 1;
 }
 }

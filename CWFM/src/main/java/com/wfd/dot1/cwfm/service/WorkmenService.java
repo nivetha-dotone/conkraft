@@ -180,4 +180,6 @@ public interface WorkmenService {
 	public List<GatePassListingDto> getFullTimeContGatePassListingDetails(String principalEmployerId, String deptId,
 			String valueOf, String status, String type, List<PersonOrgLevel> contList);
 	
+	String determineISMW(String address, String unitId);
+
 }	

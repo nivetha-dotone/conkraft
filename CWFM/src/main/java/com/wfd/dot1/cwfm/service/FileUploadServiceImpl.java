@@ -23,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 
@@ -166,7 +167,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 		+ "Aadhar/Id Proof Number*,Vendor Code*,Gender*,Date of Joining,Department*,Area,Work Order Number*,PF A/C Number,Marital Status*,"
                 		+ "Technical/Non Technical*,Academic,Blood Group,Accommodation*,Bank Branch Name,Account Number,"
                 		+ "Mobile Number,Emergency Contact Number*,Police Verification Date,Health Chekup Date,Access Levels*,ESIC Number,Unit Code*,Organization Name,"
-                		+ "EIC Number*,EC Number*,UAN Number,Emergency Contact Person*,Is Eligible for PF,SpecializationName,Insurance Type,LL Number,Address,Zone,IdMark*,Employee Code")) {
+                		+ "EIC Number*,EC Number*,UAN Number,Emergency Contact Person*,Is Eligible for PF,SpecializationName,Insurance Type,LL Number,Address*,Zone,IdMark*,Employee Code")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processworkmenbulkupload(reader);
@@ -1622,6 +1623,9 @@ public class FileUploadServiceImpl implements FileUploadService {
         result.put("errorData", errorData);
         return result;
     }
+    
+    private static final Pattern PINCODE_PATTERN = Pattern.compile("\\b[1-9][0-9]{5}\\b");
+    
     private Map<String, Object> processworkmenbulkupload(BufferedReader reader) throws IOException {
         List<Map<String, Object>> successData = new ArrayList<>();
         List<Map<String, Object>> errorData = new ArrayList<>();
@@ -1642,7 +1646,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             "firstName", "lastName", "relationName", "dateOfBirth", "trade", "skill", "natureOfWork",
             "hazardousArea", "aadhaarNumber", "vendorCode", "gender", "department", "workorderNumber",
             "maritalStatus", "technical", "accommodation", "accountNumber", "emergencyNumber",
-            "accessArea", "unitCode", "EICNumber", "ECnumber", "emergencyName"
+            "accessArea", "unitCode", "EICNumber", "ECnumber", "emergencyName","address"
         );
         //DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         while ((line = reader.readLine()) != null) {
@@ -1730,6 +1734,14 @@ public class FileUploadServiceImpl implements FileUploadService {
              }
          }
 
+         //String addressValue = fields[39] != null ? fields[39].replaceAll("[\\\"\\u00A0]", "").trim() : ""; 
+         String addressValue = fields[39] != null ? fields[39].trim(): "";
+         if (!addressValue.isBlank()) { 
+        	 Matcher pinMatcher = PINCODE_PATTERN.matcher(addressValue);
+             if (!pinMatcher.find()) {
+            	 fieldErrors.put( "address", "Address must contain a valid 6-digit pincode" );
+            }
+         }
 
             if (tradeId == null) fieldErrors.put("trade", "There is no mapping found for Trade and Principal Employee");
             if (skillId == null) fieldErrors.put("skill", "There is no mapping found for Skill and Principal Employee");

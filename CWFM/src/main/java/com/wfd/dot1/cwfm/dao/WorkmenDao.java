@@ -299,4 +299,10 @@ public interface WorkmenDao {
 			String gatePassTypeId, String type, List<PersonOrgLevel> contList);
 
 	public boolean checkContractorBlocked(String contractorId);
+	
+	String getStateByPincode(String pincode);
+
+    String getPEStateByUnitId(String unitId);
+
+	public boolean checkISMWPrincipalEmployer(String unitId);
 }

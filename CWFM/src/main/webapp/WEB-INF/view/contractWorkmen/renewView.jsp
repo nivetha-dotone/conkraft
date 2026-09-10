@@ -872,7 +872,7 @@ textarea {
            
            	 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.address"/></label></th>
                 <td>
-                	<input id="address" name="address" style="width: 100%;height: 20px;" type="text" value="${GatePassObj.address }" readonly>
+                	<textarea id="address" name="address" style="width: 100%;height: 60px;text-transform: capitalize;"  readonly>${GatePassObj.address }</textarea>
                 	<label id="error-address" style="color: red;display: none;">Address is required</label>
                 </td>
            </tr>

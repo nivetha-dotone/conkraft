@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -136,7 +138,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 	
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+			if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -206,6 +210,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
+				return allowWorkmenOnboarding;
+			}
+			}else {
 				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
@@ -243,6 +250,25 @@ public class WorkmenServiceImpl implements WorkmenService{
 
 	    return CONTRACTORALLOW;
 	}
+	
+	private static final String WORKMENALLOW = "WORKMENALLOW";
+
+	private static final String WORKMENBLOCKED = "Migrant workmen not allowed for selected plant";
+
+	private String workmenBlockedCheck(String unitId, String ismw) {
+
+	    boolean principalEmployerISMW = workmenDao.checkISMWPrincipalEmployer(unitId);
+
+	    // Block only when PE does NOT allow ISMW
+	    // and the workman is identified as Yes/Not Determined.
+	    if (!principalEmployerISMW && ! "No".equalsIgnoreCase(ismw)) {
+
+	        return WORKMENBLOCKED;
+	    }
+
+	    return WORKMENALLOW;
+	}
+	
 	public String workmenCountCheck(GatePassMain gatePassMain) {
 		int activeCount = workmenDao.getActiveWorkmenCount(gatePassMain.getPrincipalEmployer(), gatePassMain.getContractor(), 
 				GatePassStatus.APPROVED.getStatus(), GatePassType.CREATE.getStatus());
@@ -996,7 +1022,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1056,6 +1084,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowContractorOnboarding;
+			}
+			}else {
+				return allowWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -1361,7 +1392,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1429,6 +1462,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
+				return allowWorkmenOnboarding;
+			}
+			}else {
 				return allowPlantOnboarding;
 			}
 		}catch(Exception e) {
@@ -1444,7 +1480,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1508,6 +1546,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 			}
 			}else {
 				return allowContractorOnboarding;
+			}
+			}else {
+				return allowWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -1903,7 +1944,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 		
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
+			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
 			if(ALLOW.equals(allowPlantOnboarding)) {
+				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+					
 			//int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
 			//gatePassMain.setWorkFlowType(workFlowTypeId);
 			//int dotTypeId = workmenDao.getDOTTYpe(gatePassMain.getPrincipalEmployer());
@@ -1947,7 +1991,9 @@ public class WorkmenServiceImpl implements WorkmenService{
 		       }
 
 				return transactionId;
-			
+				}else {
+					return allowWorkmenOnboarding;
+				}
 			}else {
 				return allowPlantOnboarding;
 			}
@@ -2030,5 +2076,131 @@ public GatePassMain getFullTimeIndividualContractWorkmenDetails(String transacti
 @Override
 public List<GatePassListingDto> getFullTimeContGatePassListingDetails(String unitId,String deptId,String userId,String gatePassTypeId,String type,List<PersonOrgLevel> contList) {
 	return workmenDao.getFullTimeContGatePassListingDetails(unitId,deptId,userId,gatePassTypeId,type,contList);
+}
+
+@Override
+public String determineISMW(String address, String unitId) {
+
+    // Same State      -> No
+    // Different State -> Yes
+    // Cannot determine -> Not Determined
+
+    String ismw = "Not Determined";
+
+    try {
+
+        // 1. Validate address
+        if (address == null || address.trim().isEmpty()) {
+
+            log.info("Address is empty. ISMW = Not Determined");
+
+            return "Not Determined";
+        }
+
+        // 2. Extract 6 digit PIN code from address
+        Pattern pincodePattern =
+                Pattern.compile("\\b[1-9][0-9]{5}\\b");
+
+        Matcher matcher = pincodePattern.matcher(address);
+
+        if (!matcher.find()) {
+
+            log.info(
+                    "No valid 6 digit PIN code found in address: {}. "
+                    + "ISMW = Not Determined",
+                    address);
+
+            return "Not Determined";
+        }
+
+        String pincode = matcher.group();
+
+        log.info("Extracted PIN code from address: {}", pincode);
+
+        // 3. Get state from CMSPINCODEMASTER
+        String pincodeState =
+                workmenDao.getStateByPincode(pincode);
+
+        log.info(
+                "State from PIN code {}: {}",
+                pincode,
+                pincodeState);
+
+        if (pincodeState == null
+                || pincodeState.trim().isEmpty()) {
+
+            log.info(
+                    "PIN code {} not found in CMSPINCODEMASTER. "
+                    + "ISMW = Not Determined",
+                    pincode);
+
+            return "Not Determined";
+        }
+
+        // 4. Validate Unit ID
+        if (unitId == null || unitId.trim().isEmpty()) {
+
+            log.info(
+                    "UnitId is empty. ISMW = Not Determined");
+
+            return "Not Determined";
+        }
+
+        // 5. Get PE state from CMSPESTATE
+        String peState =
+                workmenDao.getPEStateByUnitId(unitId);
+
+        log.info(
+                "State from PE state table for UnitId {}: {}",
+                unitId,
+                peState);
+
+        if (peState == null
+                || peState.trim().isEmpty()) {
+
+            log.info(
+                    "PE state not found for UnitId {}. "
+                    + "ISMW = Not Determined",
+                    unitId);
+
+            return "Not Determined";
+        }
+
+        // 6. Compare states
+        if (pincodeState.trim()
+                .equalsIgnoreCase(peState.trim())) {
+
+            // Same state
+            ismw = "No";
+
+            log.info(
+                    "PIN state [{}] and PE state [{}] are SAME. "
+                    + "ISMW = No",
+                    pincodeState,
+                    peState);
+
+        } else {
+
+            // Different state
+            ismw = "Yes";
+
+            log.info(
+                    "PIN state [{}] and PE state [{}] are DIFFERENT. "
+                    + "ISMW = Yes",
+                    pincodeState,
+                    peState);
+        }
+
+    } catch (Exception e) {
+
+        log.error(
+                "Error while determining ISMW. "
+                + "ISMW = Not Determined",
+                e);
+
+        ismw = "Not Determined";
+    }
+
+    return ismw;
 }
 }
