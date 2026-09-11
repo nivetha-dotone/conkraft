@@ -13,7 +13,14 @@ public class DeptMapping {
     private int skillId;
     private String trade;
     private String skill;
+    private String workmenCount;
     
+	public String getWorkmenCount() {
+		return workmenCount;
+	}
+	public void setWorkmenCount(String workmenCount) {
+		this.workmenCount = workmenCount;
+	}
 	public int getTradeId() {
 		return tradeId;
 	}

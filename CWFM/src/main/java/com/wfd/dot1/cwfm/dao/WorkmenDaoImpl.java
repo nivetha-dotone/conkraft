@@ -3907,7 +3907,9 @@ public GatePassMain getActiveCountDetails(String transactionId) {
 		dto.setWcEsicNo(rs.getString("WcEsicNo"));
 		dto.setLlNo(rs.getString("LLNo"));
 		dto.setEsicNumber(rs.getString("EsicNumber"));
-	}
+		dto.setTrade(rs.getString("TradeId"));
+		dto.setSkill(rs.getString("SkillId"));
+		}
 	log.info("Exiting from getIndividualContractWorkmenDetails dao method "+transactionId);
 	return dto;
 }
@@ -5447,5 +5449,39 @@ public boolean checkISMWPrincipalEmployer(String unitId) {
     Integer result = jdbcTemplate.queryForObject(sql, Integer.class, unitId);
 
     return result != null && result == 1;
+}
+
+@Override
+public int TradeskillWorkmenCountFromGpm(String principalEmployerId,String tradeId,String skillId) {
+
+    String sql = "SELECT COUNT(*) FROM GATEPASSMAIN gpm INNER JOIN UnitTradeSkillMapping utsm ON utsm.TradeId = gpm.TradeId AND utsm.SkillId = gpm.SkillId AND utsm.PrincipalEmployerId = gpm.UnitId WHERE gpm.DOT > GETDATE() AND utsm.TradeId = ? AND utsm.SkillId = ? AND utsm.PrincipalEmployerId = ? AND gpm.GatePassTypeId IN (1, 2, 12, 15) AND gpm.GatePassStatus = 4";
+
+    Integer count = jdbcTemplate.queryForObject(sql,Integer.class,tradeId,skillId,principalEmployerId);
+    return count != null ? count : 0;
+}
+
+@Override
+public Integer getWorkmenTradeSkillCountFromMapping(String principalEmployerId,String tradeId,String skillId) {
+
+    String sql = "SELECT WorkmenCount FROM UnitTradeSkillMapping WHERE PrincipalEmployerId = ? AND TradeId = ? AND SkillId = ?";
+
+    return jdbcTemplate.query(sql, rs -> {
+        if (!rs.next()) {
+            // No mapping record
+            return null;
+        }
+        String workmenCount = rs.getString("WorkmenCount");
+        // NULL or empty means no limit configured
+        if (workmenCount == null || workmenCount.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(workmenCount.trim());
+        } catch (NumberFormatException e) {
+            // Invalid value is treated as no limit configured
+            return null;
+        }
+
+    }, principalEmployerId, tradeId, skillId);
 }
 }

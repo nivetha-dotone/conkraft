@@ -125,7 +125,6 @@ public class DepartmentMappingController {
 			        rr.setDeleteRights(1);
 			        rr.setImportRights(1);
 			        rr.setExportRights(1);
-			        rr.setViewRights(1);
 	        	 listDto = peService.getAllPrincipalEmployerForAdmin();
 	         }else {
 	        	rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/departmentMapping/existinglist");
@@ -149,11 +148,9 @@ public class DepartmentMappingController {
 	         if(user!=null) {
 	         if(user.getRoleName().equals("System Admin")) {
 	        	 rr.setAddRights(1);  // Changed getInt() to getBoolean()
-			        rr.setEditRights(1);
 			        rr.setDeleteRights(1);
 			        rr.setImportRights(1);
 			        rr.setExportRights(1);
-			        rr.setViewRights(1);
 	        	 listDto = peService.getAllPrincipalEmployerForAdmin();
 	         }else {
 	        	rr = commonService.hasPageActionPermissionForRole(user.getRoleId(), "/departmentMapping/existingTradeSkilllist");

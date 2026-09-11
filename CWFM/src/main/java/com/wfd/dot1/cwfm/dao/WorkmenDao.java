@@ -305,4 +305,8 @@ public interface WorkmenDao {
     String getPEStateByUnitId(String unitId);
 
 	public boolean checkISMWPrincipalEmployer(String unitId);
+
+	public int TradeskillWorkmenCountFromGpm(String principalEmployer, String trade, String skill);
+
+	public Integer getWorkmenTradeSkillCountFromMapping(String principalEmployer, String trade, String skill);
 }

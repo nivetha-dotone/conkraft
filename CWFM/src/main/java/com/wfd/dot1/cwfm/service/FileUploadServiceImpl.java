@@ -122,7 +122,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 break;
                 
             case "Data-Trade Skill":
-                if (!headerLine.equalsIgnoreCase("Plant Code,Trade,Skill")) {
+                if (!headerLine.equalsIgnoreCase("Plant Code,Trade,Skill,Workmen Count")) {
                     throw new Exception("File can not upload due to incorrect format.");
                 }
                 savedData = processTradeSkillUnitMapping(reader);
@@ -232,7 +232,7 @@ public class FileUploadServiceImpl implements FileUploadService {
         String line;
         int rowNum = 0;
 
-        String[] fieldNames = {"principalEmployer", "trade", "skill"};
+        String[] fieldNames = {"principalEmployer", "trade", "skill","workmenCount"};
         Set<String> mandatoryFields = Set.of("principalEmployer", "trade", "skill");
 
         while ((line = reader.readLine()) != null) {
@@ -274,6 +274,11 @@ public class FileUploadServiceImpl implements FileUploadService {
                         && !isValidAlphaNumeric(value)) {
                     fieldErrors.put(fieldName, "invalid value (enter valid value)");
                 }
+                
+                // Workmen Count validation
+                if (fieldName.equals("workmenCount") && !value.isBlank() && !value.matches("\\d+")) {
+                    fieldErrors.put(fieldName,"workmenCount only allow numeric value");
+                }
             }
             if (!fieldErrors.isEmpty()) {
                 errorData.add(Map.of("row", rowNum, "fieldErrors", fieldErrors));
@@ -284,6 +289,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 String principalEmployer = fields[0];
                 String trade = fields[1];
                 String skill = fields[2];
+                String workmenCount = fields[3];
 
                 // Get unitId from plant code
                 Integer unitId = fileUploadDao.getUnitIdByName(principalEmployer);
@@ -317,7 +323,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 }
 
                 // Insert mapping
-                fileUploadDao.insertUnitTradeSkillMapping(unitId, tradeId, skillId);
+                fileUploadDao.insertUnitTradeSkillMapping(unitId, tradeId, skillId,workmenCount);
 
                 // ✅ Add success record (like PrincipalEmployer)
                 Map<String, Object> success = new LinkedHashMap<>();
@@ -325,6 +331,7 @@ public class FileUploadServiceImpl implements FileUploadService {
                 success.put("plantCode", principalEmployer);
                 success.put("trade", trade);
                 success.put("skill", skill);
+                success.put("workmenCount", workmenCount);
                 //success.put("message", "Mapping inserted successfully");
 
                 successData.add(success);

@@ -282,7 +282,7 @@ function downloadErrorCSV(errorData, uploadedFileName) {
                 break;
 
             case "data-trade skill":
-                headers = ["Plant Code", "Trade", "Skill"];
+                headers = ["Plant Code", "Trade", "Skill","Workmen Count"];
                 break;
 
             case "data-department area":
@@ -557,8 +557,8 @@ const tableBody = document.getElementById("tableBody");
             fieldMap = ["firstName", "lastName", "relationName", "dateOfBirth", "trade", "skill", "natureOfWork", "hazardousArea",  "aadhaarNumber", "vendorCode", "gender", "doj", "department", "area", "workorderNumber","pfNumber", "maritalStatus", "technical", "academic","bloodGroup", "accommodation", "bankName", "accountNumber", "mobileNumber", "emergencyNumber", "policeVerificationDate", "healthCheckDate", "accessArea", "esicNumber", "unitCode", "organizationName","EICNumber", "ECnumber", "uanNumber", "emergencyName", "pfApplicable", "specializationName", "insuranceType", "LLnumber","address","zone","idMark","employeeCode"];
         }  
         else if (templateType === "Data-Trade Skill") {
-            headers = ["Plant Code","Trade", "Skill"];
-            fieldMap = ["plantCode","trade","skill"];
+            headers = ["Plant Code","Trade", "Skill","Workmen Count"];
+            fieldMap = ["plantCode","trade","skill","workmenCount"];
         }
         else if (templateType === "Data-Department Area") {
             headers = ["Plant Code","Department","Sub Department"];
@@ -889,7 +889,7 @@ function getHeadersByTemplate(selectedText) {
             return ["First Name", "Last Name", "Father's Name or Husband's Name", "Date of Birth", "Trade", "Skill", "Nature of Work", "Hazardous Area", "Aadhar/Id Proof Number", "Vendor Code", "Gender", "Date of Joining", "Department", "Area", "Work Order Number","PF A/C Number","Marital Status","Technical/Non Technical","Academic","Blood Group","Accommodation","Bank Branch Name","Account Number","Mobile Number","Emergency Contact Number","Police Verification Date","Health Chekup Date","Access Levels","ESIC Number","Unit Code","Organization Name","EIC Number","EC Number","UAN Number","Emergency Contact Person","Is Eligible for PF","SpecializationName","Insurance Type","LL Number","Address","Zone","IdMark"];
 
         case "data-trade skill":
-            return ["Plant Code", "Trade", "Skill"];
+            return ["Plant Code", "Trade", "Skill","Workmen Count"];
 
         case "data-department area":
             return ["Plant Code", "Department", "Sub Department"];

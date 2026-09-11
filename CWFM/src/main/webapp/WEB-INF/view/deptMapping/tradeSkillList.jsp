@@ -222,6 +222,7 @@ function toggleSelectAllGMTYPE() {
                     <%-- <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.gatePassId"/><span id="sortIndicatorName" class="sort-indicator sort-asc">&#x25B2;</span></th> --%>
 					<th class="header-text"  onclick="sortTable(2)"><spring:message code="label.trade"/><span id="sortIndicatorAddress" class="sort-indicator sort-asc">&#x25B2;</span></th>
 					<th class="header-text"  onclick="sortTable(3)"><spring:message code="label.skill"/><span id="sortIndicatorManagerName" class="sort-indicator sort-asc">&#x25B2;</span></th>
+					<th class="header-text"  onclick="sortTable(4)"><spring:message code="label.workmenCount"/><span id="sortIndicatorManagerName" class="sort-indicator sort-asc">&#x25B2;</span></th>
 				 
             </tr>
         </thead>
@@ -237,6 +238,7 @@ function toggleSelectAllGMTYPE() {
 						<td  >${wo.principalEmployer}</td>
 						<td  >${wo.trade}</td>
 						<td  >${wo.skill}</td>
+						<td  >${wo.workmenCount}</td>
 				</tr>
 				</c:forEach>
 			</tbody>

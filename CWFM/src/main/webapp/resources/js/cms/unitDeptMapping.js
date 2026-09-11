@@ -199,7 +199,8 @@ function deleteRow(button) {
 
     // Reset select values in cloned row
     newRow.querySelectorAll("select").forEach(sel => sel.value = "");
-
+     // Reset input fields (like Workmen Count)
+    newRow.querySelectorAll("input[type='number'], input[type='text']").forEach(inp => inp.value = "")
     // Append the new row
     container.appendChild(newRow);
 }
@@ -219,7 +220,7 @@ function deleteRow(button) {
         const principalEmployerId = row.querySelector("select[name='principalEmployerId']").value;
         const tradeId = row.querySelector("select[name='tradeId']").value;
         const skillId = row.querySelector("select[name='skillId']").value;
-
+        const workmenCount = row.querySelector("input[name='workmenCount']") ? row.querySelector("input[name='workmenCount']").value.trim() : ""; // ✅ non‑mandatory field
         row.style.backgroundColor = "";
 
         /*if (!principalEmployerId && tradeId) {
@@ -269,7 +270,8 @@ function deleteRow(button) {
         data.push({
             principalEmployerId,
             tradeId,
-            skillId
+            skillId,
+            workmenCount
         });
     });
 

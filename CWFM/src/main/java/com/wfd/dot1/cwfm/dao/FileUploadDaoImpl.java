@@ -536,7 +536,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
               		+ "Mobile Number,Emergency Contact Number,Police Verification Date,Health Chekup Date,Access Levels,ESIC Number,Unit Code,Organization Name,"
               		+ "EIC Number,EC Number,UAN Number,Emergency Contact Person,Is Eligible for PF,SpecializationName,Insurance Type,LL Number,Address,Zone,IdMark\n";
             case "Data-Trade Skill":
-            	return "Plant Code,Trade,Skill";
+            	return "Plant Code,Trade,Skill,Workmen Count";
             case "Data-Department Area":
             	return "Plant Code,Department,Sub Department";
             case "Data-Bulk Cancel":
@@ -1226,10 +1226,10 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	    }
 
 	    @Override
-	    public void insertUnitTradeSkillMapping(Integer unitId, Integer tradeId, Integer skillId) {
+	    public void insertUnitTradeSkillMapping(Integer unitId, Integer tradeId, Integer skillId,String workmenCount) {
 	    	String sql=insertUnitTradeSkillMapping();
 	      //  String sql = "INSERT INTO UnitTradeSkillMapping (PrincipalEmployerId, TRADEID, SKILLID) VALUES (?, ?, ?)";
-	        jdbcTemplate.update(sql, unitId, tradeId, skillId);
+	        jdbcTemplate.update(sql, unitId, tradeId, skillId,workmenCount);
 	    }
 	    
 	    @Override

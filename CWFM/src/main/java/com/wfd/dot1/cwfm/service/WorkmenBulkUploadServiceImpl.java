@@ -428,6 +428,9 @@ public class WorkmenBulkUploadServiceImpl implements WorkmenBulkUploadService {
 	            }else if (saveResult.equals("Migrant workmen not allowed for selected plant")) {
 	                errorData.add(Map.of("transactionId", txnId, "error", "Migrant workmen not allowed for selected plant"));
 	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Migrant workmen not allowed for selected plant");
+	            }else if (saveResult.equals("Workmen Count exceeded for selected Trade,Skill and Plant")) {
+	                errorData.add(Map.of("transactionId", txnId, "error", "Workmen Count exceeded for selected Trade,Skill and Plant"));
+	                workmenUploadDao.updateRecordStatusByTransactionId(txnId, "Workmen Count exceeded for selected Trade,Skill and Plant");
 	            }
 	            else {
 	                successData.add(Map.of("transactionId", saveResult));

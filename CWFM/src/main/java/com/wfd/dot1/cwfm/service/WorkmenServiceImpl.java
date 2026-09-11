@@ -138,9 +138,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 	
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
-			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowISMWWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowTradeSkillWorkmenOnboarding = this.tradeSkillWorkmenCountCheck(gatePassMain);
 			if(ALLOW.equals(allowPlantOnboarding)) {
-			if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+			if(WORKMENALLOW.equals(allowISMWWorkmenOnboarding)) {
+			if(TRADESKILLWORKMENALLOW.equals(allowTradeSkillWorkmenOnboarding)) {	
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -210,7 +212,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
-				return allowWorkmenOnboarding;
+					return allowTradeSkillWorkmenOnboarding;
+			}
+			}else {
+				return allowISMWWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -267,6 +272,27 @@ public class WorkmenServiceImpl implements WorkmenService{
 	    }
 
 	    return WORKMENALLOW;
+	}
+	
+	private static final String TRADESKILLWORKMENALLOW = "TRADESKILLWORKMENALLOW";
+
+	private static final String TRADESKILLWORKMENBLOCKED = "Workmen Count exceeded for selected Trade,Skill and Plant";
+	
+	public String tradeSkillWorkmenCountCheck(GatePassMain gatePassMain) {
+		int tradeSkillWorkmenCountGpm  = workmenDao.TradeskillWorkmenCountFromGpm(gatePassMain.getPrincipalEmployer(), gatePassMain.getTrade(), gatePassMain.getSkill());
+		Integer tradeSkillWorkmenCountMapping  = workmenDao.getWorkmenTradeSkillCountFromMapping(gatePassMain.getPrincipalEmployer(),gatePassMain.getTrade(), gatePassMain.getSkill());
+		 // No limit is configured -> ALLOW
+	    if (tradeSkillWorkmenCountMapping == null) {
+
+	        return TRADESKILLWORKMENALLOW;
+	    } 
+	    // Check GPM count against mapping count
+	    if (tradeSkillWorkmenCountGpm >= tradeSkillWorkmenCountMapping) {
+
+	        return TRADESKILLWORKMENBLOCKED;
+	    }
+	    // GPM count is within allowed limit
+	    return TRADESKILLWORKMENALLOW;
 	}
 	
 	public String workmenCountCheck(GatePassMain gatePassMain) {
@@ -357,8 +383,12 @@ public class WorkmenServiceImpl implements WorkmenService{
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
+			String allowTradeSkillWorkmenOnboarding = this.tradeSkillWorkmenCountCheck(gatePassMain);
 			if(!ALLOW.equals(allowPlantOnboarding)) {
 				return allowPlantOnboarding;
+			}
+			if(!TRADESKILLWORKMENALLOW.equals(allowTradeSkillWorkmenOnboarding)) {
+				return allowTradeSkillWorkmenOnboarding;
 			}
 			if(!CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 				return allowContractorOnboarding;
@@ -1022,9 +1052,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
-			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowISMWWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowTradeSkillWorkmenOnboarding = this.tradeSkillWorkmenCountCheck(gatePassMain);
 			if(ALLOW.equals(allowPlantOnboarding)) {
-				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+			if(WORKMENALLOW.equals(allowISMWWorkmenOnboarding)) {
+			if(TRADESKILLWORKMENALLOW.equals(allowTradeSkillWorkmenOnboarding)) {
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1086,7 +1118,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
-				return allowWorkmenOnboarding;
+				return allowTradeSkillWorkmenOnboarding;
+			}
+			}else {
+				return allowISMWWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -1392,9 +1427,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
-			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowISMWWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowTradeSkillWorkmenOnboarding = this.tradeSkillWorkmenCountCheck(gatePassMain);
 			if(ALLOW.equals(allowPlantOnboarding)) {
-				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+			if(WORKMENALLOW.equals(allowISMWWorkmenOnboarding)) {
+			if(TRADESKILLWORKMENALLOW.equals(allowTradeSkillWorkmenOnboarding)) {	
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1462,7 +1499,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
-				return allowWorkmenOnboarding;
+				return allowTradeSkillWorkmenOnboarding;
+			}
+			}else {
+				return allowISMWWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -1480,9 +1520,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
 			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
-			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowISMWWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowTradeSkillWorkmenOnboarding = this.tradeSkillWorkmenCountCheck(gatePassMain);
 			if(ALLOW.equals(allowPlantOnboarding)) {
-				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+			if(WORKMENALLOW.equals(allowISMWWorkmenOnboarding)) {
+			if(TRADESKILLWORKMENALLOW.equals(allowTradeSkillWorkmenOnboarding)) {	
 			if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 			String allowOnboarding = this.workmenCountCheck(gatePassMain);
 			if("allow".equals(allowOnboarding)) {
@@ -1548,7 +1590,10 @@ public class WorkmenServiceImpl implements WorkmenService{
 				return allowContractorOnboarding;
 			}
 			}else {
-				return allowWorkmenOnboarding;
+				return allowTradeSkillWorkmenOnboarding;
+			}
+			}else {
+				return allowISMWWorkmenOnboarding;
 			}
 			}else {
 				return allowPlantOnboarding;
@@ -1944,9 +1989,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 		
 		try {
 			String allowPlantOnboarding = this.plantCountCheck(gatePassMain.getPrincipalEmployer());
-			String allowWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowISMWWorkmenOnboarding = this.workmenBlockedCheck(gatePassMain.getPrincipalEmployer(),gatePassMain.getIsmw());
+			String allowContractorOnboarding = this.contractorBlockedCheck(gatePassMain.getContractor());
 			if(ALLOW.equals(allowPlantOnboarding)) {
-				if(WORKMENALLOW.equals(allowWorkmenOnboarding)) {
+				if(WORKMENALLOW.equals(allowISMWWorkmenOnboarding)) {
+					if(CONTRACTORALLOW.equals(allowContractorOnboarding)) {
 					
 			//int workFlowTypeId = workmenDao.getWorkFlowTYpeNew(gatePassMain.getPrincipalEmployer(),GatePassType.PROJECT.getStatus());
 			//gatePassMain.setWorkFlowType(workFlowTypeId);
@@ -1991,8 +2038,11 @@ public class WorkmenServiceImpl implements WorkmenService{
 		       }
 
 				return transactionId;
+					}else {
+						return allowContractorOnboarding;
+					}
 				}else {
-					return allowWorkmenOnboarding;
+					return allowISMWWorkmenOnboarding;
 				}
 			}else {
 				return allowPlantOnboarding;

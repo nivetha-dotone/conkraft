@@ -278,6 +278,8 @@
                 <option value="${skill.gmId}">${skill.gmName}</option>
             </c:forEach>
         </select>
+         <!-- Workmen Count -->
+    <input type="number" id="workmenCount" name="workmenCount" placeholder="Enter Workmen Count" class="form-control" style="width:150px; padding:3px; color:gray; text-align:center;" min="0" />
         <button class="btn btn-default process-footer-button-cancel ng-binding" onclick="deleteRow(this)">Delete</button>
 <!-- <button type="button" class="remove-btn" onclick="deleteRow()" >Delete</button> -->
         <!-- <button type="button" class="btn btn-danger btn-sm remove-row">Delete</button> -->
