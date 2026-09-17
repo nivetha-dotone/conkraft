@@ -11,8 +11,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -267,10 +269,11 @@ public class WorkmenController {
     	log.info("Entered into getAllTrades for unitId:"+unitId);
     	try {
     		List<Trade> trades = workmenService.getAllTradesBasedOnPE(unitId);
-    		Set<Trade> tradeSet = new HashSet<>(trades);
     		if(trades.isEmpty()) {
     			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     		}
+    		Set<Trade> tradeSet = trades.stream() .sorted(Comparator.comparing( Trade::getTradeName, String.CASE_INSENSITIVE_ORDER)) 
+    				.collect(Collectors.toCollection(LinkedHashSet::new));
     		return new ResponseEntity<>(tradeSet,HttpStatus.OK);
     	}catch(Exception e) {
     		log.error("Error fetching trades: ", e);
@@ -317,7 +320,7 @@ public class WorkmenController {
     		// Filter departments
     		Set<DeptMapping> depSet = departments.stream()
     		        .filter(d -> loggedDeptIds.contains(String.valueOf(d.getDepartmentId())))
-    		        .collect(Collectors.toSet());
+    		        .collect(Collectors.toCollection(LinkedHashSet::new));
 
     		
     		if(depSet.isEmpty()) {
