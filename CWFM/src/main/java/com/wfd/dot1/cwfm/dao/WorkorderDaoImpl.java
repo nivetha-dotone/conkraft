@@ -117,7 +117,7 @@ return null;
             wo.setValidFrom(rs.getString("VALIDFROM"));
             wo.setValidTo(rs.getString("VALIDDT"));
             wo.setUnitId(rs.getString("UNITID"));
-            wo.setStatus(String.valueOf(rs.getInt("STATUS")));
+            wo.setStatus(rs.getString("STATUS"));
 			woList.add(wo);
 		}
 		log.info("Exiting from getAllWorkordersBasedOnPEAndContractor dao method "+woList.size());
