@@ -4431,4 +4431,25 @@ return "failed";
     	
     		return "contractWorkmen/fullTimeContractorOnboardingView";
     }
+    @GetMapping("/checkPincodeExists")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkPincode(
+            @RequestParam("pincode") String pincode) {
+
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String state = workmenService.getStateByPincode(pincode);
+            if (state != null && !state.trim().isEmpty()) {
+                response.put("state", state);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("state", null);
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            log.error("Error while checking pincode: {}", pincode, e);
+            response.put("state", null);
+            return ResponseEntity.ok(response);
+        }
     }
+ }

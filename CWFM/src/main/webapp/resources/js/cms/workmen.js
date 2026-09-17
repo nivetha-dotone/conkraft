@@ -388,120 +388,117 @@ function initializeDatePicker() {
 			maxDate: +15               // Prevent selecting future dates
 	    });
 	} 
-    function validateBasicData() {
+   function validateBasicData() {
+
     let isValid = true;
-	let aadharCheckPassed = false;
+    let aadharCheckPassed = false;
+
     const aadharNumber = $("#aadharNumber").val().trim();
 
-	//const transactionId=$("#transactionId").val().trim();
     if (aadharNumber === "" || aadharNumber.length !== 12 || isNaN(aadharNumber)) {
-
         $("#error-aadhar").show();
+
         isValid = false;
-    }else{
-		 // $("#error-aadhar").hide();
-		 $.ajax({
-		 				     url: "/CWFM/contractworkmen/checkAadharExistsCreation",
-		 				     type: "GET",
-		 				     data: {
-		 				         aadharNumber: aadharNumber,
-		 				         gatePassId: $("#gatePassId").val(),        // NULL for draft
-		 				         transactionId: $("#transactionId").val()   // always present for draft/renewal
-		 				     },
-		 				     async: false,
-		 				     success: function (response) {
+        aadharCheckPassed = false;
 
-		 						let status = response.status ? response.status.trim() : '';
-		 						if (status !== "Invalid" && status !== "" && status !== "FOUND") {
-		 						    $("#error-aadhar").text(status).show();
-		 						    aadharCheckPassed = false;
-		 						} else if (status === "Invalid") {
-		 						    $("#error-aadhar").text("Invalid Aadhar Number").show();
-		 						    aadharCheckPassed = false;
-		 						}else if (status === "FOUND") {
+    } else {
+        $.ajax({
+            url: "/CWFM/contractworkmen/checkAadharExistsCreation",
+            type: "GET",
+            data: {
+                aadharNumber: aadharNumber,
+                gatePassId: $("#gatePassId").val(),
+                transactionId: $("#transactionId").val()
+            },
 
-                          $("#error-aadhar").hide();
+            async: false,
+            success: function(response) {
+                let status = response.status ? response.status.trim() : "";
+                console.log("Submit Aadhaar validation status:", status);
+                if (status !== "Invalid" && status !== "" && status !== "FOUND") {
+                    $("#error-aadhar").text(status).show();
+                    aadharCheckPassed = false;
 
-                          $("#firstName").val(response.firstName || "");
-                          $("#lastName").val(response.lastName || "");
-                          $("#relationName").val(response.relativeName || "");
-                          $("#dateOfBirth").val(response.dob || "");
-                          $("#gender").val(response.gender || "");
-                          $("#mobileNumber").val(response.mobileNumber || "");
-                          $("#maritalStatus").val(response.maritalStatus || "");
-                          $("#disability").val(response.disability || "");
-                          $("#workmenType").val(response.workmenType || "");
-                          $("#address").val(response.address || "");
+                } else if (status === "Invalid") {
+                    $("#error-aadhar").text("Invalid Aadhar Number").show();
+                    aadharCheckPassed = false;
 
-                           aadharCheckPassed = true;
-                      } else {
-		 						    $("#error-aadhar").hide();
-		 						    aadharCheckPassed = true;
-		 						}
-		 				     },
-		 				     error: function () {
-		 				         $("#error-aadhar").text("Unable to verify Aadhaar").show();
-		 				         aadharCheckPassed = false;
-		 				     }
-		 				 });
+                } else if (status === "FOUND") {
 
+                    /*
+                     * VERY IMPORTANT:
+                     * DO NOT CALL:
+                     * loadCancelledAadharDetails(response);
+                     * The user may have already modified the cancelled
+                     * record details. We must preserve those changes.
+                     */
 
-		     }
-	
+                    $("#error-aadhar").hide();
+                    aadharCheckPassed = true;
+
+                } else {
+
+                    $("#error-aadhar").hide();
+                    aadharCheckPassed = true;
+                }
+            },
+            error: function() {
+                $("#error-aadhar").text("Unable to verify Aadhaar").show();
+                aadharCheckPassed = false;
+            }
+        });
+    }
+
     const firstName = $("#firstName").val().trim();
     const firstnameRegex = /^[A-Za-z\s]{2,}$/;
     if (!firstnameRegex.test(firstName)) {
-    $("#error-firstName").show(); 
-    isValid = false;
+        $("#error-firstName").show();
+        isValid = false;
+
     } else {
-    $("#error-firstName").hide(); 
+        $("#error-firstName").hide();
     }
+
     const lastName = $("#lastName").val().trim();
     const lastnameRegex = /^[A-Za-z\s]{1,}$/;
     if (lastName !== "" && !lastnameRegex.test(lastName)) {
-    $("#error-lastName").show();
-    isValid = false;
+        $("#error-lastName").show();
+        isValid = false;
+
     } else {
-    $("#error-lastName").hide();
+        $("#error-lastName").hide();
     }
-	/*if (firstName.toLowerCase() === lastName.toLowerCase()) {
-    $("#error-equalNames").show();
-    isValid = false;
-    } else {
-    $("#error-equalNames").hide();
-    }*/
+
     const dateOfBirth = $("#dateOfBirth").val().trim();
     if (dateOfBirth === "") {
         $("#error-dateOfBirth").show();
         isValid = false;
-    }else{
-		 $("#error-dateOfBirth").hide();
-	}
+
+    } else {
+        $("#error-dateOfBirth").hide();
+    }
+
     const gender = $("#gender").val();
     if (gender === "") {
         $("#error-gender").show();
         isValid = false;
-    }else{
-		$("#error-gender").hide();
-	}
-    const relationName = $("#relationName").val().trim();
-    const relationnameRegex = /^[A-Za-z\s]{2,}$/;  // Only alphabetic characters, at least 2 letters
-    if (relationName !== "" && !relationnameRegex.test(relationName)) {
-    $("#error-relationName").show(); // Show error if invalid
-    isValid = false;
+
     } else {
-    $("#error-relationName").hide(); // Hide error if valid
+        $("#error-gender").hide();
     }
-   /* const idMark = $("#idMark").val().trim();
-    const idmarkRegex=/^[A-Za-z\s]+$/;
-    if (!idmarkRegex.test(idMark)) {
-        $("#error-idMark").show();
+
+    const relationName = $("#relationName").val().trim();
+    const relationnameRegex = /^[A-Za-z\s]{2,}$/;
+    if (relationName !== "" &&
+        !relationnameRegex.test(relationName)) {
+        $("#error-relationName").show();
         isValid = false;
-    }else{
-		 $("#error-idMark").hide();
-	}*/
-	
-	const mobileInput = $("#mobileNumber").val().trim();
+
+    } else {
+        $("#error-relationName").hide();
+    }
+
+    const mobileInput = $("#mobileNumber").val().trim();
 	const mobileNumberRegex = /^[6-9]\d{9}$/;
 	if (!mobileNumberRegex.test(mobileInput)) {
                  $("#error-mobileNumber").show();
@@ -510,86 +507,108 @@ function initializeDatePicker() {
 		 $("#error-mobileNumber").hide();
 	 }
 	 
-	 const maritalInput = $("#maritalStatus").val();
-	 if (maritalInput === "") {
+
+    const maritalInput = $("#maritalStatus").val();
+    if (maritalInput === "") {
         $("#error-maritalStatus").show();
         isValid = false;
-    }else{
-		$("#error-maritalStatus").hide();
-	}
-	const workmenType = $("#workmenType").val();
-	 if (workmenType === "") {
+
+    } else {
+        $("#error-maritalStatus").hide();
+    }
+
+    const workmenType = $("#workmenType").val();
+    if (workmenType === "") {
         $("#error-workmenType").show();
         isValid = false;
-    }else{
-		$("#error-workmenType").hide();
-	}
-	const disability = $("#disability").val();
-	 if (disability === "") {
+
+    } else {
+        $("#error-workmenType").hide();
+    }
+
+    const disability = $("#disability").val();
+    if (disability === "") {
         $("#error-disability").show();
         isValid = false;
-    }else{
-		$("#error-disability").hide();
-	}
-	/*const address=$("#address").val().trim();
-	const addressRegex=/^[A-Za-z0-9\s,.'-]{5,}$/;
-	if (!addressRegex.test(address)) {
-                 $("#error-address").show();
-        			isValid = false;
-     }else{
-		 $("#error-address").hide();
-	 }*/
-	/* const address = $("#address").val().replace(/\s+/g, " ").trim();
 
-	 if (address === "") {
-	     $("#error-address").text("Address is required").show();
-	     isValid = false;
-	 } else if (address.length < 2) {
-	     $("#error-address").text("Enter Proper Address").show();
-	     isValid = false;
-	 } else if (/[<>]/.test(address)) {
-	     $("#error-address").text("Invalid characters in address").show();
-	     isValid = false;
-	 } else {
-	     $("#error-address").hide();
-	 }*/
-	
-const address = $("#address").val().replace(/\s+/g, " ").trim();
+    } else {
+        $("#error-disability").hide();
+    }
 
-// Indian PIN code: exactly 6 digits, first digit cannot be 0
-const pincodeRegex = /\b[1-9][0-9]{5}\b/;
+    let pincodeCheckPassed = false;
+    const address = $("#address").val().replace(/\s+/g, " ").trim();
+    // Indian PIN code: 6 digits, first digit cannot be 0
+    const pincodeRegex = /\b[1-9][0-9]{5}\b/;
+    if (address === "") {
+        $("#error-address").text("Address is required").show();
+        isValid = false;
+        pincodeCheckPassed = false;
 
-if (address === "") {
+    } else if (/[<>]/.test(address)) {
+        $("#error-address").text("Invalid characters in address").show();
+        isValid = false;
+        pincodeCheckPassed = false;
 
-    $("#error-address").text("Address is required").show();
+    } else if (!pincodeRegex.test(address)) {
+        $("#error-address").text("Address must contain the valid 6 digit pincode").show();
+        isValid = false;
+        pincodeCheckPassed = false;
 
-    isValid = false;
+    } else {
+        const pincodeMatch = address.match(pincodeRegex);
+        const pincode = pincodeMatch? pincodeMatch[0]: "";
+        if (pincode === "") {
+            $("#error-address").text("Address must contain the valid 6 digit pincode").show();
+            isValid = false;
+            pincodeCheckPassed = false;
 
-} else if (address.length < 5) {
+        } else {
+            /*
+             * Check pincode exists in CMSPINCODEMASTER
+             */
+            $.ajax({
+                url: "/CWFM/contractworkmen/checkPincodeExists",
+                type: "GET",
+                data: {
+                    pincode: pincode
+                },
+                async: false,
+                success: function(response) {
+                    if (response &&
+                        response.state !== null &&
+                        response.state !== undefined &&
+                        String(response.state).trim() !== "" &&
+                        String(response.state).trim() !== "0") {
+                        /*
+                         * Pincode exists
+                         */
+                        $("#error-address").hide();
+                        pincodeCheckPassed = true;
+                    } else {
+                        /*
+                         * Pincode does not exist
+                         */
+                        $("#error-address").text("Entered pincode unable to determined").show();
+                        pincodeCheckPassed = false;
+                        isValid = false;
+                    }
+                },
+                error: function() {
+                    /*
+                     * Backend/database verification failed
+                     */
+                    $("#error-address").text("Entered pincode unable to determined").show();
+                    pincodeCheckPassed = false;
+                    isValid = false;
+                }
+            });
+        }
+    }
+    console.log("Basic data valid:", isValid);
+    console.log("Aadhaar check passed:", aadharCheckPassed);
+    console.log("Pincode check passed:", pincodeCheckPassed);
 
-    $("#error-address").text("Address is too short").show();
-
-    isValid = false;
-
-} else if (/[<>]/.test(address)) {
-
-    $("#error-address").text("Invalid characters in address").show();
-
-    isValid = false;
-
-} else if (!pincodeRegex.test(address)) {
-
-    $("#error-address").text("Address must contain the valid 6 digit pincode").show();
-
-    isValid = false;
-
-} else {
-
-    $("#error-address").hide();
-}
-console.log(isValid);
-    return isValid && aadharCheckPassed;
-
+    return isValid && aadharCheckPassed && pincodeCheckPassed;
 }
 
 function validateEmploymentInformation(){
@@ -5072,7 +5091,7 @@ function searchGatePassReportBasedOnPE() {
 								}
 							  	return isValid;
 							  }	
-function aadharValidation(){
+/*function aadharValidation(){
 	let aadharCheckPassed = false;
 	    const aadharNumber = $("#aadharNumber").val().trim();
 
@@ -5132,7 +5151,82 @@ function aadharValidation(){
 
 			     }
 				 return aadharCheckPassed;
+}*/
+
+function aadharValidation() {
+
+    let aadharCheckPassed = false;
+
+    const aadharNumber = $("#aadharNumber").val().trim();
+    // EMPTY / INVALID LENGTH / NON-NUMERIC AADHAAR
+    if (aadharNumber === "" || aadharNumber.length !== 12 || isNaN(aadharNumber)) {
+        $("#error-aadhar").text("Invalid Aadhar Number").show();
+        // New/invalid Aadhaar -> fields editable
+        unlockAadharFields();
+        isValid = false;
+
+    } else {
+        $.ajax({
+            url: "/CWFM/contractworkmen/checkAadharExistsCreation",
+            type: "GET",
+            data: {
+                aadharNumber: aadharNumber,
+                gatePassId: $("#gatePassId").val(),
+                transactionId: $("#transactionId").val()
+            },
+            async: false,
+            success: function (response) {
+                let status = response.status ? response.status.trim(): '';
+                // SOME OTHER VALIDATION ERROR FROM BACKEND
+                if (status !== "Invalid" && status !== "" && status !== "FOUND") {
+                    $("#error-aadhar").text(status).show();
+                    // Keep fields editable
+                    unlockAadharFields();
+                    aadharCheckPassed = false;
+                }
+                // INVALID AADHAAR
+                else if (status === "Invalid") {
+                    $("#error-aadhar").text("Invalid Aadhar Number").show();
+                    unlockAadharFields();
+                    aadharCheckPassed = false;
+                }
+                // EXISTING / CANCELLED AADHAAR FOUND
+                else if (status === "FOUND") {
+                    $("#error-aadhar").hide();
+                    // POPULATE DETAILS FROM EXISTING RECORD
+                    $("#firstName").val(response.firstName || "");
+                    $("#lastName").val(response.lastName || "");
+                    $("#relationName").val(response.relativeName || "");
+                    $("#dateOfBirth").val(response.dob || "");
+                    $("#gender").val(response.gender || "");
+                    $("#mobileNumber").val(response.mobileNumber || "");
+                    $("#maritalStatus").val(response.maritalStatus || "");
+                    $("#disability").val(response.disability || "");
+                    $("#workmenType").val(response.workmenType || "");
+                    $("#address").val(response.address || "");
+                    // LOCK ONLY FIRST NAME, DOB AND GENDER
+                    lockExistingAadharFields();
+                    aadharCheckPassed = true;
+                }
+                // NEW AADHAAR
+                else {
+                    $("#error-aadhar").hide();
+                    // New Aadhaar -> everything editable
+                    unlockAadharFields();
+                    aadharCheckPassed = true;
+                }
+            },
+            error: function () {
+                $("#error-aadhar").text("Unable to verify Aadhaar").show();
+                // Verification failed -> don't lock fields
+                unlockAadharFields();
+                aadharCheckPassed = false;
+            }
+        });
+    }
+    return aadharCheckPassed;
 }
+
 function showLoader() {
     document.getElementById("loaderOverlay").style.display = "flex";
 }
@@ -7201,4 +7295,255 @@ function toTitleCase(value) {
         .replace(/\b\w/g, function(char) {
             return char.toUpperCase();
         });
+}
+function checkAadharAndLoadCancelledDetails() {
+    const aadharNumber = $("#aadharNumber").val().trim();
+    if (aadharNumber === "" || aadharNumber.length !== 12 || isNaN(aadharNumber)) {
+        return;
+    }
+    $.ajax({
+        url: "/CWFM/contractworkmen/checkAadharExistsCreation",
+        type: "GET",
+        data: {
+            aadharNumber: aadharNumber,
+            gatePassId: $("#gatePassId").val(),
+            transactionId: $("#transactionId").val()
+        },
+        async: false,
+        success: function(response) {
+            let status = response.status ? response.status.trim() : "";
+            console.log("Aadhaar check for loading details:", status);
+            if (status === "FOUND") {
+                /*
+                 * Populate cancelled record details ONLY here.
+                 * This function is called when Aadhaar is entered/changed.
+                 * It is NOT called during submit validation.
+                 */
+                loadCancelledAadharDetails(response);
+                $("#error-aadhar").hide();
+            } else{
+             resetCancelledAadharFieldState();
+             if (status === "Invalid") {
+                $("#error-aadhar").text("Invalid Aadhar Number").show();
+            } else if (status !== "") {
+                $("#error-aadhar").text(status).show();
+            } else {
+                $("#error-aadhar").hide();
+            }
+          }
+        },
+        error: function() {
+            $("#error-aadhar").text("Unable to verify Aadhaar").show();
+        }
+
+    });
+}
+function loadCancelledAadharDetails(response) {
+
+    // ============================================
+    // POPULATE CANCELLED RECORD DETAILS
+    // ============================================
+
+    $("#firstName").val(response.firstName || "");
+    $("#lastName").val(response.lastName || "");
+    $("#relationName").val(response.relativeName || "");
+    $("#dateOfBirth").val(response.dob || "");
+    $("#gender").val(response.gender || "");
+
+    $("#mobileNumber").val(response.mobileNumber || "");
+    $("#maritalStatus").val(response.maritalStatus || "");
+    $("#address").val(response.address || "");
+    $("#workmenType").val(response.workmenType || "");
+    $("#disability").val(response.disability || "");
+
+
+    // ============================================
+    // NON-EDITABLE FIELDS
+    // ============================================
+
+    // First Name - NON EDITABLE
+    $("#firstName").prop("readonly", true);
+
+    // Date of Birth - NON EDITABLE
+    $("#dateOfBirth").prop("readonly", true);
+
+    // Gender - NON EDITABLE
+    // Gender is normally a <select>, so readonly
+    // will not work. Use disabled.
+    $("#gender").prop("disabled", true);
+
+
+    // ============================================
+    // EDITABLE FIELDS
+    // ============================================
+
+    // Last Name - EDITABLE
+    $("#lastName").prop("readonly", false);
+
+    // Relation Name - EDITABLE
+    $("#relationName").prop("readonly", false);
+
+    // Mobile Number - EDITABLE
+    $("#mobileNumber").prop("readonly", false);
+
+    // Marital Status - EDITABLE
+    // Normally a <select>
+    $("#maritalStatus").prop("disabled", false);
+
+    // Address - EDITABLE
+    $("#address").prop("readonly", false);
+
+    // Workmen Type - EDITABLE
+    // Normally a <select>
+    $("#workmenType").prop("disabled", false);
+
+    // Disability - EDITABLE
+    // Normally a <select>
+    $("#disability").prop("disabled", false);
+}
+
+
+function resetCancelledAadharFieldState() {
+
+    // ============================================
+    // RESET ALL FIELDS TO NORMAL EDITABLE STATE
+    // ============================================
+
+    $("#firstName").prop("readonly", false);
+
+    $("#lastName").prop("readonly", false);
+
+    $("#relationName").prop("readonly", false);
+
+    $("#dateOfBirth").prop("readonly", false);
+
+    $("#gender").prop("disabled", false);
+
+    $("#mobileNumber").prop("readonly", false);
+
+    $("#maritalStatus").prop("disabled", false);
+
+    $("#address").prop("readonly", false);
+
+    $("#workmenType").prop("disabled", false);
+
+    $("#disability").prop("disabled", false);
+}
+function lockExistingAadharFields() {
+    // EXISTING AADHAAR:ONLY FIRST NAME, DOB AND GENDER MUST BE NON-EDITABLE
+
+    // First Name
+    $("#firstName")
+        .prop("readonly", true)
+        .attr("readonly", "readonly");
+
+    // Date of Birth
+    $("#dateOfBirth")
+        .prop("readonly", true)
+        .attr("readonly", "readonly");
+
+    // Gender
+    $("#gender")
+        .prop("disabled", true)
+        .attr("disabled", "disabled");
+
+    // ALL OTHER FIELDS MUST REMAIN EDITABLE
+
+    $("#lastName")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#relationName")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#mobileNumber")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#maritalStatus")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+
+    $("#address")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#workmenType")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+
+    $("#disability")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+        
+    // PREVENT DOB DATEPICKER / KEYBOARD FROM CHANGING DOB
+
+    $("#dateOfBirth")
+        .off(".existingAadhar")
+        .on("keydown.existingAadhar", function (e) {
+            e.preventDefault();
+            return false;
+        })
+        .on("click.existingAadhar", function (e) {
+            e.preventDefault();
+
+            // Hide jQuery UI datepicker if it is open
+            try {
+                $(this).datepicker("hide");
+            } catch (error) {
+                // Ignore if datepicker is not initialized
+            }
+
+            return false;
+        });
+}
+
+function unlockAadharFields() {
+    // NEW AADHAAR:ALL FIELDS SHOULD BE EDITABLE
+    // First Name
+    $("#firstName")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    // Date of Birth
+    $("#dateOfBirth")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    // Gender
+    $("#gender")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+
+    // Other fields
+    $("#lastName")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#relationName")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#mobileNumber")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#maritalStatus")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+
+    $("#address")
+        .prop("readonly", false)
+        .removeAttr("readonly");
+
+    $("#workmenType")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+
+    $("#disability")
+        .prop("disabled", false)
+        .removeAttr("disabled");
+    // Remove the special existing-Aadhaar handlers from DOB
+    $("#dateOfBirth").off(".existingAadhar");
 }

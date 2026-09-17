@@ -182,4 +182,6 @@ public interface WorkmenService {
 	
 	String determineISMW(String address, String unitId);
 
+	public String getStateByPincode(String pincode);
+
 }	

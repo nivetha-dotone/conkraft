@@ -5419,8 +5419,12 @@ public String getStateByPincode(String pincode) {
         return jdbcTemplate.queryForObject(sql,String.class,pincode);
     } catch (EmptyResultDataAccessException e) {
         return null;
+    } catch (Exception e) {
+        log.error("Error while fetching pincode from CMSPINCODEMASTER: {}",pincode,e);
+        return null;
     }
 }
+
 public String getPEStateByUnitId() {
     return QueryFileWatcher.getQuery("GET_PE_STATE_BY_UNITID");
 }
@@ -5450,21 +5454,26 @@ public boolean checkISMWPrincipalEmployer(String unitId) {
 
     return result != null && result == 1;
 }
-
+public String TradeskillWorkmenCountFromGpm() {
+    return QueryFileWatcher.getQuery("GET_TRADE_SKILL_WORKMEN_COUNT_FROM_GPM");
+}
 @Override
 public int TradeskillWorkmenCountFromGpm(String principalEmployerId,String tradeId,String skillId) {
 
-    String sql = "SELECT COUNT(*) FROM GATEPASSMAIN gpm INNER JOIN UnitTradeSkillMapping utsm ON utsm.TradeId = gpm.TradeId AND utsm.SkillId = gpm.SkillId AND utsm.PrincipalEmployerId = gpm.UnitId WHERE gpm.DOT > GETDATE() AND utsm.TradeId = ? AND utsm.SkillId = ? AND utsm.PrincipalEmployerId = ? AND gpm.GatePassTypeId IN (1, 2, 12, 15) AND gpm.GatePassStatus = 4";
+    //String sql = "SELECT COUNT(*) FROM GATEPASSMAIN gpm INNER JOIN UnitTradeSkillMapping utsm ON utsm.TradeId = gpm.TradeId AND utsm.SkillId = gpm.SkillId AND utsm.PrincipalEmployerId = gpm.UnitId WHERE gpm.DOT > GETDATE() AND utsm.TradeId = ? AND utsm.SkillId = ? AND utsm.PrincipalEmployerId = ? AND gpm.GatePassTypeId IN (1, 2, 12, 15) AND gpm.GatePassStatus = 4";
+	String sql =TradeskillWorkmenCountFromGpm();
 
     Integer count = jdbcTemplate.queryForObject(sql,Integer.class,tradeId,skillId,principalEmployerId);
     return count != null ? count : 0;
 }
-
+public String getWorkmenTradeSkillCountFromMapping() {
+    return QueryFileWatcher.getQuery("GET_WORKMEN_TRADE_SKILL_FROM_UNITMAPPING");
+}
 @Override
 public Integer getWorkmenTradeSkillCountFromMapping(String principalEmployerId,String tradeId,String skillId) {
 
-    String sql = "SELECT WorkmenCount FROM UnitTradeSkillMapping WHERE PrincipalEmployerId = ? AND TradeId = ? AND SkillId = ?";
-
+    //String sql = "SELECT WorkmenCount FROM UnitTradeSkillMapping WHERE PrincipalEmployerId = ? AND TradeId = ? AND SkillId = ?";
+    String sql =getWorkmenTradeSkillCountFromMapping();
     return jdbcTemplate.query(sql, rs -> {
         if (!rs.next()) {
             // No mapping record

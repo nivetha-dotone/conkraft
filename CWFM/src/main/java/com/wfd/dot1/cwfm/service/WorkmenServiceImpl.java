@@ -2253,4 +2253,18 @@ public String determineISMW(String address, String unitId) {
 
     return ismw;
 }
+
+@Override
+public String getStateByPincode(String pincode) {
+
+    try {
+        return workmenDao.getStateByPincode(pincode);
+
+    } catch (Exception e) {
+
+        log.error("Error while getting state for pincode: {}", pincode, e);
+
+        return null;
+    }
+}
 }
