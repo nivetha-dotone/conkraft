@@ -166,8 +166,8 @@
     }
 </style>
 <script>
-function toggleSelectAllGMTYPE() {
-    const checkboxes = document.querySelectorAll('input[name="selectedWOs"]');
+function toggleSelectAllDeptArea() {
+    const checkboxes = document.querySelectorAll('input[name="selectedDeptAreas"]');
     checkboxes.forEach(checkbox => checkbox.checked = document.getElementById('selectAllCheckbox').checked);
 }
 </script>
@@ -194,7 +194,7 @@ function toggleSelectAllGMTYPE() {
 
      </c:if>
        <c:if test="${UserPermission.exportRights eq 1 }">
-        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="ContrExportToCSV()">Export</button>
+        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="DepartmentAreaMapppingExportToCSV()">Export</button>
     	</c:if>
 <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="deleteSelectedDeptMappings()">Delete</button>
     </div>
@@ -215,7 +215,7 @@ function toggleSelectAllGMTYPE() {
         <thead>
 <tr >
                     <td >
-                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllGMTYPE()">
+                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllDeptArea()">
                     </td> 
                     <!-- Add more table headers for each column -->
                     <th class="header-text"  onclick="sortTable(1)"><spring:message code="label.principalEmployer"/><span id="sortIndicatorName" class="sort-indicator sort-asc">&#x25B2;</span></th>
@@ -230,7 +230,7 @@ function toggleSelectAllGMTYPE() {
     <tr>
         <td>
         
-            <input type="checkbox" name="selectedWOs" >
+            <input type="checkbox" name="selectedDeptAreas"	data-row-id="${wo.principalEmployerId}_${wo.departmentId}_${wo.subDepartmentId}" >
             
              <input type="hidden" class="principalEmployerId" value="${wo.principalEmployerId}">
                     <input type="hidden" class="departmentId" value="${wo.departmentId}">

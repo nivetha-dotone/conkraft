@@ -588,7 +588,7 @@ function initializeDatePicker() {
                         /*
                          * Pincode does not exist
                          */
-                        $("#error-address").text("Entered pincode unable to determined").show();
+                        $("#error-address").text("Address must contain the valid 6 digit pincode").show();
                         pincodeCheckPassed = false;
                         isValid = false;
                     }
@@ -597,7 +597,7 @@ function initializeDatePicker() {
                     /*
                      * Backend/database verification failed
                      */
-                    $("#error-address").text("Entered pincode unable to determined").show();
+                    $("#error-address").text("Address must contain the valid 6 digit pincode").show();
                     pincodeCheckPassed = false;
                     isValid = false;
                 }

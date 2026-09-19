@@ -194,7 +194,7 @@ function toggleSelectAllGMTYPE() {
 
      </c:if>
        <c:if test="${UserPermission.exportRights eq 1 }">
-        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="ContrExportToCSV()">Export</button>
+        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="TradeSkillMapppingExportToCSV()">Export</button>
     	</c:if>
  <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="deleteSelectedTradeMappings()">Delete</button>
     </div>

@@ -401,3 +401,52 @@ $.ajax({
 });
 
 }
+
+ function TradeSkillMapppingExportToCSV() {
+            var selectedRows = document.querySelectorAll('input[name="selectedWOs"]:checked');
+            if (selectedRows.length === 0) {
+                alert("Please select at least one record to export.");
+                return;
+            }
+
+            var csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Principal Employer,Trade,Skill,Workmen Count\n"; // Add headers here
+            selectedRows.forEach(function(row) {
+                var rowData = row.parentNode.parentNode.querySelectorAll('td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5)'); // Adjust column indices as needed
+                var rowArray = [];
+                rowData.forEach(function(cell) {
+                    rowArray.push(cell.innerText);
+                });
+                csvContent += rowArray.join(",") + "\n";
+            });
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "TradeSkillMappping.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+ function DepartmentAreaMapppingExportToCSV() {
+            var selectedRows = document.querySelectorAll('input[name="selectedDeptAreas"]:checked');
+            if (selectedRows.length === 0) {
+                alert("Please select at least one record to export.");
+                return;
+            }
+
+            var csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Principal Employer,Department,Sub Department\n"; // Add headers here
+            selectedRows.forEach(function(row) {
+                var rowData = row.parentNode.parentNode.querySelectorAll('td:nth-child(2), td:nth-child(3), td:nth-child(4)'); // Adjust column indices as needed
+                var rowArray = [];
+                rowData.forEach(function(cell) {
+                    rowArray.push(cell.innerText);
+                });
+                csvContent += rowArray.join(",") + "\n";
+            });
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "DepartmentSubdepartmentMappping.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
