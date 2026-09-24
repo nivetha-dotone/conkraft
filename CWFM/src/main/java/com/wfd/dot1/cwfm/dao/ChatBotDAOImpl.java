@@ -260,7 +260,7 @@ public class ChatBotDAOImpl implements ChatBotDAO {
              }
 
             String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='regular' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='regular' and GatePassTypeId='1' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -280,9 +280,15 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
             	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
             	            dto.setGatePassStatus("Pending");
-            	        }else {
-                            dto.setGatePassStatus(gatePassStatus);
-                        }
+            	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+               	            dto.setGatePassStatus("Approved");
+               	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+               	            dto.setGatePassStatus("Draft");
+               	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+               	            dto.setGatePassStatus("Rejected");
+               	        }else {
+                               dto.setGatePassStatus(gatePassStatus);
+                           }
                         return dto;
                     });
 
@@ -382,6 +388,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -433,6 +445,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -484,6 +502,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -535,6 +559,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -586,6 +616,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -637,6 +673,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }
@@ -688,6 +730,12 @@ public class ChatBotDAOImpl implements ChatBotDAO {
 
            	        if (GatePassStatus.APPROVALPENDING.getStatus().equals(gatePassStatus)) {
            	            dto.setGatePassStatus("Pending");
+           	        }else if (GatePassStatus.APPROVED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Approved");
+           	        }else if (GatePassStatus.DRAFT.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Draft");
+           	        }else if (GatePassStatus.REJECTED.getStatus().equals(gatePassStatus)) {
+           	            dto.setGatePassStatus("Rejected");
            	        }else {
                            dto.setGatePassStatus(gatePassStatus);
                        }

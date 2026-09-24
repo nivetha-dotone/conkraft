@@ -67,6 +67,19 @@ public class IntentMatcher {
 
          return IntentType.PROJECT_PENDING_APPROVALS;
      }
+    
+   //UNBLOCK PENDING APPROVALS
+     if (question.contains("pending approvals - unblock") ||
+        question.contains("pending approval - unblock") ||
+        question.contains("unblock pending approvals") ||
+        question.contains("unblock approvals") ||
+        question.contains("unblock pending") ||
+        question.contains("unblock pendings") ||
+        question.contains("unblock") ||
+        question.contains("unblock pending approval")) {
+
+        return IntentType.UNBLOCK_PENDING_APPROVALS;
+     }
      
   // BLOCK PENDING APPROVALS
   if (question.contains("pending approvals - block") ||
@@ -81,18 +94,19 @@ public class IntentMatcher {
       return IntentType.BLOCK_PENDING_APPROVALS;
   }
 
-//UNBLOCK PENDING APPROVALS
-if (question.contains("pending approvals - unblock") ||
-   question.contains("pending approval - unblock") ||
-   question.contains("unblock pending approvals") ||
-   question.contains("unblock approvals") ||
-   question.contains("unblock pending") ||
-   question.contains("unblock pendings") ||
-   question.contains("unblock") ||
-   question.contains("unblock pending approval")) {
+//DEBLACKLIST PENDING APPROVALS
+if (question.contains("pending approvals - deblacklist") ||
+question.contains("pending approval - deblacklist") ||
+question.contains("deblacklist pending approvals") ||
+question.contains("deblacklist approvals") ||
+question.contains("deblacklist pending") ||
+question.contains("deblacklist pendings") ||
+question.contains("deblacklist") ||
+question.contains("deblacklist pending approval")) {
 
-   return IntentType.UNBLOCK_PENDING_APPROVALS;
+return IntentType.DEBLACKLIST_PENDING_APPROVALS;
 }
+
 
 //BLACKLIST PENDING APPROVALS
 if (question.contains("pending approvals - blacklist") ||
@@ -107,18 +121,6 @@ if (question.contains("pending approvals - blacklist") ||
  return IntentType.BLACKLIST_PENDING_APPROVALS;
 }
 
-//DEBLACKLIST PENDING APPROVALS
-if (question.contains("pending approvals - deblacklist") ||
- question.contains("pending approval - deblacklist") ||
- question.contains("deblacklist pending approvals") ||
- question.contains("deblacklist approvals") ||
- question.contains("deblacklist pending") ||
- question.contains("deblacklist pendings") ||
- question.contains("deblacklist") ||
- question.contains("deblacklist pending approval")) {
-
- return IntentType.DEBLACKLIST_PENDING_APPROVALS;
-}
 
 //CANCEL PENDING APPROVALS
 if (question.contains("pending approvals - cancel") ||
