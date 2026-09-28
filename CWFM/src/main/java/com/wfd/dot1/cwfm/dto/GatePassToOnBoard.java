@@ -108,4 +108,12 @@ public class GatePassToOnBoard {
     private String onboardingType;
     private String accommodation;
     private String eSICIPNumber;
+    private String ISMW;
+    private String LL_No;
+    private String EIC_No;
+    private String Contractor_Name;
+    private String employeeTransferSet;
+    private String employeeTransferEffectiveDate;
+
+
 }

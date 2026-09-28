@@ -829,6 +829,14 @@ public class EmployeeMapper {
 
                 person.setShortName(individualOnBoardDetailsByTrnId.getShortName());
                 personInfo.setPerson(person);
+                ArrayList<EmployeeRequestDTO.PersonAccessAssignments> personAccessAssignmentsList = new ArrayList<>();
+                if(individualOnBoardDetailsByTrnId.getEmployeeTransferSet() !=null && !individualOnBoardDetailsByTrnId.getEmployeeTransferSet().isEmpty()){
+                    EmployeeRequestDTO.PersonAccessAssignments personAccessAssignments=new EmployeeRequestDTO.PersonAccessAssignments();
+                    personAccessAssignments.setProfessionalTransferOrganizationSetName(individualOnBoardDetailsByTrnId.getEmployeeTransferSet());
+                    personAccessAssignments.setProfessionalTransferOrganizationSetEffectiveDate(individualOnBoardDetailsByTrnId.getHireDate());
+                    personAccessAssignmentsList.add(personAccessAssignments);
+                }
+                personInfo.setPersonAccessAssignments(personAccessAssignmentsList);
                 ArrayList<EmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
                 if (individualOnBoardDetailsByTrnId.getGender() != null && !individualOnBoardDetailsByTrnId.getGender().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO gender = new EmployeeRequestDTO.CustomDataDTO();
@@ -864,6 +872,31 @@ public class EmployeeMapper {
                     permanentAddress.setText(individualOnBoardDetailsByTrnId.getAddress());
                     addCustomeList.add(permanentAddress);
                 }
+                if (individualOnBoardDetailsByTrnId.getLL_No() != null && !individualOnBoardDetailsByTrnId.getLL_No().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO LL_NO = new EmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("LL No");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getLL_No());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getEIC_No() != null && !individualOnBoardDetailsByTrnId.getEIC_No().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO LL_NO = new EmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("EIC Number");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getEIC_No());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getWcEsicNo() != null && !individualOnBoardDetailsByTrnId.getWcEsicNo().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO LL_NO = new EmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("WC or ESIC Number");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getWcEsicNo());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getISMW() != null && !individualOnBoardDetailsByTrnId.getISMW().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO LL_NO = new EmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("ISMW");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getISMW());
+                    addCustomeList.add(LL_NO);
+                }
+
 
 //                if (individualOnBoardDetailsByTrnId.getPermanentDistrict() != null && !individualOnBoardDetailsByTrnId.getPermanentDistrict().isEmpty()) {
 //                    EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
@@ -1088,14 +1121,9 @@ public class EmployeeMapper {
 
                 }
                 System.out.println(labor.getLaborCategoryName() +" :- final set json");
-
-
-
-
                 String skill = individualOnBoardDetailsByTrnId.getSkill();
                 boolean checkJob = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("check job found or not - "+ checkJob);
-
                 if(!checkJob){
                     PostJobWfd jobByname = gatePassToOnBoardService.createJobByname(skill);
                     this.wfdEmployeeService.createJobInWFD(jobByname);
@@ -1103,8 +1131,6 @@ public class EmployeeMapper {
                 }
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
-
-
                 String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
                 System.out.println(orgPath);
 
@@ -1123,8 +1149,6 @@ public class EmployeeMapper {
                 dto.setUser(user);
                 return dto != null ? dto : null;
             }
-
-
             else if ("yes".equalsIgnoreCase(issandorpoc1) && individualOnBoardDetailsByTrnId != null)
             {
                 EmployeeRequestDTO dto = new EmployeeRequestDTO();
@@ -1191,6 +1215,24 @@ public class EmployeeMapper {
                     EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
                     aadharName.setCustomDataTypeName("Name as Per Aadhar");
                     aadharName.setText(individualOnBoardDetailsByTrnId.getAadharName());
+                    addCustomeList.add(aadharName);
+                }
+                if (individualOnBoardDetailsByTrnId.getISMW() != null && !individualOnBoardDetailsByTrnId.getISMW().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
+                    aadharName.setCustomDataTypeName("ISMW");
+                    aadharName.setText(individualOnBoardDetailsByTrnId.getISMW());
+                    addCustomeList.add(aadharName);
+                }
+                if (individualOnBoardDetailsByTrnId.getEIC_No() != null && !individualOnBoardDetailsByTrnId.getEIC_No().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
+                    aadharName.setCustomDataTypeName("EIC Number");
+                    aadharName.setText(individualOnBoardDetailsByTrnId.getEIC_No());
+                    addCustomeList.add(aadharName);
+                }
+                if (individualOnBoardDetailsByTrnId.getWcEsicNo() != null && !individualOnBoardDetailsByTrnId.getWcEsicNo().isEmpty()) {
+                    EmployeeRequestDTO.CustomDataDTO aadharName = new EmployeeRequestDTO.CustomDataDTO();
+                    aadharName.setCustomDataTypeName("WMS NUMBER");
+                    aadharName.setText(individualOnBoardDetailsByTrnId.getWcEsicNo());
                     addCustomeList.add(aadharName);
                 }
 

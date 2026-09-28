@@ -914,6 +914,12 @@ public class GatePassToOnBoardService {
                 dto.setOnboardingType(rs.getString("OnboardingType"));
                 dto.setAccommodation(rs.getString("Accommodation"));
                 dto.setESICIPNumber(rs.getString("ESICIPNumber"));
+                dto.setLL_No(rs.getString("LLNo"));
+                dto.setEIC_No(rs.getString("EICNumber"));
+                dto.setISMW(rs.getString("ISMW"));
+                dto.setContractor_Name(rs.getString("contractorName"));
+                dto.setWcEsicNo(rs.getString("WcEsicNo"));
+                dto.setEmployeeTransferSet(rs.getString("EmpJobTranSet"));
 
 
             }

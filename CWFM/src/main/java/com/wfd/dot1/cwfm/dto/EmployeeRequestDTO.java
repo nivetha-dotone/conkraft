@@ -20,6 +20,7 @@ public class EmployeeRequestDTO {
         private List<PersonAuthenticationType> personAuthenticationTypes;
         private List<PersonLicenseType> personLicenseTypes;
         private List<UserAccountStatus> userAccountStatusList;
+        private List<PersonAccessAssignments> personAccessAssignments;
 
     }
 
@@ -31,6 +32,12 @@ public class EmployeeRequestDTO {
         private String professionalWorkRuleName;
         private String shiftCodeName;
         private String employeeLaborCategoryProfileName;
+    }
+
+    @Data
+    public static class PersonAccessAssignments {
+        private String professionalTransferOrganizationSetName;
+        private String professionalTransferOrganizationSetEffectiveDate;
     }
 
     @Data
