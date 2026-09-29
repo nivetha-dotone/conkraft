@@ -203,7 +203,7 @@
 
      </c:if>
        <c:if test="${UserPermission.exportRights eq 1 }">
-        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportToCSVFormat()">Export</button>
+        <button type="button" class="btn btn-default process-footer-button-cancel ng-binding" onclick="exportContMasterToCSVFormat()">Export</button>
     	</c:if>
     </div>
 	</div> 
@@ -213,7 +213,7 @@
 			<thead>
 				<tr>
 					<td  ><input type="checkbox"
-						id="selectAllCheckbox" onchange="toggleSelectAll()">
+						id="selectAllCheckbox" onchange="toggleSelectContractMasterAll()">
 					</td>
 					<!-- Add more table headers for each column -->
 					<th class="header-text" onclick="sortTable(1)"><spring:message code="label.contractorRegistrationId"/><span
@@ -233,8 +233,7 @@
 			<tbody>
 				<c:forEach items="${contractorlist}" var="wo">
 					<tr>
-						<td ><input type="checkbox"
-							name="selectedWOs" value="${wo.contractorregId}"></td>
+						<td ><input type="checkbox" name="selectedContRegs" value="${wo.contractorregId}"></td>
 						<%-- <td  >${wo.contractorregId}</td> --%>
 						<td><a href="javascript:void(0);" onclick="redirectToContractorRegViewById('${wo.contractorregId}')">${wo.contractorregId}</a></td>
 						<%-- <td  >${wo.principalEmployer}</td> --%>

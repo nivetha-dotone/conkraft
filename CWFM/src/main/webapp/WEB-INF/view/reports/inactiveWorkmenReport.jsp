@@ -264,6 +264,7 @@
     </style>	
   <script src="resources/js/cms/export.js"></script>
    <script src="resources/js/cms/workmen.js"></script>
+   
 </head>
 <body>
 
@@ -313,7 +314,7 @@
    <thead>
 <tr>
     <th class="header-text">
-        <input type="checkbox" id="selectAllBlockCheckbox" onchange="toggleAll(this)">
+        <input type="checkbox" id="selectAllBlockCheckbox" onchange="toggleSelectAllRecords(this)">
     </th>
 
     <th class="header-text">Gate Pass Type</th>

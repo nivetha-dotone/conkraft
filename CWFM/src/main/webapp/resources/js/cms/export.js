@@ -1,3 +1,4 @@
+var selectedRowsStore = {};
 function fetchData(module) {
     
     let unitId = $('#principalEmployer').val();
@@ -31,7 +32,33 @@ function fetchData(module) {
         }
     });
 }
+ function toggleSelectAllRecords(source) {
 
+	    if (!$.fn.DataTable.isDataTable('#dynamicTable')) {
+	        return;
+	    }
+
+	    var table = $('#dynamicTable').DataTable();
+
+	    var checked = $(source).prop('checked');
+
+	    table.rows({ search: 'applied' }).every(function () {
+
+	        var rowNode = $(this.node());
+
+	        var checkbox = rowNode.find('.bulk-check');
+
+	        checkbox.prop('checked', checked);
+
+	        var rowId = checkbox.attr('data-row-id');
+
+	        if (checked) {
+	            selectedRowsStore[rowId] = true;
+	        } else {
+	            delete selectedRowsStore[rowId];
+	        }
+	    });
+	}
 /*$(document).on('change', '#selectAll', function () {
     $('.rowCheckbox').prop('checked', this.checked);
 });*/
@@ -181,10 +208,11 @@ function toggleExportSelectAll() {
 	                   let bodyHtml = `
 	                       <tr>
 	                           <td>
-	                               <input type="checkbox"
-	                                      class="bulk-check"
-	                                      name="selectedUnitIds"
-	                                      value="${gatePassId}">
+	                              <input type="checkbox"
+       class="bulk-check"
+       name="selectedUnitIds"
+       value="${gatePassId}"
+       data-row-id="${gatePassId}">
 	                           </td>
 	                   `;
 
@@ -239,37 +267,40 @@ function toggleExportSelectAll() {
 
 		        dataTable.rows().every(function () {
 
-		            let rowNode = $(this.node());
-		            let checkbox = rowNode.find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                rowNode.find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
+		           let rowNode = $(this.node());
+ 
+let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
 		        });
 
 		    } else {
 
 		        $('#dynamicTable tbody tr').each(function () {
 
-		            let checkbox = $(this).find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                $(this).find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
+		            let rowNode = $(this);
+ 
+let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
 		        });
 		    }
 
@@ -297,37 +328,40 @@ function toggleExportSelectAll() {
 		        dataTable.rows().every(function () {
 
 		            let rowNode = $(this.node());
-		            let checkbox = rowNode.find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                rowNode.find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
+ 
+let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
 		        });
 
 		    } else {
 
 		        $('#dynamicTable tbody tr').each(function () {
 
-		            let checkbox = $(this).find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                $(this).find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
-		        });
+		           let rowNode = $(this);
+ 
+let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
+});
 		    }
 
 		    if (rows.length === 0) {
@@ -355,37 +389,39 @@ function toggleExportSelectAll() {
 		        dataTable.rows().every(function () {
 
 		            let rowNode = $(this.node());
-		            let checkbox = rowNode.find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                rowNode.find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
+		            let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
 		        });
 
 		    } else {
 
 		        $('#dynamicTable tbody tr').each(function () {
 
-		            let checkbox = $(this).find('.bulk-check');
-
-		            if (checkbox.is(':checked')) {
-
-		                let row = [];
-
-		                $(this).find('td:not(:first-child)').each(function () {
-		                    row.push($(this).text().trim());
-		                });
-
-		                rows.push(row);
-		            }
-		        });
+		           let rowNode = $(this);
+ 
+let rowId = rowNode.find('.bulk-check').attr('data-row-id');
+ 
+if (selectedRowsStore[rowId]) {
+ 
+let row = [];
+ 
+rowNode.find('td:not(:first-child)').each(function () {
+row.push($(this).text().trim());
+});
+ 
+rows.push(row);
+}
+});
 		    }
 
 		    if (rows.length === 0) {
@@ -433,10 +469,11 @@ function toggleExportSelectAll() {
 	                   let bodyHtml = `
 	                       <tr>
 	                           <td>
-	                               <input type="checkbox"
-	                                      class="bulk-check"
-	                                      name="selectedUnitIds"
-	                                      value="${gatePassId}">
+	                              <input type="checkbox"
+       class="bulk-check"
+       name="selectedUnitIds"
+       value="${gatePassId}"
+       data-row-id="${gatePassId}">
 	                           </td>
 	                   `;
 
@@ -499,9 +536,10 @@ function fetchInactiveReportData() {
 	                       <tr>
 	                           <td>
 	                               <input type="checkbox"
-	                                      class="bulk-check"
-	                                      name="selectedUnitIds"
-	                                      value="${gatePassId}">
+       class="bulk-check"
+       name="selectedUnitIds"
+       value="${gatePassId}"
+       data-row-id="${gatePassId}">
 	                           </td>
 	                   `;
 
@@ -563,9 +601,10 @@ function fetchInactiveReportData() {
 	                       <tr>
 	                           <td>
 	                               <input type="checkbox"
-	                                      class="bulk-check"
-	                                      name="selectedUnitIds"
-	                                      value="${gatePassId}">
+       class="bulk-check"
+       name="selectedUnitIds"
+       value="${gatePassId}"
+       data-row-id="${gatePassId}">
 	                           </td>
 	                   `;
 
@@ -773,3 +812,34 @@ function fetchInactiveReportData() {
 			   					        }
 			   					    });
 			   					}
+			   					
+$(document).on('change', '#dynamicTable .bulk-check', function () {
+
+    var rowId = $(this).attr('data-row-id');
+
+    if ($(this).is(':checked')) {
+        selectedRowsStore[rowId] = true;
+    } else {
+        delete selectedRowsStore[rowId];
+    }
+});
+$('#dynamicTable')
+.off('draw.dt.selection')
+.on('draw.dt.selection', function () {
+
+    var table = $('#dynamicTable').DataTable();
+
+    table.rows({ page: 'current' }).every(function () {
+
+        var rowNode = $(this.node());
+
+        var checkbox = rowNode.find('.bulk-check');
+
+        var rowId = checkbox.attr('data-row-id');
+
+        checkbox.prop(
+            'checked',
+            selectedRowsStore[rowId] === true
+        );
+    });
+});

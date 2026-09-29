@@ -1,6 +1,6 @@
 /*Contractor*/
  
-
+var selectedContractorRows = {};
 
   function loadContractorList(contextPath) {
       //  var contextPath = '<%= request.getContextPath() %>'; // This will be evaluated on the server side
@@ -263,30 +263,55 @@ function performAjaxRequest(url) {
 
 
 
- function exportToCSVFormat() {
-            var selectedRows = document.querySelectorAll('input[name="selectedWOs"]:checked');
-            if (selectedRows.length === 0) {
-                alert("Please select at least one record to export.");
-                return;
-            }
+function exportContMasterToCSVFormat() {
 
-            var csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "CONTRACTORREGID,VENDORCODE,CONTRACTORNAME,STATUS,REQUESTTYPE\n"; // Add headers here
-            selectedRows.forEach(function(row) {
-                var rowData = row.parentNode.parentNode.querySelectorAll('td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5), td:nth-child(6)'); // Adjust column indices as needed
-                var rowArray = [];
-                rowData.forEach(function(cell) {
-                    rowArray.push(cell.innerText);
+    var table = $('#contractorlisttable').DataTable();
+
+    var csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "CONTRACTORREGID,VENDOR CODE,CONTRACTOR NAME,STATUS,REQUEST TYPE\n";
+
+    var selectedCount = 0;
+
+    table.rows().every(function () {
+
+        var row = $(this.node());
+
+        var contractorRegId =
+            row.find('input[name="selectedContRegs"]').val();
+
+        if (selectedContractorRows[contractorRegId]) {
+
+            selectedCount++;
+
+            var rowData = [];
+
+            row.find('td:nth-child(2),td:nth-child(3),td:nth-child(4),td:nth-child(5),td:nth-child(6)')
+                .each(function () {
+
+                    rowData.push($(this).text().trim());
+
                 });
-                csvContent += rowArray.join(",") + "\n";
-            });
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "ContractorRegistration.csv");
-            document.body.appendChild(link);
-            link.click();
+
+            csvContent += rowData.join(",") + "\n";
         }
+    });
+
+    if (selectedCount === 0) {
+
+        alert("Please select at least one record to export.");
+        return;
+    }
+
+    var encodedUri = encodeURI(csvContent);
+
+    var link = document.createElement("a");
+    link.href = encodedUri;
+    link.download = "ContractorRegistration.csv";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 function exportCSVFormat() {
             var selectedRows = document.querySelectorAll('input[name="selectedWOs"]:checked');
             if (selectedRows.length === 0) {
@@ -1469,14 +1494,39 @@ document.addEventListener('click', function (e) {
             alert("Unable to open file.");
         });
 }
- function toggleSelectAll() {
-            var selectAllCheckbox = document.getElementById('selectAllCheckbox');
-            var checkboxes = document.querySelectorAll('input[name="selectedWOs"]');
-            checkboxes.forEach(function(checkbox) {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
+function toggleSelectContractMasterAll() {
+
+    if (!$.fn.DataTable.isDataTable('#contractorlisttable')) {
+
+        $('input[name="selectedContRegs"]').prop(
+            'checked',
+            $('#selectAllCheckbox').prop('checked')
+        );
+
+        return;
+    }
+
+    var table = $('#contractorlisttable').DataTable();
+
+    var checked = $('#selectAllCheckbox').prop('checked');
+
+    table.rows({ search: 'applied' }).every(function () {
+
+        var row = $(this.node());
+
+        var checkbox = row.find('input[name="selectedContRegs"]');
+
+        checkbox.prop('checked', checked);
+
+        var contractorRegId = checkbox.val();
+
+        if (checked) {
+            selectedContractorRows[contractorRegId] = true;
+        } else {
+            delete selectedContractorRows[contractorRegId];
         }
-        
+    });
+}     
 function initializeContractorMasterAutoSelects() {
     autoSelectAndTriggerContractorMaster("principalEmployerId");
 }     
@@ -1525,3 +1575,31 @@ function showLoader() {
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
 }
+$(document).on('change', '#contractorlisttable input[name="selectedContRegs"]', function () {
+
+    var contractorRegId = $(this).val();
+
+    if ($(this).prop('checked')) {
+        selectedContractorRows[contractorRegId] = true;
+    } else {
+        delete selectedContractorRows[contractorRegId];
+    }
+});
+$('#contractorlisttable').on('draw.dt', function () {
+
+    var table = $('#contractorlisttable').DataTable();
+
+    table.rows({ page: 'current' }).every(function () {
+
+        var row = $(this.node());
+
+        var checkbox = row.find('input[name="selectedContRegs"]');
+
+        var contractorRegId = checkbox.val();
+
+        checkbox.prop(
+            'checked',
+            selectedContractorRows[contractorRegId] === true
+        );
+    });
+});

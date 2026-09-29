@@ -1,4 +1,4 @@
- 
+ var selectedWorkOrderRows = {};
  
  function loadWOList(contextPath) {
       //  var contextPath = '<%= request.getContextPath() %>'; // This will be evaluated on the server side
@@ -17,13 +17,29 @@
         xhttp.open("GET", url, true);
         xhttp.send();
     }
- function toggleSelectAllWOS() {
-            var selectAllCheckbox = document.getElementById('selectAllWOCheckbox');
-            var checkboxes = document.querySelectorAll('input[name="selectedWOs"]');
-            checkboxes.forEach(function(checkbox) {
-                checkbox.checked = selectAllCheckbox.checked;
-            });
+function toggleSelectAllWOS() {
+
+    var table = $('#workorderTable').DataTable();
+
+    var checked = $('#selectAllWOCheckbox').prop('checked');
+
+    table.rows({ search: 'applied' }).every(function () {
+
+        var row = $(this.node());
+
+        var checkbox = row.find('input[name="selectedWorkorderIds"]');
+
+        checkbox.prop('checked', checked);
+
+        var workOrderId = row.find('td:eq(1)').text().trim();
+
+        if (checked) {
+            selectedWorkOrderRows[workOrderId] = true;
+        } else {
+            delete selectedWorkOrderRows[workOrderId];
         }
+    });
+}
         
  
 function redirectToWOView() {
@@ -93,30 +109,54 @@ function searchWithPEContractorInWO(contextPath) {
      });
  }
  
-   function woListExportToCSV() {
-            var selectedRows = document.querySelectorAll('input[name="selectedWorkorderIds"]:checked');
-            if (selectedRows.length === 0) {
-                alert("Please select at least one record to export.");
-                return;
-            }
+function woListExportToCSV() {
 
-            var csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "WORKORDERID,SAP_WORKORDER_NUM,TYPEID,DEPID,VALIDFROM,VALIDDT,CONTRACTORID,COSTCENTER,UNITID,STATUS\n"; // Add headers here
-            selectedRows.forEach(function(row) {
-                var rowData = row.parentNode.parentNode.querySelectorAll('td:nth-child(2), td:nth-child(3), td:nth-child(4), td:nth-child(5), td:nth-child(6), td:nth-child(7), td:nth-child(8), td:nth-child(9), td:nth-child(10), td:nth-child(11)'); // Adjust column indices as needed
-                var rowArray = [];
-                rowData.forEach(function(cell) {
-                    rowArray.push(cell.innerText);
-                });
-                csvContent += rowArray.join(",") + "\n";
-            });
-            var encodedUri = encodeURI(csvContent);
-            var link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "WorkOrderList.csv");
-            document.body.appendChild(link);
-            link.click();
+    var table = $('#workorderTable').DataTable();
+
+    var csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "WORKORDERID,WORKORDER NUMBER,JOB,WORKORDER TYPE,AREA,VALID FROM,VALID TO,CONTRACTOR NAME,VENDOR CODE,UNIT NAME,STATUS\n";
+
+    var selectedCount = 0;
+
+    table.rows().every(function () {
+
+        var row = $(this.node());
+
+        var workOrderId = row.find('td:eq(1)').text().trim();
+
+        if (selectedWorkOrderRows[workOrderId]) {
+
+            selectedCount++;
+
+            var rowData = [];
+
+            row.find('td:nth-child(2),td:nth-child(3),td:nth-child(4),td:nth-child(5),td:nth-child(6),td:nth-child(7),td:nth-child(8),td:nth-child(9),td:nth-child(10),td:nth-child(11),td:nth-child(12)')
+               .each(function () {
+                   rowData.push($(this).text().trim());
+               });
+
+            csvContent += rowData.join(",") + "\n";
         }
+    });
+
+    if (selectedCount === 0) {
+        alert("Please select at least one record to export.");
+        return;
+    }
+
+    var encodedUri = encodeURI(csvContent);
+
+    var link = document.createElement("a");
+
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "WorkOrderList.csv");
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+}
 		
 		function searchWorkordersBasedOnPEAndContr() {
 					    var principalEmployerId = $('#principalEmployerIds').val();
@@ -194,3 +234,30 @@ function searchWithPEContractorInWO(contextPath) {
 					        }
 					    });
 					}
+
+$(document).on('change', 'input[name="selectedWorkorderIds"]', function () {
+
+    var row = $(this).closest('tr');
+
+    var workOrderId = row.find('td:eq(1)').text().trim();
+
+    if ($(this).is(':checked')) {
+        selectedWorkOrderRows[workOrderId] = true;
+    } else {
+        delete selectedWorkOrderRows[workOrderId];
+    }
+});
+$('#workorderTable').on('draw.dt', function () {
+
+    var table = $('#workorderTable').DataTable();
+
+    table.rows({ page: 'current' }).every(function () {
+
+        var row = $(this.node());
+
+        var workOrderId = row.find('td:eq(1)').text().trim();
+
+        row.find('input[name="selectedWorkorderIds"]')
+            .prop('checked', selectedWorkOrderRows[workOrderId] === true);
+    });
+});
