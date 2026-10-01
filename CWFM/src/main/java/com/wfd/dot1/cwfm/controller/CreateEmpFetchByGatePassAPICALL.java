@@ -2,13 +2,11 @@
 
 package com.wfd.dot1.cwfm.controller;
 
-import com.wfd.dot1.cwfm.dto.EmployeeRequestDTO;
-import com.wfd.dot1.cwfm.dto.GatePassToOnBoard;
-import com.wfd.dot1.cwfm.dto.LoginApp;
-import com.wfd.dot1.cwfm.dto.MasterUserApp;
+import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.service.EmployeeMapper;
+import com.wfd.dot1.cwfm.service.EmployeeMapperDirect;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
 
 import java.util.HashMap;
@@ -112,7 +110,6 @@ public class CreateEmpFetchByGatePassAPICALL {
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String gpTransactionId) {
 
         try {
-
             String result = this.employeeMapper.gatePassEmpDtoDynamic(gpTransactionId);
             if (result == null) {
                 this.passToOnBoardService.saveErrorTraceTrNOT(gpTransactionId, 200, "Transaction Id Not Found");
@@ -428,5 +425,51 @@ public class CreateEmpFetchByGatePassAPICALL {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending LL expiry emails: " + e.getMessage());
         }
     }
+    @Autowired
+    private EmployeeMapperDirect employeeMapperDB;
+    @PostMapping("/FetchTotalFromUKGDB")
+    public ResponseEntity<FetchTotalResponseDto> fetchTotalFromUKG( @RequestBody FetchTotalRequestDto request) {
+        try {
+
+            String status = employeeMapperDB.fetchTotalFromUKG(request.getPersonNumbers(), request.getStartDate(), request.getEndDate() );
+            FetchTotalResponseDto response =new FetchTotalResponseDto(request.getReqId(),status );
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @PostMapping("/FetchPunchFromUKGDB")
+    public ResponseEntity<FetchTotalResponseDto> fetchPunchFromUKG(@RequestBody FetchTotalRequestDto request ) {
+        try {
+
+            String status = employeeMapperDB.fetchPunchesFromUKG(request.getPersonNumbers(), request.getStartDate(), request.getEndDate() );
+            FetchTotalResponseDto response =new FetchTotalResponseDto(request.getReqId(),status );
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @PostMapping("/FetchScheduleFromUKGDB")
+    public ResponseEntity<FetchTotalResponseDto> fetchScheduleFromUKG(@RequestBody FetchTotalRequestDto request) {
+        try {
+
+            String status = employeeMapperDB.fetchScheduleFromUKG(request.getPersonNumbers(), request.getStartDate(), request.getEndDate() );
+            FetchTotalResponseDto response =new FetchTotalResponseDto(request.getReqId(),status );
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
 
 }

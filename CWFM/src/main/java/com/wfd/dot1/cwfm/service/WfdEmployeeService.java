@@ -1053,6 +1053,146 @@ public class WfdEmployeeService {
         );
     }
 
+    public String getFetchTotalsWFD() {
+        return QueryFileWatcher.getQuery("GetURLFetchTimeCard");
+    } public String getFetchPunchesWFD() {
+        return QueryFileWatcher.getQuery("GetURLFetchTimeCard");
+    }
 
+    public String fetchTotals(FetchTotalsRequestDto dto) {
+        try {
+
+            // Convert DTO to JSON
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            System.out.println("Fetch Totals Request: " + jsonBody);
+
+            // Get UKG access token
+            String accessToken = this.wfdAuthService.getAccessToken();
+
+            // Create headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            // Create HTTP entity
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+
+            // Create API URL
+            String hostName = this.getHostName();
+            String url = hostName + this.getFetchTotalsWFD();
+
+            System.out.println("Fetch Totals URL: " + url);
+
+            // Call UKG API
+            ResponseEntity<String> response = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+
+            // Return response as String
+            int statusCode = response.getStatusCodeValue();
+
+            return "STATUS:" + statusCode
+                    + "\nBODY:" + response.getBody();
+
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+
+            int statusCode = e.getStatusCode().value();
+
+            return "STATUS:" + statusCode
+                    + "\nBODY:" + e.getResponseBodyAsString();
+
+        } catch (Exception e) {
+
+            return "STATUS:500"
+                    + "\nBODY:Error fetching totals from WFD API: "
+                    + e.getMessage();
+        }
+    }
+
+    public String fetchPunches(FetchPunchesRequestDto dto) {
+
+        try {
+
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+            String accessToken =  this.wfdAuthService.getAccessToken();
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.setContentType( MediaType.APPLICATION_JSON );
+            headers.setBearerAuth(accessToken);
+            HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+            String hostName = this.getHostName();
+            String url = hostName + this.getFetchPunchesWFD();
+            ResponseEntity<String> response = this.restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    entity,
+                    String.class
+            );
+            int statusCode = response.getStatusCodeValue();
+
+            return "STATUS:" + statusCode + "\nBODY:" + response.getBody();
+
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+
+            int statusCode =e.getStatusCode().value();
+
+            return "STATUS:" + statusCode + "\nBODY:" + e.getResponseBodyAsString();
+
+        } catch (Exception e) {
+
+            return "STATUS:500" + "\nBODY:Error fetching punches from WFD API: " + e.getMessage();
+        }
+    }
+
+    public String fetchSchedule(FetchScheduleShiftRequestDto dto) {
+
+        try {
+
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+
+
+
+            String accessToken = this.wfdAuthService.getAccessToken();
+
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.setContentType( MediaType.APPLICATION_JSON );
+
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity =
+                    new HttpEntity<>(jsonBody, headers);
+
+            String hostName = this.getHostName();
+
+            String url =  hostName + this.getFetchPunchesWFD();
+
+
+            ResponseEntity<String> response =
+                    this.restTemplate.exchange(
+                            url,
+                            HttpMethod.POST,
+                            entity,
+                            String.class
+                    );
+
+            int statusCode = response.getStatusCodeValue();
+
+            return "STATUS:" + statusCode + "\nBODY:" + response.getBody();
+
+        } catch (HttpServerErrorException | HttpClientErrorException e) {
+
+            int statusCode = e.getStatusCode().value();
+
+            return "STATUS:" + statusCode+ "\nBODY:"+ e.getResponseBodyAsString();
+
+        } catch (Exception e) {
+
+            return "STATUS:500" + "\nBODY:Error fetching Schedule from WFD API: "+ e.getMessage();
+        }
+    }
 
 }
