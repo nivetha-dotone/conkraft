@@ -121,7 +121,6 @@ public class EmployeeMapperDirect {
                         String payCodeName = aggregatedTotal.getPayCode().getName();
                         String payCodeType = aggregatedTotal.getAmountType();
                         BigDecimal amount = aggregatedTotal.getAmount();
-
                         // Location
                         String location = null;
                         if (aggregatedTotal.getLocation() != null) {

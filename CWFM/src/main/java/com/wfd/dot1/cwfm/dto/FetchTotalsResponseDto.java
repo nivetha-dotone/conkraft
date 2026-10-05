@@ -1,6 +1,6 @@
 package com.wfd.dot1.cwfm.dto;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -8,27 +8,34 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FetchTotalsResponseDto {
 
     private Employee employee;
     private List<Total> totals;
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Employee {
+
         private Long id;
         private String qualifier;
         private String name;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Total {
 
-        private EmployeeContext employeeContext;
-        private TotalContext totalContext;
         private List<AggregatedTotal> aggregatedTotals;
+
+        private EmployeeContext employeeContext;
+
+        private TotalContext totalContext;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EmployeeContext {
 
         private Employee employee;
@@ -36,6 +43,7 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Timezone {
 
         private Long id;
@@ -44,14 +52,16 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class TotalContext {
 
-        private String totalType;
         private String totalAggregationType;
         private String totalGroupByType;
+        private String totalType;
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class AggregatedTotal {
 
         private Boolean approvableByManager;
@@ -82,6 +92,7 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Location {
 
         private Long id;
@@ -90,6 +101,7 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Job {
 
         private Long id;
@@ -98,6 +110,7 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PayCode {
 
         private Long id;
@@ -106,6 +119,7 @@ public class FetchTotalsResponseDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class WagesCurrency {
 
         private BigDecimal amount;
