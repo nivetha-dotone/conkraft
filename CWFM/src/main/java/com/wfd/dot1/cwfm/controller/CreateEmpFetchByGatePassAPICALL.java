@@ -26,6 +26,8 @@ public class CreateEmpFetchByGatePassAPICALL {
     private EmployeeMapper employeeMapper;
     @Autowired
     private GatePassToOnBoardService passToOnBoardService;
+    @Autowired
+    private EmployeeMapperDirect employeeMapperDB;
 
     public CreateEmpFetchByGatePassAPICALL() {
     }
@@ -419,14 +421,14 @@ public class CreateEmpFetchByGatePassAPICALL {
     @GetMapping({"/checkLLExMAil"})
     public ResponseEntity<String> lLMail() {
         try {
+
             this.employeeMapper.setupLaborLMail();
             return ResponseEntity.ok("LL expiry emails triggered successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending LL expiry emails: " + e.getMessage());
         }
     }
-    @Autowired
-    private EmployeeMapperDirect employeeMapperDB;
+
     @PostMapping("/FetchTotalFromUKGDB")
     public ResponseEntity<FetchTotalResponseDto> fetchTotalFromUKG( @RequestBody FetchTotalRequestDto request) {
         try {

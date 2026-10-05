@@ -39,14 +39,16 @@ public class EmployeeMapperDirect {
     public String fetchTotalFromUKG(List<String> personNumbers,String startDate,String endDate) {
         try {
             if (personNumbers == null || personNumbers.isEmpty()) {
-                return "response is null";
+                return "Records are not inserted deu to personNum is not available in db";
             }
             LocalDate fromDate = LocalDate.parse(startDate);
             LocalDate toDate =LocalDate.parse(endDate);
             if (toDate.isBefore(fromDate)) {
-                return ("End date cannot be before start date.");
+                return "Records are not inserted deu to start date is greater than end date in parameters";
             }
             int batchSize = 200;
+            int totalProcessedRecords = 0;
+            int totalInsertedRecords = 0;
             for (LocalDate fetchDate = fromDate; !fetchDate.isAfter(toDate);fetchDate = fetchDate.plusDays(1)) {
                 String apiDate =fetchDate.toString();
                 for (int start = 0; start < personNumbers.size(); start += batchSize) {
@@ -56,31 +58,40 @@ public class EmployeeMapperDirect {
                         FetchTotalsRequestDto requestDto =gatePassService.setTotalRequestBodyDirect(employeeBatch,apiDate);
                         String response =wfdEmployeeService.fetchTotals(requestDto);
                         if (response == null) {
-                            return "response is null";
+                            return "Records are not inserted deu to response is null";
                         }
                         if (!response.startsWith("STATUS:200")) {
                             continue;
                         }
-                        saveFetchTotals(response,fetchDate);
-
+                        int[] result = saveFetchTotals(response,fetchDate);
+                        totalProcessedRecords +=result[0];
+                        totalInsertedRecords +=result[1];
                     } catch (Exception batchException) {
                         batchException.printStackTrace();
                     }
                 }
             }
-            return "successfully saved data ";
+            if (totalInsertedRecords > 0) {
+                return "Records are inserted in DB.";
+            }
+            if (totalProcessedRecords > 0) {
+                return "Records are already in DB.";
+            }
+            return "Records are not inserted in DB.";
         } catch (Exception e) {
-           return ("Error while fetching totals from UKG: "+ e.getMessage());
+           return ("Records are not inserted deu to "+ e.getMessage());
         }
     }
-    public void saveFetchTotals(String response, LocalDate historicalDate) {
+
+    public int[] saveFetchTotals(String response, LocalDate historicalDate) {
 
         try {
             String body = response.substring( response.indexOf("BODY:") + 5);
             ObjectMapper objectMapper = new ObjectMapper();
             List<FetchTotalsResponseDto> responseList = objectMapper.readValue(body,new TypeReference<List<FetchTotalsResponseDto>>() {} );
             LocalDateTime applyDTM =historicalDate.atStartOfDay();
-
+            int processedRecords = 0;
+            int insertedRecords = 0;
             for (FetchTotalsResponseDto employeeResponse : responseList) {
                 // Employee object validation
                 if (employeeResponse == null || employeeResponse.getEmployee() == null) {
@@ -143,23 +154,39 @@ public class EmployeeMapperDirect {
                         } else if ("AMOUNT".equalsIgnoreCase(payCodeType)) {
                             pcValAmount = amount;
                         }
+
+                        processedRecords++;
                         // Save / Update
-                        saveOrUpdateTotal(
-                                personNumber,
-                                payCodeName,
-                                payCodeType,
-                                Timestamp.valueOf(applyDTM),
-                                java.sql.Date.valueOf(historicalDate),
-                                pcValTime,
-                                pcValAmount,
-                                pcValDays,
-                                location,
-                                job,
-                                laborCategory
-                        );
+                        boolean inserted =
+                                saveOrUpdateTotal(
+                                        personNumber,
+                                        payCodeName,
+                                        payCodeType,
+                                        Timestamp.valueOf(
+                                                applyDTM
+                                        ),
+                                        java.sql.Date.valueOf(
+                                                historicalDate
+                                        ),
+                                        pcValTime,
+                                        pcValAmount,
+                                        pcValDays,
+                                        location,
+                                        job,
+                                        laborCategory
+                                );
+
+                        if (inserted) {
+                            insertedRecords++;
+                        }
                     }
                 }
             }
+            return new int[]{
+                    processedRecords,
+                    insertedRecords
+            };
+
         } catch (Exception e) {
 
             throw new RuntimeException("Error while storing Fetch Totals response: "+ e.getMessage(), e);
@@ -175,15 +202,14 @@ public class EmployeeMapperDirect {
         return QueryFileWatcher.getQuery("DELETE_EXISTING_TOTAL");
     }
 
-    public void saveOrUpdateTotal(String personNumber,String payCodeName,String payCodeType, Timestamp applyDTM, java.sql.Date historicalDate, String pcValTime, BigDecimal pcValAmount, BigDecimal pcValDays, String location, String job, String laborCategory) {
+    public boolean  saveOrUpdateTotal(String personNumber,String payCodeName,String payCodeType, Timestamp applyDTM, java.sql.Date historicalDate, String pcValTime, BigDecimal pcValAmount, BigDecimal pcValDays, String location, String job, String laborCategory) {
         try {
             String existingQuery = getExistingTotal();
             List<Map<String, Object>> existingRecords = jdbcTemplate.queryForList(existingQuery, personNumber, applyDTM, payCodeName, location, job, laborCategory);
             //  No existing record
             if (existingRecords.isEmpty()) {
                 insertTotal(personNumber, payCodeName, payCodeType, applyDTM, historicalDate, pcValTime, pcValAmount, pcValDays, location, job, laborCategory);
-                System.out.println("Inserted new total. "+ "PersonNumber=" + personNumber + ", ApplyDTM=" + applyDTM + ", PayCodeName=" + payCodeName + ", Location=" + location + ", Job=" + job + ", LaborCategory=" + laborCategory );
-                return;
+                return true;
             }
 
             // Existing record found
@@ -203,7 +229,7 @@ public class EmployeeMapperDirect {
 
             if (sameValue) {
 
-                return;
+                return false;
             }
             // CASE 3: Values are different
             // DELETE + INSERT
@@ -216,7 +242,7 @@ public class EmployeeMapperDirect {
                     applyDTM, historicalDate, pcValTime,
                     pcValAmount, pcValDays, location, job,
                     laborCategory );
-
+            return true;
         } catch (Exception e) {
             throw new RuntimeException("Error while validating/saving total. " + "PersonNumber=" + personNumber  + ", PayCodeName=" + payCodeName  + ", ApplyDTM=" + applyDTM + ", Error=" + e.getMessage(),e
             );
@@ -240,8 +266,8 @@ public class EmployeeMapperDirect {
     public String fetchPunchesFromUKG(List<String> personNumber,String startDate, String endDate) {
         try {
             List<String> personNumbers =personNumber;
-            if (personNumbers == null || personNumbers.isEmpty()) {
-                return "personNumber is empty";
+            if (personNumber == null || personNumber.isEmpty()) {
+                return "Records are not inserted in DB.";
             }
             // Remove duplicate employee numbers
             personNumbers = personNumbers.stream()
@@ -250,20 +276,39 @@ public class EmployeeMapperDirect {
                     .filter(s -> !s.isEmpty())
                     .distinct()
                     .collect(Collectors.toList());
+            if (personNumbers.isEmpty()) {
+                return "Records are not inserted in DB.";
+            }
 
             int batchSize = 200;
+            int totalProcessedRecords = 0;
+            int totalInsertedRecords = 0;
             for (int start = 0;  start < personNumbers.size(); start += batchSize) {
                 int end = Math.min( start + batchSize, personNumbers.size());
                 List<String> employeeBatch =  personNumbers.subList(start, end);
-                FetchPunchesRequestDto requestDto =  gatePassService.setPunchRequestBodyDB(employeeBatch,startDate,endDate);
-                String response = wfdEmployeeService.fetchPunches(requestDto);
-                if (response == null || !response.startsWith("STATUS:200")) {
-                    continue;
+                try{
+                    FetchPunchesRequestDto requestDto =  gatePassService.setPunchRequestBodyDB(employeeBatch,startDate,endDate);
+                    String response = wfdEmployeeService.fetchPunches(requestDto);
+                    if (response == null || !response.startsWith("STATUS:200")) {
+                        continue;
+                    }
+                    if (!response.startsWith("STATUS:200")) {
+                        continue;
+                    }
+                    int[] result =saveFetchPunches(response);
+                    totalProcessedRecords += result[0];
+                    totalInsertedRecords += result[1];
+                }catch (Exception batchException) {
+                    batchException.printStackTrace();
                 }
-                saveFetchPunches(response);
             }
-            return "successfully saved punches";
-
+            if (totalInsertedRecords > 0) {
+                return "Records are inserted in DB.";
+            }
+            if (totalProcessedRecords > 0) {
+                return "Records are already in DB.";
+            }
+            return "Records are not inserted in DB.";
         } catch (Exception e) {
             return ("Error while fetching punches from UKG: "+ e.getMessage());
         }
@@ -271,13 +316,15 @@ public class EmployeeMapperDirect {
     public String getInsertWfcPunch() {
         return QueryFileWatcher.getQuery("INSERT_WFC_PUNCH");
     }
-    public void saveFetchPunches(String response) {
+    public int[] saveFetchPunches(String response) {
         try {
-            String body = response.substring(response.indexOf("BODY:") + 5 );
+            String body =response.substring(response.indexOf("BODY:") + 5 );
             List<FetchPunchesResponseDto> responseList =objectMapper.readValue(body, new TypeReference<List<FetchPunchesResponseDto>>() {});
-            String insertQuery = getInsertWfcPunch();
-            for (FetchPunchesResponseDto employeeResponse :responseList) {
-                if (employeeResponse == null || employeeResponse.getPunches() == null || employeeResponse.getPunches().isEmpty()) {
+            String insertQuery =getInsertWfcPunch();
+            int processedRecords = 0;
+            int insertedRecords = 0;
+            for (FetchPunchesResponseDto employeeResponse :  responseList) {
+                if (employeeResponse == null|| employeeResponse.getPunches() == null || employeeResponse.getPunches().isEmpty()) {
                     continue;
                 }
                 for (FetchPunchesResponseDto.Punch punch : employeeResponse.getPunches()) {
@@ -285,68 +332,79 @@ public class EmployeeMapperDirect {
                         continue;
                     }
                     String employeeNumber = null;
-
                     if (punch.getEmployee() != null) {
                         employeeNumber =punch.getEmployee().getQualifier();
                     }
-                    if (employeeNumber == null || employeeNumber.trim().isEmpty()) {
+                    if (employeeNumber == null|| employeeNumber.trim().isEmpty()) {
                         continue;
                     }
-                    employeeNumber = employeeNumber.trim();
-                    Long punchId = punch.getId();
+                    employeeNumber =employeeNumber.trim();
+                    Long punchId =punch.getId();
                     if (punchId == null) {
                         continue;
                     }
-                    LocalDateTime punchDtm = parseDateTime(punch.getPunchDtm());
-                    LocalDateTime roundedPunchDtm =parseDateTime( punch.getRoundedPunchDtm() );
-                    LocalDateTime enteredOnDtm = parseDateTime( punch.getEnteredOnDtm() );
+                    LocalDateTime punchDtm =parseDateTime(punch.getPunchDtm());
+                    LocalDateTime roundedPunchDtm =parseDateTime(punch.getRoundedPunchDtm());
+                    LocalDateTime enteredOnDtm =parseDateTime(punch.getEnteredOnDtm());
                     ExistingPunch existingPunch =getExistingPunch(employeeNumber, punchId);
                     if (existingPunch != null) {
-                        boolean sameEnteredOnDtm = isSameEnteredOnDtm( existingPunch.getEnteredOnDtm(),enteredOnDtm );
+                        boolean sameEnteredOnDtm =isSameEnteredOnDtm(existingPunch.getEnteredOnDtm(),enteredOnDtm);
                         if (sameEnteredOnDtm) {
+                            processedRecords++;
                             continue;
                         }
-                        jdbcTemplate.update(getDeleteWfcPunch(), existingPunch.getPunchDbId());
+                        jdbcTemplate.update( getDeleteWfcPunch(),existingPunch.getPunchDbId());
                     }
                     String punchType = null;
                     if (punch.getTypeOverride() != null) {
+
                         punchType = punch.getTypeOverride().getQualifier();
                     }
                     String exceptionApplyDate = null;
                     String exceptionName = null;
-                    if (punch.getExceptions() != null  && !punch.getExceptions().isEmpty()) {
+                    if (punch.getExceptions() != null&& !punch.getExceptions().isEmpty()) {
                         List<String> applyDates = new ArrayList<>();
-                        List<String> exceptionNames = new ArrayList<>();
+                        List<String> exceptionNames =new ArrayList<>();
                         for (FetchPunchesResponseDto.ExceptionDto exception : punch.getExceptions()) {
                             if (exception == null) {
                                 continue;
                             }
                             if (exception.getApplyDate() != null && !exception.getApplyDate().trim().isEmpty()) {
-                                applyDates.add( exception.getApplyDate().trim());
+                                applyDates.add(exception.getApplyDate().trim());
                             }
                             if (exception.getExceptionType() != null && exception.getExceptionType().getName() != null
                                     && !exception.getExceptionType().getName().trim().isEmpty()) {
-                                exceptionNames.add( exception.getExceptionType().getName().trim() );
+                                exceptionNames.add(exception.getExceptionType().getName().trim());
                             }
                         }
                         if (!applyDates.isEmpty()) {
-                            exceptionApplyDate = String.join(", ",applyDates );
+                            exceptionApplyDate = String.join(", ", applyDates);
                         }
                         if (!exceptionNames.isEmpty()) {
-                            exceptionName = String.join(", ",exceptionNames);
+                            exceptionName = String.join(", ", exceptionNames);
                         }
                     }
-                    String comments =extractComments(punch.getCommentsNotes());
-                    jdbcTemplate.update( insertQuery, employeeNumber,punchId, punchDtm != null ? Timestamp.valueOf( punchDtm  ) : null,  roundedPunchDtm != null  ? Timestamp.valueOf( roundedPunchDtm)  : null,  enteredOnDtm != null    ? Timestamp.valueOf( enteredOnDtm)  : null,
+                    String comments = extractComments(punch.getCommentsNotes());
+                    jdbcTemplate.update(
+                            insertQuery,
+                            employeeNumber,
+                            punchId,
+                            punchDtm != null ? Timestamp.valueOf(punchDtm) : null,
+                            roundedPunchDtm != null ? Timestamp.valueOf(roundedPunchDtm) : null,
+                            enteredOnDtm != null? Timestamp.valueOf(enteredOnDtm) : null,
                             punchType,
                             exceptionApplyDate,
                             exceptionName,
-                            comments
-                    );
+                            comments);
+                    processedRecords++;
+                    insertedRecords++;
                 }
             }
+            return new int[]{processedRecords, insertedRecords
+            };
+
         } catch (Exception e) {
-            throw new RuntimeException("Error while storing Fetch Punches response: " + e.getMessage(), e );
+            throw new RuntimeException("Error while storing Fetch Punches response: " + e.getMessage(), e);
         }
     }
     public String getDeleteWfcPunch() {
@@ -456,27 +514,80 @@ public class EmployeeMapperDirect {
             }
             personNumbers = personNumbers.stream().filter(Objects::nonNull).map(String::trim).filter(s -> !s.isEmpty()).distinct().collect(Collectors.toList());
             int batchSize = 200;
-            for (int start = 0; start < personNumbers.size(); start += batchSize) {
-                int end = Math.min( start + batchSize,  personNumbers.size() );
-                List<String> employeeBatch = personNumbers.subList(start, end);
-                System.out.println( "Fetching UKG Schedule for batch " + (start + 1)  + "-" + end );
-                FetchScheduleShiftRequestDto requestDto =  gatePassService.setScheduleRequestBodyDB( employeeBatch,startDate,endDate );
-                String response = wfdEmployeeService.fetchSchedule( requestDto );
-                if (response == null || !response.startsWith("STATUS:200")) {
-                    continue;
+            int totalProcessedRecords = 0;
+            int totalInsertedRecords = 0;
+            for (int start = 0;
+                 start < personNumbers.size();
+                 start += batchSize) {
+
+                int end =
+                        Math.min(
+                                start + batchSize,
+                                personNumbers.size()
+                        );
+
+                List<String> employeeBatch =
+                        personNumbers.subList(start, end);
+
+                try {
+
+                    System.out.println(
+                            "Fetching UKG Schedule for batch "
+                                    + (start + 1)
+                                    + "-"
+                                    + end
+                    );
+
+                    FetchScheduleShiftRequestDto requestDto =
+                            gatePassService.setScheduleRequestBodyDB(
+                                    employeeBatch,
+                                    startDate,
+                                    endDate
+                            );
+
+                    String response =
+                            wfdEmployeeService.fetchSchedule(
+                                    requestDto
+                            );
+
+                    if (response == null) {
+                        continue;
+                    }
+
+                    if (!response.startsWith("STATUS:200")) {
+                        continue;
+                    }
+
+                    int[] result = saveScheduleShifts(response);
+                    totalProcessedRecords += result[0];
+                    totalInsertedRecords += result[1];
+                } catch (Exception batchException) {
+                    batchException.printStackTrace();
                 }
-                saveScheduleShifts(response);
             }
-            return "saved successfully";
+            if (totalInsertedRecords > 0) {
+
+                return "Records are inserted in DB.";
+            }
+
+            if (totalProcessedRecords > 0) {
+
+                return "Records are already in DB.";
+            }
+
+            return "Records are not inserted in DB.";
+
         } catch (Exception e) {
             return ("Error while fetching schedule from UKG: "+ e.getMessage());
         }
     }
-    public void saveScheduleShifts(String response) {
+    public int[] saveScheduleShifts(String response) {
         try {
             String body =response.substring(response.indexOf("BODY:") + 5 );
             List<FetchScheduleShiftResponseDto> responseList =objectMapper.readValue(body, new TypeReference<List<FetchScheduleShiftResponseDto>>() {}
             );
+            int processedRecords = 0;
+            int insertedRecords = 0;
             for (FetchScheduleShiftResponseDto employeeResponse : responseList) {
                 if (employeeResponse == null || employeeResponse.getScheduleShifts() == null || employeeResponse.getScheduleShifts().isEmpty()) {
                     continue;
@@ -497,27 +608,22 @@ public class EmployeeMapperDirect {
                     LocalDateTime startDateTime =parseDateTime( shift.getStartDateTime() );
                     LocalDateTime endDateTime =parseDateTime( shift.getEndDateTime() );
                     ExistingScheduleShift existingShift =getExistingScheduleShift( shiftId );
-//                     Existing shift validation
-
                     if (existingShift != null) {
                         boolean sameShift = personNumber.equals(existingShift.getPersonNumber() )
                                 && isSameDateTime(existingShift.getStartDateTimeShift(),startDateTime)
                                 && isSameDateTime(existingShift.getEndDateTimeShift(), endDateTime );
                         if (sameShift) {
+                            processedRecords++;
                             continue;
                         }
-//                         * Shift changed.
-//                         * Delete child segments first.
                         jdbcTemplate.update( getDeleteWfcScheduleShiftSegments(),shiftId);
-//                         * Delete parent.
                         jdbcTemplate.update( getDeleteWfcScheduleShift(), shiftId );
                     }
-//                     * Insert parent
                     jdbcTemplate.update(getInsertWfcScheduleShift(),shiftId,personNumber, startDateTime != null
                             ? Timestamp.valueOf( startDateTime )
                             : null, endDateTime != null ? Timestamp.valueOf(endDateTime)
                             : null );
-//                     * Insert child segments
+
 
                     if (shift.getSegments() != null) {
                         for (FetchScheduleShiftResponseDto.Segment segment : shift.getSegments()) {
@@ -557,9 +663,14 @@ public class EmployeeMapperDirect {
                             );
                         }
                     }
+                    processedRecords++;
+                    insertedRecords++;
                 }
             }
-
+            return new int[] {
+                    processedRecords,
+                    insertedRecords
+            };
         } catch (Exception e) {
 
             throw new RuntimeException("Error while storing Schedule Shift response: " + e.getMessage(), e );

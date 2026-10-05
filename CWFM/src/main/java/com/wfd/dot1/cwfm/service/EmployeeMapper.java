@@ -49,6 +49,9 @@ public class EmployeeMapper {
     public String getRegardsEmail() {
         return QueryFileWatcher.getQuery("getRegards");
     }
+    public String getIsMailPOC() {
+        return QueryFileWatcher.getQuery("getIsMailPOC");
+    }
 
      public String getRoleByUserAccount() {
         return QueryFileWatcher.getQuery("getRoleByUserAccount");
@@ -2475,40 +2478,47 @@ public class EmployeeMapper {
     )
     public void setupWorkorderMail() {
         try {
-            log.info("Email Service Start");
-            List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringWorkOrders();
-            String regardsEmail = this.getRegardsEmail();
-            Map<Long, List<WorkOrderDTOMail>> grouped = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
 
-            for(Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
-                List<WorkOrderDTOMail> value = (List)entry.getValue();
-                String bodyMail = this.buildHtmlTable(value, regardsEmail);
-                Set<String> mailSends = new HashSet();
+            String issandorpoc = getIsMailPOC();
 
-                for(WorkOrderDTOMail order : value) {
-                    if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
-                        mailSends.add(order.getConEmail());
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+                log.info("Email Service Start");
+                List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringWorkOrders();
+                String regardsEmail = this.getRegardsEmail();
+                Map<Long, List<WorkOrderDTOMail>> grouped = (Map) expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
+
+                for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+                    List<WorkOrderDTOMail> value = (List) entry.getValue();
+                    String bodyMail = this.buildHtmlTable(value, regardsEmail);
+                    Set<String> mailSends = new HashSet();
+
+                    for (WorkOrderDTOMail order : value) {
+                        if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                            mailSends.add(order.getConEmail());
+                        }
+                    }
+
+                    if (!mailSends.isEmpty()) {
+                        String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
+                        this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
                     }
                 }
-
-                if (!mailSends.isEmpty()) {
-                    String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
-                    this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
+                Map<String, List<WorkOrderDTOMail>> groupedHr = (Map) expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+                for (Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
+                    List<WorkOrderDTOMail> value = (List) hrMailEnty.getValue();
+                    String bodyMail = this.buildHtmlTable(value, regardsEmail);
+                    Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String) hrMailEnty.getKey());
+                    if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
+                        String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
+                        this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+                    }
                 }
             }
-
-            Map<String, List<WorkOrderDTOMail>> groupedHr = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
-
-            for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
-                List<WorkOrderDTOMail> value = (List)hrMailEnty.getValue();
-                String bodyMail = this.buildHtmlTable(value, regardsEmail);
-                Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String)hrMailEnty.getKey());
-                if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
-                    String subject = "Workorder Expiry Notification " + String.valueOf(LocalDate.now());
-                    this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
-                }
-            }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -2536,43 +2546,54 @@ public class EmployeeMapper {
     )
     public void setupLaborLMail() {
         try {
-            log.info("Email Service Start");
-            List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringLL();
-            String regardsEmail = this.getRegardsEmail();
-            Map<Long, List<WorkOrderDTOMail>> grouped = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
 
-            for(Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
-                List<WorkOrderDTOMail> value = (List)entry.getValue();
-                String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
-                Set<String> mailSends = new HashSet();
+            String issandorpoc = getIsMailPOC();
 
-                for(WorkOrderDTOMail order : value) {
-                    if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
-                        mailSends.add(order.getConEmail());
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if ("yes".equalsIgnoreCase(issandorpoc)) {
+
+                log.info("Email Service Start");
+                List<WorkOrderDTOMail> expiringWorkOrders = this.gatePassToOnBoardService.getExpiringLL();
+                String regardsEmail = this.getRegardsEmail();
+                Map<Long, List<WorkOrderDTOMail>> grouped = (Map) expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getContractorId));
+
+                for (Map.Entry<Long, List<WorkOrderDTOMail>> entry : grouped.entrySet()) {
+                    List<WorkOrderDTOMail> value = (List) entry.getValue();
+                    String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
+                    Set<String> mailSends = new HashSet();
+
+                    for (WorkOrderDTOMail order : value) {
+                        if (order.getConEmail() != null && !order.getConEmail().isEmpty()) {
+                            mailSends.add(order.getConEmail());
+                        }
+                    }
+
+                    if (!mailSends.isEmpty()) {
+                        String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
+                        this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
                     }
                 }
 
-                if (!mailSends.isEmpty()) {
-                    String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
-                    this.emailService.sendHtmlMail(mailSends, subject, bodyMail);
+                Map<String, List<WorkOrderDTOMail>> groupedHr = (Map) expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
+
+                for (Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
+                    List<WorkOrderDTOMail> value = (List) hrMailEnty.getValue();
+                    String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
+                    Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String) hrMailEnty.getKey());
+                    if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
+                        String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
+                        this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
+                    }
                 }
             }
-
-            Map<String, List<WorkOrderDTOMail>> groupedHr = (Map)expiringWorkOrders.stream().collect(Collectors.groupingBy(WorkOrderDTOMail::getUnitCode));
-
-            for(Map.Entry<String, List<WorkOrderDTOMail>> hrMailEnty : groupedHr.entrySet()) {
-                List<WorkOrderDTOMail> value = (List)hrMailEnty.getValue();
-                String bodyMail = this.buildHtmlTableLL(value, regardsEmail);
-                Set<String> hrMailByunitName = this.gatePassToOnBoardService.getHrMailByunitName((String)hrMailEnty.getKey());
-                if (!hrMailByunitName.isEmpty() && hrMailByunitName != null) {
-                    String subject = "Labor License Expiry Notification " + String.valueOf(LocalDate.now());
-                    this.emailService.sendHtmlMail(hrMailByunitName, subject, bodyMail);
-                }
-            }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+
+
     }
 
     public String buildHtmlTableLL(List<WorkOrderDTOMail> list, String regards) {
