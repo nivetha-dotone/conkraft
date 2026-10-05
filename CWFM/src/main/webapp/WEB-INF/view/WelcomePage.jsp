@@ -69,6 +69,8 @@
 
   <script src="resources/js/cms/tradeSkill.js"></script>
  <script src="resources/js/cms/history.js"></script>
+ <script src="resources/js/cms/generateReport.js"></script>
+ <script src="resources/js/cms/dynamicScreenFieldsConfig.js"></script>
  <script>
     window.applicationContextPath =
     	'<%= request.getContextPath() %>';
@@ -302,6 +304,45 @@ function initOtherListingScreen() {
         callAutoSearchFunction();
     }
 }
+
+function initReportSearchScreen() {
+
+    const userAccount = $("#loggedInUserAccount").val();
+
+    const $principalEmployer = $("#principalEmployersId");
+
+    if ($principalEmployer.length === 0) {
+        return;
+    }
+
+    const principalOptions = $principalEmployer.find("option[value!='']");
+
+    // If only one Principal Employer is available
+    if (principalOptions.length === 1) {
+
+        const unitId = principalOptions.first().val();
+
+        // Auto-select Principal Employer
+        $principalEmployer.val(unitId);
+
+        // IMPORTANT:
+        // Trigger the existing onchange logic.
+         
+
+        /* getContractorsAndTrades(
+            unitId,
+            userAccount
+        ); */
+        
+        autoSelectOnly("contractors");
+
+        if ($("#principalEmployersId").val() && $("#contractors").val()) {
+            callAutoSearchFunction();
+        }
+
+        getDepartments(unitId);
+    }
+}
 function autoSelectOnly(selectId) {
     const $select = $("#" + selectId);
     const options = $select.find("option[value!='']");
@@ -378,7 +419,7 @@ function loadCommonList(path, heading) {
 
                     initListingScreen();
                     initOtherListingScreen();
-                    initWOListingScreen();initReportsListingScreen();
+                    initWOListingScreen();initReportsListingScreen();initReportSearchScreen();
            // ✅ Run inline scripts
             const scripts = mainContent.querySelectorAll("script");
             scripts.forEach(script => {
