@@ -148,8 +148,6 @@ body {
 	/* Include padding and border in element's total width and height */
 }
 
-
-
 /*  table {
         width: 100%;
         border-collapse: collapse;
@@ -328,89 +326,198 @@ table th {
 }
 
 /* Allow the entire browser page to scroll */
-html,
-body {
-    min-height: 100%;
-    height: auto;
-    overflow-y: auto !important;
-    overflow-x: auto;
+html, body {
+	min-height: 100%;
+	height: auto;
+	overflow-y: auto !important;
+	overflow-x: auto;
 }
 
 /* Let the report history table expand naturally */
 .table-container {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-    max-height: none;
-    overflow: visible;
-    margin-top: 25px;
+	width: 100%;
+	max-width: 100%;
+	height: auto;
+	max-height: none;
+	overflow: visible;
+	margin-top: 25px;
 }
 
 /* DataTables wrapper must not restrict page height */
 #reportHistoryTable_wrapper {
-    width: 100%;
-    height: auto;
-    max-height: none;
-    overflow: visible;
+	width: 100%;
+	height: auto;
+	max-height: none;
+	overflow: visible;
 }
 
 /* Do not constrain table rows */
 #reportHistoryTable {
-    width: 100% !important;
-    height: auto;
-    border-collapse: collapse;
+	width: 100% !important;
+	height: auto;
+	border-collapse: collapse;
 }
 
 /* Keep columns readable */
-#reportHistoryTable th,
-#reportHistoryTable td {
-    white-space: nowrap;
-    padding: 8px 10px;
+#reportHistoryTable th, #reportHistoryTable td {
+	white-space: nowrap;
+	padding: 8px 10px;
 }
 
 /* Keep pagination and search controls visible */
 #reportHistoryTable_wrapper .dataTables_length,
-#reportHistoryTable_wrapper .dataTables_filter,
-#reportHistoryTable_wrapper .dataTables_info,
-#reportHistoryTable_wrapper .dataTables_paginate {
-    display: block;
-    visibility: visible;
+	#reportHistoryTable_wrapper .dataTables_filter,
+	#reportHistoryTable_wrapper .dataTables_info,
+	#reportHistoryTable_wrapper .dataTables_paginate {
+	display: block;
+	visibility: visible;
 }
 
-
 #loaderOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.4);
+	z-index: 9999;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 .loader {
-    width: 60px;
-    height: 60px;
-    border: 6px solid #ddd;
-    border-top: 6px solid #1976d2;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+	width: 60px;
+	height: 60px;
+	border: 6px solid #ddd;
+	border-top: 6px solid #1976d2;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
 }
 
 .loader-text {
-    margin-top: 15px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 600;
+	margin-top: 15px;
+	color: #fff;
+	font-size: 16px;
+	font-weight: 600;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@
+keyframes spin { 0% {
+	transform: rotate(0deg);
+}
+
+100
+%
+{
+transform
+:
+rotate(
+360deg
+);
+}
+}
+
+/* Department transfer control */
+.report-field.department-field {
+	grid-column: 1/-1;
+	align-items: flex-start;
+}
+
+.department-field>label {
+	min-width: 140px;
+	padding-top: 10px;
+}
+
+.department-transfer {
+	display: grid;
+	grid-template-columns: minmax(180px, 1fr) 48px minmax(180px, 1fr);
+	gap: 12px;
+	align-items: center;
+	width: 100%;
+	min-width: 0;
+}
+
+.department-panel {
+	min-width: 0;
+	padding: 12px;
+	background: #f8fbfc;
+	border: 1px solid #d5e0e5;
+	border-radius: 6px;
+}
+
+.department-panel label {
+	display: block;
+	margin-bottom: 8px;
+	color: #005151;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.department-panel select {
+	width: 100%;
+	min-height: 210px;
+	padding: 6px;
+	color: #444;
+	background: #fff;
+	border: 1px solid #cbd5dc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+.department-panel select option {
+	padding: 7px;
+	color: grey;
+}
+
+.department-panel select option:checked {
+	background: #d9eeee linear-gradient(#d9eeee, #d9eeee);
+	color: #005151;
+}
+
+.department-actions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.department-actions button {
+	width: 38px;
+	height: 34px;
+	color: #fff;
+	background: #005151;
+	border: 1px solid #005151;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.department-actions button:hover {
+	background: #007070;
+}
+
+.department-actions button:focus-visible {
+	outline: 2px solid #007bff;
+	outline-offset: 2px;
+}
+
+@media ( max-width : 768px) {
+	.report-field.department-field {
+		flex-direction: column;
+	}
+	.department-transfer {
+		grid-template-columns: 1fr;
+	}
+	.department-actions {
+		flex-direction: row;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+	.department-field>label {
+		padding-top: 0;
+		margin-bottom: 8px;
+	}
 }
 </style>
 </head>
@@ -439,11 +546,13 @@ body {
             </select>
         </div> --%>
 			<div class="report-field">
-				<label for="reportType" style="color: darkcyan;"> Report Type: </label> 
-				<select class="custom-select" id="reportType" name="reportType" style="color: gray; padding: 3px;">
+				<label for="reportType" style="color: darkcyan;"> Report
+					Type: </label> <select class="custom-select" id="reportType"
+					name="reportType" style="color: gray; padding: 3px;">
 					<option value="">Select Report Type</option>
 					<c:forEach var="option" items="${ReportTypes}">
-						<option value="${option.reportId}" data-report-name="${option.reportType}">
+						<option value="${option.reportId}"
+							data-report-name="${option.reportType}">
 							<c:out value="${option.reportType}" />
 						</option>
 					</c:forEach>
@@ -476,10 +585,63 @@ body {
 				</select>
 			</div>
 			<!-- Row 2 - Column 2 -->
-			<div class="report-field">
+			<!-- <div class="report-field">
 				<label for="department" style="color: darkcyan;">Department:</label>
 				<select class="custom-select" id="department" name="department"
 					style="color: gray; padding: 3px;">
+					<option value="">Please select Department</option>
+				</select>
+			</div> -->
+			<div class="report-field department-field">
+				<label>Department:</label>
+
+				<div class="department-transfer">
+
+					<!-- Available Departments -->
+					<div class="department-panel">
+						<label for="availableDepartments"> Available Departments </label>
+
+						<select id="availableDepartments" multiple="multiple" size="8"
+							aria-label="Available Departments">
+						</select>
+					</div>
+
+					<!-- Transfer Buttons -->
+					<div class="department-actions">
+						<button type="button" id="addDepartments"
+							title="Add selected departments">
+							<i class="fa fa-angle-right"></i>
+						</button>
+
+						<button type="button" id="addAllDepartments"
+							title="Add all departments">
+							<i class="fa fa-angle-double-right"></i>
+						</button>
+
+						<button type="button" id="removeDepartments"
+							title="Remove selected departments">
+							<i class="fa fa-angle-left"></i>
+						</button>
+
+						<button type="button" id="removeAllDepartments"
+							title="Remove all departments">
+							<i class="fa fa-angle-double-left"></i>
+						</button>
+					</div>
+
+					<!-- Selected Departments -->
+					<div class="department-panel">
+						<label for="selectedDepartments"> Selected Departments </label> <select
+							id="selectedDepartments" multiple="multiple" size="8"
+							aria-label="Selected Departments">
+						</select>
+					</div>
+
+				</div>
+
+				<!-- Retain the original ID for existing department-loading code.
+         This hidden select is the source of available department options. -->
+				<select id="department" name="department" style="display: none;">
 					<option value="">Please select Department</option>
 				</select>
 			</div>
@@ -505,10 +667,10 @@ body {
 				onclick="getGatePassIds()">Generate</button>
 		</div>
 	</div>
-       <div id="loaderOverlay" style="display:none;">
-    <div class="loader"></div>
-    <div class="loader-text">please wait...</div>
-</div>
+	<div id="loaderOverlay" style="display: none;">
+		<div class="loader"></div>
+		<div class="loader-text">please wait...</div>
+	</div>
 	<!-- Report History Table -->
 	<div class="table-container" style="margin-top: 25px;">
 

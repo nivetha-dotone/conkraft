@@ -74,15 +74,18 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 
 			// Call the correct existing UKG API.
 			ResponseEntity<FetchTotalResponseDto> apiResponse = null;
-			if ("Punch Total Report".equals(reportTypeName)) {
+			if ("Punch Total Report".equalsIgnoreCase(reportTypeName)) {
 				log.info("Calling Fetch Total API. Request ID: {}", requestId);
 				apiResponse = api.fetchTotalFromUKG(ukgRequest);
-			} else if ("Punch Report".equals(reportTypeName)) {
+
+			} else if ("Punch Report".equalsIgnoreCase(reportTypeName)) {
 				log.info("Calling Fetch Punch API. Request ID: {}", requestId);
 				apiResponse = api.fetchPunchFromUKG(ukgRequest);
-			} else if ("Schedule Report".equals(reportTypeName)) {
+
+			} else if ("Schedule Report".equalsIgnoreCase(reportTypeName)) {
 				log.info("Calling Fetch Schedule API. Request ID: {}", requestId);
 				apiResponse = api.fetchScheduleFromUKG(ukgRequest);
+
 			} else {
 				log.warn("Invalid Report Type: {}. Request ID: {}", reportTypeName, requestId);
 				insertReportProcess(requestId, paramId, fromDate, toDate, 0);
@@ -101,16 +104,15 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 				}
 
 				// HTTP 2xx + valid message
-				if (apiResponse != null
-				        && apiResponse.getStatusCode().is2xxSuccessful()
-				        && apiResponse.getBody() != null) {
+				if (apiResponse != null && apiResponse.getStatusCode().is2xxSuccessful()
+						&& apiResponse.getBody() != null) {
 
-				    apiMessage = apiResponse.getBody().getMessage();
+					apiMessage = apiResponse.getBody().getMessage();
 
-				    if (apiMessage != null && !apiMessage.trim().isEmpty()
-				            && !"Records are not inserted in DB.".equalsIgnoreCase(apiMessage.trim())) {
-				        apiSuccess = true;
-				    }
+					if (apiMessage != null && !apiMessage.trim().isEmpty()
+							&& !"Records are not inserted in DB.".equalsIgnoreCase(apiMessage.trim())) {
+						apiSuccess = true;
+					}
 				}
 			}
 
@@ -163,20 +165,20 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 	public Path generateReportFile(Long requestId, int requestedBy) {
 		try {
 
-			// 1. Validate report request 
-			  ReportGenerateDto report = reportGenerateDao.getReportForDownload(requestId, requestedBy);
+			// 1. Validate report request
+			ReportGenerateDto report = reportGenerateDao.getReportForDownload(requestId, requestedBy);
 			if (report == null) {
 				log.warn("Report request not found. " + "Request ID: {}, User: {}", requestId, requestedBy);
 				throw new IllegalArgumentException("Report request not found");
 			}
-			//2. Check report status 
-			  if (!"SUCCESS".equalsIgnoreCase(report.getReportStatus())) {
+			// 2. Check report status
+			if (!"SUCCESS".equalsIgnoreCase(report.getReportStatus())) {
 				log.warn("Report is not ready for download. " + "Request ID: {}, Status: {}", requestId,
 						report.getReportStatus());
 				throw new IllegalStateException("Report is not ready for download");
 			}
 			// 3. Create user-specific folder *
-			 Path rootPath = Paths.get(ROOT_DIRECTORY).toAbsolutePath().normalize();
+			Path rootPath = Paths.get(ROOT_DIRECTORY).toAbsolutePath().normalize();
 			Path userFolder = rootPath.resolve(String.valueOf(requestedBy)).normalize();
 			/* * Security check. */
 			if (!userFolder.startsWith(rootPath)) {
@@ -184,9 +186,9 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 			}
 			Files.createDirectories(userFolder);
 			// 4. Check existing generated file *
-			  String existingFileName = reportGenerateDao.getReportOutputFileName(requestId);
+			String existingFileName = reportGenerateDao.getReportOutputFileName(requestId);
 			if (existingFileName != null && !existingFileName.trim().isEmpty()) {
-				 Path existingFile = userFolder.resolve(existingFileName).normalize();
+				Path existingFile = userFolder.resolve(existingFileName).normalize();
 				if (existingFile.startsWith(userFolder) && Files.exists(existingFile)
 						&& Files.isRegularFile(existingFile)) {
 					log.info("Existing report file found. " + "Request ID: {}, File: {}", requestId, existingFile);
@@ -194,7 +196,7 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 				}
 			}
 			// 5. Get dynamic report data *
-			  List<Map<String, Object>> reportData = reportGenerateDao.getReportData(requestId, requestedBy);
+			List<Map<String, Object>> reportData = reportGenerateDao.getReportData(requestId, requestedBy);
 			if (reportData == null || reportData.isEmpty()) {
 				log.warn("No report data available. " + "Request ID: {}", requestId);
 				throw new IllegalStateException("No report data available");
@@ -218,14 +220,14 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 			if (!filePath.startsWith(userFolder)) {
 				throw new IllegalStateException("Invalid report file path");
 			}
-			// 7. Generate CSV 
-			  writeCsvFile(filePath, reportData);
+			// 7. Generate CSV
+			writeCsvFile(filePath, reportData);
 			// 8. Store generated filename in RPTPROCESS *
-			  reportGenerateDao.updateReportOutputFileName(requestId, fileName);
-			 log.info("Report CSV generated successfully. " + "Request ID: {}, User: {}, File: {}", requestId,
+			reportGenerateDao.updateReportOutputFileName(requestId, fileName);
+			log.info("Report CSV generated successfully. " + "Request ID: {}, User: {}, File: {}", requestId,
 					requestedBy, filePath);
-			// 9. Return file path 
-			  return filePath;
+			// 9. Return file path
+			return filePath;
 		} catch (IllegalArgumentException | IllegalStateException e) {
 			throw e;
 		} catch (Exception e) {
@@ -234,13 +236,13 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 		}
 	}
 
-	  // Generates CSV file from report data.
+	// Generates CSV file from report data.
 	private void writeCsvFile(Path filePath, List<Map<String, Object>> reportData) throws IOException {
 		if (reportData == null || reportData.isEmpty()) {
 			throw new IllegalArgumentException("Report data is empty");
 		}
-		  // Determine columns dynamically 
-		  LinkedHashSet<String> columnSet = new LinkedHashSet<>();
+		// Determine columns dynamically
+		LinkedHashSet<String> columnSet = new LinkedHashSet<>();
 		for (Map<String, Object> row : reportData) {
 			if (row != null) {
 				columnSet.addAll(row.keySet());
@@ -250,17 +252,17 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 		if (columns.isEmpty()) {
 			throw new IllegalArgumentException("No report columns available");
 		}
-		   // Create CSV 
-		  try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
-	       // Header 
-			 List<String> headers = new ArrayList<>(columns.size());
+		// Create CSV
+		try (BufferedWriter writer = Files.newBufferedWriter(filePath, StandardCharsets.UTF_8)) {
+			// Header
+			List<String> headers = new ArrayList<>(columns.size());
 			for (String column : columns) {
 				headers.add(escapeCsv(column));
 			}
 			writer.write(String.join(",", headers));
 			writer.newLine();
-			   //Data 
-			  for (Map<String, Object> row : reportData) {
+			// Data
+			for (Map<String, Object> row : reportData) {
 				List<String> values = new ArrayList<>(columns.size());
 				for (String column : columns) {
 					Object value = row.get(column);
@@ -283,7 +285,5 @@ public class ReportGenerateServiceImpl implements ReportGenerateService {
 		}
 		return escaped;
 	}
-
-	
 
 }

@@ -105,12 +105,20 @@ function getGatePassIds() {
 
     const contractorId = $("#contractors").val();
 
-    const departmentId = $("#department").val();
+    //const departmentId = $("#department").val();
 
     const fromDate = $("#fromDate").val();
 
     const toDate = $("#toDate").val();
+const departmentIds = getSelectedDepartmentIds();
 
+if (departmentIds.length === 0) {
+    alert("Please select at least one department.");
+    hideLoader();
+    return;
+}
+
+const departmentId = departmentIds.join(",");
 
     if (!reportType) {
 
@@ -139,12 +147,12 @@ function getGatePassIds() {
     }
 
 
-    if (!departmentId) {
+    //if (!departmentId) {
 
-        alert("Please select Department");
-            hideLoader();
-            return;
-    }
+       // alert("Please select Department");
+       //     hideLoader();
+       //     return;
+   // }
 
 
     if (!fromDate) {
@@ -177,7 +185,7 @@ function getGatePassIds() {
 
             contractorId: contractorId,
 
-            departmentId: departmentId,
+            departmentId:  departmentIds.join(","),
 
             fromDate: fromDate,
 
@@ -196,7 +204,8 @@ function getGatePassIds() {
              * IMPORTANT:
              * This does NOT reinitialize DataTables.
              */
-            loadReportSearchHistory();
+           // loadReportSearchHistory();
+             loadCommonList('/reportGenerate/reportGenerateList', 'Custom Reports');
 
         },
 
@@ -205,7 +214,7 @@ function getGatePassIds() {
 
             console.error(xhr.responseText);
                hideLoader();
-            alert("Unable to fetch GatePass IDs");
+            alert("Unable to generate Report");
 
         }
 
@@ -523,4 +532,164 @@ function showLoader() {
 
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
+}
+
+$(document).ready(function () {
+
+    initializeDepartmentTransfer();
+
+});
+
+function initializeDepartmentTransfer() {
+
+    // Populate the available list using the existing department dropdown.
+    syncAvailableDepartments();
+
+    // Detect when existing AJAX code adds or removes department options.
+    const departmentSource = document.getElementById("department");
+
+    if (departmentSource) {
+        const observer = new MutationObserver(function () {
+            syncAvailableDepartments();
+        });
+
+        observer.observe(departmentSource, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Move selected departments to the right.
+    $("#addDepartments").on("click", function () {
+        moveDepartments(
+            "#availableDepartments",
+            "#selectedDepartments",
+            false
+        );
+    });
+
+    // Move all departments to the right.
+    $("#addAllDepartments").on("click", function () {
+        moveDepartments(
+            "#availableDepartments",
+            "#selectedDepartments",
+            true
+        );
+    });
+
+    // Move selected departments to the left.
+    $("#removeDepartments").on("click", function () {
+        moveDepartments(
+            "#selectedDepartments",
+            "#availableDepartments",
+            false
+        );
+    });
+
+    // Move all departments to the left.
+    $("#removeAllDepartments").on("click", function () {
+        moveDepartments(
+            "#selectedDepartments",
+            "#availableDepartments",
+            true
+        );
+    });
+}
+
+function syncAvailableDepartments() {
+
+    const source = document.getElementById("department");
+    const available = document.getElementById("availableDepartments");
+    const selected = document.getElementById("selectedDepartments");
+
+    if (!source || !available || !selected) {
+        return;
+    }
+
+    // Keep selected department IDs that still exist in the refreshed source.
+    const validIds = new Set(
+        Array.from(source.options)
+            .filter(option => option.value !== "")
+            .map(option => option.value)
+    );
+
+    Array.from(selected.options).forEach(function (option) {
+        if (!validIds.has(option.value)) {
+            option.remove();
+        }
+    });
+
+    const selectedIds = new Set(
+        Array.from(selected.options).map(option => option.value)
+    );
+
+    // Rebuild the available list without duplicating selected items.
+    available.innerHTML = "";
+
+    Array.from(source.options).forEach(function (option) {
+
+        if (!option.value || selectedIds.has(option.value)) {
+            return;
+        }
+
+        available.add(new Option(option.text, option.value));
+    });
+}
+
+function moveDepartments(sourceSelector, targetSelector, moveAll) {
+
+    const source = document.querySelector(sourceSelector);
+    const target = document.querySelector(targetSelector);
+
+    if (!source || !target) {
+        return;
+    }
+
+    const optionsToMove = Array.from(source.options).filter(function (option) {
+        return moveAll || option.selected;
+    });
+
+    optionsToMove.forEach(function (option) {
+
+        const alreadyExists = Array.from(target.options).some(function (item) {
+            return item.value === option.value;
+        });
+
+        if (!alreadyExists) {
+            target.add(new Option(option.text, option.value));
+        }
+
+        option.remove();
+    });
+
+    // Keep the original source dropdown synchronized for compatibility.
+    syncOriginalDepartmentDropdown();
+}
+
+function syncOriginalDepartmentDropdown() {
+
+    const source = document.getElementById("department");
+    const selected = document.getElementById("selectedDepartments");
+
+    if (!source || !selected) {
+        return;
+    }
+
+    const selectedIds = Array.from(selected.options).map(function (option) {
+        return option.value;
+    });
+
+    // Preserve the existing dropdown options but select the chosen IDs.
+    Array.from(source.options).forEach(function (option) {
+        option.selected = selectedIds.includes(option.value);
+    });
+}
+
+function getSelectedDepartmentIds() {
+
+    return Array.from(
+        document.getElementById("selectedDepartments").options
+    ).map(function (option) {
+        return option.value;
+    }).filter(Boolean);
 }
