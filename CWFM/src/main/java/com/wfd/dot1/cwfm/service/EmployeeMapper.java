@@ -2473,9 +2473,9 @@ public class EmployeeMapper {
         return dto;
     }
 
-    @Scheduled(
-            cron = "0 0 10 * * ?"
-    )
+//    @Scheduled(
+//            cron = "0 0 10 * * ?"
+//    )
     public void setupWorkorderMail() {
         try {
 
@@ -2541,9 +2541,9 @@ public class EmployeeMapper {
         return html.toString();
     }
 
-    @Scheduled(
-            cron = "0 0 10 * * ?"
-    )
+//    @Scheduled(
+//            cron = "0 0 10 * * ?"
+//    )
     public void setupLaborLMail() {
         try {
 

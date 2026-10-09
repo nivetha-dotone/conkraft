@@ -1,6 +1,7 @@
 package com.wfd.dot1.cwfm.controller;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.wfd.dot1.cwfm.dto.FetchTotalRequestDto;
 import com.wfd.dot1.cwfm.dto.FetchTotalResponseDto;
@@ -31,117 +34,284 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 @Controller
 @RequestMapping("/reportGenerate")
 public class ReportGenerateController {
 	private static final Logger log = LoggerFactory.getLogger(ReportGenerateController.class.getName());
 
-    @Autowired
-    private WorkmenService workmenService;
+	@Autowired
+	private WorkmenService workmenService;
 
-    @Autowired
-    private CommonService commonService;
-    
-    @Autowired
-    private ReportGenerateService reportGenerateService;
+	@Autowired
+	private CommonService commonService;
 
+	@Autowired
+	private ReportGenerateService reportGenerateService;
 
 	@Autowired
 	CreateEmpFetchByGatePassAPICALL api;
 
-    @GetMapping("/reportGenerateList")
-    public String list(HttpServletRequest request,HttpServletResponse response) {
+	@GetMapping("/reportGenerateList")
+	public String list(HttpServletRequest request, HttpServletResponse response) {
 
-        HttpSession session = request.getSession(false);
-        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-        List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMaster();
+		HttpSession session = request.getSession(false);
+		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+		List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMaster();
 
-        Map<String, List<CmsGeneralMaster>> groupedByGmType = gmList.stream().collect(
-        		             Collectors.groupingBy(CmsGeneralMaster::getGmType));
+		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmList.stream()
+				.collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
 
-        List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
-        Map<String, List<PersonOrgLevel>> groupedByLevelDef =orgLevel.stream()
-                        .collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
-        List<PersonOrgLevel> principalEmployerList = groupedByLevelDef.getOrDefault("Principal Employer",new ArrayList<>());
-        request.setAttribute("PrincipalEmployer",principalEmployerList);
-        List<PersonOrgLevel> contractorList = groupedByLevelDef.getOrDefault("Contractor",new ArrayList<>());
-        request.setAttribute("Contractors",contractorList);
+		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+		Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+				.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+		List<PersonOrgLevel> principalEmployerList = groupedByLevelDef.getOrDefault("Principal Employer",
+				new ArrayList<>());
+		request.setAttribute("PrincipalEmployer", principalEmployerList);
+		List<PersonOrgLevel> contractorList = groupedByLevelDef.getOrDefault("Contractor", new ArrayList<>());
+		request.setAttribute("Contractors", contractorList);
 
 		// Grouping the CmsGeneralMaster objects by gmType
 
-		// Define the types and their corresponding request attribute names
-		Map<String, String> attributeMapping = Map.of("REPORTTYPE", "ReportType");
+//		// Define the types and their corresponding request attribute names
+//		Map<String, String> attributeMapping = Map.of("REPORTTYPE", "ReportType");
+//
+//		// Iterate over the attribute mappings and set the request attributes dynamically
+//		attributeMapping.forEach((type, attributeName) -> {
+//		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+//		    request.setAttribute(attributeName, gmList1);
+//		});
+		List<ReportGenerateDto> reportTypes = reportGenerateService.getListOfReports();
+		request.setAttribute("ReportTypes", reportTypes);
+		return "reportGenerate/generateReports";
+	}
 
-		// Iterate over the attribute mappings and set the request attributes dynamically
-		attributeMapping.forEach((type, attributeName) -> {
-		    List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
-		    request.setAttribute(attributeName, gmList1);
-		});
-        return "reportGenerate/generateReports";
-    }
-    
-    @PostMapping("/getGatePassIds")
-    @ResponseBody
-    public ResponseEntity<?> getGatePassIds(
-    		@RequestParam("reportType") String reportType,
-            @RequestParam("unitId") String unitId,
-            @RequestParam("contractorId") String contractorId,
-            @RequestParam("departmentId") String departmentId,
-            @RequestParam("fromDate") String fromDate,
-            @RequestParam("toDate") String toDate, 
-            HttpServletRequest request,HttpServletResponse response) {
+	@PostMapping("/getGatePassIds")
+	@ResponseBody
+	public ResponseEntity<?> getGatePassIds(@RequestParam("reportType") String reportType,
+			@RequestParam("unitId") String unitId, @RequestParam("contractorId") String contractorId,
+			@RequestParam("departmentId") String departmentId, @RequestParam("fromDate") String fromDate,
+			@RequestParam("toDate") String toDate, HttpServletRequest request) {
+		try {
+			HttpSession session = request.getSession(false);
+			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (user == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session expired");
+			}
 
-        try {
-        	 HttpSession session = request.getSession(false);
-             MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
-             int requestedBy = user.getUserId();
-             ReportGenerateDto result   = reportGenerateService.getGatePassIds(reportType,unitId,contractorId,departmentId,fromDate,toDate,requestedBy);
-            
-             Long requestId = result.getRequestId();
-             List<String> gatePassIds = result.getGatePassIds();
-             
-             log.info("Request ID: {}", requestId);
-             log.info("GatePass IDs: {}", gatePassIds);
-             // Call UKG API only when GatePassIDs are available
-            if (result != null) {
+			int requestedBy = user.getUserId();
+			ReportGenerateDto result = reportGenerateService.getGatePassIds(reportType, unitId, contractorId,
+					departmentId, fromDate, toDate, requestedBy);
+			if (result == null) {
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to Generate Report");
+			}
 
-                FetchTotalRequestDto ukgRequest =new FetchTotalRequestDto();
+			log.info("Report Request ID: {}", result.getRequestId());
+			log.info("Report Type: {}", reportType);
+			log.info("GatePass IDs: {}", result.getGatePassIds());
 
-                ukgRequest.setReqId(String.valueOf((requestId)));
-                
-                ukgRequest.setPersonNumbers(gatePassIds);
+			return ResponseEntity.ok(result);
+		} catch (IllegalArgumentException e) {
+			log.error("Invalid report request", e);
+			return ResponseEntity.badRequest().body(e.getMessage());
+		} catch (Exception e) {
+			log.error("Unable to Generate Report", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to Generate Report");
+		}
+	}
 
-                ukgRequest.setStartDate(fromDate);
+	@GetMapping("/getReportSearchHistory")
+	@ResponseBody
+	public ResponseEntity<?> getReportSearchHistory(HttpServletRequest request) {
 
-                ukgRequest.setEndDate(toDate);
+		try {
 
-                // 3. Call your existing API client method
-                
-                ResponseEntity<FetchTotalResponseDto> totalApiResponse=  api.fetchTotalFromUKG(ukgRequest);
-                ResponseEntity<FetchTotalResponseDto> punchApiResponse=  api.fetchPunchFromUKG(ukgRequest);
-                ResponseEntity<FetchTotalResponseDto> scheduleApiResponse=  api.fetchScheduleFromUKG(ukgRequest);
-                
-                System.out.println("Total api reponse:"+totalApiResponse.getStatusCode());
-                String message = totalApiResponse.getBody().getMessage();
-                System.out.println(message);
-                System.out.println("Punch api reponse:"+punchApiResponse.getStatusCode());
-                System.out.println("Schedule api reponse:"+scheduleApiResponse.getStatusCode());
-               // api.fetchPunchFromUKG(ukgRequest);
-              //  api.fetchScheduleFromUKG(ukgRequest);
-                
-            }
+			HttpSession session = request.getSession(false);
+			MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+			if (user == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Session expired");
+			}
+			int requestedBy = user.getUserId();
 
-            // 4. Existing response
-            return ResponseEntity.ok(result);
+			List<ReportGenerateDto> history = reportGenerateService.getReportSearchHistory(requestedBy);
+			log.info("Report search history count: {}", history != null ? history.size() : 0);
+			return ResponseEntity.ok(history);
 
-        } catch (Exception e) {
+		} catch (Exception e) {
+			log.error("Error while fetching report search history", e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Unable to fetch report search history");
+		}
+	}
 
-            e.printStackTrace();
+	@PostMapping("/downloadReport")
+	public ResponseEntity<Resource> downloadReport(@RequestParam("requestId") Long requestId,
+			HttpServletRequest request) {
 
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Unable to fetch GatePass IDs");
-        }
-    }
+		try {
+			HttpSession session = request.getSession(false);
+
+			if (session == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			}
+
+			MasterUser user = (MasterUser) session.getAttribute("loginuser");
+
+			if (user == null) {
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+			}
+
+			int requestedBy = user.getUserId();
+
+			Path filePath = reportGenerateService.generateReportFile(requestId, requestedBy);
+
+			if (filePath == null || !Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+
+				return ResponseEntity.notFound().build();
+			}
+
+			Resource resource = new FileSystemResource(filePath.toFile());
+
+			String fileName = filePath.getFileName().toString();
+
+			return ResponseEntity.ok().contentType(MediaType.parseMediaType("text/csv"))
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+					.contentLength(Files.size(filePath)).body(resource);
+
+		} catch (IllegalArgumentException e) {
+
+			log.warn("Invalid report download request. Request ID: {}", requestId, e);
+
+			return ResponseEntity.badRequest().build();
+
+		} catch (IllegalStateException e) {
+
+			log.warn("Report is not ready. Request ID: {}", requestId, e);
+
+			return ResponseEntity.status(HttpStatus.CONFLICT).build();
+
+		} catch (Exception e) {
+
+			log.error("Error downloading report. Request ID: {}", requestId, e);
+
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+	}
+
+	@PostMapping("/viewReport")
+	public ModelAndView viewReport(@RequestParam("requestId") Long requestId, HttpServletRequest request) {
+
+		HttpSession session = request.getSession(false);
+
+		if (session == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Session expired");
+		}
+
+		MasterUser user = (MasterUser) session.getAttribute("loginuser");
+
+		if (user == null) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not logged in");
+		}
+
+		int requestedBy = user.getUserId();
+
+		// Reuse your existing service. CSV saving remains unchanged.
+		Path filePath = reportGenerateService.generateReportFile(requestId, requestedBy);
+
+		if (filePath == null || !Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Report file not found");
+		}
+
+		try {
+			List<Map<String, Object>> reportData = readCsvFile(filePath);
+
+			ModelAndView modelAndView = new ModelAndView("reportGenerate/reportViewer");
+
+			modelAndView.addObject("reportData", reportData);
+			modelAndView.addObject("reportTitle", filePath.getFileName().toString());
+
+			return modelAndView;
+
+		} catch (IOException e) {
+			log.error("Error reading report CSV: {}", filePath, e);
+
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to display report");
+		}
+	}
+
+	private List<Map<String, Object>> readCsvFile(Path filePath) throws IOException {
+
+		List<Map<String, Object>> rows = new ArrayList<>();
+
+		try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8)) {
+
+			String headerLine = reader.readLine();
+
+			if (headerLine == null || headerLine.trim().isEmpty()) {
+				return rows;
+			}
+
+			List<String> headers = parseCsvLine(headerLine);
+
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				List<String> values = parseCsvLine(line);
+
+				Map<String, Object> row = new LinkedHashMap<>();
+
+				for (int i = 0; i < headers.size(); i++) {
+					row.put(headers.get(i), i < values.size() ? values.get(i) : "");
+				}
+
+				rows.add(row);
+			}
+		}
+
+		return rows;
+	}
+
+	private List<String> parseCsvLine(String line) {
+
+		List<String> values = new ArrayList<>();
+		StringBuilder value = new StringBuilder();
+		boolean insideQuotes = false;
+
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+
+			if (c == '"') {
+				if (insideQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+
+					value.append('"');
+					i++;
+
+				} else {
+					insideQuotes = !insideQuotes;
+				}
+
+			} else if (c == ',' && !insideQuotes) {
+				values.add(value.toString());
+				value.setLength(0);
+
+			} else {
+				value.append(c);
+			}
+		}
+
+		values.add(value.toString());
+
+		return values;
+	}
+
 }
-
