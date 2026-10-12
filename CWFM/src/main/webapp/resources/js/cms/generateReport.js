@@ -205,6 +205,7 @@ const departmentId = departmentIds.join(",");
              * This does NOT reinitialize DataTables.
              */
            // loadReportSearchHistory();
+             sessionStorage.setItem("successMessage", "Report Generated Successfully!");
              loadCommonList('/reportGenerate/reportGenerateList', 'Custom Reports');
 
         },
@@ -213,6 +214,7 @@ const departmentId = departmentIds.join(",");
         error: function (xhr) {
 
             console.error(xhr.responseText);
+            sessionStorage.setItem("errorMessage", "Failed to Generate Report request!");
                hideLoader();
             alert("Unable to generate Report");
 
@@ -470,12 +472,21 @@ function escapeHtml(value) {
  // DOWNLOAD REPORT
 function downloadReport(requestId) {
 
+    $("#reportError").hide().text("");
+
     if (!requestId) {
         alert("Invalid report request");
         return;
     }
 
-    // Open the new tab immediately from the click event.
+    // Read the localized Spring message.
+    //const configuredMessage =
+    //    ($("#msg-reportNotFound").text() || "").trim();
+   // const configuredMessage = reportNotFoundMessage;
+    // Prevent an empty message if Spring has not resolved the property.
+    const notFoundMsg = reportNotFoundMessage;
+
+    // Open the tab immediately during the click event.
     const reportWindow = window.open("about:blank", "_blank");
 
     if (!reportWindow) {
@@ -483,45 +494,89 @@ function downloadReport(requestId) {
         return;
     }
 
+    // Render a loading page.
+    reportWindow.document.open();
     reportWindow.document.write(
-        "<p style='font-family:Arial;padding:20px'>Loading report...</p>"
+        "<!DOCTYPE html><html><head>" +
+        "<meta charset='UTF-8'><title>Report</title>" +
+        "</head><body style='font-family:Arial;padding:20px'>" +
+        "<p>Loading report...</p></body></html>"
     );
     reportWindow.document.close();
+
+    // Show an error safely in the new tab and the original page.
+    function showReportError(message) {
+
+        $("#reportError").text(message).show();
+
+        try {
+            if (!reportWindow.closed) {
+                reportWindow.document.open();
+                reportWindow.document.write(
+                    "<!DOCTYPE html><html><head>" +
+                    "<meta charset='UTF-8'><title>Report</title>" +
+                    "</head><body style='font-family:Arial;padding:20px'>" +
+                    "</body></html>"
+                );
+                reportWindow.document.close();
+
+                const errorElement =
+                    reportWindow.document.createElement("div");
+
+                errorElement.style.color = "#FF0000";
+                errorElement.style.fontSize = "16px";
+                errorElement.textContent = message;
+
+                reportWindow.document.body.appendChild(errorElement);
+            }
+        } catch (displayError) {
+            console.error("Unable to display report error:", displayError);
+        }
+    }
 
     fetch("/CWFM/reportGenerate/viewReport", {
         method: "POST",
         credentials: "same-origin",
         headers: {
-            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+            "Content-Type":
+                "application/x-www-form-urlencoded;charset=UTF-8"
         },
         body: new URLSearchParams({
             requestId: requestId
         })
     })
     .then(function (response) {
+
         if (!response.ok) {
-            throw new Error("Unable to open report. HTTP " + response.status);
+            throw new Error("REPORT_NOT_FOUND");
         }
+
         return response.text();
     })
     .then(function (html) {
 
-        // Create a browser-managed Blob URL.
+        // Do not treat an empty response as a valid report.
+        if (!html || !html.trim()) {
+            throw new Error("EMPTY_REPORT_RESPONSE");
+        }
+
         const blob = new Blob([html], {
             type: "text/html;charset=UTF-8"
         });
 
         const blobUrl = URL.createObjectURL(blob);
 
-        // Show the report using the Blob URL in the new tab.
-        reportWindow.location.href = blobUrl;
+        if (!reportWindow.closed) {
+            reportWindow.location.href = blobUrl;
+        } else {
+            URL.revokeObjectURL(blobUrl);
+        }
     })
     .catch(function (error) {
-        reportWindow.document.body.innerHTML =
-            "<p style='font-family:Arial;color:red;padding:20px'>" +
-            "The status report failed to generate. Please try again.</p>";
 
         console.error("Report viewer error:", error);
+
+        showReportError(notFoundMsg);
     });
 }
 

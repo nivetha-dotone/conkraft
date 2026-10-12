@@ -528,7 +528,9 @@ rotate(
 	String userId = user != null && user.getUserId() != null ? String.valueOf(user.getUserId()) : "";
 	%>
 
-
+<script>
+    const reportNotFoundMessage ="<spring:message code='label.downloadReportNotFound' javaScriptEscape='true'/>";
+</script>
 	<div class="page-header">
 
 
@@ -671,6 +673,13 @@ rotate(
 		<div class="loader"></div>
 		<div class="loader-text">please wait...</div>
 	</div>
+	
+	<div id="messageDiv" style="font-weight: bold; margin-top: 10px;"></div>
+	
+<!-- report error message label -->
+<%-- <div id="reportError" style="display:none; color:white;"></div>
+<span id="msg-reportNotFound" style="display:none; color:white;"><spring:message code="label.downloadReportNotFound"/> 
+</span>--%>
 	<!-- Report History Table -->
 	<div class="table-container" style="margin-top: 25px;">
 
