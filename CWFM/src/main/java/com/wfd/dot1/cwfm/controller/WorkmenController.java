@@ -384,50 +384,120 @@ public class WorkmenController {
     
     private static final String ROOT_DIRECTORY = "D:/wfd_cwfm/ep_docs/";
 
-    public String uploadFullTimeContractorDocuments( MultipartFile aadharFile,
-                                         MultipartFile policeFile,
-                                         MultipartFile profilePic,
-                                         MultipartFile appointmentFile,
-                                         String userId,
-                                         String gatePassId) {
+//    public String uploadFullTimeContractorDocuments( MultipartFile aadharFile,
+//                                         MultipartFile policeFile,
+//                                         MultipartFile profilePic,
+//                                         MultipartFile appointmentFile,
+//                                         String userId,
+//                                         String gatePassId) {
+//
+//        // Create directory path
+//        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
+//        
+//        try {
+//            // Ensure the directory exists, if not create it
+//            Path path = Paths.get(directoryPath);
+//            if (!Files.exists(path)) {
+//                Files.createDirectories(path);
+//            }
+//
+//            // Save Aadhar PDF
+//            if (!aadharFile.isEmpty()) {
+//            	  String ext = getExtension(aadharFile);
+//                String aadharFilePath = directoryPath + "aadhar"+ext;
+//                saveFile(aadharFile, aadharFilePath);
+//            }
+//
+//            // Save Police Verification PDF
+//            if (!policeFile.isEmpty()) {
+//            	String ext = getExtension(policeFile);
+//                String policeFilePath = directoryPath + "police"+ext;
+//                saveFile(policeFile, policeFilePath);
+//            }
+//            
+//            // Save Profile Pic
+//            if(!profilePic.isEmpty()) {
+//            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
+//            	saveFile(profilePic,profilePicPath);
+//            }
+//            //Save appointment PDF
+//            if (!appointmentFile.isEmpty()) {
+//            	String ext = getExtension(appointmentFile);
+//                String appointmentFilePath = directoryPath + "appointment"+ext;
+//                saveFile(appointmentFile, appointmentFilePath);
+//            }
+//
+//            // Return success message
+//            return "success";
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return "failed";
+//        }
+//    }
+    public String uploadFullTimeContractorDocuments(
+            MultipartFile aadharFile,
+            MultipartFile policeFile,
+            MultipartFile profilePic,
+            MultipartFile appointmentFile,
+            String userId,
+            String gatePassId) {
 
         // Create directory path
-        String directoryPath = ROOT_DIRECTORY + userId + "/"+gatePassId+"/";
-        
+        String directoryPath = ROOT_DIRECTORY + userId + "/" + gatePassId + "/";
+
         try {
-            // Ensure the directory exists, if not create it
+            // Create directory only if at least one file is provided
+            boolean hasFile =
+                    (aadharFile != null && !aadharFile.isEmpty())
+                    || (policeFile != null && !policeFile.isEmpty())
+                    || (profilePic != null && !profilePic.isEmpty())
+                    || (appointmentFile != null && !appointmentFile.isEmpty());
+
+            // If no files are uploaded, skip document saving.
+            if (!hasFile) {
+                return "success";
+            }
+
+            // Ensure the directory exists
             Path path = Paths.get(directoryPath);
             if (!Files.exists(path)) {
                 Files.createDirectories(path);
             }
 
-            // Save Aadhar PDF
-            if (!aadharFile.isEmpty()) {
-            	  String ext = getExtension(aadharFile);
-                String aadharFilePath = directoryPath + "aadhar"+ext;
+            // Save Aadhaar file if provided
+            if (aadharFile != null && !aadharFile.isEmpty()) {
+                String ext = getExtension(aadharFile);
+                String aadharFilePath = directoryPath + "aadhar" + ext;
                 saveFile(aadharFile, aadharFilePath);
             }
 
-            // Save Police Verification PDF
-            if (!policeFile.isEmpty()) {
-            	String ext = getExtension(policeFile);
-                String policeFilePath = directoryPath + "police"+ext;
+            // Save Police Verification file if provided
+            if (policeFile != null && !policeFile.isEmpty()) {
+                String ext = getExtension(policeFile);
+                String policeFilePath = directoryPath + "police" + ext;
                 saveFile(policeFile, policeFilePath);
             }
-            
-            // Save Profile Pic
-            if(!profilePic.isEmpty()) {
-            	String profilePicPath = directoryPath +profilePic.getOriginalFilename();
-            	saveFile(profilePic,profilePicPath);
+
+            // Save Profile Picture if provided
+            if (profilePic != null && !profilePic.isEmpty()) {
+                String originalFilename = Paths.get(
+                        profilePic.getOriginalFilename() != null
+                                ? profilePic.getOriginalFilename()
+                                : "profile"
+                ).getFileName().toString();
+
+                String profilePicPath = directoryPath + originalFilename;
+                saveFile(profilePic, profilePicPath);
             }
-            //Save appointment PDF
-            if (!appointmentFile.isEmpty()) {
-            	String ext = getExtension(appointmentFile);
-                String appointmentFilePath = directoryPath + "appointment"+ext;
+
+            // Save Appointment file if provided
+            if (appointmentFile != null && !appointmentFile.isEmpty()) {
+                String ext = getExtension(appointmentFile);
+                String appointmentFilePath = directoryPath + "appointment" + ext;
                 saveFile(appointmentFile, appointmentFilePath);
             }
 
-            // Return success message
             return "success";
 
         } catch (IOException e) {
@@ -3730,6 +3800,7 @@ return "failed";
             result.put("disability", String.valueOf(workmenData.get("disability")));
             result.put("workmenType", String.valueOf(workmenData.get("WorkmenType")));
             result.put("address", String.valueOf(workmenData.get("Address")));
+            result.put("policeVerificationDate", String.valueOf(workmenData.get("policeverificationDate")));
 
         } 
 //        else {

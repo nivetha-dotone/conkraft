@@ -1069,77 +1069,150 @@ function fileUpload(){
         });
    return isValid;
 }
-function validateFiles(aadharFile, policeFile, profilePc,appointmentFile) {
+function validateFiles(aadharFile, policeFile, profilePc, appointmentFile) {
     let valid = true;
 
     // Aadhar File - Mandatory & Size check
     if (!aadharFile) {
-        $("#aadharError").text("Aadhar file is required").addClass("error-bold");
+        $("#aadharError")
+            .text("Aadhar file is required")
+            .addClass("error-bold");
         valid = false;
     } else if (aadharFile.size > 5 * 1024 * 1024) {
-        $("#aadharError").text("Aadhar file must be less than 5MB").addClass("error-bold");
+        $("#aadharError")
+            .text("Aadhar file must be less than 5MB")
+            .addClass("error-bold");
         valid = false;
     } else {
-        $("#aadharError").text("");
+        $("#aadharError").text("").removeClass("error-bold");
     }
 
-    // Police Verification File - Mandatory & Size check
-    if (!policeFile) {
-        $("#policeError").text("Police verification file is required").addClass("error-bold");
-        valid = false;
-    } else if (policeFile.size > 5 * 1024 * 1024) {
-        $("#policeError").text("Police file must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#policeError").text("");
-    }
-//appointment File - Mandatory & Size check
- if (!appointmentFile) {
-        $("#appointmentError").text("Appointment Letter is required").addClass("error-bold");
-        valid = false;
-    } else if (appointmentFile.size > 5 * 1024 * 1024) {
-        $("#appointmentError").text("Appointment file must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#appointmentError").text("");
-    }
-// Police Verification Date - Mandatory  check
-const policeVerificationDate = $("#policeVerificationDate").val().trim();
-    if (policeVerificationDate === "") {
+    // Police Verification Date - Mandatory check
+    const policeVerificationDateValue =
+        $("#policeVerificationDate").val().trim();
+
+    let policeDateValid = false;
+    let policeFileMandatory = true;
+
+    if (policeVerificationDateValue === "") {
         $("#error-policeVerificationDate").show();
         valid = false;
-    }else {
-        $("#error-policeVerificationDate").hide("");
-    }
-    
-    // Profile Photo - Mandatory & Size check
-    if (!profilePc) {
-        $("#profilePcError").text("Profile photo is required").addClass("error-bold");
-        valid = false;
-    } else if (profilePc.size > 5 * 1024 * 1024) {
-        $("#profilePcError").text("Photo/Image must be less than 5MB").addClass("error-bold");
-        valid = false;
     } else {
-        $("#profilePcError").text("");
+        $("#error-policeVerificationDate").hide();
+
+        // Parse the selected date (supports yyyy-MM-dd)
+        const policeVerificationDate =
+            new Date(policeVerificationDateValue + "T00:00:00");
+
+        if (!isNaN(policeVerificationDate.getTime())) {
+            policeDateValid = true;
+
+            // Calculate the date 6 months before today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const sixMonthsAgo = new Date(today);
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+            // File is optional when verification date is within
+            // the last 6 months, including the boundary date.
+            policeFileMandatory =
+                policeVerificationDate < sixMonthsAgo ||
+                policeVerificationDate > today;
+
+            if (policeVerificationDate > today) {
+                $("#error-policeVerificationDate")
+                    .text("Police Verification Date cannot be in the future")
+                    .show();
+                valid = false;
+            }
+        } else {
+            $("#error-policeVerificationDate")
+                .text("Please enter a valid Police Verification Date")
+                .show();
+            valid = false;
+        }
     }
 
-	const comments = $("#comments").val().trim();
-		    if (comments === "") {
-		        $("#error-comments").show();
-		        valid = false;
-		    }else{
-				 $("#error-comments").hide();
-			}
-			// Accept Checkbox validation
-			    if (!$("#acceptCheck").is(":checked")) {
-			        $("#acceptError").show();
-			        valid = false;
-			    } else {
-			        $("#acceptError").hide();
-			    }
-			    if (valid) {
-    $("#docTabGlobalError").hide();
-}		
+    // Police Verification File - Conditional mandatory & size check
+    if (policeFileMandatory) {
+        if (!policeFile) {
+            $("#policeError")
+                .text("Police verification file is required")
+                .addClass("error-bold");
+            valid = false;
+        } else if (policeFile.size > 5 * 1024 * 1024) {
+            $("#policeError")
+                .text("Police file must be less than 5MB")
+                .addClass("error-bold");
+            valid = false;
+        } else {
+            $("#policeError").text("").removeClass("error-bold");
+        }
+    } else {
+        // File is optional for a verification date within 6 months.
+        if (policeFile && policeFile.size > 5 * 1024 * 1024) {
+            $("#policeError")
+                .text("Police file must be less than 5MB")
+                .addClass("error-bold");
+            valid = false;
+        } else {
+            $("#policeError").text("").removeClass("error-bold");
+        }
+    }
+
+    // Appointment File - Mandatory & Size check
+    if (!appointmentFile) {
+        $("#appointmentError")
+            .text("Appointment Letter is required")
+            .addClass("error-bold");
+        valid = false;
+    } else if (appointmentFile.size > 5 * 1024 * 1024) {
+        $("#appointmentError")
+            .text("Appointment file must be less than 5MB")
+            .addClass("error-bold");
+        valid = false;
+    } else {
+        $("#appointmentError").text("").removeClass("error-bold");
+    }
+
+    // Profile Photo - Mandatory & Size check
+    if (!profilePc) {
+        $("#profilePcError")
+            .text("Profile photo is required")
+            .addClass("error-bold");
+        valid = false;
+    } else if (profilePc.size > 5 * 1024 * 1024) {
+        $("#profilePcError")
+            .text("Photo/Image must be less than 5MB")
+            .addClass("error-bold");
+        valid = false;
+    } else {
+        $("#profilePcError").text("").removeClass("error-bold");
+    }
+
+    // Comments - Mandatory check
+    const comments = $("#comments").val().trim();
+
+    if (comments === "") {
+        $("#error-comments").show();
+        valid = false;
+    } else {
+        $("#error-comments").hide();
+    }
+
+    // Accept Checkbox validation
+    if (!$("#acceptCheck").is(":checked")) {
+        $("#acceptError").show();
+        valid = false;
+    } else {
+        $("#acceptError").hide();
+    }
+
+    if (valid) {
+        $("#docTabGlobalError").hide();
+    }
+
     return valid;
 }
 
@@ -4819,7 +4892,8 @@ if(valid){
                           $("#disability").val(response.disability || "");
                           $("#workmenType").val(response.workmenType || "");
                           $("#address").val(response.address || "");
-
+                          $("#policeVerificationDate").val(response.policeVerificationDate || "");
+                          
                            aadharCheckPassed = true;
                       }else {
 						    $("#error-aadhar").hide();
@@ -5221,6 +5295,7 @@ function aadharValidation() {
                     $("#disability").val(response.disability || "");
                     $("#workmenType").val(response.workmenType || "");
                     $("#address").val(response.address || "");
+                    $("#policeVerificationDate").val(response.policeVerificationDate || "");
                     // LOCK ONLY FIRST NAME, DOB AND GENDER
                     lockExistingAadharFields();
                     aadharCheckPassed = true;
@@ -5516,7 +5591,7 @@ function bulkApprove(status) {
         console.error(err);
     });
 }*/
-function validateProjectFiles(aadharFile, policeFile, profilePc,appointmentFile) {
+function validateProjectFiles(aadharFile, policeFile, profilePc, appointmentFile) {
     let valid = true;
 
     // Aadhar File - Mandatory & Size check
@@ -5527,68 +5602,128 @@ function validateProjectFiles(aadharFile, policeFile, profilePc,appointmentFile)
         $("#aadharError").text("Aadhar file must be less than 5MB").addClass("error-bold");
         valid = false;
     } else {
-        $("#aadharError").text("");
+        $("#aadharError").text("").removeClass("error-bold");
     }
 
-    // Police Verification File - Mandatory & Size check
-    if (!policeFile) {
-        $("#policeError").text("Police verification file is required").addClass("error-bold");
-        valid = false;
-    } else if (policeFile.size > 5 * 1024 * 1024) {
-        $("#policeError").text("Police file must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#policeError").text("");
-    }
-// ✅ Appointment File - OPTIONAL (only size validation)
-   if (appointmentFile) {
-        if (appointmentFile.size > 5 * 1024 * 1024) {
-            $("#appointmentError").text("Appointment must be less than 5MB").addClass("error-bold");
-            valid = false;
-        } else {
-            $("#appointmentError").text("");
-        }
-    } else {
-        $("#appointmentError").text(""); // clear error if not uploaded
-    }
-    
-// Police Verification Date - Mandatory  check
-const policeVerificationDate = $("#policeVerificationDate").val().trim();
-    if (policeVerificationDate === "") {
+    // Police Verification Date - Mandatory check
+    const policeVerificationDateValue = $("#policeVerificationDate").val().trim();
+
+    let policeFileMandatory = true;
+
+    if (policeVerificationDateValue === "") {
         $("#error-policeVerificationDate").show();
         valid = false;
-    }else {
-        $("#error-policeVerificationDate").hide("");
-    }
-    
-    // Profile Photo - Mandatory & Size check
-    if (!profilePc) {
-        $("#profilePcError").text("Profile photo is required").addClass("error-bold");
-        valid = false;
-    } else if (profilePc.size > 5 * 1024 * 1024) {
-        $("#profilePcError").text("Photo/Image must be less than 5MB").addClass("error-bold");
-        valid = false;
     } else {
-        $("#profilePcError").text("");
+        $("#error-policeVerificationDate").hide();
+
+        // Assumes the date format is yyyy-MM-dd (HTML date input)
+        const policeVerificationDate =
+            new Date(policeVerificationDateValue + "T00:00:00");
+
+        if (isNaN(policeVerificationDate.getTime())) {
+            $("#error-policeVerificationDate")
+                .text("Please enter a valid Police Verification Date")
+                .show();
+            valid = false;
+        } else {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Calculate the date exactly 6 calendar months before today
+            const sixMonthsAgo = new Date(today);
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+            if (policeVerificationDate > today) {
+                $("#error-policeVerificationDate")
+                    .text("Police Verification Date cannot be in the future")
+                    .show();
+                valid = false;
+            } else {
+                // Within the last 6 months: file is optional
+                // Older than 6 months: file is mandatory
+                policeFileMandatory = policeVerificationDate < sixMonthsAgo;
+            }
+        }
     }
 
-	const comments = $("#comments").val().trim();
-		    if (comments === "") {
-		        $("#error-comments").show();
-		        valid = false;
-		    }else{
-				 $("#error-comments").hide();
-			}
-			// Accept Checkbox validation
-			    if (!$("#acceptCheck").is(":checked")) {
-			        $("#acceptError").show();
-			        valid = false;
-			    } else {
-			        $("#acceptError").hide();
-			    }	
-			    if (valid) {
-    $("#docTabGlobalError").hide();
-}			
+    // Police Verification File - Conditional mandatory & size check
+    if (policeFileMandatory) {
+        if (!policeFile) {
+            $("#policeError")
+                .text("Police verification file is required")
+                .addClass("error-bold");
+            valid = false;
+        } else if (policeFile.size > 5 * 1024 * 1024) {
+            $("#policeError")
+                .text("Police file must be less than 5MB")
+                .addClass("error-bold");
+            valid = false;
+        } else {
+            $("#policeError").text("").removeClass("error-bold");
+        }
+    } else {
+        // File is optional, but validate its size if provided
+        if (policeFile && policeFile.size > 5 * 1024 * 1024) {
+            $("#policeError")
+                .text("Police file must be less than 5MB")
+                .addClass("error-bold");
+            valid = false;
+        } else {
+            $("#policeError").text("").removeClass("error-bold");
+        }
+    }
+
+    // Appointment File - OPTIONAL (only size validation)
+    if (appointmentFile) {
+        if (appointmentFile.size > 5 * 1024 * 1024) {
+            $("#appointmentError")
+                .text("Appointment must be less than 5MB")
+                .addClass("error-bold");
+            valid = false;
+        } else {
+            $("#appointmentError").text("").removeClass("error-bold");
+        }
+    } else {
+        $("#appointmentError").text("").removeClass("error-bold");
+    }
+
+    // Profile Photo - Mandatory & Size check
+    if (!profilePc) {
+        $("#profilePcError")
+            .text("Profile photo is required")
+            .addClass("error-bold");
+        valid = false;
+    } else if (profilePc.size > 5 * 1024 * 1024) {
+        $("#profilePcError")
+            .text("Photo/Image must be less than 5MB")
+            .addClass("error-bold");
+        valid = false;
+    } else {
+        $("#profilePcError").text("").removeClass("error-bold");
+    }
+
+    // Comments - Mandatory check
+    const comments = $("#comments").val().trim();
+
+    if (comments === "") {
+        $("#error-comments").show();
+        valid = false;
+    } else {
+        $("#error-comments").hide();
+    }
+
+    // Accept Checkbox validation
+    if (!$("#acceptCheck").is(":checked")) {
+        $("#acceptError").show();
+        valid = false;
+    } else {
+        $("#acceptError").hide();
+    }
+
+    if (valid) {
+        $("#docTabGlobalError").hide();
+    }
+
     return valid;
 }
 function blackListBulkApprove(status) {
@@ -6920,15 +7055,22 @@ function saveFullTimeContractorGatePass(userId) {
     let otherValid = true;
     let documentValid = true;
     
-    var aadharFile = $("#aadharFile").prop("files")[0];
-    var policeFile = $("#policeFile").prop("files")[0];
-	var profilePic = $("#imageFile").prop("files")[0];
-	var appointmentFile = $("#appointmentFile").prop("files")[0];
-    // Validate the files (optional)
-   // if (!validateFullTimeContractorFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
-   //     documentValid = false; // Stop the upload if validation fails
-   //     hideLoader();
-   // }
+var aadharFile = $("#aadharFile").prop("files")[0];
+var policeFile = $("#policeFile").prop("files")[0];
+var profilePic = $("#imageFile").prop("files")[0];
+var appointmentFile = $("#appointmentFile").prop("files")[0];
+
+// Validate only newly selected files.
+// Missing files must not produce a required-file error.
+if (!validateFullTimeContractorFiles(
+        aadharFile,
+        policeFile,
+        profilePic,
+        appointmentFile
+    )) {
+    documentValid = false;
+    hideLoader();
+}
     if (!validateBasicData()) {
         basicValid = false;
         hideLoader();
@@ -7082,9 +7224,9 @@ for (const [key, value] of data.entries()) {
 
         // Send the FormData object
         xhr.send(data);
-    } else {
-        console.error("Validation failed for one or more fields.");
-    }
+   } else {
+    console.error("Validation failed for one or more fields.");
+}
 }
 function validateFullTimeContractorEmploymentInformation(){
 	let isValid = true;
@@ -7119,63 +7261,106 @@ function validateFullTimeContractorEmploymentInformation(){
 	
 	return isValid;
 }
-function validateFullTimeContractorFiles(aadharFile, policeFile, profilePc,appointmentFile) {
+function validateFullTimeContractorFiles(
+    aadharFile,
+    policeFile,
+    profilePc,
+    appointmentFile
+) {
     let valid = true;
+    const maxFileSize = 5 * 1024 * 1024;
 
-    // Aadhar File - Mandatory & Size check
-     if (aadharFile.size > 5 * 1024 * 1024) {
-        $("#aadharError").text("Aadhar file must be less than 5MB").addClass("error-bold");
+    // Aadhar File - Optional, size check only
+    if (aadharFile && aadharFile.size > maxFileSize) {
+        $("#aadharError")
+            .text("Aadhar file must be less than 5MB")
+            .addClass("error-bold");
         valid = false;
     } else {
-        $("#aadharError").text("");
-    }
-
-    // Police Verification File - Mandatory & Size check
-    if (policeFile.size > 5 * 1024 * 1024) {
-        $("#policeError").text("Police file must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#policeError").text("");
-    }
-//appointment File - Mandatory & Size check
- if (appointmentFile.size > 5 * 1024 * 1024) {
-        $("#appointmentError").text("Appointment file must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#appointmentError").text("");
-    }
-// Police Verification Date - Mandatory  check
-const policeVerificationDate = $("#policeVerificationDate").val().trim();
-    if (policeVerificationDate === "") {
-        $("#error-policeVerificationDate").show();
-        valid = false;
-    }else {
-        $("#error-policeVerificationDate").hide("");
-    }
-    
-    // Profile Photo - Mandatory & Size check
-    if (profilePc.size > 5 * 1024 * 1024) {
-        $("#profilePcError").text("Photo/Image must be less than 5MB").addClass("error-bold");
-        valid = false;
-    } else {
-        $("#profilePcError").text("");
+        $("#aadharError").text("").removeClass("error-bold");
     }
 
-	const comments = $("#comments").val().trim();
-		    if (comments === "") {
-		        $("#error-comments").show();
-		        valid = false;
-		    }else{
-				 $("#error-comments").hide();
-			}
-			// Accept Checkbox validation
-			    if (!$("#acceptCheck").is(":checked")) {
-			        $("#acceptError").show();
-			        valid = false;
-			    } else {
-			        $("#acceptError").hide();
-			    }
-			    if (valid) {
+    // Police Verification Date - Optional
+    const policeVerificationDateValue =
+        ($("#policeVerificationDate").val() || "").trim();
+
+    let policeFileMandatory = false;
+
+    if (policeVerificationDateValue !== "") {
+
+        // Expected format for HTML input type="date": yyyy-MM-dd
+        const policeVerificationDate =
+            new Date(policeVerificationDateValue + "T00:00:00");
+
+        if (isNaN(policeVerificationDate.getTime())) {
+            $("#error-policeVerificationDate")
+                .text("Please enter a valid Police Verification Date")
+                .show();
+
+            valid = false;
+        } else {
+            $("#error-policeVerificationDate").hide();
+
+            // Calculate the date six calendar months before today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const sixMonthsAgo = new Date(today);
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+            // If the entered date is older than six months,
+            // the Police Verification File becomes mandatory.
+            policeFileMandatory =
+                policeVerificationDate < sixMonthsAgo;
+        }
+    } else {
+        // Police Verification Date is optional.
+        $("#error-policeVerificationDate").hide();
+    }
+
+    // Police Verification File - Conditionally mandatory, size check
+    if (policeFile) {
+        if (policeFile.size > maxFileSize) {
+            $("#policeError")
+                .text("Police file must be less than 5MB")
+                .addClass("error-bold");
+
+            valid = false;
+        } else {
+            $("#policeError").text("").removeClass("error-bold");
+        }
+    } else if (policeFileMandatory) {
+        $("#policeError")
+            .text("Police verification file is required")
+            .addClass("error-bold");
+
+        valid = false;
+    } else {
+        $("#policeError").text("").removeClass("error-bold");
+    }
+
+    // Appointment File - Optional, size check only
+    if (appointmentFile && appointmentFile.size > maxFileSize) {
+        $("#appointmentError")
+            .text("Appointment file must be less than 5MB")
+            .addClass("error-bold");
+
+        valid = false;
+    } else {
+        $("#appointmentError").text("").removeClass("error-bold");
+    }
+
+    // Profile Photo - Optional, size check only
+    if (profilePc && profilePc.size > maxFileSize) {
+        $("#profilePcError")
+            .text("Photo/Image must be less than 5MB")
+            .addClass("error-bold");
+
+        valid = false;
+    } else {
+        $("#profilePcError").text("").removeClass("error-bold");
+    }
+if (valid) {
     $("#docTabGlobalError").hide();
 }		
     return valid;
@@ -7372,6 +7557,7 @@ function loadCancelledAadharDetails(response) {
     $("#address").val(response.address || "");
     $("#workmenType").val(response.workmenType || "");
     $("#disability").val(response.disability || "");
+     $("#policeVerificationDate").val(response.policeVerificationDate || "");
 
 
     // ============================================
@@ -7417,6 +7603,9 @@ function loadCancelledAadharDetails(response) {
     // Disability - EDITABLE
     // Normally a <select>
     $("#disability").prop("disabled", false);
+    
+     // Policeverification Date - EDITABLE
+    $("#policeVerificationDate").prop("readonly", false);
 }
 
 
@@ -7445,6 +7634,8 @@ function resetCancelledAadharFieldState() {
     $("#workmenType").prop("disabled", false);
 
     $("#disability").prop("disabled", false);
+    
+     $("#policeVerificationDate").prop("disabled", false);
 }
 function lockExistingAadharFields() {
     // EXISTING AADHAAR:ONLY FIRST NAME, DOB AND GENDER MUST BE NON-EDITABLE
@@ -7494,6 +7685,9 @@ function lockExistingAadharFields() {
         .prop("disabled", false)
         .removeAttr("disabled");
         
+     $("#policeVerificationDate")
+        .prop("readonly", false)
+        .removeAttr("readonly");
     // PREVENT DOB DATEPICKER / KEYBOARD FROM CHANGING DOB
 
     $("#dateOfBirth")
@@ -7561,6 +7755,10 @@ function unlockAadharFields() {
     $("#disability")
         .prop("disabled", false)
         .removeAttr("disabled");
+        
+    $("#policeVerificationDate")
+        .prop("readonly", false)
+        .removeAttr("readonly");
     // Remove the special existing-Aadhaar handlers from DOB
     $("#dateOfBirth").off(".existingAadhar");
 }
