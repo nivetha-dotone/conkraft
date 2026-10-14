@@ -1379,7 +1379,7 @@ function validateFiles(aadharFile, policeFile, profilePc, appointmentFile) {
 
     
 
-	function submitGatePass(userId,type) {
+	async  function submitGatePass(userId,type) {
 		showLoader();
 		// ✅ Clear all previous errors first
     $("#docTabGlobalError").hide().text("");
@@ -1410,12 +1410,17 @@ function validateFiles(aadharFile, policeFile, profilePc, appointmentFile) {
     if (!validateBasicData()) {
         basicValid = false;
     }
+    const medicalValid = await validatePeTradeSkillMedicalRequirement();
 	if(type=== "project"){
 		if (!validateProjectEmploymentInformation()) {
 		        employmentValid = false;
 		         hideLoader();
 		    }
-		    if (!validateProjectFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
+		    if (!medicalValid) {
+    documentValid = false;
+    hideLoader();
+}
+				    if (!validateProjectFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
              documentValid = false; // Stop the upload if validation fails
         hideLoader();
     }
@@ -1428,7 +1433,11 @@ function validateFiles(aadharFile, policeFile, profilePc, appointmentFile) {
 	        documentValid = false;
 	         hideLoader();
 	    }
-	   
+
+if (!medicalValid) {
+    documentValid = false;
+    hideLoader();
+}
 
 if (!validateFiles(aadharFile || existingAadhar,policeFile || existingPolice,profilePic || existingProfile,appointmentFile || existingAppointment)) {
     documentValid = false;
@@ -1761,7 +1770,7 @@ function additionalDocUpload(selectedType = "", existingFileName = "") {
                    style="margin-right:10px;">
 
             <!-- ✅ EXISTING FILE NAME -->
-            <span id="${fileNameId}" style="color:black;">
+            <span id="${fileNameId}" class="existing-file-name" style="color:black;">
                 ${existingFileName || ""}
             </span>
 
@@ -3774,7 +3783,7 @@ function redirectToWorkmenRenewEdit() {
 	xhr.open("GET", "/CWFM/contractworkmen/renew/" + gatePassId, true);
 	xhr.send();
 }
-function renewGatePass(userId) {
+ async function renewGatePass(userId) {
 	showLoader();
 	
 	// ✅ Clear all previous errors first
@@ -3792,6 +3801,9 @@ function renewGatePass(userId) {
     var policeFile = $("#policeFile").prop("files")[0];
 	var profilePic = $("#imageFile").prop("files")[0];
 	var appointmentFile = $("#appointmentFile").prop("files")[0];
+	
+	const medicalValid = await validatePeTradeSkillMedicalRequirement();
+	
     // Validate the files (optional)
     if (!validateFiles(aadharFile, policeFile,profilePic,appointmentFile)) {
         documentValid = false; // Stop the upload if validation fails
@@ -3811,6 +3823,10 @@ function renewGatePass(userId) {
 	        documentValid = false;
 	         hideLoader();
 	    }
+	if (!medicalValid) {
+    documentValid = false;
+    hideLoader();
+   }
     if (!validateOtherInformation()) {
         otherValid = false;
         hideLoader();
@@ -4340,24 +4356,35 @@ function validatePfForm11Requirement() {
     const form11ErrorContainer = document.getElementById("form11-error-message");
     let form11Present = false;
 
-    if (!pfApplicable) {
-        const additionalFields = document.querySelectorAll('.document-field');
+if (!pfApplicable) {
 
-        additionalFields.forEach((field) => {
-            const docType = field.querySelector('select[name="documentType"]')?.value;
-            const file = field.querySelector('input[type="file"]')?.files[0];
+    const additionalFields =
+        document.querySelectorAll(".document-field");
 
-            if (docType === "Form11" && file) {
-                form11Present = true;
-            }
-        });
+    let form11Present = false;
 
-        if (!form11Present) {
-            form11ErrorContainer.textContent = "Form11 document is mandatory since PF is not applicable.";
-            form11ErrorContainer.style.display = "block";
-            return false;
+    additionalFields.forEach(function (field) {
+
+        const docType = (
+            field.querySelector('select[name="documentType"]')?.value || ""
+        ).trim();
+
+        if (
+            docType.toLowerCase() === "form11" &&
+            hasExistingOrSelectedDocument(field)
+        ) {
+            form11Present = true;
         }
+    });
+
+    if (!form11Present) {
+        form11ErrorContainer.textContent =
+            "Form11 document is mandatory since PF is not applicable.";
+
+        form11ErrorContainer.style.display = "block";
+        return false;
     }
+}
 
     // Clear error if condition passes or PF is applicable
     form11ErrorContainer.textContent = "";
@@ -7761,4 +7788,99 @@ function unlockAadharFields() {
         .removeAttr("readonly");
     // Remove the special existing-Aadhaar handlers from DOB
     $("#dateOfBirth").off(".existingAadhar");
+}
+
+function validatePeTradeSkillMedicalRequirement() {
+
+    const errorContainer = document.getElementById("medical-error-message");
+
+    errorContainer.textContent = "";
+    errorContainer.style.display = "none";
+
+    const principalEmployerId =
+        ($("#principalEmployer").val() || "").trim();
+    const tradeId = ($("#trade").val() || "").trim();
+    const skillId = ($("#skill").val() || "").trim();
+
+    if (!principalEmployerId || !tradeId || !skillId) {
+        return Promise.resolve(true);
+    }
+
+    // Fetch MedicalCheckup from the database through the controller.
+    return $.ajax({
+        url: "/CWFM/contractworkmen/getMedicalCheckupRequirement",
+        type: "GET",
+        dataType: "json",
+        data: {
+            principalEmployerId: principalEmployerId,
+            tradeId: tradeId,
+            skillId: skillId
+        }
+    }).then(function (response) {
+
+        const medicalCheckup =
+            (response.medicalCheckup || "").trim().toLowerCase();
+console.log(medicalCheckup);
+        // Medical certificate is optional unless the DB value is Yes.
+        if (medicalCheckup !== "yes") {
+            return true;
+        }
+
+      let medicalPresent = false;
+
+const additionalFields =
+    document.querySelectorAll(".document-field");
+
+additionalFields.forEach(function (field) {
+
+    const docType = (
+        field.querySelector('select[name="documentType"]')?.value || ""
+    ).trim();
+
+    if (
+        docType.toLowerCase() === "medical" &&
+        hasExistingOrSelectedDocument(field)
+    ) {
+        medicalPresent = true;
+    }
+});
+
+if (!medicalPresent) {
+    errorContainer.textContent =
+        "Medical certificate is mandatory since Medical Checkup is Yes.";
+
+    errorContainer.style.display = "block";
+    return false;
+}
+
+        return true;
+
+    }).catch(function (error) {
+
+        console.error("Error fetching MedicalCheckup requirement:", error);
+
+        errorContainer.textContent =
+            "Unable to verify the medical certificate requirement. Please try again.";
+
+        errorContainer.style.display = "block";
+        return false;
+    });
+}
+function hasExistingOrSelectedDocument(field) {
+
+    const fileInput = field.querySelector('input[type="file"]');
+
+    // New file selected during creation or editing
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        return true;
+    }
+
+    // Existing file displayed when editing a draft
+    const fileNameElement = field.querySelector(".existing-file-name");
+
+    if (fileNameElement && fileNameElement.textContent.trim() !== "") {
+        return true;
+    }
+
+    return false;
 }

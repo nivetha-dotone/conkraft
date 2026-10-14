@@ -221,6 +221,10 @@ function deleteRow(button) {
         const tradeId = row.querySelector("select[name='tradeId']").value;
         const skillId = row.querySelector("select[name='skillId']").value;
         const workmenCount = row.querySelector("input[name='workmenCount']") ? row.querySelector("input[name='workmenCount']").value.trim() : ""; // ✅ non‑mandatory field
+        const medicalCheckupSelect = row.querySelector("select[name='medicalCheckup']");
+        const medicalCheckup = medicalCheckupSelect ? medicalCheckupSelect.value.trim() : "";
+
+       console.log("Medical Checkup:", medicalCheckup);
         row.style.backgroundColor = "";
 
         /*if (!principalEmployerId && tradeId) {
@@ -271,7 +275,7 @@ function deleteRow(button) {
             principalEmployerId,
             tradeId,
             skillId,
-            workmenCount
+            workmenCount,medicalCheckup
         });
     });
 
@@ -407,7 +411,7 @@ function TradeSkillMapppingExportToCSV() {
     var table = $('#workmenTable').DataTable();
 
     var csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Principal Employer,Trade,Skill,Workmen Count\n";
+    csvContent += "Principal Employer,Trade,Skill,Medical Checkup,Workmen Count\n";
 
     var selectedCount = 0;
 
@@ -428,7 +432,8 @@ function TradeSkillMapppingExportToCSV() {
                 row.find('td:eq(1)').text().trim() + "," +
                 row.find('td:eq(2)').text().trim() + "," +
                 row.find('td:eq(3)').text().trim() + "," +
-                row.find('td:eq(4)').text().trim() + "\n";
+                row.find('td:eq(4)').text().trim() + "," +
+                row.find('td:eq(5)').text().trim() + "\n";
         }
     });
 

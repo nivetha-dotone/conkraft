@@ -1738,7 +1738,7 @@ class="btn btn-default"
                         <div id="aadharError"></div> 
                    </td>
                 		<td>
-                		 	<label for="appointmentFile"><span class="required-field">*</span><spring:message code="label.uploadappointmentCard"/></label>
+                		 	<label for="appointmentFile"><span class="required-field"></span><spring:message code="label.uploadappointmentCard"/></label>
        					 	<input type="file" id="appointmentFile" name="appointmentFile" accept="application/pdf,image/jpeg,image/png" onchange="displayFileName1('appointmentFile', 'appointmentFileName')">
        					 	  <span id="appointmentFileName" style="margin-left: 10px;color:black;">
        					 	   <c:out value="${fileMap['appointment']}" default=""/>
@@ -1778,7 +1778,7 @@ class="btn btn-default"
             		<a href="#" id="add_field_button" onclick="additionalDocUpload()"><spring:message code="label.addDocument"/></a>
             		<label>You can add a maximum of 7 additional documents.</label>
             		<div id="form11-error-message" style="color: red; display: none; margin-top: 5px; font-weight: bold "></div>
-            		
+            		<div id="medical-error-message" style="color: red; display: none; margin-top: 5px; font-weight: bold "></div>
             		</td>
             		<td><div id="additionalDoc" ></div>
             		</td></tr> 

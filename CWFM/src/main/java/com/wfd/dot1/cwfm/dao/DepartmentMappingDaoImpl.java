@@ -136,6 +136,7 @@ public class DepartmentMappingDaoImpl implements DepartmentMappingDao{
 	            mapping.setTradeId(rs.getInt("tradeId"));
 	            mapping.setSkillId(rs.getInt("skillId"));
 	            mapping.setWorkmenCount(rs.getString("WorkmenCount"));
+	            mapping.setMedicalCheckup(rs.getString("MedicalCheckup"));
 	            peList.add(mapping);
 	    	}
 	    	return peList;
@@ -146,7 +147,7 @@ public class DepartmentMappingDaoImpl implements DepartmentMappingDao{
 		 String sql=saveTradeSkillMappings();
 	        //String sql = "INSERT INTO UnitTradeSkillMapping(principalEmployerId, tradeid, skillid) VALUES (?, ?, ?)";
 	        for (DeptMapping mapping : mappings) {
-	            jdbcTemplate.update(sql, mapping.getPrincipalEmployerId(), mapping.getTradeId(), mapping.getSkillId(),mapping.getWorkmenCount());
+	            jdbcTemplate.update(sql, mapping.getPrincipalEmployerId(), mapping.getTradeId(), mapping.getSkillId(),mapping.getWorkmenCount(),mapping.getMedicalCheckup());
 	        }
 	 }
 

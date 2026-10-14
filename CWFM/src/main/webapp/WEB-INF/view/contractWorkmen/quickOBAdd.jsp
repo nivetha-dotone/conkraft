@@ -1777,7 +1777,7 @@ class="btn btn-default"
             		<a href="#" id="add_field_button" onclick="additionalDocUpload()"><spring:message code="label.addDocument"/></a>
             		<label>You can add a maximum of 7 additional documents.</label>
             		<div id="form11-error-message" style="color: red; display: none; margin-top: 5px; font-weight: bold "></div>
-            		
+            		<div id="medical-error-message" style="color: red; display: none; margin-top: 5px; font-weight: bold "></div>
             		</td>
             		<td><div id="additionalDoc" ></div>
             		</td></tr> 

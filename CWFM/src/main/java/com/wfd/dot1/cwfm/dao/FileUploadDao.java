@@ -120,7 +120,7 @@ public interface FileUploadDao {
 
     boolean existsUnitTradeSkillMapping(Integer unitId, Integer tradeId, Integer skillId);
 
-    void insertUnitTradeSkillMapping(Integer unitId, Integer tradeId, Integer skillId, String workmenCount);
+    void insertUnitTradeSkillMapping(Integer unitId, Integer tradeId, Integer skillId, String workmenCount, String medicalCheckup);
 
 	void insertUnitDepartmentSubDepartmentMapping(Integer unitId, Integer departmentId, Integer subDepartmentId);
 

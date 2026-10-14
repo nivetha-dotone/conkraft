@@ -360,6 +360,7 @@ public class FileUploadController {
             fields.add(Map.of("name", "Trade", "type", "Text", "example", "Operator"));
             fields.add(Map.of("name", "Skill", "type", "Text", "example", "Skilled"));
             fields.add(Map.of("name", "Workmen Count", "type", "Number", "example", "50"));
+            fields.add(Map.of("name", "Medical Checkup", "type", "Text", "example", "Yes"));
             
             templateInfo.put("fields", fields);
         }else if("Data-Department Area".equals(templateType)){

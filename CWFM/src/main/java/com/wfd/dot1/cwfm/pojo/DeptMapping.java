@@ -14,7 +14,14 @@ public class DeptMapping {
     private String trade;
     private String skill;
     private String workmenCount;
+    private String medicalCheckup;
     
+	public String getMedicalCheckup() {
+		return medicalCheckup;
+	}
+	public void setMedicalCheckup(String medicalCheckup) {
+		this.medicalCheckup = medicalCheckup;
+	}
 	public String getWorkmenCount() {
 		return workmenCount;
 	}
