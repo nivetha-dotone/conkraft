@@ -8,10 +8,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -2873,7 +2878,29 @@ public class WorkmenController {
 					+ gatePassMainObj.getPhotoName();
 			request.setAttribute("imagePath", profilePicFilePath);
 		}
+		// Police Verification Date - Calculate whether the file is mandatory
+		Object policeDateValue = gatePassMainObj.getPoliceVerificationDate();
 
+		// Default to mandatory if the saved date is missing or invalid.
+		boolean pvcMandatory = true;
+
+		LocalDate savedPoliceDate = toLocalDate(policeDateValue);
+
+		if (savedPoliceDate != null) {
+		    LocalDate today = LocalDate.now();
+		    LocalDate sixMonthsAgo = today.minusMonths(6);
+
+		    // Within the last six months (including the boundary): optional.
+		    // Older than six months: mandatory.
+		    pvcMandatory = savedPoliceDate.isBefore(sixMonthsAgo);
+		}
+
+		// Pass the flag to the JSP through GatePassObj.
+		gatePassMainObj.setPvcMandatory(pvcMandatory);
+
+		request.setAttribute("GatePassObj", gatePassMainObj);
+         System.out.println(pvcMandatory);
+		log.info("Police Verification Date: {}, pvcMandatory: {}",policeDateValue, pvcMandatory);
 		// List<Map<String, Object>> allVersionedDocs =
 		// workmenService.getAllVersionedDocuments(oldTransactionId, user.getUserId());
 
@@ -2950,7 +2977,8 @@ public class WorkmenController {
 
 					// String
 					// oldTransactionId=workmenDao.getTransactionIdByGatePassId(gatePassMain.getGatePassId());
-					if (aadharFile != null && !aadharFile.isEmpty() && policeFile != null && !policeFile.isEmpty()
+					if (aadharFile != null && !aadharFile.isEmpty() 
+							//&& policeFile != null && !policeFile.isEmpty()
 							&& appointmentFile != null && !appointmentFile.isEmpty()) {
 						uploadDocuments(aadharFile, policeFile, profilePic, appointmentFile,
 								String.valueOf(user.getUserId()), transactionId);
@@ -3765,7 +3793,11 @@ public class WorkmenController {
 			@RequestParam(value = "transactionId", required = false) String transactionId) {
 
 		Map<String, String> result = new HashMap<>(); // ✅ Declare FIRST
-
+		
+	    // Default: Police Verification Certificate is mandatory.
+	    result.put("reOnboarding", "false");
+	    result.put("pvcmandatory", "true");
+	    
 		AadharCheckDto dto = workmenService.checkAadharUniqueness(aadharNumber, gatePassId, transactionId);
 
 		String status = null;
@@ -3809,7 +3841,27 @@ public class WorkmenController {
 		if (workmenData != null && !workmenData.isEmpty()) {
 
 			result.put("status", "FOUND");
+			result.put("reOnboarding", "true");
+			
+			Object policeDateValue =workmenData.get("policeverificationDate");
 
+	        // Default to mandatory if the saved date is missing or invalid.
+	        boolean pvcMandatory = true;
+
+	        LocalDate savedPoliceDate = toLocalDate(policeDateValue);
+
+	        if (savedPoliceDate != null) {
+	            LocalDate today = LocalDate.now();
+	            LocalDate sixMonthsAgo = today.minusMonths(6);
+
+	            // Optional when the saved date is within the last six months.
+	            // Mandatory when it is older than six months.
+	            pvcMandatory = savedPoliceDate.isBefore(sixMonthsAgo);
+	            System.out.println(pvcMandatory);
+	        }
+
+	        result.put("pvcmandatory",String.valueOf(pvcMandatory));
+	        
 			result.put("firstName", String.valueOf(workmenData.get("FirstName")));
 			result.put("lastName", String.valueOf(workmenData.get("LastName")));
 			result.put("relativeName", String.valueOf(workmenData.get("RelativeName")));
@@ -4558,5 +4610,74 @@ public class WorkmenController {
 
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 		}
+	}
+	
+	private LocalDate toLocalDate(Object value) {
+
+	    if (value == null) {
+	        return null;
+	    }
+
+	    if (value instanceof LocalDate) {
+	        return (LocalDate) value;
+	    }
+
+	    if (value instanceof java.sql.Timestamp) {
+	        return ((java.sql.Timestamp) value).toLocalDateTime().toLocalDate();
+	    }
+
+	    if (value instanceof java.sql.Date) {
+	        return ((java.sql.Date) value).toLocalDate();
+	    }
+
+	    if (value instanceof LocalDateTime) {
+	        return ((LocalDateTime) value).toLocalDate();
+	    }
+
+	    if (value instanceof Date) {
+	        return ((Date) value).toInstant()
+	                .atZone(java.time.ZoneId.systemDefault())
+	                .toLocalDate();
+	    }
+
+	    String dateText = value.toString().trim();
+
+	    if (dateText.isEmpty()) {
+	        return null;
+	    }
+
+	    // Try common database and UI date formats.
+	    DateTimeFormatter[] formatters = {
+	        DateTimeFormatter.ISO_LOCAL_DATE,
+	        DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+	        DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+	        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+	        DateTimeFormatter.ISO_LOCAL_DATE_TIME
+	    };
+
+	    for (DateTimeFormatter formatter : formatters) {
+	        try {
+	            if (formatter == DateTimeFormatter.ISO_LOCAL_DATE_TIME) {
+	                return LocalDateTime.parse(dateText, formatter).toLocalDate();
+	            }
+
+	            if ("yyyy-MM-dd HH:mm:ss".equals(formatter.toString())) {
+	                return LocalDateTime.parse(dateText, formatter).toLocalDate();
+	            }
+
+	            return LocalDate.parse(dateText, formatter);
+
+	        } catch (DateTimeParseException ex) {
+	            // Try the next supported format.
+	        }
+	    }
+
+	    // Handle timestamp strings containing a date and time.
+	    try {
+	        return LocalDateTime.parse(
+	                dateText.replace(' ', 'T')).toLocalDate();
+	    } catch (DateTimeParseException ex) {
+	        return null;
+	    }
 	}
 }

@@ -1585,16 +1585,17 @@ class="btn btn-default"
 					
                          <td><label for="policeDate"><span class="required-field">*</span><spring:message code="label.policeVerificationDate"/></label>
 
-                       <input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  >
-                        	<%-- <c:if test="${ empty GatePassObj.policeVerificationDate }">
+                       <!-- <input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  > -->
+                        	 <c:if test="${ empty GatePassObj.policeVerificationDate }">
                         		<input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"  autocomplete="off"  >
                         	</c:if>    				
     						<c:if test="${ not empty GatePassObj.policeVerificationDate }">
                         		<input id="policeVerificationDate" name="policeVerificationDate" class="datetimepickerformat3" style="margin-left: 10px;color:black;" type="text" size="30" maxlength="30"    value="${ GatePassObj.policeVerificationDate}" autocomplete="off">
-                        	</c:if> --%>
+                        	</c:if> 
                         	<!-- <div style="text-align: right;">
                                     <span style="color: #666; font-size: 11px;">Within Last 1 Year from Today</span>
                                 </div> -->
+                                <input type="hidden" id="pvcMandatory" name="pvcMandatory" value="${ GatePassObj.pvcMandatory}" autocomplete="off">
 					  <label id="error-policeVerificationDate" style="color: red;display: none;">Please enter a valid Police Verification Date </label>
 			         </td>
 

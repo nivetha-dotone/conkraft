@@ -668,6 +668,13 @@ public void setIsmw(String ismw) {
 	this.ismw = ismw;
 }
 private String ismw;
+private boolean pvcMandatory;
+public boolean getPvcMandatory() {
+	return pvcMandatory;
+}
+public void setPvcMandatory(boolean pvcMandatory) {
+	this.pvcMandatory = pvcMandatory;
+}
 
 
 }
