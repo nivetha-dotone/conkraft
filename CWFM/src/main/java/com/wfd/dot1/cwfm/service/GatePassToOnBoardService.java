@@ -952,6 +952,10 @@ public class GatePassToOnBoardService {
                 dto.setContractor_Name(rs.getString("contractorName"));
                 dto.setWcEsicNo(rs.getString("WcEsicNo"));
                 dto.setEmployeeTransferSet(rs.getString("EmpJobTranSet"));
+                dto.setSUBBUSINESSTYPE(rs.getString("SUBBUSINESSTYPE"));
+                dto.setBUSINESSUNIT(rs.getString("BUSINESSUNIT"));
+                dto.setPARENTENTITY(rs.getString("PARENTENTITY"));
+                dto.setBUSINESSTYPE(rs.getString("BUSINESSTYPE"));
 
  
             }
@@ -1040,6 +1044,10 @@ public class GatePassToOnBoardService {
                 dto.setOnboardingType(rs.getString("OnboardingType"));
                 dto.setAccommodation(rs.getString("Accommodation"));
                 dto.setESICIPNumber(rs.getString("ESICIPNumber"));
+                dto.setSUBBUSINESSTYPE(rs.getString("SUBBUSINESSTYPE"));
+                dto.setBUSINESSUNIT(rs.getString("BUSINESSUNIT"));
+                dto.setPARENTENTITY(rs.getString("PARENTENTITY"));
+                dto.setBUSINESSTYPE(rs.getString("BUSINESSTYPE"));
 
                 dto.setEmploymentStatusEffectiveDate(rs.getString("effectiveDate"));
 

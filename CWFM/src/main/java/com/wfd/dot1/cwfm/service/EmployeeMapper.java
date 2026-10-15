@@ -1157,7 +1157,10 @@ public class EmployeeMapper {
                 }
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
-                    String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+
+
+
+                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/" +individualOnBoardDetailsByTrnId.getCompany() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;
                 System.out.println(orgPath);
 
 
@@ -2004,8 +2007,7 @@ public class EmployeeMapper {
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
 
-
-                String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/" +individualOnBoardDetailsByTrnId.getCompany() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;                
                 System.out.println(orgPath);
 
 

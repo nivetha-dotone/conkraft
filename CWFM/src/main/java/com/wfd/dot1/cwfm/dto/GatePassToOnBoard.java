@@ -116,4 +116,8 @@ public class GatePassToOnBoard {
     private String employeeTransferEffectiveDate;
 
 
+    private String SUBBUSINESSTYPE;
+    private String BUSINESSUNIT;
+    private String PARENTENTITY;
+    private String BUSINESSTYPE;
 }
