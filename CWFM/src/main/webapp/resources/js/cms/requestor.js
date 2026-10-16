@@ -984,6 +984,7 @@ async function recognizeLoop()
       await sleep(1000);
     }
   }
+<<<<<<< HEAD
 }
 
 
@@ -1691,7 +1692,237 @@ function getCurrentLocationSep() {
         }
     );
   });
+=======
+>>>>>>> f999b70 (add validation for custom field)
 }
+
+
+async function startPunchRecognitionSep()
+{
+  try
+  {
+    console.log("Start Recognition");
+
+    video =
+        document.getElementById("video");
+
+    overlay =
+        document.getElementById("overlay");
+
+    if (!video)
+    {
+      throw new Error("Video element not found");
+    }
+
+    if (!overlay)
+    {
+      throw new Error("Overlay element not found");
+    }
+
+    stopFaceCamera();
+
+    await sleep(500);
+
+    await new Promise((resolve, reject) =>
+    {
+      navigator.geolocation.getCurrentPosition(
+          position =>
+          {
+            userLatitude =
+                position.coords.latitude;
+
+            userLongitude =
+                position.coords.longitude;
+
+            resolve();
+          },
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+      );
+    });
+
+    stream =
+        await navigator.mediaDevices.getUserMedia({
+          video:
+              {
+                facingMode: "user"
+              }
+        });
+
+    video.srcObject =
+        stream;
+
+    await new Promise(resolve =>
+    {
+      video.onloadedmetadata =
+          resolve;
+    });
+
+    await video.play();
+
+    overlay.width =
+        video.videoWidth;
+
+    overlay.height =
+        video.videoHeight;
+
+    recognitionRunning =
+        true;
+
+    recognizeLoopSep();
+  }
+  catch(error)
+  {
+    console.error(error);
+
+    alert(
+        "Unable to start recognition\n\n" +
+        error.message
+    );
+  }
+}
+
+
+async function recognizeLoopSep() {
+
+  const loaderOverlay = document.getElementById("loaderOverlay");
+  const resultElement = document.getElementById("result");
+  const employeeIdElement = document.getElementById("employeeId");
+
+  const employeeId = employeeIdElement
+      ? employeeIdElement.value.trim()
+      : "";
+
+  if (!employeeId || !/^\d+$/.test(employeeId)) {
+    recognitionRunning = false;
+    stopFaceCamera();
+
+    loaderOverlay.style.display = "none";
+    resultElement.textContent = "❌ Invalid or missing Employee ID";
+    return;
+  }
+
+  loaderOverlay.style.display = "flex";
+
+  while (recognitionRunning) {
+    try {
+      const frame = captureRecognitionFrame();
+      window.lastRecognizedFrame = frame;
+
+      const API_BASE_URL =
+          window.location.origin + "/Test/Face/recognizeSep";
+
+      const response = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          employeeId: employeeId,
+          image: frame,
+          latitude: userLatitude,
+          longitude: userLongitude
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Recognition API failed: HTTP " + response.status);
+      }
+
+      const result = await response.json();
+
+      console.log("Recognition response:", result);
+
+      drawRecognitionFace(result);
+
+      // Outside configured radius
+      if (result.message === "User is outside configured radius") {
+        recognitionRunning = false;
+        stopFaceCamera();
+
+        loaderOverlay.style.display = "none";
+        resultElement.textContent =
+            "❌ User is outside configured radius";
+
+        clearRecognitionFace();
+        break;
+      }
+
+      // Successful punch
+      if (result.matched) {
+        recognitionRunning = false;
+
+        const successImg =
+            document.getElementById("successImage");
+
+        const successBadge =
+            document.getElementById("successBadge");
+
+        loaderOverlay.style.display = "none";
+
+        successImg.src = window.lastRecognizedFrame;
+        successImg.style.display = "block";
+
+        video.style.display = "none";
+        overlay.style.display = "none";
+
+        successBadge.style.display = "block";
+        successBadge.textContent = "✅ PUNCH SUCCESS";
+
+        resultElement.textContent = "✅ Punch Success";
+
+        document.getElementById("subResult").textContent =
+            (result.personName || "Employee") +
+            " (" + result.personId + ")";
+
+        await sleep(3000);
+
+        successImg.style.display = "none";
+        successBadge.style.display = "none";
+
+        successImg.removeAttribute("src");
+
+        video.style.display = "block";
+        overlay.style.display = "block";
+
+        resultElement.textContent = "";
+        document.getElementById("subResult").textContent = "";
+
+        stopFaceCamera();
+        break;
+      }
+
+      // Face not matching the requested employee
+      if (result.faceDetected) {
+        resultElement.textContent =
+            "❌ " + (result.message || "Face does not match employee");
+      } else {
+        resultElement.textContent =
+            "⚠️ " + (result.message || "No Face Detected");
+      }
+
+      clearRecognitionFace();
+      await sleep(500);
+
+    } catch (error) {
+      console.error("Recognition error:", error);
+
+      if (!recognitionRunning) {
+        break;
+      }
+
+      resultElement.textContent = "❌ Server Error";
+      await sleep(1000);
+    }
+  }
+
+  loaderOverlay.style.display = "none";
+}
+
 function drawRecognitionFace(result)
 {
   if(!overlay)
