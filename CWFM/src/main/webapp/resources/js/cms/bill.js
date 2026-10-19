@@ -1799,7 +1799,7 @@ function displayCsvInNewTab(csvText, newTab, fileName) {
     </style>
 </head>
 <body>
-    <h2>Wage Cost Report</h2>
+    
     <div class="report-info">${safeTitle}</div>
 
     <input
