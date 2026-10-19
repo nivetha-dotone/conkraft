@@ -962,8 +962,8 @@ public int saveWageCostReport(
 	                sql,
 	                Integer.class,
 	                entryPassNumber,
-	                toDate,
-	                fromDate
+	                fromDate,
+	                toDate
 	        );
 
 	        if (exists != null && exists == 1) {
@@ -978,11 +978,9 @@ public int saveWageCostReport(
 	            "EntryPassNumber", "WorkmenName", "DOJ",
 	            "Department", "SubArea", "Contractor", "WorkOrder",
 	            "FromDate", "ToDate", "PFNumber", "UANNumber",
-	            "PresentDays", "WeeklyOffs", "Holiday", "LeaveDays",
-	            "PaidDays", "HolidayWorkedHrs", "NightShift",
 	            "ESICNumber", "Trade", "Skill", "WorkmenCategory",
-	            "CalendarDays", "PresentDays2", "WeeklyOffs2", "Holiday2",
-	            "LeaveDays2", "PaidDays2", "HolidayWorkedHrs2", "NightShift2",
+	            "CalendarDays", "PresentDays", "WeeklyOffs", "Holiday",
+	            "LeaveDays", "PaidDays", "HolidayWorkedHrs", "NightShift",
 	            "ArrearDays", "ArrearOT", "OT", "Basic", "DA",
 	            "HRA", "OtherAllowances", "UniformAllow", "WashingAllowance",
 	            "LeaveEncashment", "ExServicemanAllowance",

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +125,7 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 		if (workFlowTypeId == WorkFlowType.AUTO.getWorkFlowTypeId()) {
 			workflowData.setStatus(Integer.parseInt(GatePassStatus.APPROVED.getStatus()));
 			result = billDao.saveBill(workflowData);
+			processWageCostReportForApproval(String.valueOf(workflowData.getWcTransId()), String.valueOf(workflowData.getCreatedBy()));
 			if (result != null) {
 				// save checklist
 				this.saveChecklist(listDto, result, workflowData.getCreatedBy());
@@ -748,64 +750,99 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 		}
 	}
 
-	private Path findWageCostReportFile(String transactionId) throws IOException {
 
-		if (transactionId == null || transactionId.trim().isEmpty()) {
-			throw new IllegalArgumentException("Transaction ID is required.");
-		}
 
-		String safeTransactionId = transactionId.trim();
+private Path findWageCostReportFile(String transactionId) throws IOException {
 
-		// Do not allow transactionId to escape the expected directory.
-		if (safeTransactionId.contains("/") || safeTransactionId.contains("\\") || safeTransactionId.equals(".")
-				|| safeTransactionId.equals("..")) {
-			throw new IllegalArgumentException("Invalid transaction ID.");
-		}
+    if (transactionId == null || transactionId.trim().isEmpty()) {
+        throw new IllegalArgumentException("Transaction ID is required.");
+    }
 
-		Path root = WAGE_REPORT_ROOT.toAbsolutePath().normalize();
+    String safeTransactionId = transactionId.trim();
 
-		if (!Files.isDirectory(root)) {
-			return null;
-		}
+    if (safeTransactionId.contains("/")
+            || safeTransactionId.contains("\\")
+            || ".".equals(safeTransactionId)
+            || "..".equals(safeTransactionId)) {
+        throw new IllegalArgumentException("Invalid transaction ID.");
+    }
 
-		List<Path> matchingFiles = new ArrayList<>();
+    Path root = WAGE_REPORT_ROOT.toAbsolutePath().normalize();
 
-		try (Stream<Path> userDirectories = Files.list(root)) {
+    log.info("Searching Wage Cost Report. Root: {}, Transaction ID: {}",
+            root, safeTransactionId);
 
-			for (Path userDirectory : (Iterable<Path>) userDirectories::iterator) {
+    if (!Files.isDirectory(root)) {
+        log.warn("Wage Cost Report root directory does not exist: {}", root);
+        return null;
+    }
 
-				if (!Files.isDirectory(userDirectory)) {
-					continue;
-				}
+    List<Path> matchingFiles = new ArrayList<>();
 
-				Path transactionDirectory = userDirectory.resolve(safeTransactionId).normalize();
+    try (Stream<Path> userDirectories = Files.list(root)) {
 
-				if (!transactionDirectory.startsWith(root) || !Files.isDirectory(transactionDirectory)) {
-					continue;
-				}
+        Iterator<Path> iterator = userDirectories.iterator();
 
-				try (Stream<Path> files = Files.list(transactionDirectory)) {
-					files.filter(Files::isRegularFile)
-							.filter(path -> path.getFileName().toString().startsWith("WageCostReport_"))
-							.filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".csv"))
-							.forEach(matchingFiles::add);
-				}
-			}
-		}
+        while (iterator.hasNext()) {
 
-		if (matchingFiles.isEmpty()) {
-			return null;
-		}
+            Path userDirectory = iterator.next();
 
-		// If multiple uploads exist for the same transaction, use the latest one.
-		return matchingFiles.stream().max(Comparator.comparingLong(path -> {
-			try {
-				return Files.getLastModifiedTime(path).toMillis();
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
-		})).orElse(null);
-	}
+            if (!Files.isDirectory(userDirectory)) {
+                continue;
+            }
+
+            // Directory: WageBill/{userId}/{transactionId}
+            Path transactionDirectory =
+                    userDirectory.resolve(safeTransactionId).normalize();
+
+            if (!transactionDirectory.startsWith(root)
+                    || !Files.isDirectory(transactionDirectory)) {
+                continue;
+            }
+
+            log.info("Checking Wage Cost Report directory: {}",
+                    transactionDirectory);
+
+            try (Stream<Path> files = Files.list(transactionDirectory)) {
+
+                files.filter(Files::isRegularFile)
+                        // Original filename is allowed.
+                        // Example: October_Wage_Report.csv
+                        .filter(path -> path.getFileName().toString()
+                                .toLowerCase(Locale.ROOT)
+                                .endsWith(".csv"))
+                        .forEach(matchingFiles::add);
+            }
+        }
+    }
+
+    if (matchingFiles.isEmpty()) {
+        log.warn(
+                "No CSV file found for transaction {} under root {}",
+                safeTransactionId, root);
+
+        return null;
+    }
+
+    // If multiple CSV files exist, use the latest modified file.
+    Path latestFile = null;
+    long latestModifiedTime = Long.MIN_VALUE;
+
+    for (Path file : matchingFiles) {
+
+        long modifiedTime = Files.getLastModifiedTime(file).toMillis();
+
+        if (modifiedTime > latestModifiedTime) {
+            latestModifiedTime = modifiedTime;
+            latestFile = file;
+        }
+    }
+
+    log.info("Wage Cost Report file found: {}", latestFile);
+
+    return latestFile;
+}
+
 
 	private static final List<String> WAGE_REPORT_DB_COLUMNS = Arrays.asList("EntryPassNumber", "WorkmenName", "DOJ",
 			"Department", "SubArea", "Contractor", "WorkOrder", "FromDate", "ToDate", "PFNumber", "UANNumber",
