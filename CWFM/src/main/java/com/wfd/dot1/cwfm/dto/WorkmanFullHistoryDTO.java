@@ -7,6 +7,13 @@ public class WorkmanFullHistoryDTO {
 	    private List<CurrentEmploymentDto> currentEmployment;
 	    private List<PreviousEmploymentDto> previousEmployment;
 	    private List<ActionAuditDto> auditTrail;
+	    private List<ComplianceAuditDto> complianceAuditTrail;
+		public List<ComplianceAuditDto> getComplianceAuditTrail() {
+			return complianceAuditTrail;
+		}
+		public void setComplianceAuditTrail(List<ComplianceAuditDto> complianceAuditTrail) {
+			this.complianceAuditTrail = complianceAuditTrail;
+		}
 		public List<WorkmenSummaryDto> getSummary() {
 			return summary;
 		}

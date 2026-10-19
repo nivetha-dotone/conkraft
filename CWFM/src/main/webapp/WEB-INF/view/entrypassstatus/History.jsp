@@ -308,7 +308,11 @@
 <div class="table-container">
     <table id="auditTable" class="custom-table"></table>
 </div>
-     
+    
+    <h3 Style="color: darkcyan;margin-left: 5px;">Compliance Audit Trail</h3>
+<div class="table-container">
+    <table id="complianceAuditTable" class="custom-table"></table>
+</div> 
                          
                          
     </form>

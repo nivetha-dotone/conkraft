@@ -70,6 +70,7 @@ function loadHistory() {
         fillTable("currentTable", data.currentEmployment);
         fillTable("previousTable", data.previousEmployment);
         fillTable("auditTable", data.auditTrail);
+        fillTable("complianceAuditTable", data.complianceAuditTrail);
     })
     .catch(err => console.error("Error:", err));
 }
@@ -183,7 +184,12 @@ function fillTable(tableId, rows) {
         fromDate: "From Date",
         toDate: "To Date",
         lastApprover:"Last Approver",
-        nextApprover:"Next Approver"
+        nextApprover:"Next Approver",
+        disability:"Disability",
+        uanNumber:"UAN Number",
+        pfNumber:"PF Number",
+        bankAccount:"Bank Account",
+        ifsc:"IFSC Code"
     };
 
     const columns = Object.keys(rows[0]).filter(col => !hiddenColumns.includes(col));

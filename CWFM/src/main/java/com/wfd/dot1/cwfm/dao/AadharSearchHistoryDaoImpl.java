@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.dto.ActionAuditDto;
+import com.wfd.dot1.cwfm.dto.ComplianceAuditDto;
 import com.wfd.dot1.cwfm.dto.CurrentEmploymentDto;
 import com.wfd.dot1.cwfm.dto.PreviousEmploymentDto;
 import com.wfd.dot1.cwfm.dto.WorkmanFullHistoryDTO;
@@ -37,6 +38,7 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
         List<CurrentEmploymentDto> currentList = new ArrayList<>();
         List<PreviousEmploymentDto> prevList = new ArrayList<>();
         List<ActionAuditDto> auditList = new ArrayList<>();
+        List<ComplianceAuditDto> compAuditList = new ArrayList<>();
 
         try (Connection con = dataSource.getConnection();
              CallableStatement cs = con.prepareCall("{call sp_GetWorkmanFullHistory(?)}")) {
@@ -127,6 +129,22 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
                         auditList.add(a);
                     }
                 }
+                
+                if (rsIndex == 4) {
+                    while (rs.next()) {
+                    	ComplianceAuditDto ca = new ComplianceAuditDto();
+                        ca.setGatePassId(rs.getString("GatePassId"));
+                        ca.setActionType(rs.getString("gatepassType"));
+                        ca.setDisability(rs.getString("Disability"));
+                        ca.setUanNumber(rs.getString("UANNumber"));
+                        ca.setPfNumber(rs.getString("PFNumber"));
+                        ca.setBankAccount(rs.getString("BankAccount"));
+                        ca.setIfsc(rs.getString("IFSC"));
+                        ca.setFromDate(rs.getString("FromDate"));
+                        ca.setToDate(rs.getString("ToDate"));
+                        compAuditList.add(ca);
+                    }
+                }
 
                 rsIndex++;
                 hasResult = cs.getMoreResults();
@@ -140,6 +158,7 @@ public class AadharSearchHistoryDaoImpl implements AadharSearchHistoryDao{
         dto.setCurrentEmployment(currentList);
         dto.setPreviousEmployment(prevList);
         dto.setAuditTrail(auditList);
+        dto.setComplianceAuditTrail(compAuditList);
 
         return dto;
     }
