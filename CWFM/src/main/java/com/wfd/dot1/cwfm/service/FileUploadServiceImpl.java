@@ -521,7 +521,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 //    }
 
 	private boolean isValidAlphaNumeric(String value) {
-		return value != null && value.matches("^[A-Za-z0-9 ]+$");
+		return value != null && value.matches("^[A-Za-z0-9 -]+$");
 	}
 
 	private Map<String, Object> processGeneralMaster(BufferedReader reader) throws IOException {

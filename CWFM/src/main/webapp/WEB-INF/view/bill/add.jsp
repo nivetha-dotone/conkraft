@@ -577,7 +577,7 @@ label {
         <tbody>
              <c:forEach var="report" items="${kronosReports}">
             <tr><td><label  style="font-size: 100%;font-weight: bold;padding;8px;color: #898989;"><span class="required-field">*</span>${report.reportName}</label></td>
-            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf,image/jpeg,image/png"   data-report-name="${report.reportName}" onchange="showFileNameBill(this, '${report.id}')"/>
+            <td><input type="file" name="kronosFile_${report.id}" id="kronosFile_${report.id}" accept="application/pdf,image/jpeg,image/png,.csv"   data-report-name="${report.reportName}" onchange="showFileNameBill(this, '${report.id}')"/>
         	<span id="fileName_${report.id}" style="margin-left:10px;color: black;"></span></td></tr>
         </c:forEach>
             <label id="error-kronosFile" style="color:red; display:none; margin-top:8px;">All Kronos reports are mandatory</label>

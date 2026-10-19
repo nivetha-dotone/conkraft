@@ -3,6 +3,7 @@ package com.wfd.dot1.cwfm.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
@@ -10,6 +11,7 @@ import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.ContractorRegistration;
 import com.wfd.dot1.cwfm.pojo.ContractorRenewal;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.dto.ApproveRejectBillDto;
@@ -17,28 +19,29 @@ import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
 import com.wfd.dot1.cwfm.dto.LicenseDto;
+import com.wfd.dot1.cwfm.dto.WageCostReportResponse;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
 import com.wfd.dot1.cwfm.pojo.BillVerification;
 
 public interface BillVerificationService {
 
-	public List<CMSWageCostDTO> getBillVerificationList(String userId, String deptId, String unitId) ;
+	public List<CMSWageCostDTO> getBillVerificationList(String userId, String deptId, String unitId);
 
 	public BillVerification viewbillDetails(String transactionId);
 
 	public BillVerification viewbillReportsDetails(String transactionId);
 
 	public BillVerification viewbillhrclearanceDetails(String transactionId);
-	
+
 	public BillVerification viewbillprecomments(String transactionId);
-		
+
 	public BillVerification viewbilleicDetails(String transactionId);
 
 	String generateWCTransactionId();
 
 	public List<PrincipalEmployer> getPEDetailByUser(String userAccount);
 
-	public String save(CMSWageCostDTO workflowData,  List<ChecklistItemDTO> listDto);
+	public String save(CMSWageCostDTO workflowData, List<ChecklistItemDTO> listDto);
 
 	public List<CMSWageCostDTO> getBillVerificationListForApprovers(String principalEmployerId, String deptId,
 			MasterUser user);
@@ -48,7 +51,6 @@ public interface BillVerificationService {
 	public void saveFile(BillReportFile b);
 
 	public List<BillReportFile> findByTransactionIdAndType(String transactionId, String type);
-
 
 	void saveChecklist(List<ChecklistItemDTO> checklistItems, String wcTransId, String userId);
 
@@ -61,5 +63,12 @@ public interface BillVerificationService {
 	public String getValidUptoByLicense(String licenseNumber);
 
 	public List<ApproverStatusDTO> getBillApprovalDetails(String transactionId, String unitId, String status);
+
+	// public WageCostReportResponse validateAndSave(MultipartFile file,
+	// List<PersonOrgLevel> contList, String billStartDate, String billEndDate, int
+	// updatedBy);
+
+	public WageCostReportResponse validateAndSave(MultipartFile file, List<PersonOrgLevel> contList, String userId,
+			String transactionId);
 
 }

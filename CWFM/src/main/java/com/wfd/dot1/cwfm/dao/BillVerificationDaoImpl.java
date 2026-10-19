@@ -1,11 +1,18 @@
 package com.wfd.dot1.cwfm.dao;
 
 
+import java.sql.PreparedStatement;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -28,8 +35,19 @@ import com.wfd.dot1.cwfm.pojo.ApproverInfo;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
 import com.wfd.dot1.cwfm.pojo.BillStatusLogDto;
 import com.wfd.dot1.cwfm.pojo.BillVerification;
+import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 @Repository
 public class BillVerificationDaoImpl implements BillVerificationDao {
 
@@ -725,4 +743,309 @@ private List<ApprovalStatus> getApprovalStatusByTransactionId(String transaction
 	 }
 	 return list;
 }
+
+@Override
+public int saveWageCostReport(
+        List<Map<String, Object>> reportRows,
+        List<PersonOrgLevel> contList,
+        int updatedBy) {
+
+    if (reportRows == null || reportRows.isEmpty()) {
+        return 0;
+    }
+
+    List<String> columns = List.of(
+        "EntryPassNumber", "WorkmenName", "DOJ", "Department", "Area",
+        "Contractor", "Workorder", "Trade", "Skill", "WorkmenCategory",
+        "CalenderDays", "PresentDays", "WeeklyOffs", "Holiday", "LeaveDays",
+        "PaidDays", "HolidayWorkedHrs", "NightShift", "ArrearDays", "ArrearOT",
+        "OT", "Basic", "DA", "HRA", "OtherAllowance", "UniformAllow",
+        "WashingAllow", "LeaveEncashment", "EXServicemanAllow",
+        "SupervisorAllow", "HardshipAllow", "GunmanAllow",
+        "TechnicalAllow", "DriverAllow", "QRTAllow", "ExtraHrsAmount",
+        "ArrearCorrectionAmount", "ArrearAmount", "Gross", "NightShiftAllow",
+        "FlexiBenifits", "PFEmployerContribution", "ESICEmployerContribution",
+        "LWFContributionEmployer", "MonthlyWages", "PFEmployeeContribution",
+        "ESICEmployeeContribution", "ProfessionalTax",
+        "LWFContributionEmployee", "FlexiDeductions", "NetTakeHome","FromDate","ToDate"
+    );
+
+    // Generate exactly 53 placeholders for report data,
+    // followed by GETDATE() and one placeholder for UpdatedBy.
+    String placeholders = columns.stream()
+            .map(column -> "?")
+            .collect(Collectors.joining(","));
+
+    String sql =
+        "INSERT INTO CMSWAGECOSTREPORT (" +
+        String.join(",", columns) +
+        ",UpdatedOn,UpdatedBy) VALUES (" +
+        placeholders + ",GETDATE(),?)";
+
+    int updatedByParameterIndex = columns.size() + 1;
+
+    int[] counts = jdbcTemplate.batchUpdate(
+        sql,
+        new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(
+                    PreparedStatement ps, int rowIndex)
+                    throws SQLException {
+
+                Map<String, Object> row = reportRows.get(rowIndex);
+
+                // Bind the 53 report columns using indexes 1 to 53.
+                for (int i = 0; i < columns.size(); i++) {
+                    String column = columns.get(i);
+                    Object value = row.get(column);
+                    int parameterIndex = i + 1;
+
+                    if (value == null) {
+                        if (i >= 10 && i <= 50) {
+                            ps.setNull(parameterIndex, Types.DECIMAL);
+                        } else {
+                            ps.setNull(parameterIndex, Types.NVARCHAR);
+                        }
+                    } else {
+                        ps.setObject(parameterIndex, value);
+                    }
+                }
+
+                // Parameter 54: UpdatedBy.
+                ps.setInt(updatedByParameterIndex, updatedBy);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return reportRows.size();
+            }
+        }
+    );
+
+    int successfulRows = 0;
+
+    for (int count : counts) {
+        if (count == Statement.EXECUTE_FAILED) {
+            throw new IllegalStateException(
+                "A Wage Cost Report row failed to insert.");
+        }
+
+        successfulRows++;
+    }
+
+    return successfulRows;
+}
+
+	@Override
+	public Long findContractorIdByUserAccount(String userAccount) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public List<String> findEntryPassNumbersNotBelongingToContractors(
+	        List<String> entryPassNumbers,
+	        List<Long> contractorIds) {
+
+	    if (entryPassNumbers == null || entryPassNumbers.isEmpty()) {
+	        return Collections.emptyList();
+	    }
+
+	    if (contractorIds == null || contractorIds.isEmpty()) {
+	        return entryPassNumbers.stream()
+	                .filter(Objects::nonNull)
+	                .map(String::trim)
+	                .distinct()
+	                .toList();
+	    }
+
+	    String contractorPlaceholders = String.join(
+	            ",", Collections.nCopies(contractorIds.size(), "?"));
+
+	    String passPlaceholders = String.join(
+	            ",", Collections.nCopies(entryPassNumbers.size(), "?"));
+
+	    String sql =
+	            "SELECT DISTINCT CAST(gpm.GatePassId AS NVARCHAR(50)) " +
+	            "FROM GATEPASSMAIN gpm " +
+	            "WHERE gpm.ContractorId IN (" + contractorPlaceholders + ") " +
+	            "AND CAST(gpm.GatePassId AS NVARCHAR(50)) IN (" +
+	            passPlaceholders + ")";
+
+	    List<Object> parameters = new ArrayList<>();
+	    parameters.addAll(contractorIds);
+	    parameters.addAll(entryPassNumbers);
+
+	    List<String> validPassNumbers = jdbcTemplate.queryForList(
+	            sql, String.class, parameters.toArray());
+
+	    Set<String> validPassSet = validPassNumbers.stream()
+	            .filter(Objects::nonNull)
+	            .map(String::trim)
+	            .collect(Collectors.toSet());
+
+	    return entryPassNumbers.stream()
+	            .filter(Objects::nonNull)
+	            .map(String::trim)
+	            .filter(passNumber ->
+	                    !passNumber.isEmpty()
+	                    && !validPassSet.contains(passNumber))
+	            .distinct()
+	            .toList();
+	}
+	
+	@Override
+	public Set<String> findExistingGatePassNumbers(
+	        List<String> entryPassNumbers,
+	        LocalDate billStartDate,
+	        LocalDate billEndDate) {
+
+	    if (entryPassNumbers == null || entryPassNumbers.isEmpty()) {
+	        return Collections.emptySet();
+	    }
+
+	    Set<String> existingNumbers = new HashSet<>();
+	    final int batchSize = 1000;
+
+	    for (int start = 0; start < entryPassNumbers.size(); start += batchSize) {
+	        List<String> batch = entryPassNumbers.subList(
+	                start, Math.min(start + batchSize, entryPassNumbers.size()));
+
+	        String placeholders = String.join(",",
+	                Collections.nCopies(batch.size(), "?"));
+
+	        String sql =
+	                "SELECT DISTINCT EntryPassNumber " +
+	                "FROM CMSWAGECOSTREPORT " +
+	                "WHERE EntryPassNumber IN (" + placeholders + ") " +
+	                "AND FromDate <= ? AND ToDate >= ?";
+
+	        List<Object> params = new ArrayList<>(batch);
+	        params.add(java.sql.Date.valueOf(billEndDate));
+	        params.add(java.sql.Date.valueOf(billStartDate));
+
+	        existingNumbers.addAll(jdbcTemplate.query(
+	                sql,
+	                params.toArray(),
+	                (rs, rowNum) -> rs.getString("EntryPassNumber")));
+	    }
+
+	    return existingNumbers;
+	}
+	@Override
+	public List<String> findExistingGatePassNumbersForRanges(
+	        List<Map<String, Object>> reportRows) {
+
+	    Set<String> duplicates = new LinkedHashSet<>();
+
+	    String sql =
+	            "SELECT CASE WHEN EXISTS ( " +
+	            "    SELECT 1 " +
+	            "    FROM CMSWAGECOSTREPORT " +
+	            "    WHERE EntryPassNumber = ? " +
+	            "      AND FromDate = ? " +
+	            "      AND ToDate = ? " +
+	            ") THEN 1 ELSE 0 END";
+
+	    for (Map<String, Object> row : reportRows) {
+
+	        String entryPassNumber =
+	                Objects.toString(row.get("EntryPassNumber"), "").trim();
+
+	        java.sql.Date fromDate =
+	                (java.sql.Date) row.get("FromDate");
+
+	        java.sql.Date toDate =
+	                (java.sql.Date) row.get("ToDate");
+
+	        Integer exists = jdbcTemplate.queryForObject(
+	                sql,
+	                Integer.class,
+	                entryPassNumber,
+	                toDate,
+	                fromDate
+	        );
+
+	        if (exists != null && exists == 1) {
+	            duplicates.add(entryPassNumber);
+	        }
+	    }
+
+	    return new ArrayList<>(duplicates);
+	}
+	
+	private static final List<String> WAGE_REPORT_DB_COLUMNS = Arrays.asList(
+	            "EntryPassNumber", "WorkmenName", "DOJ",
+	            "Department", "SubArea", "Contractor", "WorkOrder",
+	            "FromDate", "ToDate", "PFNumber", "UANNumber",
+	            "PresentDays", "WeeklyOffs", "Holiday", "LeaveDays",
+	            "PaidDays", "HolidayWorkedHrs", "NightShift",
+	            "ESICNumber", "Trade", "Skill", "WorkmenCategory",
+	            "CalendarDays", "PresentDays2", "WeeklyOffs2", "Holiday2",
+	            "LeaveDays2", "PaidDays2", "HolidayWorkedHrs2", "NightShift2",
+	            "ArrearDays", "ArrearOT", "OT", "Basic", "DA",
+	            "HRA", "OtherAllowances", "UniformAllow", "WashingAllowance",
+	            "LeaveEncashment", "ExServicemanAllowance",
+	            "SupervisorAllowance", "HardshipAllowance", "GunmanAllowance",
+	            "TechnicalAllowance", "DriverAllowance", "QRTAllowance",
+	            "ExtraHoursAmount", "ArrearCorrectionAmount", "ArrearAmount",
+	            "Gross", "NightShiftAllowance", "FlexiBenefits",
+	            "PFEmployerContribution", "ESICEmployerContribution",
+	            "LWFContributionEmployer", "MonthlyWages",
+	            "PFEmployeeContribution", "ESICEmployeeContribution",
+	            "ProfessionalTax", "LWFContributionEmployee",
+	            "FlexiDeductions", "ContractorGross", "ServiceCharge",
+	            "Taxes", "TotalAmount"
+	        );
+	
+	@Override
+	public void insertWageCostReportRows(
+	        List<Map<String, Object>> rows,
+	        String updatedBy) {
+
+	    if (rows == null || rows.isEmpty()) {
+	        return;
+	    }
+
+	    List<String> columns = new ArrayList<>(WAGE_REPORT_DB_COLUMNS);
+	    columns.add("UpdatedBy");
+
+	    String columnSql = columns.stream()
+	            .map(column -> "[" + column + "]")
+	            .collect(Collectors.joining(", "));
+
+	    String placeholders = columns.stream()
+	            .map(column -> "?")
+	            .collect(Collectors.joining(", "));
+
+	    String sql = "INSERT INTO dbo.CMSWAGECOSTREPORT ("
+	            + columnSql
+	            + ") VALUES ("
+	            + placeholders
+	            + ")";
+
+	    jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+	        @Override
+	        public void setValues(
+	                PreparedStatement ps, int rowIndex)
+	                throws SQLException {
+
+	            Map<String, Object> row = rows.get(rowIndex);
+
+	            int parameterIndex = 1;
+
+	            for (String column : WAGE_REPORT_DB_COLUMNS) {
+	                ps.setObject(parameterIndex++, row.get(column));
+	            }
+
+	            ps.setString(parameterIndex, updatedBy);
+	        }
+
+	        @Override
+	        public int getBatchSize() {
+	            return rows.size();
+	        }
+	    });
+	}
 }

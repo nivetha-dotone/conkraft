@@ -37,6 +37,7 @@ import com.wfd.dot1.cwfm.dto.ApproverStatusDTO;
 import com.wfd.dot1.cwfm.dto.CMSWageCostDTO;
 import com.wfd.dot1.cwfm.dto.ChecklistItemDTO;
 import com.wfd.dot1.cwfm.dto.LicenseDto;
+import com.wfd.dot1.cwfm.dto.WageCostReportResponse;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.UserRole;
 import com.wfd.dot1.cwfm.pojo.BillReportFile;
@@ -409,5 +410,53 @@ public class BillVerificationController {
         String result = billService.getValidUptoByLicense(licenseNumber);
         System.out.println(result);
         return result;   // IMPORTANT: plain response, NOT view
+    }
+    
+    
+    @PostMapping(
+            value = "/validateWageCostReport",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<WageCostReportResponse> validateWageCostReport(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("transactionId") String transactionId,
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("loginuser") == null) {
+            WageCostReportResponse result = new WageCostReportResponse();
+            result.setSuccess(false);
+            result.setMessage(
+                    "Your session has expired. Please log in again.");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(result);
+        }
+
+        MasterUser user =
+                (MasterUser) session.getAttribute("loginuser");
+
+        List<PersonOrgLevel> orgLevel =
+                commonService.getPersonOrgLevelDetails(
+                        user.getUserAccount());
+
+        Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+                orgLevel.stream()
+                        .collect(Collectors.groupingBy(
+                                PersonOrgLevel::getLevelDef));
+
+        List<PersonOrgLevel> contList =
+                groupedByLevelDef.getOrDefault(
+                        "Contractor", new ArrayList<>());
+
+        WageCostReportResponse result =
+                billService.validateAndSave(
+                        file,
+                        contList,
+                        String.valueOf(user.getUserId()),
+                        transactionId);
+
+        return ResponseEntity.ok(result);
     }
 }

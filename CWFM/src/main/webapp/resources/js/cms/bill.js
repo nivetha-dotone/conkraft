@@ -343,113 +343,150 @@ function setDates(selectElement){
 						document.getElementById("woValidToId").value = validTo ? validTo : "";
 }
 
-function saveBtn() {
-	showLoader();
-	$("#docTabGlobalError").hide().text("");
+async function saveBtn() {
+
+    showLoader();
+
+    $("#docTabGlobalError").hide().text("");
     $("label[id^='error-']").hide();
-    
-    let basicValid = true;
-    let filesValid = true;
-    let statutoryfilesValid = true;
-    
-     if (!validateBillFormData()) {
-        basicValid = false;
-        hideLoader();
-    }
-     if (!validateMandatoryFiles()) {
-        filesValid = false;
-        hideLoader();
-    }
-     if (!validateStatutoryMandatoryFiles()) {
-        statutoryfilesValid = false;
-        hideLoader();
-    }
-    
-	
-    //TAB NAME ERROR MESSAGE LOGIC (YOUR REQUIREMENT)
-    let errorTabs = [];
 
-    if (!basicValid) errorTabs.push("Basic");
-    if (!filesValid) errorTabs.push("Wage/Attadence");
-    if (!statutoryfilesValid) errorTabs.push("Statutory");
+    try {
+        // 1. Run existing validations.
+        const basicValid = validateBillFormData();
+        const filesValid = validateMandatoryFiles();
+        const statutoryfilesValid = validateStatutoryMandatoryFiles();
 
-    // If any tab has errors → show message in Documents tab
-    if (errorTabs.length > 0) {
+        console.log("Basic validation:", basicValid);
+        console.log("Kronos file validation:", filesValid);
+        console.log("Statutory file validation:", statutoryfilesValid);
 
-        let msg = "Please check errors in: " + errorTabs.join(", ") + " tab(s).";
+        const errorTabs = [];
+
+        if (!basicValid) {
+            errorTabs.push("Basic");
+        }
+
+        if (!filesValid) {
+            errorTabs.push("Wage/Attendance");
+        }
+
+        if (!statutoryfilesValid) {
+            errorTabs.push("Statutory");
+        }
+        
+         console.log("Existing validations passed. Checking Wage Cost Report...");
+
+        const wageCostValid = await validateWageCostReport();
+
+        console.log("Wage Cost Report validation:", wageCostValid);
+
+        if (!wageCostValid) {
+            errorTabs.push("Wage/Attendance");
+        }
+        //if (!wageCostValid) {
+        //    hideLoader();
+       //     return;
+       // }
+        // 4. Only now submit the bill.
+        console.log("All validations passed. Submitting bill...");
+
+        // 2. Stop if any existing validation fails.
+        if (errorTabs.length > 0) {
+            $("#docTabGlobalError")
+                .text("Please check errors in: " + errorTabs.join(", ") + " tab(s).")
+                .show();
+
+            hideLoader();
+            return;
+        }
+
+        submitBillVerification();
+
+    } catch (error) {
+        console.error("Save validation error:", error);
+
+        hideLoader();
 
         $("#docTabGlobalError")
-            .text(msg)
+            .text("Unable to validate the form. Please try again.")
             .show();
-
-        hideLoader();
-        return;
     }
-    
+}
+
+
+// Keep the actual bill submission separate.
+// This contains your existing FormData and AJAX save logic.
+function submitBillVerification() {
+
     const formData = new FormData();
-	const unitSelect = document.getElementById("unitId");
-		 const unitId = unitSelect?.value;
-		 const unitName = unitSelect?.options[unitSelect.selectedIndex]?.text;
-		 
-		 const contractorSelect = document.getElementById("contractor");
-		 		 const contractorSelectId = contractorSelect?.value;
-		 		 const contractorSelectName = contractorSelect?.options[contractorSelect.selectedIndex]?.text;
-    // ===== Basic Info JSON Data =====
+
+    const unitSelect = document.getElementById("unitId");
+    const unitId = unitSelect?.value;
+    const unitName = unitSelect?.options[unitSelect.selectedIndex]?.text;
+
+    const contractorSelect = document.getElementById("contractor");
+    const contractorSelectId = contractorSelect?.value;
+    const contractorSelectName =
+        contractorSelect?.options[contractorSelect.selectedIndex]?.text;
+
+    // Basic Info JSON Data
     const data = {
-        wcTransId: $('#transactionId').val(),
+        wcTransId: $("#transactionId").val(),
         unitId: unitId,
-        unitCode: $('#unitCodeId').val(),
-		unitName: unitName,
-        contractorId:contractorSelectId,
-        contractorCode: $('#contractorCodeId').val(),
-		contractorName:contractorSelectName,
-        workOrderNumber: $('#workorder').val(),
-        startDate: $('#billStartDateId').val(),
-        endDate: $('#billEndDateId').val(),
-        services: $('#billCategory').val(),
-        woValidFrom: $('#woValidFromId').val(),
-        woValidTo: $('#woValidToId').val(),
-        billType: $('#billType').val(),
-		actionPlan:$('#actionPlanId').val(),
-		comments:$('#commentsId').val(),
-		preComments:$('#preCommentsId').val()
+        unitCode: $("#unitCodeId").val(),
+        unitName: unitName,
+        contractorId: contractorSelectId,
+        contractorCode: $("#contractorCodeId").val(),
+        contractorName: contractorSelectName,
+        workOrderNumber: $("#workorder").val(),
+        startDate: $("#billStartDateId").val(),
+        endDate: $("#billEndDateId").val(),
+        services: $("#billCategory").val(),
+        woValidFrom: $("#woValidFromId").val(),
+        woValidTo: $("#woValidToId").val(),
+        billType: $("#billType").val(),
+        actionPlan: $("#actionPlanId").val(),
+        comments: $("#commentsId").val(),
+        preComments: $("#preCommentsId").val()
     };
 
-    // ✅ Append JSON directly as string
     formData.append("jsonData", JSON.stringify(data));
 
-    // ===== Kronos Reports Files =====
+    // Kronos report files, including Wage Cost Report if uploaded.
     $("input[type='file'][name^='kronosFile_']").each(function () {
         if (this.files.length > 0) {
             formData.append($(this).attr("name"), this.files[0]);
         }
     });
 
-    // ===== Statutory Attachments Files =====
+    // Statutory attachment files.
     $("input[type='file'][name^='statutoryFile_']").each(function () {
         if (this.files.length > 0) {
             formData.append($(this).attr("name"), this.files[0]);
         }
     });
 
-    // ===== Check List Values =====
+    // Checklist values.
     const checklist = [];
 
     $("#tab4 tbody tr").each(function () {
         const row = $(this);
-        const id = row.find("input[type='hidden']").attr("name").split('_')[1];
+        const hiddenName = row.find("input[type='hidden']").attr("name");
+        const id = hiddenName ? hiddenName.split("_")[1] : "";
+
         const statusValue = row.find("select[name='statusValue']").val();
-       // const licenseNumber =row.find("[name^='licenseNumber_']").val() || "";
+
         let licenseNumber = "";
 
-    // ✅ If dropdown exists → take TEXT
-    if (row.find(".license-dropdown").length > 0) {
-        licenseNumber = row.find(".license-dropdown option:selected").text().trim();
-    } else {
-        // ✅ If textbox → take value
-        licenseNumber = row.find("input[name^='licenseNumber_']").val() || "";
-    }
-        const validUpto = row.find("input[name^='validUpto_']").val() || "";
+        if (row.find(".license-dropdown").length > 0) {
+            licenseNumber = row.find(".license-dropdown option:selected")
+                .text().trim();
+        } else {
+            licenseNumber = row.find("input[name^='licenseNumber_']").val() || "";
+        }
+
+        const validUpto =
+            row.find("input[name^='validUpto_']").val() || "";
 
         checklist.push({
             id: id,
@@ -459,51 +496,56 @@ function saveBtn() {
         });
     });
 
-    // ✅ Append checklist JSON directly as string
     formData.append("checklistJson", JSON.stringify(checklist));
 
-    // ===== Submit AJAX =====
-	$.ajax({
-	    url: '/CWFM/billVerification/saveBill',
-	    method: 'POST',
-	    data: formData,
-	    processData: false,
-	    contentType: false,
-	    success: function (response, status, xhr) {
-        hideLoader();
-	        if (xhr.status === 200) {
-	           // alert('Saved successfully!');
-	            console.log("Bill Verification saved successfully");
-	            sessionStorage.setItem("successMessage", "Bill Verification saved successfully!");
-	            loadCommonList('/billVerification/listingFilter', 'Bill Verification List');
-	        } else {
-	            alert('Unexpected response: ' + xhr.status);
-	            hideLoader();
-	        }
-	    },
-	    error: function (xhr) {
+    // Existing save AJAX call.
+    $.ajax({
+        url: "/CWFM/billVerification/saveBill",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
 
-	        // 204 No Content
-	        if (xhr.status === 204) {
-	            //alert("Save failed: No data saved (204)");
-	            //return;
-	            sessionStorage.setItem("errorMessage", "Failed to saveBill Verification!");
+        success: function (response, status, xhr) {
+            hideLoader();
+
+            if (xhr.status === 200) {
+                console.log("Bill Verification saved successfully");
+
+                sessionStorage.setItem(
+                    "successMessage",
+                    "Bill Verification saved successfully!"
+                );
+
+                loadCommonList(
+                    "/billVerification/listingFilter",
+                    "Bill Verification List"
+                );
+            } else {
+                alert("Unexpected response: " + xhr.status);
+            }
+        },
+
+        error: function (xhr) {
+            hideLoader();
+
+            if (xhr.status === 204) {
+                sessionStorage.setItem(
+                    "errorMessage",
+                    "Failed to save Bill Verification!"
+                );
+
                 console.error("Error:", xhr.status, xhr.responseText);
-	            hideLoader();
-	        }
+                return;
+            }
 
-	        // 500 + any error with message
-	        if (xhr.responseText) {
-	            alert("Error: " + xhr.responseText);
-	            hideLoader();
-	        } else {
-	            alert("Error occurred. Status: " + xhr.status);
-	            hideLoader();
-	        }
-	    }
-	});
-
-	
+            if (xhr.responseText) {
+                alert("Error: " + xhr.responseText);
+            } else {
+                alert("Error occurred. Status: " + xhr.status);
+            }
+        }
+    });
 }
 
 function showFileNameBill(input, id) {
@@ -593,36 +635,7 @@ function showFileNameBill(input, id) {
 	    });
 	}
 
-					function openFile(reportType, transactionId, fileName) {
-    const payload = {
-        reportType: reportType,
-        transactionId: transactionId,
-        fileName: fileName
-    };
-
-    const encodedData = btoa(JSON.stringify(payload))
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=+$/, ''); // URL-safe Base64
-
-    const url = `/CWFM/billVerification/viewFile/${encodedData}`;
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("File not found or error fetching file");
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
-            window.open(blobUrl, "_blank");
-        })
-        .catch(err => {
-            console.error("Error opening file:", err);
-            alert("Unable to open file. It may not exist on the server.");
-        });
-}
+				
 
 
 
@@ -1385,4 +1398,455 @@ function showLoader() {
 
 function hideLoader() {
     document.getElementById("loaderOverlay").style.display = "none";
+}
+function validateWageCostReport() {
+
+    const $file = $("input[type='file'][name^='kronosFile_']")
+        .filter(function () {
+            return (($(this).attr("data-report-name") || "")
+                .toLowerCase()
+                .replace(/\s+/g, " ")
+                .trim()) === "wage cost report";
+        })
+        .first();
+
+    // Preserve the existing optional-file behavior.
+    if (!$file.length ||
+        !$file[0].files ||
+        $file[0].files.length === 0) {
+
+        console.log(
+            "Wage Cost Report not uploaded. Skipping validation."
+        );
+
+        return Promise.resolve(true);
+    }
+
+    $("#error-kronosFile").hide().text("");
+
+    // Use your actual existing transaction ID field.
+    const transactionId =
+        ($("#transactionId").val() || "").trim();
+
+    if (!transactionId) {
+        $("#error-kronosFile")
+            .text("Transaction ID is required to save the Wage Cost Report.")
+            .show();
+
+        return Promise.resolve(false);
+    }
+
+    const formData = new FormData();
+
+    formData.append("file", $file[0].files[0]);
+    formData.append("transactionId", transactionId);
+
+    return $.ajax({
+        url: "/CWFM/billVerification/validateWageCostReport",
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: "json"
+
+    }).then(function (response) {
+
+        if (!response || response.success !== true) {
+            $("#error-kronosFile")
+                .text(
+                    response?.message ||
+                    "Wage Cost Report validation failed."
+                )
+                .show();
+
+            return false;
+        }
+
+        $("#error-kronosFile").hide().text("");
+
+        // Every validation passed and the original CSV was saved.
+        return true;
+
+    }).catch(function (xhr) {
+
+        console.error(
+            "Wage Cost Report validation failed:",
+            xhr.status,
+            xhr.responseText
+        );
+
+        const message =
+            xhr.responseJSON?.message ||
+            "Unable to validate Wage Cost Report. Please try again.";
+
+        $("#error-kronosFile")
+            .text(message)
+            .show();
+
+        return false;
+    });
+}
+
+
+function openFile(reportType, transactionId, fileName) {
+
+    const payload = {
+        reportType: reportType,
+        transactionId: transactionId,
+        fileName: fileName
+    };
+
+    const encodedData = btoa(JSON.stringify(payload))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    const url = `/CWFM/billVerification/viewFile/${encodedData}`;
+
+    // Identify CSV files without affecting the existing file flow.
+    const isCsv =
+        /\.csv$/i.test(fileName || '') ||
+        /wage\s*cost\s*report/i.test(reportType || '');
+
+    // Open synchronously to reduce browser popup-blocking issues.
+    const newTab = window.open('', '_blank');
+
+    if (!newTab) {
+        alert('Please allow pop-ups for this site to open the file.');
+        return;
+    }
+
+    newTab.document.open();
+    newTab.document.write(
+        '<!DOCTYPE html><html><head><title>Loading file...</title></head>' +
+        '<body style="font-family:Arial,sans-serif;padding:24px;">' +
+        '<p>Loading file, please wait...</p></body></html>'
+    );
+    newTab.document.close();
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('File not found or error fetching file.');
+            }
+            return response.blob();
+        })
+        .then(blob => {
+
+            if (isCsv) {
+                return blob.text().then(csvText => {
+                    displayCsvInNewTab(csvText, newTab, fileName);
+                });
+            }
+
+            // Preserve the existing behavior for non-CSV files.
+            const blobUrl = URL.createObjectURL(blob);
+            newTab.location.href = blobUrl;
+
+            // Release the object URL after the browser has had time to load it.
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+        })
+        .catch(error => {
+            console.error('Error opening file:', error);
+
+            if (newTab && !newTab.closed) {
+                newTab.document.open();
+                newTab.document.write(
+                    '<!DOCTYPE html><html><body>' +
+                    '<h3>Unable to open file</h3>' +
+                    '<p>The file may not exist on the server.</p>' +
+                    '</body></html>'
+                );
+                newTab.document.close();
+            }
+
+            alert('Unable to open file. It may not exist on the server.');
+        });
+}
+
+
+/**
+ * Parse CSV correctly, including:
+ * - Commas inside quoted values
+ * - Escaped quotes ("")
+ * - Newlines inside quoted values
+ * - Windows and Unix line endings
+ */
+function parseCsvForDisplay(csvText) {
+
+    const rows = [];
+    let row = [];
+    let value = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < csvText.length; i++) {
+
+        const char = csvText[i];
+
+        if (char === '"') {
+
+            if (insideQuotes && csvText[i + 1] === '"') {
+                value += '"';
+                i++;
+            } else {
+                insideQuotes = !insideQuotes;
+            }
+
+        } else if (char === ',' && !insideQuotes) {
+
+            row.push(value);
+            value = '';
+
+        } else if (
+            (char === '\n' || char === '\r') &&
+            !insideQuotes
+        ) {
+
+            // Treat CRLF as a single line break.
+            if (char === '\r' && csvText[i + 1] === '\n') {
+                i++;
+            }
+
+            row.push(value);
+
+            if (row.some(cell => cell.trim() !== '')) {
+                rows.push(row);
+            }
+
+            row = [];
+            value = '';
+
+        } else {
+            value += char;
+        }
+    }
+
+    if (insideQuotes) {
+        throw new Error('The CSV contains an unclosed quoted field.');
+    }
+
+    // Add the final row if the file does not end with a newline.
+    if (value.length > 0 || row.length > 0) {
+        row.push(value);
+
+        if (row.some(cell => cell.trim() !== '')) {
+            rows.push(row);
+        }
+    }
+
+    // Remove UTF-8 BOM from the first header if present.
+    if (rows.length && rows[0].length) {
+        rows[0][0] = rows[0][0].replace(/^\uFEFF/, '');
+    }
+
+    return rows;
+}
+
+
+/**
+ * Display CSV contents as a table in the already-opened tab.
+ */
+function displayCsvInNewTab(csvText, newTab, fileName) {
+
+    const rows = parseCsvForDisplay(csvText);
+
+    if (!rows.length) {
+        newTab.document.open();
+        newTab.document.write(
+            '<!DOCTYPE html><html><body>' +
+            '<h3>Wage Cost Report</h3>' +
+            '<p>The CSV file is empty.</p>' +
+            '</body></html>'
+        );
+        newTab.document.close();
+        return;
+    }
+
+    const headers = rows[0];
+    const dataRows = rows.slice(1);
+
+    // Escape all CSV content before placing it in HTML.
+    const escapeHtml = value => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    let tableHtml = '<table><thead><tr>';
+
+    headers.forEach(header => {
+        tableHtml += `<th>${escapeHtml(header)}</th>`;
+    });
+
+    tableHtml += '</tr></thead><tbody>';
+
+    dataRows.forEach(row => {
+
+        tableHtml += '<tr>';
+
+        headers.forEach((header, index) => {
+            const cellValue = row[index] ?? '';
+            tableHtml += `<td>${escapeHtml(cellValue)}</td>`;
+        });
+
+        tableHtml += '</tr>';
+    });
+
+    tableHtml += '</tbody></table>';
+
+    const safeTitle = escapeHtml(fileName || 'Wage Cost Report');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${safeTitle}</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #222;
+        }
+
+        h2 {
+            color: #005151;
+            margin-bottom: 8px;
+        }
+
+        .report-info {
+            margin-bottom: 16px;
+            color: #555;
+        }
+
+        .table-container {
+            width: 100%;
+            max-height: 75vh;
+            overflow: auto;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: max-content;
+            min-width: 100%;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            max-width: 350px;
+        }
+
+        th {
+            background: #005151;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f5f7f7;
+        }
+
+        tbody tr:hover {
+            background: #e8f2f2;
+        }
+
+        #searchBox {
+            padding: 9px;
+            width: 320px;
+            max-width: 100%;
+            margin: 10px 0 15px;
+            border: 1px solid #aaa;
+            border-radius: 4px;
+        }
+
+        .count {
+            margin: 8px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+            }
+
+            .table-container {
+                max-height: none;
+                overflow: visible;
+            }
+
+            th {
+                position: static;
+            }
+
+            #searchBox {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Wage Cost Report</h2>
+    <div class="report-info">${safeTitle}</div>
+
+    <input
+        id="searchBox"
+        type="search"
+        placeholder="Search report values..."
+        aria-label="Search report values"
+    >
+
+    <div class="count">
+        Total data rows: <span id="rowCount">${dataRows.length}</span>
+    </div>
+
+    <div class="table-container">
+        ${tableHtml}
+    </div>
+
+    <script>
+        const searchBox = document.getElementById('searchBox');
+        const tableRows = Array.from(
+            document.querySelectorAll('tbody tr')
+        );
+        const rowCount = document.getElementById('rowCount');
+
+        searchBox.addEventListener('input', function () {
+            const searchValue = this.value.toLowerCase();
+            let visibleCount = 0;
+
+            tableRows.forEach(function (row) {
+                const matches = row.textContent
+                    .toLowerCase()
+                    .includes(searchValue);
+
+                row.style.display = matches ? '' : 'none';
+
+                if (matches) {
+                    visibleCount++;
+                }
+            });
+
+            rowCount.textContent = visibleCount;
+        });
+    <\/script>
+</body>
+</html>`;
+
+    newTab.document.open();
+    newTab.document.write(html);
+    newTab.document.close();
 }
