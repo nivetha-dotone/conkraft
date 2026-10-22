@@ -84,6 +84,9 @@ public class GatePassToOnBoardService {
     public String getQuerytoFetchListNOTPOSTUpdate() {
         return QueryFileWatcher.getQuery("getQuerytoFetchListNOTPOSTUp");
     }
+    public String getQuerytoFetchAddIswmUpdate() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchAddIswmUpdate");
+    }
 
     public String getQuerytoFetchListNOTPOSTPunch() {
         return QueryFileWatcher.getQuery("getQueryListPOSTPunch");
@@ -91,6 +94,10 @@ public class GatePassToOnBoardService {
 
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
+    }
+
+    public String getQueryIswmAdd() {
+        return QueryFileWatcher.getQuery("getQueryIswmAdd");
     }
 
     public String getQueryInsertSuccessEntyUpdate() {
@@ -231,6 +238,10 @@ public class GatePassToOnBoardService {
     }
     public String getRoleByAccount() {
         return QueryFileWatcher.getQuery("GETROLEBYUSERID");
+    }
+
+    public String getAddIsmw() {
+        return QueryFileWatcher.getQuery("getAddIsmw");
     }
 
     public PostSkillWfd createSkills(Integer id) {
@@ -519,6 +530,26 @@ public class GatePassToOnBoardService {
         }
     }
 
+    public List<String> getListAddIsmwOnbUpdate() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<String> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchAddIswmUpdate();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+
+            while(sqlRowSet.next()) {
+                String trId = sqlRowSet.getString("GPTranscationId");
+                dtoTrList.add(trId);
+            }
+
+            log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<FaceLogFetchDto> getListOfNotPostPunch() {
         try {
             log.info("Fetching TranscationId list for reschedule to post ");
@@ -737,6 +768,7 @@ public class GatePassToOnBoardService {
         }
     }
 
+
     private ActiveEmpStatusDto buildEmpStatusDto(EmployeeStatusType status, String effectiveDate) {
 
         ActiveEmpStatusDto dto = new ActiveEmpStatusDto();
@@ -921,7 +953,7 @@ public class GatePassToOnBoardService {
                 dto.setWcEsicNo(rs.getString("WcEsicNo"));
                 dto.setEmployeeTransferSet(rs.getString("EmpJobTranSet"));
 
-
+ 
             }
 
             log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");
@@ -1021,77 +1053,21 @@ public class GatePassToOnBoardService {
         }
     }
 
-
-
-    public GatePassToOnBoard getIndividualOnBoardDetailsByTrnIdPro(String trnsId) {
+    public GatePassToOnBoardAddIsmw getIndividualOnAddIswmByTrnId(String trnsId) {
         try {
             log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
-            GatePassToOnBoard dto = null;
-            String queryGetOnBdByTranId = this.getGTByTrnsIdProject();
+            GatePassToOnBoardAddIsmw dto = null;
+            String queryGetOnBdByTranId = this.getQueryIswmAdd();
             log.info("query to get onboardDetails " + queryGetOnBdByTranId);
             SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
             if (rs.next()) {
-                dto = new GatePassToOnBoard();
-                dto.setGatePassTypeId(Integer.valueOf(rs.getString("gatepasstypeid")));
+                dto = new GatePassToOnBoardAddIsmw();
+
                 dto.setGatePassId(rs.getString("GatePassId"));
-                dto.setFirstName(rs.getString("FirstName"));
-                dto.setLastName(rs.getString("LastName"));
-                dto.setLastName(rs.getString("LastName"));
-                dto.setAccessProfileName(rs.getString("accessProfileName"));
-                dto.setPreferenceProfileName(rs.getString("preferenceProfileName"));
-                dto.setProfessionalPayCodeName(rs.getString("professionalPayCodeName"));
-                dto.setProfessionalWorkRuleName(rs.getString("professionalWorkRuleName"));
-                dto.setShiftCodeName(rs.getString("shiftCodeName"));
-                dto.setAddressEmail(rs.getString("addressEmail"));
-                dto.setContactTypeName(rs.getString("contactTypeName"));
-                dto.setHourlyRate(rs.getDouble("hourlyRate"));
-                dto.setPayRuleName(rs.getString("payRuleName"));
-                dto.setSupervisorName(rs.getString("supervisorName"));
-                dto.setSupervisorPersonNumber(rs.getString("supervisorPersonNumber"));
-                dto.setLogonProfileName(rs.getString("logonProfileName"));
-                dto.setAddressEmail(rs.getString("addressEmail"));
-                dto.setContactTypeName(rs.getString("contactTypeName"));
-                dto.setEmploymentStatus(rs.getString("employmentStatus"));
-                dto.setEmploymentStatusEffectiveDate(rs.getString("employmentStatusEffectiveDate"));
-                dto.setGender(rs.getString("gender"));
-                dto.setAadharNumber(rs.getString("AadharNumber"));
-                dto.setAadharName(rs.getString("aadharName"));
-                dto.setRelativeName(rs.getString("RelativeName"));
                 dto.setAddress(rs.getString("Address"));
-                dto.setPermanentDistrict(rs.getString("permanentDistrict"));
-                dto.setPermanentState(rs.getString("permanentState"));
-                dto.setPermanentPincode(rs.getString("permanentPincode"));
-                dto.setIdMark(rs.getString("IdMark"));
-                dto.setUanNumber(rs.getString("UanNumber"));
-                dto.setMaritalStatus(rs.getString("MaritalStatus"));
-                dto.setTechnical(rs.getString("Technical"));
-                dto.setAcademic(rs.getString("academic"));
-                dto.setShoeSize(rs.getString("shoesize"));
-                dto.setBloodGroup(rs.getString("bloodGroup"));
-                dto.setWorkmenType(rs.getString("workmenType"));
-                dto.setNatureOfJob(rs.getString("NatureOfJob"));
-                dto.setPanNumber(rs.getString("panNumber"));
-                dto.setPfNumber(rs.getString("pfNumber"));
-                dto.setAccountNumber(rs.getString("AccountNumber"));
-                dto.setBankName(rs.getString("bankName"));
-                dto.setIfscCode(rs.getString("IfscCode"));
-                dto.setCompany(rs.getString("company"));
-                dto.setLocation(rs.getString("location"));
-                dto.setPlantLocation(rs.getString("plantLocation"));
-                dto.setDepartment(rs.getString("department"));
-                dto.setSection(rs.getString("section"));
-                dto.setSubSection(rs.getString("subSection"));
-                dto.setContractorCode(rs.getString("contractorCode"));
-                dto.setCategory(rs.getString("category"));
-                dto.setHireDate(rs.getString("hireDate"));
-                dto.setBirthDate(rs.getString("birthDate"));
-                dto.setPhone1(rs.getString("phone1"));
-                dto.setPhone2(rs.getString("phone2"));
-                dto.setEmail(rs.getString("email"));
-                dto.setAddress(rs.getString("Address"));
-                dto.setUserAccountName(rs.getString("userAccountName"));
-                dto.setUserAccountStatus(rs.getString("userAccountStatus"));
-                dto.setUserPassword(rs.getString("userPassword"));
+                dto.setISMW(rs.getString("ISMW"));
+                dto.setState(rs.getString("State"));
+
             }
 
             log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");
@@ -1100,6 +1076,9 @@ public class GatePassToOnBoardService {
             throw new RuntimeException(e);
         }
     }
+
+
+
 
     public SkillProLevelDateDTO getOnlySkillProByTrnId(String trnsId) {
         try {
@@ -1431,12 +1410,16 @@ public class GatePassToOnBoardService {
 
         switch (level) {
             case 0: return "Business Entity";
-            case 1: return "Location";
-            case 2: return "Department";
-            case 3: return "Area";
-            case 4: return "Contractor";
-            case 5: return "Job";
-            default: return "Job";
+            case 1: return "Business Unit";
+            case 2: return "Line Of Business";
+            case 3: return "Subline of Business";
+            case 4: return "Legal Entity";
+            case 5: return "Location";
+            case 6: return "Department";
+            case 7: return "Area";
+            case 8: return "Contractor";
+            case 9: return "Job";
+            default: return "Job  ";
         }
     }
 

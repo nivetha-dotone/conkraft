@@ -162,8 +162,7 @@ public class HomeController {
 
 
 	@RequestMapping(path = "/userloginViaUKG", method = RequestMethod.GET)
-	public String loginviaUKG(@RequestParam("userId") String encryptedUserId,
-						HttpSession session) {
+	public String loginviaUKG(@RequestParam("userId") String encryptedUserId, HttpSession session) {
 		try {
 
 //			String issandorpoc = getAuthCWFM();
@@ -192,6 +191,7 @@ public class HomeController {
 				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
 
 				if (user == null) {
+
 					apiUser.setPassword("Admin@123");
 
 					UserDAOImplDao.saveUserUkgPost(apiUser);
@@ -220,14 +220,44 @@ public class HomeController {
 	}
 
 
+	@RequestMapping(path = "/userloginViaUKGSep", method = RequestMethod.GET)
+	public void loginviaUKGSep(@RequestParam("workmenEmp") String workmenEmp,
+						HttpSession session) {
+		try {
+//				String workmenEmp = UserDAOImplDao.getWorkmenEmp(userId);
+				System.out.println("Decrypted UserId: " + workmenEmp);
+				ResponseEntity<?> response = apicall.getDetailsofPerson(workmenEmp);
+				MasterUser apiUser = null;
+				if (response.getBody() instanceof MasterUser) {
+					apiUser = (MasterUser) response.getBody();
+				}
+				if (apiUser == null || apiUser.getUserAccount() == null) {
+				}
+
+				String userAccount = apiUser.getUserAccount();
+				MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+
+				if (user == null) {
+					apiUser.setPassword("Admin@123");
+					UserDAOImplDao.saveUserUkgPostSep(apiUser);
+					user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+				}
+				if (user != null && user.getPassword() != null) {
+				}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			session.setAttribute("msg", "Something went wrong");
+		}
+	}
+
+
 	private String handleLoginSuccess(MasterUser user, HttpSession session) {
 
 		String initials = Stream.of(user.getFirstName(), user.getLastName())
 				.filter(Objects::nonNull)
 				.map(name -> String.valueOf(name.charAt(0)))
 				.reduce("", String::concat);
-
-
 		session.setAttribute("userInitials", initials);
 		session.setAttribute("loginuser", user);
 		System.out.println("user.getUserId() -- "+user.getUserId());

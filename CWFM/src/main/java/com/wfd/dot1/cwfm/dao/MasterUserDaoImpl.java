@@ -1,5 +1,6 @@
 package com.wfd.dot1.cwfm.dao;
 
+import com.wfd.dot1.cwfm.dto.workMenFaceDropDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,10 @@ import org.springframework.stereotype.Repository;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.queries.MasterUserQueryBank;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
+
+import java.util.ArrayList;
+import java.util.List;
+
 @Repository
 public class MasterUserDaoImpl implements MasterUserDao{
 
@@ -78,7 +83,7 @@ public class MasterUserDaoImpl implements MasterUserDao{
 		
 		return user;
 	}
-	
+
 	@Override
     public String getPasswordByUserId(String userId) {
 		 String query = getPasswordByUserIdQuery();

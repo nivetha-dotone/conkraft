@@ -21,17 +21,17 @@ function showLoading(text = "Processing your request...", subtext = "Please wait
   }
 }
 function validateNamePASS(input) {
-    // Allow only letters and spaces
-    input.value = input.value.replace(/[^A-Za-z\s]/g, '');
+  // Allow only letters and spaces
+  input.value = input.value.replace(/[^A-Za-z\s]/g, '');
 
-    // Limit to 40 characters
-    if (input.value.length > 40) {
-        input.value = input.value.substring(0, 40);
-    }
+  // Limit to 40 characters
+  if (input.value.length > 40) {
+    input.value = input.value.substring(0, 40);
+  }
 }
 
 
-  
+
 function formatName2() {
   const inputField = document.getElementById("name")
   if (!inputField) return
@@ -44,13 +44,13 @@ function formatName2() {
   // Split by spaces and capitalize first letter of each word
   const words = text.split(/\s+/)
   const formattedText = words
-    .map((word) => {
-      if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-      }
-      return word
-    })
-    .join(" ")
+      .map((word) => {
+        if (word.length > 0) {
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        }
+        return word
+      })
+      .join(" ")
 
   inputField.value = formattedText
 
@@ -166,7 +166,7 @@ function extractTextFromPDF(file) {
       script.onload = () => {
         pdfjsLib = window["pdfjsLib"] // Assign pdfjsLib from window
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
         processPDF(fileReader.result)
       }
       document.head.appendChild(script)
@@ -181,23 +181,23 @@ function processPDF(arrayBuffer) {
   const shortNote = document.getElementById("shortNote")
 
   pdfjsLib
-    .getDocument(arrayBuffer)
-    .promise.then((pdf) => {
-      let extractedText = ""
-      const pagePromises = []
+      .getDocument(arrayBuffer)
+      .promise.then((pdf) => {
+    let extractedText = ""
+    const pagePromises = []
 
-      for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
-        // Extract from first 3 pages
-        pagePromises.push(
+    for (let i = 1; i <= Math.min(pdf.numPages, 3); i++) {
+      // Extract from first 3 pages
+      pagePromises.push(
           pdf
-            .getPage(i)
-            .then((page) =>
-              page.getTextContent().then((textContent) => textContent.items.map((item) => item.str).join(" ")),
-            ),
-        )
-      }
+              .getPage(i)
+              .then((page) =>
+                  page.getTextContent().then((textContent) => textContent.items.map((item) => item.str).join(" ")),
+              ),
+      )
+    }
 
-      Promise.all(pagePromises)
+    Promise.all(pagePromises)
         .then((pages) => {
           extractedText = pages.join(" ")
 
@@ -211,12 +211,12 @@ function processPDF(arrayBuffer) {
           shortNote.value = "Error extracting information from PDF. Please check the document format."
           hideLoading()
         })
-    })
-    .catch((error) => {
-      console.error("Error loading PDF:", error)
-      shortNote.value = "Error loading PDF document. Please try again with a different file."
-      hideLoading()
-    })
+  })
+      .catch((error) => {
+        console.error("Error loading PDF:", error)
+        shortNote.value = "Error loading PDF document. Please try again with a different file."
+        hideLoading()
+      })
 }
 
 function extractKeyInfo(text) {
@@ -261,81 +261,81 @@ function extractKeyInfo(text) {
 
 function saveRequester() {
 
-    // ---- VALIDATIONS ----
-    if (!validateForm()) {
-        console.error("Validation failed.");
-        return;
+  // ---- VALIDATIONS ----
+  if (!validateForm()) {
+    console.error("Validation failed.");
+    return;
+  }
+
+  if (!confirm("Are you sure you want to add this new request?")) {
+    return;
+  }
+
+  // ---- CAPITAL CASE UTILITY ----
+  function toCapitalCase(str) {
+    return str
+        .toLowerCase()
+        .split(" ")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+  }
+
+  // ---- INPUT VALUES ----
+  const name = toCapitalCase($("#name").val().trim());
+  const shortNote = toCapitalCase($("#shortNote").val().trim());
+  const additionalQualification = toCapitalCase($("#additionalQualification").val().trim());
+
+  const fileInput = $("#attachCV")[0].files[0];
+
+  // ---- BUILD JSON ----
+  const jsonData = {
+    transactionId: generateTransactionId(),
+    prEmpId: parseInt($("#principalEmployer").val()) || 0,
+    contractorId: parseInt($("#contractor").val()) || 0,
+    name: name,
+    aadharNumber: $("#aadharNumber").val().trim(),
+    forPostId: parseInt($("#department").val()) || 0,
+    academicId: parseInt($("#academic").val()) || 0,
+    additionalQualification: additionalQualification,
+    attachmentCv: fileInput ? fileInput.name : "",
+    shortNote: shortNote,
+    status: null,
+    updatedBy: $("#loggedUser").val() || "system"
+  };
+
+
+  const data = new FormData();
+
+
+  data.append("request", JSON.stringify(jsonData));
+  if (fileInput) data.append("attachCV", fileInput);
+
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "/CWFM/requestor/saveRequestor", true);
+
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      console.log("Requester saved successfully");
+      alert("Requester saved successfully!");
+
+      sessionStorage.setItem("successMessage", "Requester saved successfully!");
+
+      loadCommonList('/requestor/getRequestorList', 'Requestor List');
     }
-
-    if (!confirm("Are you sure you want to add this new request?")) {
-        return;
+    else {
+      console.error("Error:", xhr.status, xhr.responseText);
+      alert("Error saving requester: " + xhr.responseText);
     }
+  };
 
-    // ---- CAPITAL CASE UTILITY ----
-    function toCapitalCase(str) {
-        return str
-            .toLowerCase()
-            .split(" ")
-            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-            .join(" ");
-    }
+  xhr.onerror = function () {
+    console.error("Network error");
+    alert("Network error. Try again.");
+  };
 
-    // ---- INPUT VALUES ----
-    const name = toCapitalCase($("#name").val().trim());
-    const shortNote = toCapitalCase($("#shortNote").val().trim());
-    const additionalQualification = toCapitalCase($("#additionalQualification").val().trim());
-
-    const fileInput = $("#attachCV")[0].files[0];
-
-    // ---- BUILD JSON ----
-    const jsonData = {
-        transactionId: generateTransactionId(),
-        prEmpId: parseInt($("#principalEmployer").val()) || 0,
-        contractorId: parseInt($("#contractor").val()) || 0,
-        name: name,
-        aadharNumber: $("#aadharNumber").val().trim(),
-        forPostId: parseInt($("#department").val()) || 0,
-        academicId: parseInt($("#academic").val()) || 0,
-        additionalQualification: additionalQualification,
-        attachmentCv: fileInput ? fileInput.name : "",
-        shortNote: shortNote,
-        status: null,
-        updatedBy: $("#loggedUser").val() || "system"
-    };
-
-
-    const data = new FormData();
-    
-  
-    data.append("request", JSON.stringify(jsonData));
-    if (fileInput) data.append("attachCV", fileInput);
-
-
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/CWFM/requestor/saveRequestor", true);
-
-
-    xhr.onload = function () {
-        if (xhr.status === 200) {
-            console.log("Requester saved successfully");
-            alert("Requester saved successfully!");
-
-            sessionStorage.setItem("successMessage", "Requester saved successfully!");
-
-            loadCommonList('/requestor/getRequestorList', 'Requestor List');
-        } 
-        else {
-            console.error("Error:", xhr.status, xhr.responseText);
-            alert("Error saving requester: " + xhr.responseText);
-        }
-    };
-
-    xhr.onerror = function () {
-        console.error("Network error");
-        alert("Network error. Try again.");
-    };
-
-    xhr.send(data);
+  xhr.send(data);
 }
 
 
@@ -446,13 +446,13 @@ function validateForm() {
   // Validate Name (letters, spaces, max 20 chars)
   const name = document.getElementById("name");
   if (
-    !name.value.trim() ||
-    !/^[A-Za-z\s]+$/.test(name.value.trim()) ||
-    name.value.trim().length > 20
+      !name.value.trim() ||
+      !/^[A-Za-z\s]+$/.test(name.value.trim()) ||
+      name.value.trim().length > 20
   ) {
     document.getElementById("error-name").style.display = "block";
     document.getElementById("error-name").textContent =
-      "Name must contain only letters and spaces (max 20 characters)";
+        "Name must contain only letters and spaces (max 20 characters)";
     isValid = false;
   }
 
@@ -461,7 +461,7 @@ function validateForm() {
   if (!aadharNumber.value || !/^\d{12}$/.test(aadharNumber.value)) {
     document.getElementById("error-aadharNumber").style.display = "block";
     document.getElementById("error-aadharNumber").textContent =
-      "Aadhar number must be exactly 12 digits";
+        "Aadhar number must be exactly 12 digits";
     isValid = false;
   }
 
@@ -477,7 +477,7 @@ function validateForm() {
   if (additionalQual.value.length > 1000) {
     document.getElementById("error-additionalQualification").style.display = "block";
     document.getElementById("error-additionalQualification").textContent =
-      "Additional Qualification cannot exceed 1000 characters";
+        "Additional Qualification cannot exceed 1000 characters";
     isValid = false;
   }
 
@@ -585,7 +585,7 @@ function requester_getContractors(unitId, userAccount) {
 
   const xhr = new XMLHttpRequest()
   const url =
-    contextPath + "/requestor/getAllContractors?unitId=" + unitId + "&userAccount=" + encodeURIComponent(userAccount)
+      contextPath + "/requestor/getAllContractors?unitId=" + unitId + "&userAccount=" + encodeURIComponent(userAccount)
   console.log("Fetching contractors from URL:", url)
 
   xhr.open("GET", url, true)
@@ -708,7 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 window.capturedImageP = window.capturedImageP || null;
-  let contextPathP = "/CWFM";
+let contextPathP = "/CWFM";
 window.stream = window.stream || null;
 window.video = window.video || null;
 window.canvas = window.canvas || null;
@@ -729,735 +729,1473 @@ let userLongitude = null;
 
 document.addEventListener("DOMContentLoaded", function () {
 
+  video =
+      document.getElementById("video");
+
+  overlay =
+      document.getElementById("overlay");
+});
+
+async function startPunchRecognition()
+{
+  try
+  {
+    console.log("Start Recognition");
+
     video =
         document.getElementById("video");
 
     overlay =
         document.getElementById("overlay");
-});
 
-async function startPunchRecognition()
-{
-    try
+    if (!video)
     {
-        console.log("Start Recognition");
+      throw new Error("Video element not found");
+    }
 
-        video =
-            document.getElementById("video");
+    if (!overlay)
+    {
+      throw new Error("Overlay element not found");
+    }
 
-        overlay =
-            document.getElementById("overlay");
+    stopFaceCamera();
 
-        if (!video)
-        {
-            throw new Error("Video element not found");
-        }
+    await sleep(500);
 
-        if (!overlay)
-        {
-            throw new Error("Overlay element not found");
-        }
+    await new Promise((resolve, reject) =>
+    {
+      navigator.geolocation.getCurrentPosition(
+          position =>
+          {
+            userLatitude =
+                position.coords.latitude;
 
-        stopFaceCamera();
+            userLongitude =
+                position.coords.longitude;
 
-        await sleep(500);
+            resolve();
+          },
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+      );
+    });
 
-        await new Promise((resolve, reject) =>
-        {
-            navigator.geolocation.getCurrentPosition(
-                position =>
-                {
-                    userLatitude =
-                        position.coords.latitude;
-
-                    userLongitude =
-                        position.coords.longitude;
-
-                    resolve();
-                },
-                reject,
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
-                }
-            );
+    stream =
+        await navigator.mediaDevices.getUserMedia({
+          video:
+              {
+                facingMode: "user"
+              }
         });
 
-        stream =
-            await navigator.mediaDevices.getUserMedia({
-                video:
-                {
-                    facingMode: "user"
-                }
-            });
+    video.srcObject =
+        stream;
 
-        video.srcObject =
-            stream;
-
-        await new Promise(resolve =>
-        {
-            video.onloadedmetadata =
-                resolve;
-        });
-
-        await video.play();
-
-        overlay.width =
-            video.videoWidth;
-
-        overlay.height =
-            video.videoHeight;
-
-        recognitionRunning =
-            true;
-
-        recognizeLoop();
-    }
-    catch(error)
+    await new Promise(resolve =>
     {
-        console.error(error);
+      video.onloadedmetadata =
+          resolve;
+    });
 
-        alert(
-            "Unable to start recognition\n\n" +
-            error.message
-        );
-    }
+    await video.play();
+
+    overlay.width =
+        video.videoWidth;
+
+    overlay.height =
+        video.videoHeight;
+
+    recognitionRunning =
+        true;
+
+    recognizeLoop();
+  }
+  catch(error)
+  {
+    console.error(error);
+
+    alert(
+        "Unable to start recognition\n\n" +
+        error.message
+    );
+  }
 }
 
 
 async function recognizeLoop()
 {
-    document.getElementById("loaderOverlay").style.display = "flex";
+  document.getElementById("loaderOverlay").style.display = "flex";
 
-    while (recognitionRunning)
+  while (recognitionRunning)
+  {
+    try
     {
-        try
-        {
-            const frame = captureRecognitionFrame();
+      const frame = captureRecognitionFrame();
 
-            window.lastRecognizedFrame = frame;
+      window.lastRecognizedFrame = frame;
 
-            const API_BASE_URL =
-                window.location.origin + "/Test/Face/recognize";
+      const API_BASE_URL =
+          window.location.origin + "/Test/Face/recognize";
 
-            const response =
-                await fetch(API_BASE_URL,
-                {
-                    method: "POST",
-                    headers:
+      const response =
+          await fetch(API_BASE_URL,
+              {
+                method: "POST",
+                headers:
                     {
-                        "Content-Type": "application/json"
+                      "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        image: frame,
-                        latitude: userLatitude,
-                        longitude: userLongitude
-                    })
-                });
+                body: JSON.stringify({
+                  image: frame,
+                  latitude: userLatitude,
+                  longitude: userLongitude
+                })
+              });
 
-            const result = await response.json();
+      const result = await response.json();
 
-            console.log(result);
+      console.log(result);
 
-            drawRecognitionFace(result);
+      drawRecognitionFace(result);
 
-            //--------------------------------------------------
-            // Unknown Person
-            //--------------------------------------------------
-            if (result.message === "Unknown Person")
-            {
-                document.getElementById("result").innerHTML =
-                    "❌ Unknown Person";
+      //--------------------------------------------------
+      // Unknown Person
+      //--------------------------------------------------
+      if (result.message === "Unknown Person")
+      {
+        document.getElementById("result").innerHTML =
+            "❌ Unknown Person";
 
-                clearRecognitionFace();
+        clearRecognitionFace();
 
-                await sleep(500);
-                continue;
-            }
+        await sleep(500);
+        continue;
+      }
 
-            //--------------------------------------------------
-            // Outside Radius
-            //--------------------------------------------------
-            if (result.message === "User is outside configured radius")
-            {
-                recognitionRunning = false;
+      //--------------------------------------------------
+      // Outside Radius
+      //--------------------------------------------------
+      if (result.message === "User is outside configured radius")
+      {
+        recognitionRunning = false;
 
-                stopFaceCamera();
+        stopFaceCamera();
 
-                document.getElementById("loaderOverlay").style.display =
-                    "none";
+        document.getElementById("loaderOverlay").style.display =
+            "none";
 
-                document.getElementById("result").innerHTML =
-                    "❌ User is outside configured radius";
+        document.getElementById("result").innerHTML =
+            "❌ User is outside configured radius";
 
-                clearRecognitionFace();
+        clearRecognitionFace();
 
-                break;
-            }
+        break;
+      }
 
-            //--------------------------------------------------
-            // Success Punch
-            //--------------------------------------------------
-         if (result.matched)
-         {
-             const successImg =
-                 document.getElementById("successImage");
+      //--------------------------------------------------
+      // Success Punch
+      //--------------------------------------------------
+      if (result.matched)
+      {
+        const successImg =
+            document.getElementById("successImage");
 
-             const successBadge =
-                 document.getElementById("successBadge");
+        const successBadge =
+            document.getElementById("successBadge");
 
-             document.getElementById("loaderOverlay").style.display =
-                 "none";
+        document.getElementById("loaderOverlay").style.display =
+            "none";
 
-             // Freeze last frame
-             successImg.src =
-                 window.lastRecognizedFrame;
+        // Freeze last frame
+        successImg.src =
+            window.lastRecognizedFrame;
 
-             video.style.display =
-                 "none";
+        video.style.display =
+            "none";
 
-             overlay.style.display =
-                 "none";
+        overlay.style.display =
+            "none";
 
-             successImg.style.display =
-                 "block";
+        successImg.style.display =
+            "block";
 
-             successBadge.style.display =
-                 "block";
+        successBadge.style.display =
+            "block";
 
-             document.getElementById("result").innerHTML =
-                 "✅ Punch Success";
+        document.getElementById("result").innerHTML =
+            "✅ Punch Success";
 
-             document.getElementById("subResult").innerHTML =
-                 result.personName +
-                 " (" +
-                 result.personId +
-                 ")";
+        document.getElementById("subResult").innerHTML =
+            result.personName +
+            " (" +
+            result.personId +
+            ")";
 
-             await sleep(3000);
+        await sleep(3000);
 
-             // Back to camera
-             successImg.style.display =
-                 "none";
+        // Back to camera
+        successImg.style.display =
+            "none";
 
-             successBadge.style.display =
-                 "none";
+        successBadge.style.display =
+            "none";
 
-             video.style.display =
-                 "block";
+        video.style.display =
+            "block";
 
-             overlay.style.display =
-                 "block";
+        overlay.style.display =
+            "block";
 
-             document.getElementById("result").innerHTML = "";
-             document.getElementById("subResult").innerHTML = "";
+        document.getElementById("result").innerHTML = "";
+        document.getElementById("subResult").innerHTML = "";
 
-             document.getElementById("loaderOverlay").style.display =
-                 "flex";
+        document.getElementById("loaderOverlay").style.display =
+            "flex";
 
-             continue;
-         }
-            //--------------------------------------------------
-            // No Face Detected
-            //--------------------------------------------------
-            if (!result.faceDetected)
-            {
-                clearRecognitionFace();
+        continue;
+      }
+      //--------------------------------------------------
+      // No Face Detected
+      //--------------------------------------------------
+      if (!result.faceDetected)
+      {
+        clearRecognitionFace();
 
-                document.getElementById("result").innerHTML =
-                    "⚠️ No Face Detected";
-            }
+        document.getElementById("result").innerHTML =
+            "⚠️ No Face Detected";
+      }
 
-            await sleep(500);
-        }
-        catch (error)
-        {
-            console.error(error);
-
-            document.getElementById("loaderOverlay").style.display =
-                "none";
-
-            document.getElementById("result").innerHTML =
-                "❌ Server Error";
-
-            await sleep(1000);
-        }
+      await sleep(500);
     }
+    catch (error)
+    {
+      console.error(error);
+
+      document.getElementById("loaderOverlay").style.display =
+          "none";
+
+      document.getElementById("result").innerHTML =
+          "❌ Server Error";
+
+      await sleep(1000);
+    }
+  }
+}
+
+
+async function startPunchRecognitionSep() {
+     try {
+    console.log("Start Recognition");
+
+    video =
+        document.getElementById("video");
+
+    overlay =
+        document.getElementById("overlay");
+
+    if (!video)
+    {
+      throw new Error("Video element not found");
+    }
+
+    if (!overlay)
+    {
+      throw new Error("Overlay element not found");
+    }
+
+    stopFaceCamera();
+
+    await sleep(500);
+
+    await new Promise((resolve, reject) =>
+    {
+      navigator.geolocation.getCurrentPosition(
+          position =>
+          {
+            userLatitude =
+                position.coords.latitude;
+
+            userLongitude =
+                position.coords.longitude;
+
+            resolve();
+          },
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+          }
+      );
+    });
+
+    stream =
+        await navigator.mediaDevices.getUserMedia({
+          video:
+              {
+                facingMode: "user"
+              }
+        });
+
+    video.srcObject =
+        stream;
+
+    await new Promise(resolve =>
+    {
+      video.onloadedmetadata =
+          resolve;
+    });
+
+    await video.play();
+
+    overlay.width =
+        video.videoWidth;
+
+    overlay.height =
+        video.videoHeight;
+
+    recognitionRunning =
+        true;
+
+    recognizeLoopSep();
+  }
+     catch(error) {
+    console.error(error);
+
+    alert(
+        "Unable to start recognition\n\n" +
+        error.message
+    );
+  }
+}
+
+async function recognizeLoopSep() {
+
+  const loaderOverlay = document.getElementById("loaderOverlay");
+  const resultElement = document.getElementById("result");
+  const employeeIdElement = document.getElementById("employeeId");
+
+  const employeeId = employeeIdElement
+      ? employeeIdElement.value.trim()
+      : "";
+
+  if (!employeeId || !/^\d+$/.test(employeeId)) {
+    recognitionRunning = false;
+    stopFaceCamera();
+
+    loaderOverlay.style.display = "none";
+    resultElement.textContent = "❌ Invalid or missing Employee ID";
+    return;
+  }
+
+  loaderOverlay.style.display = "flex";
+
+  while (recognitionRunning) {
+    try {
+      const frame = captureRecognitionFrame();
+      window.lastRecognizedFrame = frame;
+
+      const API_BASE_URL =
+          window.location.origin + "/Test/Face/recognizeSep";
+
+      const response = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          employeeId: employeeId,
+          image: frame,
+          latitude: userLatitude,
+          longitude: userLongitude
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Recognition API failed: HTTP " + response.status);
+      }
+
+      const result = await response.json();
+
+      console.log("Recognition response:", result);
+
+      drawRecognitionFace(result);
+
+      // Outside configured radius
+      if (result.message === "User is outside configured radius") {
+        recognitionRunning = false;
+        stopFaceCamera();
+
+        loaderOverlay.style.display = "none";
+        resultElement.textContent =
+            "❌ User is outside configured radius";
+
+        clearRecognitionFace();
+        break;
+      }
+
+      // Successful punch
+      if (result.matched) {
+        recognitionRunning = false;
+
+        const successImg =
+            document.getElementById("successImage");
+
+        const successBadge =
+            document.getElementById("successBadge");
+
+        loaderOverlay.style.display = "none";
+
+        successImg.src = window.lastRecognizedFrame;
+        successImg.style.display = "block";
+
+        video.style.display = "none";
+        overlay.style.display = "none";
+
+        successBadge.style.display = "block";
+        successBadge.textContent = "✅ PUNCH SUCCESS";
+
+        resultElement.textContent = "✅ Punch Success";
+
+        document.getElementById("subResult").textContent =
+            (result.personName || "Employee") +
+            " (" + result.personId + ")";
+
+        await sleep(3000);
+
+        successImg.style.display = "none";
+        successBadge.style.display = "none";
+
+        successImg.removeAttribute("src");
+
+        video.style.display = "block";
+        overlay.style.display = "block";
+
+        resultElement.textContent = "";
+        document.getElementById("subResult").textContent = "";
+
+        stopFaceCamera();
+        break;
+      }
+
+      // Face not matching the requested employee
+      if (result.faceDetected) {
+        resultElement.textContent =
+            "❌ " + (result.message || "Face does not match employee");
+      } else {
+        resultElement.textContent =
+            "⚠️ " + (result.message || "No Face Detected");
+      }
+
+      clearRecognitionFace();
+      await sleep(500);
+
+    } catch (error) {
+      console.error("Recognition error:", error);
+
+      if (!recognitionRunning) {
+        break;
+      }
+
+      resultElement.textContent = "❌ Server Error";
+      await sleep(1000);
+    }
+  }
+
+  loaderOverlay.style.display = "none";
+}
+
+let punchSuccessSep = false;
+let recognitionRunningSep = false;
+let streamSep = null;
+let punchRequestSep = null;
+let punchAttemptSep = 0;
+
+async function startPunchRecognitionSe() {
+
+  if (recognitionRunningSep) {
+    console.log("Face Punch is already starting or running.");
+    return;
+  }
+
+  const videoSep = document.getElementById("video");
+  const overlaySep = document.getElementById("overlay");
+  const employeeSelectSep = document.getElementById("workmanId");
+  const errorLabelSep = document.getElementById("error-workman");
+  const resultSep = document.getElementById("result");
+  const subResultSep = document.getElementById("subResult");
+  const successImageSep = document.getElementById("successImage");
+  const successBadgeSep = document.getElementById("successBadge");
+
+  // Read the current dropdown selection for this attempt.
+  const employeeIdSep = employeeSelectSep
+      ? employeeSelectSep.value.trim()
+      : "";
+
+  if (!employeeIdSep) {
+    if (errorLabelSep) errorLabelSep.style.display = "block";
+    alert("Please select a workman before starting face recognition.");
+    return;
+  }
+
+  if (!/^\d+$/.test(employeeIdSep)) {
+    if (resultSep) resultSep.textContent = "Invalid Employee ID.";
+    return;
+  }
+
+  if (!videoSep || !overlaySep) {
+    if (resultSep) resultSep.textContent = "Camera elements not found.";
+    return;
+  }
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    if (resultSep) {
+      resultSep.textContent =
+          "Camera unavailable. Please use HTTPS and allow camera access.";
+    }
+    return;
+  }
+
+  if (errorLabelSep) errorLabelSep.style.display = "none";
+
+  // Reset the previous employee's success screen.
+  punchSuccessSep = false;
+
+  if (successImageSep) {
+    successImageSep.style.display = "none";
+    successImageSep.removeAttribute("src");
+  }
+
+  if (successBadgeSep) {
+    successBadgeSep.style.display = "none";
+    successBadgeSep.textContent = "";
+  }
+
+  if (resultSep) resultSep.textContent = "";
+  if (subResultSep) subResultSep.textContent = "";
+
+  // Clear any previous drawing and stop any leftover stream.
+  clearRecognitionFaceSep(overlaySep);
+  stopFaceCameraSep();
+
+  const attemptSep = ++punchAttemptSep;
+  recognitionRunningSep = true;
+
+  // Show the loader immediately, before requesting location.
+  frpShowLoader("Fetching current location...");
+
+  try {
+    // Get fresh location BEFORE opening the camera.
+    const locationSep = await getCurrentLocationSep();
+
+    if (attemptSep !== punchAttemptSep || !recognitionRunningSep) {
+      return;
+    }
+
+    userLatitude = locationSep.latitude;
+    userLongitude = locationSep.longitude;
+
+    console.log("Selected Employee ID:", employeeIdSep);
+    console.log("Latitude:", userLatitude);
+    console.log("Longitude:", userLongitude);
+
+    frpShowLoader("Location captured. Opening camera...");
+
+    video = videoSep;
+    overlay = overlaySep;
+
+    streamSep = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+
+    if (attemptSep !== punchAttemptSep || !recognitionRunningSep) {
+      stopFaceCameraSep();
+      return;
+    }
+
+    videoSep.srcObject = streamSep;
+    videoSep.style.display = "block";
+    overlaySep.style.display = "block";
+
+    await new Promise((resolve, reject) => {
+      if (videoSep.readyState >= 1 && videoSep.videoWidth > 0) {
+        resolve();
+        return;
+      }
+
+      videoSep.onloadedmetadata = () => resolve();
+      videoSep.onerror = () =>
+          reject(new Error("Unable to initialize camera."));
+    });
+
+    await videoSep.play();
+
+    if (attemptSep !== punchAttemptSep || !recognitionRunningSep) {
+      stopFaceCameraSep();
+      return;
+    }
+
+    overlaySep.width = videoSep.videoWidth;
+    overlaySep.height = videoSep.videoHeight;
+
+    frpShowLoader("Verifying face...");
+
+    // Pass the ID captured for this click, not a stale global value.
+    await recognizeLoopSe(employeeIdSep, attemptSep);
+
+  } catch (error) {
+    if (attemptSep !== punchAttemptSep) return;
+
+    console.error("Face Punch error:", error);
+
+    recognitionRunningSep = false;
+    stopFaceCameraSep();
+    frpHideLoader();
+
+    if (resultSep) {
+      resultSep.textContent = "❌ " + error.message;
+    }
+  } finally {
+    if (attemptSep === punchAttemptSep && !punchSuccessSep) {
+      recognitionRunningSep = false;
+      frpHideLoader();
+    }
+  }
+}
+
+async function recognizeLoopSe(employeeIdSep, attemptSep) {
+  const videoSep = document.getElementById("video");
+  const overlaySep = document.getElementById("overlay");
+  const resultSep = document.getElementById("result");
+  const subResultSep = document.getElementById("subResult");
+  const successImageSep = document.getElementById("successImage");
+  const successBadgeSep = document.getElementById("successBadge");
+
+  while (recognitionRunningSep && attemptSep === punchAttemptSep) {
+    try {
+      if (!videoSep.videoWidth || !videoSep.videoHeight) {
+        await sleep(200);
+        continue;
+      }
+
+      const frameSep = captureRecognitionFrameSep(videoSep);
+
+      punchRequestSep = new AbortController();
+
+      const responseSep = await fetch(
+          window.location.origin + "/Test/Face/recognizeSep",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: punchRequestSep.signal,
+            body: JSON.stringify({
+              employeeId: employeeIdSep,
+              image: frameSep,
+              latitude: userLatitude,
+              longitude: userLongitude
+            })
+          }
+      );
+
+      if (attemptSep !== punchAttemptSep || !recognitionRunningSep) {
+        return;
+      }
+
+      if (!responseSep.ok) {
+        throw new Error("Recognition API failed: HTTP " + responseSep.status);
+      }
+
+      const dataSep = await responseSep.json();
+
+      if (attemptSep !== punchAttemptSep || !recognitionRunningSep) {
+        return;
+      }
+
+      drawRecognitionFaceSep(overlaySep, dataSep);
+
+      if (dataSep.message === "User is outside configured radius") {
+        recognitionRunningSep = false;
+        stopFaceCameraSep();
+        frpHideLoader();
+
+        if (resultSep) {
+          resultSep.textContent = "❌ User is outside configured radius";
+        }
+        clearRecognitionFaceSep(overlaySep);
+        return;
+      }
+
+      if (dataSep.matched) {
+        // Stop immediately so another request cannot record another punch.
+        recognitionRunningSep = false;
+        punchSuccessSep = true;
+
+        stopFaceCameraSep();
+        frpHideLoader();
+
+        videoSep.style.display = "none";
+        overlaySep.style.display = "none";
+
+        if (successImageSep) {
+          successImageSep.src = frameSep;
+          successImageSep.style.display = "block";
+        }
+
+        if (successBadgeSep) {
+          successBadgeSep.textContent = "✅ PUNCH SUCCESS";
+          successBadgeSep.style.display = "block";
+        }
+
+        if (resultSep) resultSep.textContent = "✅ Punch Success";
+
+        if (subResultSep) {
+          subResultSep.textContent =
+              (dataSep.personName || "Employee") +
+              " (" + (dataSep.personId || employeeIdSep) + ")";
+        }
+
+        // Keep the success screen. Do not restart recognition.
+        return;
+      }
+
+      if (resultSep) {
+        resultSep.textContent = dataSep.faceDetected
+            ? "❌ " + (dataSep.message || "Face does not match selected workman")
+            : "⚠️ " + (dataSep.message || "No face detected");
+      }
+
+      clearRecognitionFaceSep(overlaySep);
+      await sleep(500);
+
+    } catch (error) {
+      if (error.name === "AbortError") return;
+
+      console.error("Recognition error:", error);
+
+      if (!recognitionRunningSep || attemptSep !== punchAttemptSep) {
+        return;
+      }
+
+      if (resultSep) resultSep.textContent = "❌ Recognition server error";
+      await sleep(1000);
+    }
+  }
+}
+
+function captureRecognitionFrameSep(videoSep) {
+  const canvasSep = document.createElement("canvas");
+  canvasSep.width = videoSep.videoWidth;
+  canvasSep.height = videoSep.videoHeight;
+
+  canvasSep.getContext("2d").drawImage(
+      videoSep, 0, 0, canvasSep.width, canvasSep.height
+  );
+
+  return canvasSep.toDataURL("image/jpeg", 0.9);
+}
+
+function drawRecognitionFaceSep(overlaySep, dataSep) {
+  const ctxSep = overlaySep.getContext("2d");
+  ctxSep.clearRect(0, 0, overlaySep.width, overlaySep.height);
+
+  if (dataSep.faceDetected) {
+    ctxSep.strokeStyle = "lime";
+    ctxSep.lineWidth = 3;
+    ctxSep.strokeRect(
+        dataSep.x, dataSep.y, dataSep.width, dataSep.height
+    );
+  }
+}
+
+function clearRecognitionFaceSep(overlaySep) {
+  if (!overlaySep) return;
+
+  overlaySep.getContext("2d").clearRect(
+      0, 0, overlaySep.width, overlaySep.height
+  );
+}
+
+function stopFaceCameraSep() {
+  if (streamSep) {
+    streamSep.getTracks().forEach(track => track.stop());
+    streamSep = null;
+  }
+
+  const videoSep = document.getElementById("video");
+
+  if (videoSep) {
+    videoSep.pause();
+    videoSep.srcObject = null;
+  }
+}
+
+function frpShowLoader(message) {
+  const loaderSep = document.getElementById("loaderOverlaySep");
+  const textSep = document.getElementById("loaderTextSep");
+
+  if (textSep) {
+    textSep.textContent = message || "Please wait...";
+  }
+
+  if (loaderSep) {
+    loaderSep.style.display = "flex";
+  } else {
+    console.error("Loader element #loaderOverlaySep was not found.");
+  }
+}
+
+function frpHideLoader() {
+  const loaderSep = document.getElementById("loaderOverlaySep");
+
+  if (loaderSep) {
+    loaderSep.style.display = "none";
+  }
+}
+function frpHideLoader() {
+  const loaderSep = document.getElementById("loaderOverlaySep");
+  if (loaderSep) loaderSep.style.display = "none";
+}
+
+function cancelRecognitionSep() {
+  // Invalidate outstanding location, camera and recognition operations.
+  punchAttemptSep++;
+  recognitionRunningSep = false;
+  punchSuccessSep = false;
+
+  if (punchRequestSep) {
+    punchRequestSep.abort();
+    punchRequestSep = null;
+  }
+
+  stopFaceCameraSep();
+
+  const overlaySep = document.getElementById("overlay");
+  clearRecognitionFaceSep(overlaySep);
+
+  frpHideLoader();
+
+  const resultSep = document.getElementById("result");
+  if (resultSep) {
+    resultSep.textContent = "Recognition cancelled.";
+  }
+}
+
+// function frPunchFilterWorkmanOptions() {
+//
+//   const searchInput = document.getElementById("frPunchWorkmanSearchInput");
+//   const workmanSelect = document.getElementById("workmanId");
+//
+//   if (!searchInput || !workmanSelect) {
+//     return;
+//   }
+//
+//   const searchText = searchInput.value.trim().toLowerCase();
+//   const options = workmanSelect.options;
+//
+//   let selectedValueExists = false;
+//
+//   for (let i = 0; i < options.length; i++) {
+//
+//     const option = options[i];
+//
+//     // Always retain the default option
+//     if (option.value === "") {
+//       option.hidden = false;
+//       continue;
+//     }
+//
+//     const optionText = option.text.toLowerCase();
+//     const matches = optionText.includes(searchText);
+//
+//     option.hidden = !matches;
+//
+//     if (option.value === workmanSelect.value && matches) {
+//       selectedValueExists = true;
+//     }
+//   }
+//
+//   // Clear the selection if it no longer matches the search
+//   if (workmanSelect.value && !selectedValueExists) {
+//     workmanSelect.value = "";
+//   }
+// }
+
+function frFilterWorkmanOptions() {
+  const searchSep = document.getElementById("frWorkmanSearchInput");
+  const selectSep = document.getElementById("workmanId");
+
+  if (!searchSep || !selectSep) return;
+
+  const termSep = searchSep.value.trim().toLowerCase();
+
+  for (const optionSep of selectSep.options) {
+    if (optionSep.value === "") {
+      optionSep.hidden = false;
+      continue;
+    }
+
+    optionSep.hidden =
+        !optionSep.text.toLowerCase().includes(termSep);
+  }
+}
+
+function getCurrentLocationSep() {
+  return new Promise((resolve, reject) => {
+
+    if (!navigator.geolocation) {
+      reject(new Error("Geolocation is not supported by this browser."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+          userLatitude = position.coords.latitude;
+          userLongitude = position.coords.longitude;
+
+          console.log("Face Punch Latitude:", userLatitude);
+          console.log("Face Punch Longitude:", userLongitude);
+
+          resolve({
+            latitude: userLatitude,
+            longitude: userLongitude
+          });
+        },
+        function (error) {
+          let message;
+
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              message = "Location permission denied. Allow location access in your browser.";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              message = "Current location is unavailable. Check your device location settings.";
+              break;
+            case error.TIMEOUT:
+              message = "Location request timed out. Please try again.";
+              break;
+            default:
+              message = "Unable to retrieve your location.";
+          }
+
+          reject(new Error(message));
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 0
+        }
+    );
+  });
 }
 function drawRecognitionFace(result)
 {
-    if(!overlay)
-    {
-        return;
-    }
+  if(!overlay)
+  {
+    return;
+  }
 
-    const ctx =
-        overlay.getContext("2d");
+  const ctx =
+      overlay.getContext("2d");
 
-    ctx.clearRect(
-        0,
-        0,
-        overlay.width,
-        overlay.height
+  ctx.clearRect(
+      0,
+      0,
+      overlay.width,
+      overlay.height
+  );
+
+  if(result.faceDetected)
+  {
+    ctx.strokeStyle = "lime";
+
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+        result.x,
+        result.y,
+        result.width,
+        result.height
     );
-
-    if(result.faceDetected)
-    {
-        ctx.strokeStyle = "lime";
-
-        ctx.lineWidth = 3;
-
-        ctx.strokeRect(
-            result.x,
-            result.y,
-            result.width,
-            result.height
-        );
-    }
+  }
 }
 function clearRecognitionFace()
 {
-    if(!overlay)
-    {
-        return;
-    }
+  if(!overlay)
+  {
+    return;
+  }
 
-    const ctx = overlay.getContext("2d");
+  const ctx = overlay.getContext("2d");
 
-    ctx.clearRect(
-        0,
-        0,
-        overlay.width,
-        overlay.height
-    );
+  ctx.clearRect(
+      0,
+      0,
+      overlay.width,
+      overlay.height
+  );
 }
 
 
 function captureRecognitionFrame()
 {
-    const temp =
-        document.createElement("canvas");
+  const temp =
+      document.createElement("canvas");
 
-    temp.width =
-        video.videoWidth;
+  temp.width =
+      video.videoWidth;
 
-    temp.height =
-        video.videoHeight;
+  temp.height =
+      video.videoHeight;
 
-    const tctx =
-        temp.getContext("2d");
+  const tctx =
+      temp.getContext("2d");
 
-    tctx.drawImage(
-        video,
-        0,
-        0
-    );
+  tctx.drawImage(
+      video,
+      0,
+      0
+  );
 
-    return temp.toDataURL(
-        "image/jpeg",
-        0.9
-    );
+  return temp.toDataURL(
+      "image/jpeg",
+      0.9
+  );
 }
 
 async function startFaceCamera() {
-    try {
+  try {
 
-        video = document.getElementById("video");
+    video = document.getElementById("video");
 
-        if (!video) {
-            alert("Video element not found");
-            return;
-        }
-
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-
-        video.srcObject = stream;
-
-        await video.play(); // important for mobile browsers
-
-    } catch (err) {
-        console.error(err);
-        alert(err.message);
+    if (!video) {
+      alert("Video element not found");
+      return;
     }
+
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+    video.srcObject = stream;
+
+    await video.play(); // important for mobile browsers
+
+  } catch (err) {
+    console.error(err);
+    alert(err.message);
+  }
 }
 function stopFaceCamera()
 {
-    if (stream)
-    {
-        stream.getTracks().forEach(track => track.stop());
+  if (stream)
+  {
+    stream.getTracks().forEach(track => track.stop());
 
-        stream = null;           // IMPORTANT
-    }
+    stream = null;           // IMPORTANT
+  }
 
-    if (video)
-    {
-        video.srcObject = null;  // IMPORTANT
-    }
+  if (video)
+  {
+    video.srcObject = null;  // IMPORTANT
+  }
 }
 
 function sleep(ms)
 {
-    return new Promise(
-        resolve => setTimeout(resolve, ms)
-    );
+  return new Promise(
+      resolve => setTimeout(resolve, ms)
+  );
 }
 
 
- function applyMobilePunchRestriction()
- {
+function applyMobilePunchRestriction()
+{
 //     if(!isRealMobileDevice())
-     if(true)
-     {
-         document.getElementById("status").innerHTML =
-             "<span style='color:red'>Face Registration works only on Mobile Devices.</span>";
-     }
- }
+  if(true)
+  {
+    document.getElementById("status").innerHTML =
+        "<span style='color:red'>Face Registration works only on Mobile Devices.</span>";
+  }
+}
 
 
 async function captureFacesForRegistration() {
 
-    console.log("Capture started");
+  console.log("Capture started");
 
-    const select = document.getElementById("workmanId");
+  const select = document.getElementById("workmanId");
 
-    if (!select || select.value === "") {
-        alert("Select Workman");
-        return;
-    }
+  if (!select || select.value === "") {
+    alert("Select Workman");
+    return;
+  }
 
-    if (!stream) {
-        alert("Start Camera First");
-        return;
-    }
+  if (!stream) {
+    alert("Start Camera First");
+    return;
+  }
 
-    // 🔥 IMPORTANT FIX HERE
-    if (!initCameraComponents()) {
-        alert("Camera components not initialized yet");
-        return;
-    }
+  // 🔥 IMPORTANT FIX HERE
+  if (!initCameraComponents()) {
+    alert("Camera components not initialized yet");
+    return;
+  }
 
-    if (!video.videoWidth || !video.videoHeight) {
-        await new Promise(resolve => {
-            video.onloadedmetadata = resolve;
-        });
-    }
+  if (!video.videoWidth || !video.videoHeight) {
+    await new Promise(resolve => {
+      video.onloadedmetadata = resolve;
+    });
+  }
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    capturedImages = [];
+  capturedImages = [];
 
-    document.getElementById("loaderOverlay").style.display = "flex";
-    document.getElementById("status").innerText = "Capturing Images...";
+  document.getElementById("loaderOverlay").style.display = "flex";
+  document.getElementById("status").innerText = "Capturing Images...";
 
-    for (let i = 1; i <= TOTAL_IMAGES; i++) {
+  for (let i = 1; i <= TOTAL_IMAGES; i++) {
 
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const image = canvas.toDataURL("image/jpeg", 0.9);
-        capturedImages.push(image);
+    const image = canvas.toDataURL("image/jpeg", 0.9);
+    capturedImages.push(image);
 
-        document.getElementById("progress").style.width =
-            ((i / TOTAL_IMAGES) * 100) + "%";
+    document.getElementById("progress").style.width =
+        ((i / TOTAL_IMAGES) * 100) + "%";
 
-        document.getElementById("status").innerText =
-            "Captured " + i + " / " + TOTAL_IMAGES;
+    document.getElementById("status").innerText =
+        "Captured " + i + " / " + TOTAL_IMAGES;
 
-        await sleep(250);
-    }
+    await sleep(250);
+  }
 
-    await uploadRegistrationImages();
+  await uploadRegistrationImages();
 }
 
+function frFilterWorkmanOptions() {
 
+  const searchInput = document
+      .getElementById("frWorkmanSearchInput")
+      .value.toLowerCase()
+      .trim();
+
+  const dropdown = document.getElementById("workmanId");
+  const options = dropdown.options;
+
+  for (let i = 0; i < options.length; i++) {
+
+    // Keep the default option visible
+    if (options[i].value === "") {
+      continue;
+    }
+
+    const workmanText = options[i].text
+        .toLowerCase();
+
+    options[i].hidden =
+        !workmanText.includes(searchInput);
+  }
+
+  // Clear selection if the selected workman
+  // no longer matches the search
+  if (dropdown.selectedIndex > 0 &&
+      dropdown.options[dropdown.selectedIndex].hidden) {
+
+    dropdown.value = "";
+  }
+}
 
 function initCameraComponents() {
 
-    video = document.getElementById("video");
-    canvas = document.getElementById("canvas");
+  video = document.getElementById("video");
+  canvas = document.getElementById("canvas");
 
-    if (!video || !canvas) {
-        console.error("Video or Canvas not found in DOM");
-        return false;
-    }
+  if (!video || !canvas) {
+    console.error("Video or Canvas not found in DOM");
+    return false;
+  }
 
-    ctx = canvas.getContext("2d");
+  ctx = canvas.getContext("2d");
 
-    return true;
+  return true;
 }
 
 async function uploadRegistrationImages() {
-    try {
-        const select = document.getElementById("workmanId");
+  try {
+    const select = document.getElementById("workmanId");
 
-        if (!select || select.value === "") {
-            alert("Please select Workman");
-            return;
-        }
+    if (!select || select.value === "") {
+      alert("Please select Workman");
+      return;
+    }
 
-        const employeeId = select.value;
+    const employeeId = select.value;
 
-        const employeeName = select.options[
-            select.selectedIndex
+    const employeeName = select.options[
+        select.selectedIndex
         ].text.split("-").slice(1).join("-").trim();
 
-        const payload = {
-            employeeId: employeeId,
-            employeeName: employeeName,
-            images: capturedImages
-        };
+    const payload = {
+      employeeId: employeeId,
+      employeeName: employeeName,
+      images: capturedImages
+    };
 
-        console.log("Payload Sent:", payload);
+    console.log("Payload Sent:", payload);
 
-        document.getElementById("loaderOverlay").style.display = "flex";
+    document.getElementById("loaderOverlay").style.display = "flex";
 
-        const API_BASE_URL = window.location.origin + "/Test/Face/register";
-        console.log(API_BASE_URL);
-        const response = await fetch(
-           API_BASE_URL,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }
-        );
-
-        document.getElementById("loaderOverlay").style.display = "none";
-
-        const result = await response.text();
-
-        if (response.ok) {
-
-            stopFaceCamera();
-
-            document.getElementById("status").innerHTML =
-                "Registration Completed";
-
-            alert(result);
-
-        } else {
-
-            alert("Registration Failed\n" + result);
+    const API_BASE_URL = window.location.origin + "/Test/Face/register";
+    console.log(API_BASE_URL);
+    const response = await fetch(
+        API_BASE_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
         }
+    );
 
-    } catch (error) {
+    document.getElementById("loaderOverlay").style.display = "none";
 
-        document.getElementById("loaderOverlay").style.display = "none";
+    const result = await response.text();
 
-        console.error(error);
+    if (response.ok) {
 
-        alert("Server Error");
-    }
-}
+      stopFaceCamera();
 
- function openPunchTab() {
+      document.getElementById("status").innerHTML =
+          "Registration Completed";
 
-    document.getElementById("principalEmployerContent").style.display = "block";
-
-    applyMobilePunchRestriction();
-
-    requestLocationPermission();
-
-}
-
-  // function isRealMobileDevice() {
-  //     return (
-  //         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
-  //         'ontouchstart' in window &&
-  //         navigator.maxTouchPoints > 1
-  //     );
-  // }
-
-function requestLocationPermission(callback) {
-
-    if (!navigator.geolocation) {
-        alert("Geolocation is not supported on this device.");
-        return;
-    }
-
-    if (navigator.permissions) {
-
-        navigator.permissions.query({ name: "geolocation" }).then(function (permissionStatus) {
-
-            if (permissionStatus.state === "granted") {
-
-                getUserLocation(callback);
-
-            } 
-            else if (permissionStatus.state === "prompt") {
-
-                getUserLocation(callback); // browser will show popup
-
-            } 
-            else if (permissionStatus.state === "denied") {
-
-                showLocationBlockedAlert();
-
-            }
-
-        });
+      alert(result);
 
     } else {
 
+      alert("Registration Failed\n" + result);
+    }
+
+  } catch (error) {
+
+    document.getElementById("loaderOverlay").style.display = "none";
+
+    console.error(error);
+
+    alert("Server Error");
+  }
+}
+
+function openPunchTab() {
+
+  document.getElementById("principalEmployerContent").style.display = "block";
+
+  applyMobilePunchRestriction();
+
+  requestLocationPermission();
+
+}
+
+// function isRealMobileDevice() {
+//     return (
+//         /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) &&
+//         'ontouchstart' in window &&
+//         navigator.maxTouchPoints > 1
+//     );
+// }
+
+function requestLocationPermission(callback) {
+
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported on this device.");
+    return;
+  }
+
+  if (navigator.permissions) {
+
+    navigator.permissions.query({ name: "geolocation" }).then(function (permissionStatus) {
+
+      if (permissionStatus.state === "granted") {
+
         getUserLocation(callback);
 
-    }
+      }
+      else if (permissionStatus.state === "prompt") {
+
+        getUserLocation(callback); // browser will show popup
+
+      }
+      else if (permissionStatus.state === "denied") {
+
+        showLocationBlockedAlert();
+
+      }
+
+    });
+
+  } else {
+
+    getUserLocation(callback);
+
+  }
 
 }
 
 
 
 
-  function getUserLocation(callback) {
+function getUserLocation(callback) {
 
-    navigator.geolocation.getCurrentPosition(
+  navigator.geolocation.getCurrentPosition(
 
-        function (position) {
+      function (position) {
 
-            userLatitude = position.coords.latitude;
-            userLongitude = position.coords.longitude;
+        userLatitude = position.coords.latitude;
+        userLongitude = position.coords.longitude;
 
-            console.log("Latitude:", userLatitude);
-            console.log("Longitude:", userLongitude);
+        console.log("Latitude:", userLatitude);
+        console.log("Longitude:", userLongitude);
 
-            if (callback) callback();
+        if (callback) callback();
 
-        },
+      },
 
-       function (error) {
+      function (error) {
 
-    if (error.code === 1) {
+        if (error.code === 1) {
 
-        showLocationBlockedAlert();
+          showLocationBlockedAlert();
 
-    }
-    else if (error.code === 2) {
+        }
+        else if (error.code === 2) {
 
-        alert("Location unavailable. Turn ON GPS.");
+          alert("Location unavailable. Turn ON GPS.");
 
-    }
-    else if (error.code === 3) {
+        }
+        else if (error.code === 3) {
 
-        alert("Location request timed out.");
+          alert("Location request timed out.");
 
-    }
-
-},
-
-        {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
         }
 
-    );
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+
+  );
 
 }
 function showLocationBlockedAlert() {
 
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-    if (isIOS) {
+  if (isIOS) {
 
-        alert(
-            "Location access is blocked.\n\n" +
-            "For iPhone:\n\n" +
-            "1. Tap 'aA' in the address bar\n" +
-            "2. Tap 'Website Settings'\n" +
-            "3. Allow Location\n" +
-            "4. Refresh the page."
-        );
-
-    } else {
-
-        alert(
-            "Location access is blocked.\n\n" +
-            "For Android:\n\n" +
-            "1. Tap ⋮ menu\n" +
-            "2. Site settings\n" +
-            "3. Permissions\n" +
-            "4. Allow Location\n" +
-            "5. Refresh page."
-        );
-
-    }
-
-}
-
-  function checkLocationEnabled(callback) {
-
-    if (!navigator.geolocation) {
-        alert("Geolocation is not supported.");
-        return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-
-        function (position) {
-
-            userLatitude = position.coords.latitude;
-            userLongitude = position.coords.longitude;
-
-            console.log("Latitude:", userLatitude);
-            console.log("Longitude:", userLongitude);
-
-            if (callback) callback();
-
-        },
-
-        function (error) {
-
-            console.log(error);
-
-            if (error.code === 1) {
-                alert("Location permission denied. Allow location for this site.");
-            } 
-            else if (error.code === 2) {
-                alert("Location unavailable. Turn on GPS.");
-            } 
-            else if (error.code === 3) {
-                alert("Location request timeout.");
-            }
-
-        },
-
-        {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
-        }
+    alert(
+        "Location access is blocked.\n\n" +
+        "For iPhone:\n\n" +
+        "1. Tap 'aA' in the address bar\n" +
+        "2. Tap 'Website Settings'\n" +
+        "3. Allow Location\n" +
+        "4. Refresh the page."
     );
+
+  } else {
+
+    alert(
+        "Location access is blocked.\n\n" +
+        "For Android:\n\n" +
+        "1. Tap ⋮ menu\n" +
+        "2. Site settings\n" +
+        "3. Permissions\n" +
+        "4. Allow Location\n" +
+        "5. Refresh page."
+    );
+
+  }
+
 }
 
- function isRealMobileDevice()
- {
-     const ua = navigator.userAgent.toLowerCase();
+function checkLocationEnabled(callback) {
 
-     return (
-         ua.includes("android") ||
-         ua.includes("iphone") ||
-         ua.includes("ipad") ||
-         ua.includes("ipod")
-     );
- }
+  if (!navigator.geolocation) {
+    alert("Geolocation is not supported.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+
+      function (position) {
+
+        userLatitude = position.coords.latitude;
+        userLongitude = position.coords.longitude;
+
+        console.log("Latitude:", userLatitude);
+        console.log("Longitude:", userLongitude);
+
+        if (callback) callback();
+
+      },
+
+      function (error) {
+
+        console.log(error);
+
+        if (error.code === 1) {
+          alert("Location permission denied. Allow location for this site.");
+        }
+        else if (error.code === 2) {
+          alert("Location unavailable. Turn on GPS.");
+        }
+        else if (error.code === 3) {
+          alert("Location request timeout.");
+        }
+
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+  );
+}
+
+function isRealMobileDevice()
+{
+  const ua = navigator.userAgent.toLowerCase();
+
+  return (
+      ua.includes("android") ||
+      ua.includes("iphone") ||
+      ua.includes("ipad") ||
+      ua.includes("ipod")
+  );
+}
 
 function cancelRecognition()
 {
-    recognitionRunning = false;
+  recognitionRunning = false;
 
-    stopFaceCamera();
+  stopFaceCamera();
 
-    clearRecognitionFace();
+  clearRecognitionFace();
 
-    document.getElementById("loaderOverlay").style.display = "none";
+  document.getElementById("loaderOverlay").style.display = "none";
 
-    document.getElementById("result").innerHTML =
-        "Recognition Cancelled";
+  document.getElementById("result").innerHTML =
+      "Recognition Cancelled";
 
-    document.getElementById("subResult").innerHTML = "";
+  document.getElementById("subResult").innerHTML = "";
 }
 
 
@@ -1465,20 +2203,20 @@ function cancelRecognition()
 // Select option
 options.forEach(option => {
 
-    option.addEventListener('click', function () {
+  option.addEventListener('click', function () {
 
-        const value = this.getAttribute('data-value');
+    const value = this.getAttribute('data-value');
 
-        const text = this.textContent;
+    const text = this.textContent;
 
-        hiddenInput.value = value;
+    hiddenInput.value = value;
 
-        selectedOption.innerHTML =
-            "<b>Selected:</b> " + text;
+    selectedOption.innerHTML =
+        "<b>Selected:</b> " + text;
 
-        searchBox.value = text;
+    searchBox.value = text;
 
-    });
+  });
 
 });
 

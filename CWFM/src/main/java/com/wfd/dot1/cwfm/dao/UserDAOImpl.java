@@ -1,13 +1,16 @@
 package com.wfd.dot1.cwfm.dao;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.wfd.dot1.cwfm.dto.workMenFaceDropDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 
@@ -193,6 +196,58 @@ public class UserDAOImpl implements UserDAO {
         }
 
     }
+    public String getWorkmenByContrIdSep() {
+        return QueryFileWatcher.getQuery("GET_GPID_BYEMPID");
+    }
+    public String getWorkmenEmp(String userId) {
+        try {
+            String fetchListRequestor =  getWorkmenByContrIdSep();
+            if (userId == null) {
+                throw new RuntimeException("GatepassId is missing (null). Cannot fetch requestors.");
+            }
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(fetchListRequestor,userId);
+            if (rs.next()) {
+                return  rs.getString("GatePassId");
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching requestor list", e);
+        }
+
+    }
+    public String getWorkmenByContrIdSe() {
+        return QueryFileWatcher.getQuery("GET_GPID_BYEMPID");
+    }
+    public MasterUser getDetailsofPerson(String userId) {
+        try {
+            String fetchListRequestor =  getWorkmenByContrIdSe();
+            if (userId == null) {
+                throw new RuntimeException("GatepassId is missing (null). Cannot fetch requestors.");
+            }
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(fetchListRequestor,userId);
+
+            if (rs.next()) {
+                MasterUser ms = new MasterUser();
+                ms.setUserAccount(rs.getString("GatePassId"));
+                ms.setFirstName(rs.getString("FirstName"));
+                ms.setLastName(rs.getString("LastName"));
+                ms.setFullName(rs.getString("FullName"));
+                ms.setStatus(rs.getString("status"));
+                ms.setContactNumber(rs.getString("MobileNumber"));
+                ms.setPassword(rs.getString("password"));
+                return ms;
+
+
+            }
+
+
+            return null;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching requestor list", e);
+        }
+
+    }
 
     public void saveUserUkgPost(MasterUser user) {
         String query=saveusers();
@@ -221,6 +276,76 @@ public class UserDAOImpl implements UserDAO {
 //               // String insertRoleMappingQuery = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
 //                jdbcTemplate.update(query1, user.getUserId(), roleId);
 //            }
+//        }
+
+    }
+    public String getRoleIDByRoleName() {
+        return QueryFileWatcher.getQuery("GetRoleIDByRoleName");
+    }
+
+    public String getRoleIdByRoleName() {
+        String query = getRoleIDByRoleName();
+
+        try {
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(query);
+
+            if (rs.next()) {
+                return rs.getString("GMID");
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(
+                    "Error fetching role ID by role name. SQL: " + query,
+                    e
+            );
+        }
+    }
+    public String getuserIDByUserAccount() {
+        return QueryFileWatcher.getQuery("getuserIDByUserAccount");
+    }
+    public String getUserIDByUserA(String userA) {
+        try {
+            String fetchListRequestor =  getuserIDByUserAccount();
+
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(fetchListRequestor,userA);
+            if (rs.next()) {
+                return  rs.getString("UserId");
+            }
+            return null ;
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching requestor list", e);
+        }
+
+    }
+    public void saveUserUkgPostSep(MasterUser user) {
+        String query=saveusers();
+        String query1=insertrolemapping();
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        // Encrypt password
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // Insert the user and retrieve the generated key
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(query, new String[] {"UserId"});
+            ps.setString(1, user.getFirstName());
+            ps.setString(2, user.getLastName());
+            ps.setString(3, user.getEmailId());
+            ps.setString(4, user.getContactNumber());
+            ps.setString(5, user.getPassword());
+            ps.setString(6, user.getUserAccount());
+            return ps;
+        }, keyHolder);
+        // Set the generated UserId in the user object
+        String userId = getUserIDByUserA(user.getUserAccount());
+
+
+        // Save role mappings if provided
+//        if (getRoleIdByRoleName()!=null) {
+                String roleId=getRoleIdByRoleName();
+                // String insertRoleMappingQuery = "INSERT INTO UserRoleMapping (UserId, RoleId) VALUES (?, ?)";
+                jdbcTemplate.update(query1, userId, roleId);
+
 //        }
 
     }

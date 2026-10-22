@@ -811,7 +811,7 @@ public class WfdEmployeeService {
 
             String jsonBody = this.objectMapper.writeValueAsString(dto);
 
-
+            System.out.println(jsonBody);
             String accessToken = this.wfdAuthService.getAccessToken();
 
 
@@ -835,7 +835,7 @@ public class WfdEmployeeService {
                     + this.getUpateEmpWFD()
                     + personKey;
 
-
+            System.out.println(url);
             ResponseEntity<String> response =
                     this.restTemplate.exchange(
                             url,

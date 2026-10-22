@@ -1,9 +1,9 @@
 <%@ page import="com.wfd.dot1.cwfm.pojo.MasterUser" %>
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
-<%@ page isELIgnored="false" %>
-<%@ taglib uri="http://www.springframework.org/tags/form" prefix="f" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+    <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+        <%@ page isELIgnored="false" %>
+            <%@ taglib uri="http://www.springframework.org/tags/form" prefix="f" %>
+                <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+                    <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
                         <!DOCTYPE html>
                         <html>
 
@@ -356,7 +356,69 @@
                                     display: block;
                                     width: 100%;
                                 }
+.frp-loader-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.48);
+}
 
+.frp-loader-box {
+    width: 280px;
+    max-width: 100%;
+    padding: 28px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+    text-align: center;
+}
+
+.frp-spinner {
+    width: 44px;
+    height: 44px;
+    border: 5px solid #e3e8e8;
+    border-top-color: #005151;
+    border-radius: 50%;
+    animation: frp-spin 0.8s linear infinite;
+}
+
+.frp-loader-text {
+    color: #252525;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.frp-cancel-button {
+    padding: 9px 24px;
+    border: none;
+    border-radius: 5px;
+    background: #c9302c;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.frp-cancel-button:hover {
+    background: #a92320;
+}
+
+@keyframes frp-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
                                 .file-upload input[type="file"] {
                                     padding: 8px 10px;
                                     border: 1px solid #999;
@@ -381,7 +443,7 @@
                                     margin-bottom: 8px;
                                 }
 
-  .punch-btn {
+                                .punch-btn {
                                     background-color: #005151;
                                     color: white;
                                     border: none;
@@ -713,23 +775,23 @@
 
                                 }
 
-                                #container{
-                                    position:relative;
-                                    display:inline-block;
+                                #container {
+                                    position: relative;
+                                    display: inline-block;
                                 }
 
-                                #result{
-                                    font-size:20px;
-                                    font-weight:bold;
-                                    color:black;
+                                #result {
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                    color: black;
                                 }
 
-                                .success{
-                                    color:green;
+                                .success {
+                                    color: green;
                                 }
 
-                                .error{
-                                    color:red;
+                                .error {
+                                    color: red;
                                 }
 
 
@@ -737,145 +799,259 @@
 
 
 
-.camera-container{
-    position:relative;
-    width:100%;
-    max-width:420px;
-    margin:auto;
+                                .camera-container {
+                                    position: relative;
+                                    width: 100%;
+                                    max-width: 420px;
+                                    margin: auto;
+                                }
+
+                                #video,
+                                #successImage {
+                                    width: 100%;
+                                    display: block;
+                                    border-radius: 12px;
+                                }
+
+                                #overlay {
+                                    position: absolute;
+                                    left: 0;
+                                    top: 0;
+                                    width: 100%;
+                                    height: 100%;
+                                }
+
+                                #successImage {
+                                    display: none;
+                                    border: 4px solid #16c63a;
+                                }
+
+                                #successBadge {
+                                    display: none;
+                                    position: absolute;
+                                    bottom: 15px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    background: #18c93c;
+                                    color: white;
+                                    padding: 12px 24px;
+                                    border-radius: 10px;
+                                    font-size: 20px;
+                                    font-weight: bold;
+                                }
+
+                                #result {
+                                    margin-top: 15px;
+                                    text-align: center;
+                                    font-size: 32px;
+                                    font-weight: 700;
+                                    color: #19b638;
+                                }
+
+                                #subResult {
+                                    text-align: center;
+                                    font-size: 24px;
+                                    font-weight: 600;
+                                    margin-top: 8px;
+                                    color: #19b638;
+                                }
+.fr-workman-search-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 320px;
+    max-width: 100%;
 }
 
-#video,
-#successImage{
-    width:100%;
-    display:block;
-    border-radius:12px;
+.fr-workman-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid #bfc8cc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
 }
 
-#overlay{
-    position:absolute;
-    left:0;
-    top:0;
-    width:100%;
-    height:100%;
+.fr-workman-search-input:focus {
+    border-color: #005151;
 }
 
-#successImage{
-    display:none;
-    border:4px solid #16c63a;
+.fr-workman-select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border: 1px solid #bfc8cc;
+    border-radius: 5px;
+    background: #fff;
+    font-size: 14px;
 }
 
-#successBadge{
-    display:none;
-    position:absolute;
-    bottom:15px;
-    left:50%;
-    transform:translateX(-50%);
-    background:#18c93c;
-    color:white;
-    padding:12px 24px;
-    border-radius:10px;
-    font-size:20px;
-    font-weight:bold;
+.fr-workman-search-input:focus {
+    border-color: #005151;
+    box-shadow: 0 0 4px rgba(0, 81, 81, 0.2);
 }
 
-#result{
-    margin-top:15px;
-    text-align:center;
-    font-size:32px;
-    font-weight:700;
-    color:#19b638;
+.fr-workman-select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    color: #222;
+    background-color: #fff;
+    border: 1px solid #bfc8cc;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
 }
 
-#subResult{
-    text-align:center;
-    font-size:24px;
-    font-weight:600;
-    margin-top:8px;
-        color:#19b638;
+.fr-workman-select:focus {
+    border-color: #005151;
+    outline: none;
+}
+
+.frp-loader-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 999999;
+}
+
+.frp-loader-box {
+    width: 183px;
+    max-width: calc(88% - 22px);
+    padding: 0px 33px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.frp-spinner {
+    width: 42px;
+    height: 42px;
+    margin: 0 auto 18px;
+    border: 4px solid #e2e8e8;
+    border-top-color: #005151;
+    border-radius: 50%;
+    animation: frp-spin 0.8s linear infinite;
+}
+
+.frp-loader-text {
+    margin-bottom: 22px;
+    color: #333333;
+    font-size: 15px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.frp-cancel-button {
+    padding: 9px 24px;
+    border: none;
+    border-radius: 5px;
+    background: #dc3545;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.frp-cancel-button:hover {
+    background: #bb2d3b;
+}
+
+@keyframes frp-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
                             </style>
 
                             <!-- MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null && user.getUserId() !=null ? String.valueOf(user.getUserId()) : "" ;  -->
-                            
-                                <script>
-                                    // Function to validate fields in the current active tab
-                                    function validateCurrentTab() {
-                                        // Example of validation logic; customize based on your tab's fields
-                                        let isValid = true;
 
-                                        // Example: Validate fields in the current active tab
-                                        const activeTabId = document.querySelector('.tab-content.active').id;
+                            <script>
+                                // Function to validate fields in the current active tab
+                                function validateCurrentTab() {
+                                    // Example of validation logic; customize based on your tab's fields
+                                    let isValid = true;
 
-                                        // Validate specific fields based on the active tab
-                                        if (activeTabId === 'tab1') {
-                                            const aadharNumber = document.getElementById("aadharNumber").value.trim();
-                                            if (aadharNumber === "" || aadharNumber.length !== 12 || isNaN(aadharNumber)) {
-                                                document.getElementById("error-aadhar").textContent = "Please enter a valid 12-digit Aadhar number.";
-                                                isValid = false;
-                                            } else {
-                                                document.getElementById("error-aadhar").textContent = ""; // Clear previous error
-                                            }
+                                    // Example: Validate fields in the current active tab
+                                    const activeTabId = document.querySelector('.tab-content.active').id;
 
-                                            // Add more validation logic for other fields in tab1
-                                        }
-                                        // Repeat similar validation checks for other tabs if necessary
-
-                                        return isValid;
-                                    }
-
-                                    // Function to show the selected tab
-                                    function showTab(tabId) {
-                                        // Check if current tab fields are valid before switching tabs
-                                        if (!validateCurrentTab()) {
-                                            return; // Prevent tab switch if validation fails
+                                    // Validate specific fields based on the active tab
+                                    if (activeTabId === 'tab1') {
+                                        const aadharNumber = document.getElementById("aadharNumber").value.trim();
+                                        if (aadharNumber === "" || aadharNumber.length !== 12 || isNaN(aadharNumber)) {
+                                            document.getElementById("error-aadhar").textContent = "Please enter a valid 12-digit Aadhar number.";
+                                            isValid = false;
+                                        } else {
+                                            document.getElementById("error-aadhar").textContent = ""; // Clear previous error
                                         }
 
-                                        // Hide all tab contents
-                                        var tabContents = document.querySelectorAll('.tab-content');
-                                        tabContents.forEach(function (content) {
-                                            content.classList.remove('active');
-                                        });
+                                        // Add more validation logic for other fields in tab1
+                                    }
+                                    // Repeat similar validation checks for other tabs if necessary
 
-                                        // Remove active class from all tabs
-                                        var tabs = document.querySelectorAll('.tabs button');
-                                        tabs.forEach(function (tab) {
-                                            tab.classList.remove('active');
-                                        });
+                                    return isValid;
+                                }
 
-                                        // Show the selected tab content and add active class to the clicked tab
-                                        document.getElementById(tabId).classList.add('active');
-                                        document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
+                                // Function to show the selected tab
+                                function showTab(tabId) {
+                                    // Check if current tab fields are valid before switching tabs
+                                    if (!validateCurrentTab()) {
+                                        return; // Prevent tab switch if validation fails
                                     }
 
-
-
-
-
-                                    /* function showTab(tabId) {
-                                        // Hide all tab contents
-                                        var tabContents = document.querySelectorAll('.tab-content');
-                                        tabContents.forEach(function(content) {
-                                            content.classList.remove('active');
-                                        });
-                                
-                                        // Remove active class from all tabs
-                                        var tabs = document.querySelectorAll('.tabs button');
-                                        tabs.forEach(function(tab) {
-                                            tab.classList.remove('active');
-                                        });
-                                
-                                        // Show the selected tab content and add active class to the clicked tab
-                                        document.getElementById(tabId).classList.add('active');
-                                        document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
-                                    } */
-
-                                    document.addEventListener("DOMContentLoaded", function () {
-                                        // Set the default tab
-                                        showTab('tab1');
-                                        initializeDatePicker();
+                                    // Hide all tab contents
+                                    var tabContents = document.querySelectorAll('.tab-content');
+                                    tabContents.forEach(function (content) {
+                                        content.classList.remove('active');
                                     });
 
+                                    // Remove active class from all tabs
+                                    var tabs = document.querySelectorAll('.tabs button');
+                                    tabs.forEach(function (tab) {
+                                        tab.classList.remove('active');
+                                    });
+
+                                    // Show the selected tab content and add active class to the clicked tab
+                                    document.getElementById(tabId).classList.add('active');
+                                    document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
+                                }
+
+
+
+
+
+                                /* function showTab(tabId) {
+                                    // Hide all tab contents
+                                    var tabContents = document.querySelectorAll('.tab-content');
+                                    tabContents.forEach(function(content) {
+                                        content.classList.remove('active');
+                                    });
+                            
+                                    // Remove active class from all tabs
+                                    var tabs = document.querySelectorAll('.tabs button');
+                                    tabs.forEach(function(tab) {
+                                        tab.classList.remove('active');
+                                    });
+                            
+                                    // Show the selected tab content and add active class to the clicked tab
+                                    document.getElementById(tabId).classList.add('active');
+                                    document.querySelector('button[data-target="' + tabId + '"]').classList.add('active');
+                                } */
+
+                                document.addEventListener("DOMContentLoaded", function () {
+                                    // Set the default tab
+                                    showTab('tab1');
+                                    initializeDatePicker();
+                                });
 
 
 
@@ -884,8 +1060,9 @@
 
 
 
-                                </script>
-                              
+
+                            </script>
+
                         </head>
 
                         <body>
@@ -897,8 +1074,11 @@
 
                                     </div>
                                     <div class="action-buttons">
-                                       <button  id="saveButton" type="button" class="btn btn-default"
-                                       onclick="startPunchRecognition()">Start Recognition </button>
+                                        <button type="button"
+                                            class="btn btn-default"
+                                            onclick="startPunchRecognitionSe()">
+                                            Start Recognition
+                                        </button>
                                     </div>
                                 </div>
                                 <div id="tab1" class="tab-content active">
@@ -906,66 +1086,94 @@
                                     <table class="ControlLayout no-dt" cellspacing="0" cellpadding="0">
 
                                         <tbody>
-                                           <tr>
+                                            <tr>
+                                                <th>
+                                                    <label class="custom-label">
+                                                        <span class="required-field">*</span>
+                                                        Workmen
+                                                    </label>
+                                                </th>
 
-                                               <td>
+                                                <td>
+                                                    <div class="fr-workman-search-container">
 
+                                                        <input type="text"
+                                                         id="frWorkmanSearchInput"
+                                                            class="fr-workman-search-input"
+                                                            placeholder="Search Gate Pass ID or Name..."
+                                                            autocomplete="off"
+                                                            oninput="frFilterWorkmanOptions()">
 
+                                                        <select id="workmanId" name="workmanId"
+                                                            class="fr-workman-select">
 
-                                                   <br><br>
+                                                            <option value="">Select Workman</option>
 
-                                                 <div id="container" class="camera-container">
+                                                            <c:forEach var="pe" items="${contractors}">
+                                                                <option value="${pe.EMPLOYEEID}">
+                                                                    ${pe.gatePassId} - ${pe.firstName} ${pe.lastName}
+                                                                </option>
+                                                            </c:forEach>
 
-                                                     <video id="video"
-                                                            autoplay
-                                                            muted
-                                                            playsinline>
-                                                     </video>
+                                                        </select>
 
-                                                     <canvas id="overlay"></canvas>
+                                                        <label id="error-workman" class="error-label"
+                                                            style="display:none;">
+                                                            Workman is required
+                                                        </label>
 
-                                                     <img id="successImage">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
 
-                                                     <div id="successBadge">
+                                            <tr>
+                                                <td>
+                                                    <br><br>
 
-                                                     </div>
+                                                    <div id="container" class="camera-container">
 
-                                                 </div>
+                                                        <video id="video" autoplay muted playsinline>
+                                                        </video>
 
-                                                 <div id="result"></div>
+                                                        <canvas id="overlay"></canvas>
 
-                                                 <div id="subResult"></div>
-                                                   <br>
+                                                        <img id="successImage">
 
-                                               </td>
-                                           </tr>
+                                                        </div>
+
+                                                    </div>
+
+                                                    <div id="result"></div>
+
+                                                    <div id="subResult"></div>
+                                                    <br>
+
+                                                </td>
+                                            </tr>
                                         </tbody>
 
                                     </table>
-<script>
-window.onload = function () {
-    requestLocationPermission();
-};
-</script>
-                           </div>
-                           </div>
-                           <div id="loaderOverlay" style="display:none;">
-                               <div class="loader-box">
+                                    <script>
+                                        window.onload = function () {
+                                            requestLocationPermission();
+                                        };
+                                    </script>
+                                </div>
+                            </div>
+                           <div id="loaderOverlaySep" class="frp-loader-overlay" style="display: none;">
+                               <div class="frp-loader-box">
+                                   <div class="frp-spinner"></div>
 
-                                   <div class="spinner"></div>
-
-                                   <div class="loader-text">
-                                       Verifying Face...
+                                   <div id="loaderTextSep" class="frp-loader-text">
+                                       Fetching current location...
                                    </div>
 
-                                   <br>
-
                                    <button type="button"
-                                           class="btn btn-danger"
-                                           onclick="cancelRecognition()">
+                                           class="frp-cancel-button"
+                                           onclick="cancelRecognitionSep()">
                                        Cancel
                                    </button>
-
                                </div>
                            </div>
 

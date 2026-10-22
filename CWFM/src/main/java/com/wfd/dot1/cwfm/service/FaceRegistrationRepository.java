@@ -486,6 +486,9 @@ public class FaceRegistrationRepository {
     public String getWorkmenByContrId() {
         return QueryFileWatcher.getQuery("GET_ALLWORKMEN_BYCON");
     }
+ public String getWorkmenByContrIdSep() {
+        return QueryFileWatcher.getQuery("GET_ALLWORKMEN_BYCONSep");
+    }
 
 
     public List<workMenFaceDropDto> getListWorkmen(Integer userId) {
@@ -511,6 +514,26 @@ public class FaceRegistrationRepository {
             return peList;
         } catch (Exception e) {
             throw new RuntimeException("Error fetching requestor list", e);
+        }
+
+    }
+
+
+    public String getWorkmenEmp(String userId) {
+        String query = getWorkmenByContrIdSep();
+
+        try {
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(query,userId);
+            if (rs.next()) {
+                return rs.getString("EMPLOYEEID");
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(
+                    "Error fetching getWorkmenEmp " + query,
+                    e
+            );
         }
 
     }

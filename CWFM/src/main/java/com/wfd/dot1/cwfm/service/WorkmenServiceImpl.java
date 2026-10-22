@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.wfd.dot1.cwfm.dao.UserDAOImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -391,6 +392,41 @@ public class WorkmenServiceImpl implements WorkmenService {
 		return workmenDao.getAllGeneralMastersForGatePass(gatePassMainObj);
 	}
 
+
+
+	@Autowired
+	private UserDAOImpl UserDAOImplDao;
+	@Autowired
+	private CreateEmpFetchByGatePassAPICALL apicall;
+	@Autowired
+	MasterUserService masterUserService;
+
+	public void createLoginOrRole(String userId){
+		try{
+
+			String workmenEmp = UserDAOImplDao.getWorkmenEmp(userId);
+			System.out.println("Decrypted UserId: " + workmenEmp);
+			MasterUser apiUser = UserDAOImplDao.getDetailsofPerson(workmenEmp);
+
+			if (apiUser == null || apiUser.getUserAccount() == null) {
+			}
+
+			String userAccount = apiUser.getUserAccount();
+			MasterUser user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+
+			if (user == null) {
+				apiUser.setPassword("Admin@123");
+				UserDAOImplDao.saveUserUkgPostSep(apiUser);
+				user = masterUserService.findMasterUserDetailsByUserName(userAccount);
+			}
+			if (user != null && user.getPassword() != null) {
+			}
+
+		} catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+	}
+
 	@Override
 	@Transactional
 	public String approveRejectGatePass(ApproveRejectGatePassDto dto) {
@@ -538,6 +574,36 @@ public class WorkmenServiceImpl implements WorkmenService {
 				throw new RuntimeException("Failed to update GatePass on UNBLOCK/DEBLACKLIST.");
 			}
 
+	        if (!cmsDone) {
+	            throw new RuntimeException("CMS Person Insert failed unexpectedly.");
+	        }
+	        boolean statusUpdated  = workmenDao.updateGatePassMainStatus(gatePassId,dto.getStatus());
+	        if(!statusUpdated) {
+	        	throw new RuntimeException("Gatepassmain status update failed unexpectedly.");
+	        }else {
+	        	try {
+	        	String wfdIntegration = this.getWFDIntegration();
+	        	if("yes".equalsIgnoreCase(wfdIntegration)) {
+	        		api.addOnBoardingDetailsActual(dto.getTransactionId());
+	        	}
+				/////////////////////////////////////////here we have to add
+
+					createLoginOrRole(dto.getGatePassId());
+
+	        	}catch(Exception e) {return result;}
+	        }
+	        return result;
+	    }
+	    if (dto.getGatePassType().equals(GatePassType.PROJECT.getStatus())) {
+	    	   gatePassId = workmenDao.updateGatePassIdByTransactionId(dto.getTransactionId());
+		        gpm.setGatePassId(gatePassId);
+		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		        String today = LocalDate.now().format(formatter);
+		        gpm.setDoj(today);
+		        boolean dojUpdated  = workmenDao.updateGatePassMainDOJ(gatePassId,gpm.getDoj());
+		        boolean cmsDone = this.cmsPersonInsert(gpm);
+
+
 			// return result;
 		}
 
@@ -664,6 +730,7 @@ public class WorkmenServiceImpl implements WorkmenService {
 		}
 		return result;
 	}
+
 
 	@Transactional
 	public boolean cmsPersonInsert(GatePassMain gpm) {

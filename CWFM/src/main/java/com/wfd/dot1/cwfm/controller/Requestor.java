@@ -70,6 +70,27 @@ public class Requestor {
         return "requesTor/mobilePunchFace";
     }
 
+    @GetMapping("/mobilePunchFaceSep")
+    public String cwfmfacePunchSep(HttpServletRequest request, HttpServletResponse response) {
+
+        HttpSession session = request.getSession(false);
+        MasterUser user = (session != null)
+                ? (MasterUser) session.getAttribute("loginuser")  : null;
+
+        if (user == null) {
+            return "redirect:/login"; // or error page
+        }
+        String userId = user.getUserAccount();
+        String workmenEmp=null;
+        System.out.println(userId);
+        if(userId!=null){
+             workmenEmp = faceRegistrationRepository.getWorkmenEmp(userId);
+        }
+        request.setAttribute("contractors",workmenEmp);
+
+        return "requesTor/mobilePunchFaceSep";
+    }
+
     @GetMapping("/mFaceRegistration")
     public String cwfmfaceRegistration(HttpServletRequest request, HttpServletResponse response) {
 

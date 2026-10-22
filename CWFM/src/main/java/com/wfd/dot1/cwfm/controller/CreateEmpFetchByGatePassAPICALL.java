@@ -9,6 +9,7 @@ import com.wfd.dot1.cwfm.service.EmployeeMapper;
 import com.wfd.dot1.cwfm.service.EmployeeMapperDirect;
 import com.wfd.dot1.cwfm.service.GatePassToOnBoardService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Map;
 import com.wfd.dot1.cwfm.util.AESUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,6 +81,18 @@ public class CreateEmpFetchByGatePassAPICALL {
         }
 
     }
+    @GetMapping({"/updatedEmpAddISMW"})
+    public ResponseEntity<?> upOnBoardingSchedularAdd() {
+        try {
+            ArrayList<String> strings = this.employeeMapper.gatePassEmpDtoAddIsmwUpdate();
+            return new ResponseEntity<>(strings, HttpStatusCode.valueOf(200));
+
+        } catch (Exception var2) {
+        }
+
+        return new ResponseEntity<>( HttpStatusCode.valueOf(500));
+
+    }
 
     @GetMapping({"/schedularPunchDB"})
     public void schedularPunchDB() {
@@ -110,7 +124,6 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     @PostMapping({"/addByTrnsIdToUKG/{gpTransactionId}"})
     public ResponseEntity<?> addOnBoardingDetailsActual(@PathVariable String gpTransactionId) {
-
         try {
             String result = this.employeeMapper.gatePassEmpDtoDynamic(gpTransactionId);
             if (result == null) {
@@ -180,8 +193,7 @@ public class CreateEmpFetchByGatePassAPICALL {
     }
 
     @GetMapping({"/getAccessTokenOnly"})
-    public ResponseEntity<?> getAccessTokenOnly(@RequestParam String username,
-                                                @RequestParam String password) {
+    public ResponseEntity<?> getAccessTokenOnly(@RequestParam String username,@RequestParam String password) {
         try {
             String gatePassEmpDtoDynamic = this.employeeMapper.getTokenCheck( username,  password);
 
@@ -194,8 +206,7 @@ public class CreateEmpFetchByGatePassAPICALL {
 
 
     @GetMapping({"/getVerifyLaborCat"})
-    public ResponseEntity<?> verifyLaborCate(@RequestParam String Workorder
-    ) {
+    public ResponseEntity<?> verifyLaborCate(@RequestParam String Workorder) {
         try {
             String gatePassEmpDtoDynamic = this.employeeMapper.getVerifyLabor( Workorder);
 
@@ -377,6 +388,8 @@ public class CreateEmpFetchByGatePassAPICALL {
             return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
         }
     }
+
+
 
  @PostMapping({"/getPersonKey/{gatepassId}"})
     public ResponseEntity<String> getPersonKey(@PathVariable String gatepassId) {

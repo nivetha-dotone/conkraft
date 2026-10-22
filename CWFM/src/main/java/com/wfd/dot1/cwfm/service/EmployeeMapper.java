@@ -313,6 +313,28 @@ public class EmployeeMapper {
         }
     }
 
+    public synchronized ArrayList<String> gatePassEmpDtoAddIsmwUpdate() {
+        try {
+            List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListAddIsmwOnbUpdate();
+            ArrayList<String> strings=new ArrayList<>();
+            if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
+                return null;
+            }
+
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+                System.out.println("Processing: " + gpTransactionId);
+
+                String  string = this.updateAddIswm(gpTransactionId);
+                strings.add(string);
+            }
+            return strings;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     public  String getCommentCat(){
         return QueryFileWatcher.getQuery("getCommentCat");
     }
@@ -583,6 +605,7 @@ public class EmployeeMapper {
         ActiveEmpStatusDto dto = this.gatePassToOnBoardService.updateEmpStatusTr(gmId, empStatus);
         return dto == null ? "Employment status not updated" : this.wfdEmployeeService.updateEmpStatusTarminate(dto, gmId);
     }
+
 
     public String getPersonKeyWFD(String gmID){
         Integer personKeyApi = wfdEmployeeService.getPersonKeyApi(gmID);
@@ -977,27 +1000,27 @@ public class EmployeeMapper {
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
                     addCustomeList.add(permanentDistrict);
                 }
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getOnboardingType() != null && !individualOnBoardDetailsByTrnId.getOnboardingType().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Onboarding Type");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
                     addCustomeList.add(permanentDistrict);
                 }
 
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getESICIPNumber() != null && !individualOnBoardDetailsByTrnId.getESICIPNumber().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("ESIC IP Number");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getESICIPNumber());
                     addCustomeList.add(permanentDistrict);
                 }
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getAccommodation() != null && !individualOnBoardDetailsByTrnId.getAccommodation().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Accommodation");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccommodation());
                     addCustomeList.add(permanentDistrict);
                 }
 
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getIdMark() != null && !individualOnBoardDetailsByTrnId.getIdMark().isEmpty()) {
                     EmployeeRequestDTO.CustomDataDTO permanentDistrict = new EmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Identification Mark");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
@@ -1134,7 +1157,7 @@ public class EmployeeMapper {
                 }
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
-                String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
+                    String  orgPath= individualOnBoardDetailsByTrnId.getCompany() + "/" + individualOnBoardDetailsByTrnId.getLocation()+ "/" + individualOnBoardDetailsByTrnId.getDepartment() + "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode() + "/"+skill;
                 System.out.println(orgPath);
 
 
@@ -1818,27 +1841,27 @@ public class EmployeeMapper {
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getWorkmenType());
                     addCustomeList.add(permanentDistrict);
                 }
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getOnboardingType() != null && !individualOnBoardDetailsByTrnId.getOnboardingType().isEmpty()) {
                     UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Onboarding Type");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getOnboardingType());
                     addCustomeList.add(permanentDistrict);
                 }
 
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getESICIPNumber() != null && !individualOnBoardDetailsByTrnId.getESICIPNumber().isEmpty()) {
                     UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("ESIC IP Number");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getESICIPNumber());
                     addCustomeList.add(permanentDistrict);
                 }
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getAccommodation() != null && !individualOnBoardDetailsByTrnId.getAccommodation().isEmpty()) {
                     UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Accommodation");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getAccommodation());
                     addCustomeList.add(permanentDistrict);
                 }
 
-                if (individualOnBoardDetailsByTrnId.getWorkmenType() != null && !individualOnBoardDetailsByTrnId.getWorkmenType().isEmpty()) {
+                if (individualOnBoardDetailsByTrnId.getIdMark() != null && !individualOnBoardDetailsByTrnId.getIdMark().isEmpty()) {
                     UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
                     permanentDistrict.setCustomDataTypeName("Identification Mark");
                     permanentDistrict.setText(individualOnBoardDetailsByTrnId.getIdMark());
@@ -2327,6 +2350,56 @@ public class EmployeeMapper {
         }
     }
 
+    public UpdateEmployeeRequestDTO gatePassAddIsmw(String GatePassId) {
+
+        try {
+            GatePassToOnBoardAddIsmw individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnAddIswmByTrnId(GatePassId);
+            String issandorpoc1 = getISSANDORPOC();
+
+            if (issandorpoc1 != null) {
+                issandorpoc1 = issandorpoc1.trim();
+            }
+
+
+            if (individualOnBoardDetailsByTrnId != null && "no".equalsIgnoreCase(issandorpoc1)) {
+                UpdateEmployeeRequestDTO dto = new UpdateEmployeeRequestDTO();
+                UpdateEmployeeRequestDTO.PersonInformation personInfo = new UpdateEmployeeRequestDTO.PersonInformation();
+                UpdateEmployeeRequestDTO.Person person = new UpdateEmployeeRequestDTO.Person();
+                person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
+                personInfo.setPerson(person);
+                ArrayList<UpdateEmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
+                if (individualOnBoardDetailsByTrnId.getAddress() != null && !individualOnBoardDetailsByTrnId.getAddress().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentAddress.setCustomDataTypeName("Permanent Address");
+                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getAddress());
+                    addCustomeList.add(permanentAddress);
+                }
+                if (individualOnBoardDetailsByTrnId.getISMW() != null && !individualOnBoardDetailsByTrnId.getISMW().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentAddress.setCustomDataTypeName("ISMW");
+                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getISMW());
+                    addCustomeList.add(permanentAddress);
+                }
+                if (individualOnBoardDetailsByTrnId.getState() != null && !individualOnBoardDetailsByTrnId.getState().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    permanentAddress.setCustomDataTypeName("Permanent State");
+                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getState());
+                    addCustomeList.add(permanentAddress);
+                }
+                personInfo.setCustomDataList(addCustomeList);
+                dto.setPersonInformation(personInfo);
+
+                return dto != null ? dto : null;
+            }
+
+            else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String updatePassEmpDtoDynamic(String GatePassId) {
         try {
             UpdateEmployeeRequestDTO employeeRequestDTO = this.gatePassUpdateEmpDto(GatePassId);
@@ -2384,6 +2457,25 @@ public class EmployeeMapper {
             throw new RuntimeException(e);
         }
     }
+
+    public String updateAddIswm(String GatePassId) {
+        try {
+            UpdateEmployeeRequestDTO employeeRequestDTO = this.gatePassAddIsmw(GatePassId);
+            String employeeResponse=null;
+            if (employeeRequestDTO == null) {
+
+            } else {
+
+                employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
+
+
+            }
+            return employeeResponse;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public EmployeeRequestDTO mapFromGatePass(GatePassMain gatePass) {
         EmployeeRequestDTO dto = new EmployeeRequestDTO();

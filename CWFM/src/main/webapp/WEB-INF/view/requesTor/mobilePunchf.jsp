@@ -13,8 +13,7 @@
                             <link rel="stylesheet"
                                 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
                             <link rel="stylesheet" type="text/css" href="resources/css/cmsstyles.css">
-                            <!-- <script src="resources/js/cms/principalEmployer.js"></script>
-                            <script src="resources/js/cms/contractor.js"></script>-->
+                            <script src="${pageContext.request.contextPath}/resources/js/cms/requestor.js"></script>
                             <script src="resources/js/cms/requestor.js"></script>
 
                             <title>Mobile Register</title>
@@ -714,6 +713,50 @@
 
 
                                 }
+
+/* Face Register - Workman Search Only */
+.fr-workman-search-container {
+    width: 320px;
+    max-width: 100%;
+}
+
+.fr-workman-search-input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    margin-bottom: 8px;
+    color: #222;
+    background-color: #fff;
+    border: 1px solid #bfc8cc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+}
+
+.fr-workman-search-input:focus {
+    border-color: #005151;
+    box-shadow: 0 0 4px rgba(0, 81, 81, 0.2);
+}
+
+.fr-workman-select {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    color: #222;
+    background-color: #fff;
+    border: 1px solid #bfc8cc;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.fr-workman-select:focus {
+    border-color: #005151;
+    outline: none;
+}
+
                             </style>
 
                             <% MasterUser user=(MasterUser) session.getAttribute("loginuser"); String userId=user !=null
@@ -827,24 +870,40 @@
                                                         Workmen
                                                     </label>
                                                 </th>
+
                                                 <td>
-                                                       <select id="workmanId" name="workmanId" style="color: black;">
-                                                        <option value="">Select Workman</option>
+                                                    <div class="fr-workman-search-container">
 
-                                                        <c:forEach var="pe" items="${contractors}">
-                                                            <option value="${pe.EMPLOYEEID}">
-                                                                ${pe.gatePassId} - ${pe.firstName} ${pe.lastName}
-                                                            </option>
-                                                        </c:forEach>
+                                                        <input type="text"
+                                                               id="frWorkmanSearchInput"
+                                                               class="fr-workman-search-input"
+                                                               placeholder="Search Gate Pass ID or Name..."
+                                                               autocomplete="off"
+                                                               oninput="frFilterWorkmanOptions()">
 
-                                                    </select>
+                                                        <select id="workmanId"
+                                                                name="workmanId"
+                                                                class="fr-workman-select">
 
-                                                    <label id="error-workman" class="error-label" style="display:none;">
-                                                        Workman is required
-                                                    </label>
+                                                            <option value="">Select Workman</option>
+
+                                                            <c:forEach var="pe" items="${contractors}">
+                                                                <option value="${pe.EMPLOYEEID}">
+                                                                    ${pe.gatePassId} - ${pe.firstName} ${pe.lastName}
+                                                                </option>
+                                                            </c:forEach>
+
+                                                        </select>
+
+                                                        <label id="error-workman"
+                                                               class="error-label"
+                                                               style="display:none;">
+                                                            Workman is required
+                                                        </label>
+
+                                                    </div>
                                                 </td>
                                             </tr>
-
                                             <tr>
                                                 <th>
                                                     <label class="custom-label">
@@ -856,9 +915,9 @@
                                                 <td>
 
                                                     <video id="video"
-                                                           autoplay
-                                                           playsinline
-                                                           style="
+                                                          autoplay
+                                                          playsinline
+                                                          style="
                                                                width:320px;
                                                                height:240px;
                                                                border:1px solid #ccc;">
