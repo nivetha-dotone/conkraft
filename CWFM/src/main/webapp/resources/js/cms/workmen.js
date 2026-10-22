@@ -4847,7 +4847,14 @@ if(valid){
 									  }else{
 										gender = "11";
 									  }
-									  let address= response.data.aadhaar_xml_data.full_address|| ""+" "+response.data.aadhaar_xml_data.zip|| "";
+									
+									 let aadhaarData = response.data.aadhaar_xml_data;
+
+									 let address = `${aadhaarData.full_address || ""} ${aadhaarData.zip || ""}`.trim();
+
+									 console.log("Full Address:", address);
+									    var base64Image =  response.data.aadhaar_xml_data.profile_image;
+									   displayDigiLockerPhoto(base64Image);
 									  document.getElementById("firstName").value = firstname;
 									   document.getElementById("lastName").value =lastname;
 									  document.getElementById("dateOfBirth").value =dob;
@@ -4886,7 +4893,63 @@ if(valid){
 					    xhr.send();	
 			
 		}
+		function displayDigiLockerPhoto(profileImage) {
 
+		    if (!profileImage) {
+		        console.log("DigiLocker profile image not available");
+		        return;
+		    }
+
+		    try {
+		        // Remove existing prefix if present
+		        const base64Data = profileImage.includes(",")
+		            ? profileImage.split(",")[1]
+		            : profileImage;
+
+		        const imageSrc = "data:image/jpeg;base64," + base64Data;
+
+		        // Step 1: Display image in existing preview
+		        $("#preview").html(`
+		            <img src="${imageSrc}"
+		                 id="profilePreviewImage"
+		                 style="width:100%;
+		                        height:100%;
+		                        object-fit:contain;">
+		        `);
+
+		        // Step 2: Convert Base64 into binary
+		        const byteCharacters = atob(base64Data);
+		        const byteNumbers = new Uint8Array(byteCharacters.length);
+
+		        for (let i = 0; i < byteCharacters.length; i++) {
+		            byteNumbers[i] = byteCharacters.charCodeAt(i);
+		        }
+
+		        // Step 3: Create File object
+		        const imageFile = new File(
+		            [byteNumbers],
+		            "digilocker_profile.jpg",
+		            { type: "image/jpeg" }
+		        );
+
+		        // Step 4: Assign file to existing input
+		        const dataTransfer = new DataTransfer();
+		        dataTransfer.items.add(imageFile);
+
+		        document.getElementById("imageFile").files =
+		            dataTransfer.files;
+
+		        // Step 5: Update filename
+		        $("#imageFileName").text(imageFile.name);
+		        $("#profilePcError").empty();
+
+		        console.log("DigiLocker photo assigned:",
+		                    document.getElementById("imageFile").files[0]);
+
+		    } catch (error) {
+		        console.error("Error processing DigiLocker photo:", error);
+		    }
+		}
 		function handleFailure() {
 			//Do something here for failure case
 			console.log("Verification failed:", error);
@@ -5418,6 +5481,7 @@ function uploadAadhaarFile() {
             // ✅ Loop OCR blocks (front/back/combined safe)
             response.data.ocr_fields.forEach(ocr => {
 
+				console.log("response :"+ocr.image_url);
                 const type = ocr.document_type;
 
                 // FRONT SIDE
@@ -5432,7 +5496,7 @@ function uploadAadhaarFile() {
                     if (ocr.dob?.value) dob = ocr.dob.value;
 
                     let g = ocr.gender?.value;
-                    if (g) gender = (g === "F") ? "12" : "11";
+                    if (g) gender = (g === "F") ? "661" : "660";
                 }
 
                 // BACK SIDE
