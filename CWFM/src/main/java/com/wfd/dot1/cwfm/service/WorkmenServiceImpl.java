@@ -574,6 +574,7 @@ public class WorkmenServiceImpl implements WorkmenService {
 				throw new RuntimeException("Failed to update GatePass on UNBLOCK/DEBLACKLIST.");
 			}
 
+
 			// return result;
 		}
 

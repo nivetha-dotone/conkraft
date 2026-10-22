@@ -334,6 +334,27 @@ public class EmployeeMapper {
         return null;
     }
 
+    public synchronized ArrayList<String> gatePassEmpDtoAddPersonNumber() {
+        try {
+            List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListAddPersonNumber();
+            ArrayList<String> strings=new ArrayList<>();
+            if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
+                return null;
+            }
+
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+                System.out.println("Processing: " + gpTransactionId);
+
+                String  string = this.updateAddPersonNumber(gpTransactionId);
+                strings.add(string);
+            }
+            return strings;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     public  String getCommentCat(){
         return QueryFileWatcher.getQuery("getCommentCat");
@@ -2370,26 +2391,45 @@ public class EmployeeMapper {
                 person.setPersonNumber(individualOnBoardDetailsByTrnId.getGatePassId());
                 personInfo.setPerson(person);
                 ArrayList<UpdateEmployeeRequestDTO.CustomDataDTO> addCustomeList = new ArrayList();
-                if (individualOnBoardDetailsByTrnId.getAddress() != null && !individualOnBoardDetailsByTrnId.getAddress().isEmpty()) {
-                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
-                    permanentAddress.setCustomDataTypeName("Permanent Address");
-                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getAddress());
-                    addCustomeList.add(permanentAddress);
-                }
-                if (individualOnBoardDetailsByTrnId.getISMW() != null && !individualOnBoardDetailsByTrnId.getISMW().isEmpty()) {
-                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
-                    permanentAddress.setCustomDataTypeName("ISMW");
-                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getISMW());
-                    addCustomeList.add(permanentAddress);
-                }
-                if (individualOnBoardDetailsByTrnId.getState() != null && !individualOnBoardDetailsByTrnId.getState().isEmpty()) {
-                    UpdateEmployeeRequestDTO.CustomDataDTO permanentAddress = new UpdateEmployeeRequestDTO.CustomDataDTO();
-                    permanentAddress.setCustomDataTypeName("Permanent State");
-                    permanentAddress.setText(individualOnBoardDetailsByTrnId.getState());
-                    addCustomeList.add(permanentAddress);
-                }
+
+
                 personInfo.setCustomDataList(addCustomeList);
                 dto.setPersonInformation(personInfo);
+
+                return dto != null ? dto : null;
+            }
+
+            else {
+                return null;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public UpdateEmployeeRequestDTO gatePassAddPerson(String GatePassId) {
+
+        try {
+            GatePassToOnBoardAddIsmw individualOnBoardDetailsByTrnId = this.gatePassToOnBoardService.getIndividualOnAddPersonNumberByTrnId(GatePassId);
+            String issandorpoc1 = getISSANDORPOC();
+
+            if (issandorpoc1 != null) {
+                issandorpoc1 = issandorpoc1.trim();
+            }
+
+
+            if (individualOnBoardDetailsByTrnId != null && "no".equalsIgnoreCase(issandorpoc1)) {
+                UpdateEmployeeRequestDTO dto = new UpdateEmployeeRequestDTO();
+                UpdateEmployeeRequestDTO.PersonInformation personInfo = new UpdateEmployeeRequestDTO.PersonInformation();
+                UpdateEmployeeRequestDTO.Person person = new UpdateEmployeeRequestDTO.Person();
+                if (individualOnBoardDetailsByTrnId.getPersonNumber() != null && !individualOnBoardDetailsByTrnId.getPersonNumber().isEmpty()) {
+
+                    person.setPersonNumber(individualOnBoardDetailsByTrnId.getPersonNumber());
+                    personInfo.setPerson(person);
+
+                    }
+
+                    dto.setPersonInformation(personInfo);
 
                 return dto != null ? dto : null;
             }
@@ -2463,6 +2503,24 @@ public class EmployeeMapper {
     public String updateAddIswm(String GatePassId) {
         try {
             UpdateEmployeeRequestDTO employeeRequestDTO = this.gatePassAddIsmw(GatePassId);
+            String employeeResponse=null;
+            if (employeeRequestDTO == null) {
+
+            } else {
+
+                employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
+
+
+            }
+            return employeeResponse;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String updateAddPersonNumber(String GatePassId) {
+        try {
+            UpdateEmployeeRequestDTO employeeRequestDTO = this.gatePassAddPerson(GatePassId);
             String employeeResponse=null;
             if (employeeRequestDTO == null) {
 

@@ -37,6 +37,8 @@ public class WfdEmployeeService {
     }
     public String getCreateJobUrl() {
         return QueryFileWatcher.getQuery("getURLJOBCREATE");
+    }  public String getCreateTokenApmtUrl() {
+        return QueryFileWatcher.getQuery("getCreateTokenApmtUrl");
     }
 
     public String getCreateLaborCatEntryUrl() {
@@ -814,12 +816,72 @@ public class WfdEmployeeService {
             System.out.println(jsonBody);
             String accessToken = this.wfdAuthService.getAccessToken();
 
+            Integer personKey = this.getPersonKey(
+                    accessToken,
+                    dto.getPersonInformation().getPerson().getPersonNumber()
+            );
+
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(accessToken);
+
+            HttpEntity<String> entity =
+                    new HttpEntity<>(jsonBody, headers);
+
+
+            String url = this.getHostName()
+                    + this.getUpateEmpWFD()
+                    + personKey;
+
+            System.out.println(url);
+            ResponseEntity<String> response =
+                    this.restTemplate.exchange(
+                            url,
+                            HttpMethod.PUT,
+                            entity,
+                            String.class
+                    );
+
+            int status = response.getStatusCodeValue();
+
+            return "STATUS:" + status +
+                    "\nBODY:" + response.getBody();
+
+        }
+        catch (HttpServerErrorException | HttpClientErrorException e) {
+
+            int status =
+                    ((HttpStatusCodeException)e)
+                            .getStatusCode()
+                            .value();
+
+            return "STATUS:" + status +
+                    "\nBODY:" +
+                    ((HttpStatusCodeException)e)
+                            .getResponseBodyAsString();
+
+        }
+        catch (Exception e) {
+
+            return "STATUS:500\nBODY:Error updating employee in WFD API: "
+                    + e.getMessage();
+        }
+    }
+
+
+    public String updateEmployeeAP(UpdateEmployeeRequestDTO dto,String oldPer) {
+        try {
+
+            String jsonBody = this.objectMapper.writeValueAsString(dto);
+
+            System.out.println(jsonBody);
+//            String accessToken = this.wfdAuthService.getAccessToken();
+            String accessToken =getCreateTokenApmtUrl();
 
             Integer personKey = this.getPersonKey(
                     accessToken,
-                    dto.getPersonInformation()
-                            .getPerson()
-                            .getPersonNumber()
+                    oldPer
             );
 
 

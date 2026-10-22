@@ -88,6 +88,7 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getQuerytoFetchAddIswmUpdate");
     }
 
+
     public String getQuerytoFetchListNOTPOSTPunch() {
         return QueryFileWatcher.getQuery("getQueryListPOSTPunch");
     }
@@ -98,6 +99,12 @@ public class GatePassToOnBoardService {
 
     public String getQueryIswmAdd() {
         return QueryFileWatcher.getQuery("getQueryIswmAdd");
+    }
+    public String getQuerytoFetchAddPersonUpdate() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchAddPersonUpdateA");
+    }
+    public String getQueryPersonNAdd() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchAddPersonUpdate");
     }
 
     public String getQueryInsertSuccessEntyUpdate() {
@@ -535,6 +542,26 @@ public class GatePassToOnBoardService {
             log.info("Fetching TranscationId list for reschedule to post ");
             List<String> dtoTrList = new LinkedList();
             String queryGetOnBdByTranId = this.getQuerytoFetchAddIswmUpdate();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+
+            while(sqlRowSet.next()) {
+                String trId = sqlRowSet.getString("GPTranscationId");
+                dtoTrList.add(trId);
+            }
+
+            log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<String> getListAddPersonNumber() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<String> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchAddPersonUpdate();
             log.info("query to get onboardDetails " + queryGetOnBdByTranId);
             SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
 
@@ -1072,9 +1099,32 @@ public class GatePassToOnBoardService {
                 dto = new GatePassToOnBoardAddIsmw();
 
                 dto.setGatePassId(rs.getString("GatePassId"));
-                dto.setAddress(rs.getString("Address"));
-                dto.setISMW(rs.getString("ISMW"));
-                dto.setState(rs.getString("State"));
+                dto.setEICNumber(rs.getString("EICNumber"));
+
+
+            }
+
+            log.info("Exit from getIndividualOnBoardDetailsByTrnId dao method");
+            return dto;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public GatePassToOnBoardAddIsmw getIndividualOnAddPersonNumberByTrnId(String trnsId) {
+        try {
+            log.info("Fetching Onboarding Details to create Employee UKG by Passing GatePassToOnBoard dao ");
+            GatePassToOnBoardAddIsmw dto = null;
+            String queryGetOnBdByTranId = this.getQueryPersonNAdd();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet rs = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId, new Object[]{trnsId});
+            if (rs.next()) {
+                dto = new GatePassToOnBoardAddIsmw();
+
+                dto.setGatePassId(rs.getString("GatePassId"));
+                dto.setPersonNumber(rs.getString("PersonNumber"));
+
+
 
             }
 

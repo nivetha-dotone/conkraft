@@ -116,6 +116,31 @@ public class Requestor {
         return "requesTor/mobilePunchf";
     }
 
+    @GetMapping("/mFaceRegistrationEmp")
+    public String cwfmfaceRegistrationSep(HttpServletRequest request, HttpServletResponse response) {
+
+        HttpSession session = request.getSession(false);
+        MasterUser user = (session != null)
+                ? (MasterUser) session.getAttribute("loginuser")
+                : null;
+
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Integer userId = user.getUserId();
+        List<workMenFaceDropDto> contractors=null;
+        System.out.println(userId);
+        if(userId!=null){
+            contractors=new ArrayList<>();
+            contractors = faceRegistrationRepository.getListWorkmenEmp(userId);
+
+        }
+        request.setAttribute("contractors",contractors);
+
+
+        return "requesTor/mobilePunchfEmp";
+    }
+
 
     @GetMapping("/getAllWorkmen")
     public ResponseEntity<List<workMenFaceDropDto>> getAllWorkmenByID(@RequestParam("userId") Integer userId ,HttpServletRequest request,HttpServletResponse response)

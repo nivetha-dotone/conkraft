@@ -94,6 +94,19 @@ public class CreateEmpFetchByGatePassAPICALL {
 
     }
 
+    @GetMapping({"/updatedEmpAddPersonNumber"})
+    public ResponseEntity<?> upOnBoardingAddPersonNumber() {
+        try {
+            ArrayList<String> strings = this.employeeMapper.gatePassEmpDtoAddPersonNumber();
+            return new ResponseEntity<>(strings, HttpStatusCode.valueOf(200));
+
+        } catch (Exception var2) {
+        }
+
+        return new ResponseEntity<>( HttpStatusCode.valueOf(500));
+
+    }
+
     @GetMapping({"/schedularPunchDB"})
     public void schedularPunchDB() {
         try {

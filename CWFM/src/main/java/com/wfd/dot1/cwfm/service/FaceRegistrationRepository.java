@@ -486,6 +486,7 @@ public class FaceRegistrationRepository {
     public String getWorkmenByContrId() {
         return QueryFileWatcher.getQuery("GET_ALLWORKMEN_BYCON");
     }
+
  public String getWorkmenByContrIdSep() {
         return QueryFileWatcher.getQuery("GET_ALLWORKMEN_BYCONSep");
     }
@@ -518,7 +519,67 @@ public class FaceRegistrationRepository {
 
     }
 
+    public String getWorkmenByLoginId() {
+        return QueryFileWatcher.getQuery("GET_ALLWORKMEN_BYEmp");
+    }
 
+    public List<workMenFaceDropDto> getListWorkmenEmp(Integer userId) {
+
+        List<workMenFaceDropDto> peList = new ArrayList<>();
+
+        if (userId == null) {
+            throw new IllegalArgumentException(
+                    "User account is missing (null). Cannot fetch workmen."
+            );
+        }
+
+        try {
+            log.info("Fetching workmen for userId: {}", userId);
+
+            String query = getWorkmenByLoginId();
+
+            if (query == null || query.trim().isEmpty()) {
+                throw new IllegalStateException(
+                        "SQL query GET_ALLWORKMEN_BYEmp is missing or empty in queries.properties."
+                );
+            }
+
+            log.debug("Executing GET_ALLWORKMEN_BYEmp for userId: {}", userId);
+
+            SqlRowSet rs = jdbcTemplate.queryForRowSet(query, userId);
+
+            while (rs.next()) {
+                workMenFaceDropDto dto = new workMenFaceDropDto();
+
+                dto.setGatePassId(rs.getString("GatePassId"));
+                dto.setFirstName(rs.getString("FirstName"));
+                dto.setLastName(rs.getString("LastName"));
+                dto.setEMPLOYEEID(rs.getString("EMPLOYEEID"));
+
+                peList.add(dto);
+            }
+
+            log.info(
+                    "Fetched {} workmen for userId: {}",
+                    peList.size(),
+                    userId
+            );
+
+            return peList;
+
+        } catch (Exception e) {
+            log.error(
+                    "Failed to fetch workmen for userId: {} using GET_ALLWORKMEN_BYEmp",
+                    userId,
+                    e
+            );
+
+            throw new RuntimeException(
+                    "Error fetching requestor list for userId: " + userId,
+                    e
+            );
+        }
+    }
     public String getWorkmenEmp(String userId) {
         String query = getWorkmenByContrIdSep();
 

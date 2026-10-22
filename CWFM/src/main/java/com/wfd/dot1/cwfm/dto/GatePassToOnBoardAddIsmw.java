@@ -10,13 +10,7 @@ public class GatePassToOnBoardAddIsmw {
 
     private Integer gatePassTypeId;
     private String gatePassId;
-
-
-    private String address;
-
-    private String ISMW;
-    private String State;
-
-
+    private String EICNumber;
+    private String PersonNumber;
 
 }

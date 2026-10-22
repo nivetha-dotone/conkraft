@@ -926,23 +926,15 @@
                                                     <canvas id="canvas"
                                                             style="display:none;">
                                                     </canvas>
-
-                                                    <br><br>
-
                                                     <button type="button"
                                                             class="punch-btn"
                                                             id="startCameraBtn"
                                                             onclick="startFaceCamera()">
                                                         Start Camera
                                                     </button>
-                                                    <br><br>
-
                                                     <div id="status">
                                                         Waiting...
                                                     </div>
-
-                                                    <br>
-
                                                     <div style="
                                                         width:100%;
                                                         height:20px;
