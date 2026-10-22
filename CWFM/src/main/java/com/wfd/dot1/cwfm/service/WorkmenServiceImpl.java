@@ -574,36 +574,6 @@ public class WorkmenServiceImpl implements WorkmenService {
 				throw new RuntimeException("Failed to update GatePass on UNBLOCK/DEBLACKLIST.");
 			}
 
-	        if (!cmsDone) {
-	            throw new RuntimeException("CMS Person Insert failed unexpectedly.");
-	        }
-	        boolean statusUpdated  = workmenDao.updateGatePassMainStatus(gatePassId,dto.getStatus());
-	        if(!statusUpdated) {
-	        	throw new RuntimeException("Gatepassmain status update failed unexpectedly.");
-	        }else {
-	        	try {
-	        	String wfdIntegration = this.getWFDIntegration();
-	        	if("yes".equalsIgnoreCase(wfdIntegration)) {
-	        		api.addOnBoardingDetailsActual(dto.getTransactionId());
-	        	}
-				/////////////////////////////////////////here we have to add
-
-					createLoginOrRole(dto.getGatePassId());
-
-	        	}catch(Exception e) {return result;}
-	        }
-	        return result;
-	    }
-	    if (dto.getGatePassType().equals(GatePassType.PROJECT.getStatus())) {
-	    	   gatePassId = workmenDao.updateGatePassIdByTransactionId(dto.getTransactionId());
-		        gpm.setGatePassId(gatePassId);
-		        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-		        String today = LocalDate.now().format(formatter);
-		        gpm.setDoj(today);
-		        boolean dojUpdated  = workmenDao.updateGatePassMainDOJ(gatePassId,gpm.getDoj());
-		        boolean cmsDone = this.cmsPersonInsert(gpm);
-
-
 			// return result;
 		}
 
@@ -627,6 +597,8 @@ public class WorkmenServiceImpl implements WorkmenService {
 					if ("yes".equalsIgnoreCase(wfdIntegration)) {
 						api.addOnBoardingDetailsActual(dto.getTransactionId());
 					}
+					//employee login creation
+					createLoginOrRole(dto.getGatePassId());
 				} catch (Exception e) {
 					return result;
 				}

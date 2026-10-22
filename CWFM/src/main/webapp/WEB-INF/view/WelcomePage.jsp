@@ -71,6 +71,8 @@
  <script src="resources/js/cms/history.js"></script>
  <script src="resources/js/cms/generateReport.js"></script>
  <script src="resources/js/cms/dynamicScreenFieldsConfig.js"></script>
+ <script src="resources/js/cms/complianceAudit.js"></script>
+ 
  <script>
     window.applicationContextPath =
     	'<%= request.getContextPath() %>';
