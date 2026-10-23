@@ -221,8 +221,7 @@ public class HomeController {
 
 
 	@RequestMapping(path = "/userloginViaUKGSep", method = RequestMethod.GET)
-	public void loginviaUKGSep(@RequestParam("workmenEmp") String workmenEmp,
-						HttpSession session) {
+	public void loginviaUKGSep(@RequestParam("workmenEmp") String workmenEmp) {
 		try {
 //				String workmenEmp = UserDAOImplDao.getWorkmenEmp(userId);
 				System.out.println("Decrypted UserId: " + workmenEmp);
@@ -247,7 +246,6 @@ public class HomeController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			session.setAttribute("msg", "Something went wrong");
 		}
 	}
 

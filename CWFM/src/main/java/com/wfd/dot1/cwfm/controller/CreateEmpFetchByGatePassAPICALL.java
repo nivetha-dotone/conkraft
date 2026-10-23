@@ -31,6 +31,7 @@ public class CreateEmpFetchByGatePassAPICALL {
     @Autowired
     private EmployeeMapperDirect employeeMapperDB;
 
+
     public CreateEmpFetchByGatePassAPICALL() {
     }
 
@@ -98,6 +99,18 @@ public class CreateEmpFetchByGatePassAPICALL {
     public ResponseEntity<?> upOnBoardingAddPersonNumber() {
         try {
             ArrayList<String> strings = this.employeeMapper.gatePassEmpDtoAddPersonNumber();
+            return new ResponseEntity<>(strings, HttpStatusCode.valueOf(200));
+
+        } catch (Exception var2) {
+        }
+
+        return new ResponseEntity<>( HttpStatusCode.valueOf(500));
+
+    }
+    @GetMapping({"/upOnBoardingAddMaster"})
+    public ResponseEntity<?> upOnBoardingAddMaster() {
+        try {
+            ArrayList<String> strings = this.employeeMapper.gatePassEmpDtoAddMaster();
             return new ResponseEntity<>(strings, HttpStatusCode.valueOf(200));
 
         } catch (Exception var2) {

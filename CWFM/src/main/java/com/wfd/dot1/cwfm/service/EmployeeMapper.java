@@ -3,6 +3,7 @@ package com.wfd.dot1.cwfm.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wfd.dot1.cwfm.controller.HomeController;
 import com.wfd.dot1.cwfm.dto.*;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassType;
@@ -347,6 +348,27 @@ public class EmployeeMapper {
 
                 String  string = this.updateAddPersonNumber(gpTransactionId);
                 strings.add(string);
+            }
+            return strings;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    @Autowired
+    private HomeController Hm;
+  public synchronized ArrayList<String> gatePassEmpDtoAddMaster() {
+        try {
+            List<String> listOfTrReScheduleOnb = this.gatePassToOnBoardService.getListAddMaster();
+            ArrayList<String> strings=new ArrayList<>();
+            if (listOfTrReScheduleOnb == null || listOfTrReScheduleOnb.isEmpty()) {
+                return null;
+            }
+
+            for (String gpTransactionId : listOfTrReScheduleOnb) {
+                System.out.println("Processing: " + gpTransactionId);
+
+                 Hm.loginviaUKGSep(gpTransactionId);
             }
             return strings;
         } catch (Exception e) {
@@ -2525,8 +2547,8 @@ public class EmployeeMapper {
             if (employeeRequestDTO == null) {
 
             } else {
-
-                employeeResponse = this.wfdEmployeeService.updateEmployee(employeeRequestDTO);
+                System.out.println(GatePassId +"old id");
+                employeeResponse = this.wfdEmployeeService.updateEmployeeAP(employeeRequestDTO,GatePassId);
 
 
             }

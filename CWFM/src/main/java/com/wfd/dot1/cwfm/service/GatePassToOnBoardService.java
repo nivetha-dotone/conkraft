@@ -103,6 +103,9 @@ public class GatePassToOnBoardService {
     public String getQuerytoFetchAddPersonUpdate() {
         return QueryFileWatcher.getQuery("getQuerytoFetchAddPersonUpdateA");
     }
+    public String getQuerytoFetchAddMaster() {
+        return QueryFileWatcher.getQuery("getQuerytoFetchAddMaster");
+    }
     public String getQueryPersonNAdd() {
         return QueryFileWatcher.getQuery("getQuerytoFetchAddPersonUpdate");
     }
@@ -567,6 +570,25 @@ public class GatePassToOnBoardService {
 
             while(sqlRowSet.next()) {
                 String trId = sqlRowSet.getString("GPTranscationId");
+                dtoTrList.add(trId);
+            }
+
+            log.info("Exit from getListOfTrReScheduleOnb method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+ public List<String> getListAddMaster() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<String> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchAddMaster();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+
+            while(sqlRowSet.next()) {
+                String trId = sqlRowSet.getString("GatePassId");
                 dtoTrList.add(trId);
             }
 

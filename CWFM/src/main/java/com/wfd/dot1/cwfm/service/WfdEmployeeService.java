@@ -936,12 +936,14 @@ public class WfdEmployeeService {
     public Integer getPersonKey(String accessToken, String personNumber) {
         try {
             String jsonBody = "{\n  \"where\": {\n    \"employees\": {\n      \"key\": \"personnumber\",\n      \"values\": [\"" + personNumber + "\"]\n    }\n  }\n}";
+            System.out.println(jsonBody);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(accessToken);
             HttpEntity<String> entity = new HttpEntity(jsonBody, headers);
             String var10000 = this.getHostName();
             String url = var10000 + this.getFindPersonKey();
+            System.out.println();
             ResponseEntity<String> response = this.restTemplate.exchange(url, HttpMethod.POST, entity, String.class, new Object[0]);
             JsonNode root = this.objectMapper.readTree((String)response.getBody());
             JsonNode idsNode = root.path("ids");

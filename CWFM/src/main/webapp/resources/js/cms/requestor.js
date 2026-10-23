@@ -984,7 +984,7 @@ async function recognizeLoop()
       await sleep(1000);
     }
   }
-<<<<<<< HEAD
+
 }
 
 
@@ -1157,8 +1157,8 @@ async function recognizeLoopSep() {
         video.style.display = "none";
         overlay.style.display = "none";
 
-        // successBadge.style.display = "block";
-        // successBadge.textContent = "✅ PUNCH SUCCESS";
+        successBadge.style.display = "block";
+        successBadge.textContent = "✅ PUNCH SUCCESS";
 
         resultElement.textContent = "✅ Punch Success";
 
@@ -1692,8 +1692,7 @@ function getCurrentLocationSep() {
         }
     );
   });
-=======
->>>>>>> f999b70 (add validation for custom field)
+
 }
 
 
