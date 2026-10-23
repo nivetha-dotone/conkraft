@@ -74,3 +74,24 @@ function generateRegistrationLinkBtn () {
         }
     });
 }
+
+function redirectToSelfRegistration() {
+    var xhr = new XMLHttpRequest();
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+
+            // Load self-registration page
+            document.getElementById("mainContent").innerHTML = xhr.responseText;
+
+            // Initialize dates
+            setDateRange();
+
+            // Initialize auto-selects
+            initializeAutoSelects();
+        }
+    };
+
+    xhr.open("GET", "/CWFM/contractworkmen/selfRegisrtationOB", true);
+    xhr.send();
+}

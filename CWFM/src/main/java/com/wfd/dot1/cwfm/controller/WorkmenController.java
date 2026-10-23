@@ -4680,4 +4680,56 @@ public class WorkmenController {
 	        return null;
 	    }
 	}
+	@GetMapping("/selfRegisrtationOB")
+	public String selfRegistrationCreateGatePass(HttpServletRequest request, HttpServletResponse response) {
+
+		HttpSession session = request.getSession(false); // Use `false` to avoid creating a new session
+		MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
+		log.info("Entered into addQuickOBForm" + user.getUserId());
+
+		String transactionId = workmenService.generateTransactionId();
+		request.setAttribute("transactionId", transactionId);
+		// workmenService.createDraftGatepass(transactionId,String.valueOf(user.getUserId()));
+		List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
+		Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()
+				.collect(Collectors.groupingBy(PersonOrgLevel::getLevelDef));
+		List<PersonOrgLevel> peList = groupedByLevelDef.getOrDefault("Principal Employer", new ArrayList<>());
+		// List<PersonOrgLevel> departments = groupedByLevelDef.getOrDefault("Dept", new
+		// ArrayList<>());
+		// List<PersonOrgLevel> subdepartments = groupedByLevelDef.getOrDefault("Area",
+		// new ArrayList<>());
+		//request.setAttribute("PrincipalEmployer", peList);
+		// request.setAttribute("Dept", departments);
+		// request.setAttribute("Subdept", subdepartments);
+
+		// Skills
+		// List<Skill> skillList = workmenService.getAllSkill();
+		// request.setAttribute("Skills", skillList);
+		// Eic
+		// List<MasterUser> eicList =
+		// workmenService.getAllEicManager(user.getUserAccount());
+		// request.setAttribute("EIC", eicList);
+		// Get All GeneralMaster
+		List<CmsGeneralMaster> gmList = workmenService.getAllGeneralMaster();
+
+		// Grouping the CmsGeneralMaster objects by gmType
+		Map<String, List<CmsGeneralMaster>> groupedByGmType = gmList.stream()
+				.collect(Collectors.groupingBy(CmsGeneralMaster::getGmType));
+
+		// Define the types and their corresponding request attribute names
+		Map<String, String> attributeMapping = Map.of("GENDER", "GenderOptions", "BLOODGROUP", "BloodGroup",
+				"ACCESSAREA", "AccessArea", "ACADEMICS", "Academics", "WAGECATEGORY", "WageCategory", "BONUSPAYOUT",
+				"BonusPayout",
+				// "ZONE", "Zone",
+				"WORKMENTYPE", "WorkmenType", "PROFICIENCY", "Proficiency");
+
+		// Iterate over the attribute mappings and set the request attributes
+		// dynamically
+		attributeMapping.forEach((type, attributeName) -> {
+			List<CmsGeneralMaster> gmList1 = groupedByGmType.getOrDefault(type, new ArrayList<>());
+			request.setAttribute(attributeName, gmList1);
+		});
+
+		return "contractWorkmen/selfRegistrationOnboarding";
+	}
 }
