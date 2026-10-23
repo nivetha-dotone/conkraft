@@ -1337,41 +1337,93 @@ public class WorkmenDaoImpl implements WorkmenDao {
 	}
 
 	@Override
+
 	public List<ApproverStatusDTO> getApprovalDetails(String transactionId, String unitId, String gatePassTypeId,
+
 			String comments) {
+
 		// Fetch approvers from GATEPASSAPPROVERINFO
+
 		List<ApproverInfo> approverList = this.getApproversByGatePassId(gatePassTypeId, unitId);
 
 		// Fetch approval statuses from GATEPASSAPPROVALSTATUS
+
 		List<ApprovalStatus> approvalStatuses = this.getApprovalStatusByGatePassId(transactionId, gatePassTypeId);
 
 		// Map to hold approval status by User ID
+
 		Map<String, ApprovalStatus> statusMap = approvalStatuses.stream()
+
 				.collect(Collectors.toMap(ApprovalStatus::getUserRole, status -> status));
 
 		// Prepare the DTO list
+
 		List<ApproverStatusDTO> approverStatusList = new ArrayList<>();
+
 		for (ApproverInfo approver : approverList) {
+
 			ApproverStatusDTO dto = new ApproverStatusDTO();
 
 			dto.setUserRole(approver.getUserRole().toUpperCase());
+
 			if (!"Workmen Bulk Upload".equals(comments)) {
+
 				if (statusMap.containsKey(approver.getUserRole())) {
+
 					ApprovalStatus status = statusMap.get(approver.getUserRole());
+
 					dto.setStatus(status.getStatus() == 4 ? "Approved" : "Rejected");
+
 					dto.setComments(status.getComments());
+
 					dto.setTimestamp(status.getLastUpdatedDate());
+
 				} else {
+
 					dto.setStatus("Pending");
+
 					dto.setComments("");
+
 					dto.setTimestamp(null);
+
 				}
 
 				approverStatusList.add(dto);
+
+			}else {//workmen bulk upload other actions approval list
+
+				if(!gatePassTypeId.equals(GatePassType.CREATE.getStatus()) ) {
+
+					if (statusMap.containsKey(approver.getUserRole())) {
+
+						ApprovalStatus status = statusMap.get(approver.getUserRole());
+
+						dto.setStatus(status.getStatus() == 4 ? "Approved" : "Rejected");
+
+						dto.setComments(status.getComments());
+
+						dto.setTimestamp(status.getLastUpdatedDate());
+
+					} else {
+
+						dto.setStatus("Pending");
+
+						dto.setComments("");
+
+						dto.setTimestamp(null);
+
+					}
+
+					approverStatusList.add(dto);
+
+				}
+
 			}
+
 		}
 
 		return approverStatusList;
+
 	}
 
 	private List<ApproverInfo> getApproversByGatePassId(String gatePassTypeId, String unitId) {
