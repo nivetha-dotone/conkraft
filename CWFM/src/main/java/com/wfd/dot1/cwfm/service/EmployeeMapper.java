@@ -1203,7 +1203,7 @@ public class EmployeeMapper {
 
 
 
-                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/" +individualOnBoardDetailsByTrnId.getCompany() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;
+                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;
                 System.out.println(orgPath);
 
 
