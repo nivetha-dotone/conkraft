@@ -26,6 +26,7 @@ import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.GatePassMain;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 
 
 @Repository
@@ -102,7 +103,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
             return 0;
         }
     }
-
+	public String getActiveContractors() {
+		return QueryFileWatcher.getQuery("GET_ACTIVE_CONTRACTORS_FOR_CHATBOT");
+	}
     @Override
     public List<ActiveContractorDTO> getActiveContractors(List<PersonOrgLevel> peList) {
 
@@ -116,16 +119,16 @@ public class ChatBotDAOImpl implements ChatBotDAO {
                     .map(p -> Long.valueOf(p.getId()))
                     .collect(Collectors.toList());
 
-            String sql =
-                    "SELECT DISTINCT " +
-                    "mm.CONTRACTORID, " +
-                    "cc.NAME AS CONTRACTORNAME " +
-                    "FROM CMSCONTRPEMM mm " +
-                    "INNER JOIN CMSCONTRACTOR cc " +
-                    "ON cc.CONTRACTORID = mm.CONTRACTORID " +
-                    "WHERE mm.UNITID IN (:peIds) " +
-                    "AND GETDATE() BETWEEN mm.VALIDFROMDT AND mm.VALIDTODT " +
-                    "ORDER BY cc.NAME";
+            String sql =getActiveContractors();
+//                    "SELECT DISTINCT " +
+//                    "mm.CONTRACTORID, " +
+//                    "cc.NAME AS CONTRACTORNAME " +
+//                    "FROM CMSCONTRPEMM mm " +
+//                    "INNER JOIN CMSCONTRACTOR cc " +
+//                    "ON cc.CONTRACTORID = mm.CONTRACTORID " +
+//                    "WHERE mm.UNITID IN (:peIds) " +
+//                    "AND GETDATE() BETWEEN mm.VALIDFROMDT AND mm.VALIDTODT " +
+//                    "ORDER BY cc.NAME";
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue("peIds", peIds);
@@ -241,6 +244,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
         }
 
     }
+	public String getCreatePendingApprovals() {
+		return QueryFileWatcher.getQuery("GET_CREATE_PENDING_APPROVALS");
+	}
     @Override
     public List<GatePassMain> getCreatePendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -258,9 +264,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
         	 if (peIds.isEmpty() || contIds.isEmpty()) {
                  return Collections.emptyList();
              }
-
-            String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='regular' and GatePassTypeId='1' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+        	 String sql =getCreatePendingApprovals();
+//            String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='regular' and GatePassTypeId='1' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -298,6 +304,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
             return Collections.emptyList();
         }
     }
+    public String getQuickPendingApprovals() {
+		return QueryFileWatcher.getQuery("GET_QUICK_PENDING_APPROVALS");
+	}
     @Override
     public List<GatePassMain> getQuickPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -315,9 +324,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
         	 if (peIds.isEmpty() || contIds.isEmpty()) {
                  return Collections.emptyList();
              }
-
-            String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='quick' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+        	 String sql =getQuickPendingApprovals();
+//            String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//            		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and OnboardingType='quick' and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -349,6 +358,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
             return Collections.emptyList();
         }
     }
+    public String getProjectPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_PROJECT_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getProjectPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -366,9 +378,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=12 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	String sql =getProjectPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=12 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -406,6 +418,10 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    
+    public String getBlockPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_BLOCK_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getBlockPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -423,9 +439,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=4 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	String sql =getBlockPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=4 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -463,6 +479,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getUnblockPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_UNBLOCK_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getUnblockPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -480,9 +499,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=5 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	 String sql =getUnblockPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=5 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -520,6 +539,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getBlacklistPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_BLACKLIST_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getBlacklistPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -537,9 +559,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=6 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	String sql =getBlacklistPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=6 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -577,6 +599,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getDeblacklistPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_DEBLACKLIST_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getDeblacklistPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -594,9 +619,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=7 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	 String sql =getDeblacklistPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=7 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -634,6 +659,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getCancelPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_CANCEL_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getCancelPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -651,9 +679,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=9 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	 String sql = getCancelPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=9 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -691,6 +719,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getRenewPendingApprovals() {
+  		return QueryFileWatcher.getQuery("GET_RENEW_PENDING_APPROVALS");
+  	}
     @Override
     public List<GatePassMain>  getRenewPendingApprovals(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -708,9 +739,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
-           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=2 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	String sql = getRenewPendingApprovals();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, gpm.GatePassStatus\r\n"
+//           		+ "from GATEPASSMAIN gpm where GatePassStatus=3 and GatePassTypeId=2 and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -748,6 +779,11 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    
+    public String getTodayGatePass() {
+  		return QueryFileWatcher.getQuery("GET_TODAY_GATEPASSES");
+  	}
+    
     @Override
     public List<GatePassMain>  getTodayGatePass(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -766,9 +802,10 @@ public class ChatBotDAOImpl implements ChatBotDAO {
                 return Collections.emptyList();
             }
 
-           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, \r\n"
-           		+ "gpm.GatePassStatus,gpm.OnboardingType from GATEPASSMAIN gpm where GatePassTypeId in (1,12) and CAST(updateddate as date) = CAST(GETDATE() AS DATE) \r\n"
-           		+ "and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
+       	String sql = getTodayGatePass();
+//           String sql ="select gpm.TransactionId,gpm.AadharNumber as aadhar,CASE WHEN gpm.GatePassId = '' THEN '-' ELSE gpm.GatePassId END AS GatePassId, \r\n"
+//           		+ "gpm.GatePassStatus,gpm.OnboardingType from GATEPASSMAIN gpm where GatePassTypeId in (1,12) and CAST(updateddate as date) = CAST(GETDATE() AS DATE) \r\n"
+//           		+ "and gpm.UnitId IN (:peIds) and gpm.ContractorId in (:contIds) ORDER BY gpm.TransactionId DESC";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -807,6 +844,11 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    
+    public String getWorkOrderList() {
+  		return QueryFileWatcher.getQuery("GET_ACTIVE_WORKORDERS_LIST");
+  	}
+    
     @Override
     public List<WorkOrderDTO> getWorkOrderList(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -825,9 +867,10 @@ public class ChatBotDAOImpl implements ChatBotDAO {
                 return Collections.emptyList();
             }
 
-           String sql ="SELECT wo.SAP_WORKORDER_NUM as woNumber,cpe.CODE AS pecode,cmc.CODE AS contcode,CAST(wo.VALIDFROM AS DATE) AS validFrom,CAST(wo.VALIDDT AS DATE) AS validTo,COUNT(gm.TransactionId) AS workmenCount\r\n"
-           		+ "FROM CMSWORKORDER wo INNER JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UNITID = wo.UNITID INNER JOIN CMSCONTRACTOR cmc ON cmc.CONTRACTORID = wo.CONTRACTORID\r\n"
-           		+ "LEFT JOIN GATEPASSMAIN gm ON gm.WorkorderId = wo.WORKORDERID AND gm.GatePassStatus = 4 and GatePassTypeId in (1,12,2) and gm.dot>GETDATE() WHERE wo.UnitId IN (:peIds) AND wo.ContractorId in (:contIds) AND wo.VALIDDT >= CAST(GETDATE() AS DATE) GROUP BY wo.SAP_WORKORDER_NUM, cpe.CODE,cmc.CODE,wo.VALIDFROM,wo.VALIDDT ORDER BY wo.SAP_WORKORDER_NUM";
+       	 String sql = getWorkOrderList();
+//           String sql ="SELECT wo.SAP_WORKORDER_NUM as woNumber,cpe.CODE AS pecode,cmc.CODE AS contcode,CAST(wo.VALIDFROM AS DATE) AS validFrom,CAST(wo.VALIDDT AS DATE) AS validTo,COUNT(gm.TransactionId) AS workmenCount\r\n"
+//           		+ "FROM CMSWORKORDER wo INNER JOIN CMSPRINCIPALEMPLOYER cpe ON cpe.UNITID = wo.UNITID INNER JOIN CMSCONTRACTOR cmc ON cmc.CONTRACTORID = wo.CONTRACTORID\r\n"
+//           		+ "LEFT JOIN GATEPASSMAIN gm ON gm.WorkorderId = wo.WORKORDERID AND gm.GatePassStatus = 4 and GatePassTypeId in (1,12,2) and gm.dot>GETDATE() WHERE wo.UnitId IN (:peIds) AND wo.ContractorId in (:contIds) AND wo.VALIDDT >= CAST(GETDATE() AS DATE) GROUP BY wo.SAP_WORKORDER_NUM, cpe.CODE,cmc.CODE,wo.VALIDFROM,wo.VALIDDT ORDER BY wo.SAP_WORKORDER_NUM";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -856,7 +899,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
-    
+    public String getPrincipalEmployers() {
+  		return QueryFileWatcher.getQuery("GET_ACTIVE_PRINCIPALEMPLOYERS_LIST");
+  	}
     @Override
     public List<PrincipalEmployerDTO> getPrincipalEmployers(List<PersonOrgLevel> peList){
 
@@ -872,7 +917,8 @@ public class ChatBotDAOImpl implements ChatBotDAO {
                 return Collections.emptyList();
             }
 
-           String sql ="select NAME as principalEmployerName,CODE as pecode from CMSPRINCIPALEMPLOYER where UnitId IN (:peIds)";
+       	String sql = getPrincipalEmployers();
+//           String sql ="select NAME as principalEmployerName,CODE as pecode from CMSPRINCIPALEMPLOYER where UnitId IN (:peIds)";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -895,6 +941,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
+    public String getLicenseExpiryList() {
+  		return QueryFileWatcher.getQuery("GET_LICENSE_EXPIRY_LIST");
+  	}
     @Override
     public List<LicenseExpiryDTO> getLicenseExpiryList(List<PersonOrgLevel> peList, List<PersonOrgLevel> contList){
 
@@ -912,9 +961,9 @@ public class ChatBotDAOImpl implements ChatBotDAO {
        	 if (peIds.isEmpty() || contIds.isEmpty()) {
                 return Collections.emptyList();
             }
-
-           String sql ="SELECT cwc.WC_CODE as licenseNumber,cmc.NAME AS contractorName,CAST(cwc.WC_TO_DTM AS DATE) AS validto,DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(cwc.WC_TO_DTM AS DATE)) AS daysToExpire FROM CMSCONTRACTOR_WC cwc JOIN CMSCONTRACTOR cmc ON cmc.CONTRACTORID = cwc.CONTRACTORID join CMSPRINCIPALEMPLOYER cpe on cpe.UNITID=cwc.UNITID\r\n"
-           		+ "WHERE CAST(cwc.WC_TO_DTM AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)) and cwc.UNITID IN (:peIds) and cwc.CONTRACTORID in (:contIds) ORDER BY cwc.WC_TO_DTM";
+       	String sql = getLicenseExpiryList();
+//           String sql ="SELECT cwc.WC_CODE as licenseNumber,cmc.NAME AS contractorName,CAST(cwc.WC_TO_DTM AS DATE) AS validto,DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(cwc.WC_TO_DTM AS DATE)) AS daysToExpire FROM CMSCONTRACTOR_WC cwc JOIN CMSCONTRACTOR cmc ON cmc.CONTRACTORID = cwc.CONTRACTORID join CMSPRINCIPALEMPLOYER cpe on cpe.UNITID=cwc.UNITID\r\n"
+//           		+ "WHERE CAST(cwc.WC_TO_DTM AS DATE) BETWEEN CAST(GETDATE() AS DATE) AND DATEADD(DAY, 30, CAST(GETDATE() AS DATE)) and cwc.UNITID IN (:peIds) and cwc.CONTRACTORID in (:contIds) ORDER BY cwc.WC_TO_DTM";
 
 
            MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -941,19 +990,21 @@ public class ChatBotDAOImpl implements ChatBotDAO {
            return Collections.emptyList();
        }
     }
-    
+    public String getTrainingVideo() {
+  		return QueryFileWatcher.getQuery("GET_TRAINING_VIDEO");
+  	}
     public ChatBotVideoDTO getTrainingVideo(String moduleName) {
 
-        String sql =
-                "SELECT " +
-                "VIDEOID," +
-                "MODULENAME," +
-                "VIDEOTITLE," +
-                "DESCRIPTION," +
-                "VIDEOURL " +
-                "FROM CHATBOT_VIDEO_MASTER " +
-                "WHERE MODULENAME=? " +
-                "AND ISACTIVE=1";
+        String sql =getTrainingVideo();
+//                "SELECT " +
+//                "VIDEOID," +
+//                "MODULENAME," +
+//                "VIDEOTITLE," +
+//                "DESCRIPTION," +
+//                "VIDEOURL " +
+//                "FROM CHATBOT_VIDEO_MASTER " +
+//                "WHERE MODULENAME=? " +
+//                "AND ISACTIVE=1";
 
         List<ChatBotVideoDTO> list =
                 jdbcTemplate.query(

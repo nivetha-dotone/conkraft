@@ -5490,12 +5490,15 @@ public class WorkmenDaoImpl implements WorkmenDao {
 
 		}, principalEmployerId, tradeId, skillId);
 	}
-
+	public String getMedicalCheckupRequirement() {
+		return QueryFileWatcher.getQuery("GET_MEDICAL_CHECKUP_REQUIREMENT");
+	}
+	
 	@Override
 	public String getMedicalCheckupRequirement(String principalEmployerId, String tradeId, String skillId) {
-
-		String sql = "SELECT TOP 1 MedicalCheckup " + "FROM UnitTradeSkillMapping " + "WHERE PrincipalEmployerId = ? "
-				+ "AND TradeId = ? " + "AND SkillId = ?";
+		String sql = getMedicalCheckupRequirement();
+//		String sql = "SELECT TOP 1 MedicalCheckup " + "FROM UnitTradeSkillMapping " + "WHERE PrincipalEmployerId = ? "
+//				+ "AND TradeId = ? " + "AND SkillId = ?";
 
 		try {
 			return jdbcTemplate.queryForObject(sql, String.class, principalEmployerId, tradeId, skillId);

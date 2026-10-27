@@ -640,10 +640,16 @@ public boolean isLastApproverForParallel( String transactionId, String roleId,St
     log.info("Exit from isLastApproverForParallel method = " + status);
     return status;
 }
+public String getLicensesByWorkOrder() {
+	return QueryFileWatcher.getQuery("GET_LICENSES_BY_WORKORDER");
+}
+
+
 @Override
 public List<LicenseDto> getLicensesByWorkOrder(String workOrder) {
 
-    String sql = "SELECT WOLLID, LICENSE_NUMBER FROM CMSWORKORDER_LLWC WHERE WONUMBER = ?";
+	 String sql =getLicensesByWorkOrder();
+   // String sql = "SELECT WOLLID, LICENSE_NUMBER FROM CMSWORKORDER_LLWC WHERE WONUMBER = ?";
 
     return jdbcTemplate.query(sql, new Object[]{workOrder}, (rs, rowNum) -> {
         LicenseDto dto = new LicenseDto();
@@ -653,10 +659,14 @@ public List<LicenseDto> getLicensesByWorkOrder(String workOrder) {
     });
 }
 
+public String getValidUptoByLicense() {
+	return QueryFileWatcher.getQuery("GET_VALIDITY_UPTO_BY_LICENSES");
+}
+
 @Override
 public String getValidUptoByLicense(String licenseNumber) {
-
-    String sql = "SELECT WC_TO_DTM FROM CMSCONTRACTOR_WC WHERE WC_CODE = ?";
+	String sql =getValidUptoByLicense();
+    //String sql = "SELECT WC_TO_DTM FROM CMSCONTRACTOR_WC WHERE WC_CODE = ?";
 
     return jdbcTemplate.queryForObject(
             sql,
@@ -932,20 +942,23 @@ public int saveWageCostReport(
 
 	    return existingNumbers;
 	}
+	public String findExistingGatePassNumbersForRanges() {
+		return QueryFileWatcher.getQuery("GET_EXISTING_GATEPASSNUMBERS_FOR_DATE_RANGES");
+	}
 	@Override
 	public List<String> findExistingGatePassNumbersForRanges(
 	        List<Map<String, Object>> reportRows) {
 
 	    Set<String> duplicates = new LinkedHashSet<>();
 
-	    String sql =
-	            "SELECT CASE WHEN EXISTS ( " +
-	            "    SELECT 1 " +
-	            "    FROM CMSWAGECOSTREPORT " +
-	            "    WHERE EntryPassNumber = ? " +
-	            "      AND FromDate = ? " +
-	            "      AND ToDate = ? " +
-	            ") THEN 1 ELSE 0 END";
+	    String sql =findExistingGatePassNumbersForRanges();
+//	            "SELECT CASE WHEN EXISTS ( " +
+//	            "    SELECT 1 " +
+//	            "    FROM CMSWAGECOSTREPORT " +
+//	            "    WHERE EntryPassNumber = ? " +
+//	            "      AND FromDate = ? " +
+//	            "      AND ToDate = ? " +
+//	            ") THEN 1 ELSE 0 END";
 
 	    for (Map<String, Object> row : reportRows) {
 

@@ -4054,16 +4054,23 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	          throw new RuntimeException("CMSPERSONCUSTOMDATA insert failed",e);
 	      }
 		}
+	public String checkTrainingDetailsExists() {
+		return QueryFileWatcher.getQuery("CHECK_TRAINING_DETAILS_EXISTS");
+	}
+	public String saveTrainingDetails() {
+		return QueryFileWatcher.getQuery("SAVE_TRAINING_DETAILS");
+	}
 	@Override
 	public boolean checkTrainingDetailsExists(Integer unitId, String department,String trainingType,String trainingName) {
-		//String sql=trioexistsMapping();
-		String sql = "select count(*) from CMSTRAININGDETAILS where UNIT_ID=? and DEP_NAME=? and TRAINING_TYPE=? and TRAINING_NAME=?";
+		String sql=checkTrainingDetailsExists();
+		//String sql = "select count(*) from CMSTRAININGDETAILS where UNIT_ID=? and DEP_NAME=? and TRAINING_TYPE=? and TRAINING_NAME=?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, unitId, department,trainingType,trainingName);
         return count != null && count > 0;
 	}
 	@Override 
 	public void saveTrainingDetails( Integer unitId, String department, String trainingType, String trainingName) { 
-		String sql = "INSERT INTO CMSTRAININGDETAILS (UNIT_ID, DEP_NAME, TRAINING_TYPE, TRAINING_NAME,MANDATORY) VALUES (?, ?, ?, ?,'YES')";
+		String sql=saveTrainingDetails();
+		//String sql = "INSERT INTO CMSTRAININGDETAILS (UNIT_ID, DEP_NAME, TRAINING_TYPE, TRAINING_NAME,MANDATORY) VALUES (?, ?, ?, ?,'YES')";
 		jdbcTemplate.update( sql, unitId, department, trainingType,trainingName );
 		}
 }

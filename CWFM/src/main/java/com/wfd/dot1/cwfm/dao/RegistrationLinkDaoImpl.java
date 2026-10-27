@@ -11,33 +11,38 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.pojo.RegistrationLink;
+import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 @Repository
 public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	   @Autowired
 	    private JdbcTemplate jdbcTemplate;
+	   
+	   public String saveRegistrationLink() {
+		    return QueryFileWatcher.getQuery("SAVE_REGISTRATION_LINK");
+	    }
 	@Override
 	public Long saveRegistrationLink(RegistrationLink link, String tokenHash) {
 		// TODO Auto-generated method stub
 	
 
-	        String sql = """
-	            INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
-	            (
-	                TokenHash,
-	                UnitId,
-	                ContractorId,
-	                WorkorderId,
-	                DepartmentId,
-	                AreaId,
-	                WcEsicNo,
-	                LlNo,
-	                CreatedBy,
-	                ExpiryDate,
-	                IsActive
-	            )
-	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-	            """;
+	        String sql = saveRegistrationLink();
+//	            INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
+//	            (
+//	                TokenHash,
+//	                UnitId,
+//	                ContractorId,
+//	                WorkorderId,
+//	                DepartmentId,
+//	                AreaId,
+//	                WcEsicNo,
+//	                LlNo,
+//	                CreatedBy,
+//	                ExpiryDate,
+//	                IsActive
+//	            )
+//	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+	            //""";
 
 	        KeyHolder keyHolder = new GeneratedKeyHolder();
 
