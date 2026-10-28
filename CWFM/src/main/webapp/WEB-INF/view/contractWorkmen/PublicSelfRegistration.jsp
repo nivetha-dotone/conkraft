@@ -45,6 +45,7 @@
 <c:if test="${empty registrationLink}"><div class="sr-alert">A valid registration link is required to access this form.</div></c:if>
 <form id="publicRegistrationForm" method="post" enctype="multipart/form-data" autocomplete="off">
 <input type="hidden" name="registrationToken" value="<c:out value='${registrationToken}'/>">
+<c:if test="${not empty _csrf}"><input type="hidden" name="${_csrf.parameterName}" value="<c:out value='${_csrf.token}'/>" /></c:if>
 <div class="sr-tabs" role="tablist" aria-label="Registration sections">
 <button type="button" class="sr-tab" role="tab" aria-selected="true" aria-controls="sr-panel-0" id="sr-tab-0" onclick="srGo(0)">Basic Data</button>
 <button type="button" class="sr-tab" role="tab" aria-selected="false" aria-controls="sr-panel-1" id="sr-tab-1" onclick="srGo(1)">Employment Information</button>
@@ -58,27 +59,27 @@
 <div class="sr-field"><label for="lastName">Last Name <span class="sr-required">*</span></label><input type="text" id="lastName" name="lastName" required></div>
 <div class="sr-field"><label for="relationName">Father / Spouse Name </label><input type="text" id="relationName" name="relationName"></div>
 <div class="sr-field"><label for="dateOfBirth">Date of Birth <span class="sr-required">*</span></label><input type="date" id="dateOfBirth" name="dateOfBirth" required></div>
-<div class="sr-field"><label for="gender">Gender <span class="sr-required">*</span></label><select id="gender" name="gender" required><option value="">Select Gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+<div class="sr-field"><label for="gender">Gender <span class="sr-required">*</span></label><select id="gender" name="gender" required><option value="">Select Gender</option><c:forEach var="option" items="${GenderOptions}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
 <div class="sr-field"><label for="idMark">Identification Mark </label><input type="text" id="idMark" name="idMark"></div>
 <div class="sr-field"><label for="mobileNumber">Mobile Number <span class="sr-required">*</span></label><input type="tel" id="mobileNumber" name="mobileNumber" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" required></div>
-<div class="sr-field"><label for="maritalStatus">Marital Status </label><select id="maritalStatus" name="maritalStatus"><option value="">Select Marital Status</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Divorced">Divorced</option></select></div>
+<div class="sr-field"><label for="maritalStatus">Marital Status </label><select id="maritalStatus" name="maritalStatus"><option value="">Select Marital Status</option><option value="Married">Married</option><option value="Unmarried">Unmarried</option></select></div>
 <div class="sr-field"><label for="disability">Disability </label><select id="disability" name="disability"><option value="">Select Disability</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
 <div class="sr-field"><label for="workmenType">Workman Type </label><select id="workmenType" name="workmenType"><option value="">Select Workman Type</option><c:forEach var="option" items="${WorkmenType}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
 <div class="sr-field"><label for="address">Address <span class="sr-required">*</span></label><textarea id="address" name="address" required></textarea></div>
 </div></section>
 <section class="sr-panel" id="sr-panel-1" role="tabpanel" aria-labelledby="sr-tab-1" hidden><h3>Employment Information</h3><div class="sr-grid">
-<div class="sr-field"><label for="principalEmployer">Principal Employer <span class="sr-required">*</span></label><input id="principalEmployer" readonly value="<c:out value='${fn:escapeXml(employmentDetails.peName)}'/>" /></div>
-<div class="sr-field"><label for="contractor">Contractor <span class="sr-required">*</span></label><input id="contractor" readonly value="<c:out value='${fn:escapeXml(employmentDetails.contractorName)}'/>" /></div>
-<div class="sr-field"><label for="workorder">Work Order <span class="sr-required">*</span></label><input id="workorder" readonly value="<c:out value='${fn:escapeXml(employmentDetails.woNumber)}'/>" /></div>
+<div class="sr-field"><label for="principalEmployer">Principal Employer <span class="sr-required">*</span></label><input id="principalEmployer" readonly value="<c:out value='${employmentDetails.peName}'/>" /></div>
+<div class="sr-field"><label for="contractor">Contractor <span class="sr-required">*</span></label><input id="contractor" readonly value="<c:out value='${employmentDetails.contractorName}'/>" /></div>
+<div class="sr-field"><label for="workorder">Work Order <span class="sr-required">*</span></label><input id="workorder" readonly value="<c:out value='${employmentDetails.woNumber}'/>" /></div>
 <div class="sr-field"><label for="department">Department <span class="sr-required">*</span></label><input id="department" readonly value="<c:out value='${selectedDepartmentId}'/>" /></div>
 <div class="sr-field"><label for="subdepartment">Area <span class="sr-required">*</span></label><input id="subdepartment" readonly value="<c:out value='${selectedAreaId}'/>" /></div>
-<div class="sr-field"><label for="eic">Engineering-in-Charge </label><input id="eic" readonly value="<c:out value='${selectedEicId}'/>" /" /></div>
+<div class="sr-field"><label for="eic">Engineering-in-Charge </label><input id="eic" readonly value="<c:out value='${selectedEicName}'/>" /></div>
 <div class="sr-field"><label for="trade">Trade </label><input id="trade" readonly value="" /></div>
 <div class="sr-field"><label for="skill">Skill </label><input id="skill" readonly value="" /></div>
-<div class="sr-field"><label for="wcEsicNo">WC Policy / ESIC Reg Number <span class="sr-required">*</span></label><input id="wcEsicNo" readonly value="<c:out value='${fn:escapeXml(employmentDetails.wcEsicNo)}'/>" /></div>
-<div class="sr-field"><label for="llNo">Labour Licence Number </label><input id="llNo" readonly value="<c:out value='${fn:escapeXml(employmentDetails.llNo)}'/>" /></div>
+<div class="sr-field"><label for="wcEsicNo">WC Policy / ESIC Reg Number <span class="sr-required">*</span></label><input id="wcEsicNo" readonly value="<c:out value='${employmentDetails.wcEsicNo}'/>" /></div>
+<div class="sr-field"><label for="llNo">Labour Licence Number </label><input id="llNo" readonly value="<c:out value='${employmentDetails.llNo}'/>" /></div>
 <div class="sr-field"><label for="hazardousArea">Hazardous Area <span class="sr-required">*</span></label><select id="hazardousArea" name="hazardousArea" required><option value="">Select Hazardous Area</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-<div class="sr-field"><label for="accessArea">Access Area </label><input type="text" id="accessArea" name="accessArea"></div>
+<div class="sr-field"><label for="accessArea">Access Area </label><select id="accessArea" name="accessArea"><option value="">Select Access Area</option><c:forEach var="option" items="${AccessArea}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
 <div class="sr-field"><label for="pfNumber">PF Number </label><input type="text" id="pfNumber" name="pfNumber"></div>
 <div class="sr-field"><label for="uanNumber">UAN Number </label><input type="text" id="uanNumber" name="uanNumber"></div>
 <div class="sr-field"><label for="doj">Date of Joining <span class="sr-required">*</span></label><input type="date" id="doj" name="doj" required></div>
@@ -89,8 +90,8 @@
 <section class="sr-panel" id="sr-panel-2" role="tabpanel" aria-labelledby="sr-tab-2" hidden><h3>Other Information</h3><div class="sr-grid">
 <div class="sr-field"><label for="bloodGroupId">Blood Group <span class="sr-required">*</span></label><select id="bloodGroupId" name="bloodGroupId" required><option value="">Select Blood Group</option><c:forEach var="option" items="${BloodGroup}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
 <div class="sr-field"><label for="accommodation">Accommodation <span class="sr-required">*</span></label><select id="accommodation" name="accommodation" required><option value="">Select Accommodation</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
-<div class="sr-field"><label for="academicId">Academic Qualification </label><select id="academicId" name="academicId"><option value="">Select Academic Qualification</option><c:forEach var="option" items="${Academic}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
-<div class="sr-field"><label for="technical">Technical Qualification </label><input type="text" id="technical" name="technical"></div>
+<div class="sr-field"><label for="academicId">Academic Qualification </label><select id="academicId" name="academicId"><option value="">Select Academic Qualification</option><c:forEach var="option" items="${Academics}"><option value="${option.gmId}"><c:out value="${option.gmName}"/></option></c:forEach></select></div>
+<div class="sr-field"><label for="technical">Technical Qualification</label><select id="technical" name="technical"><option value="">Select Technical Qualification</option><option value="Technical">Technical</option><option value="Non Technical">Non Technical</option></select></div>
 <div class="sr-field"><label for="ifscCode">IFSC Code </label><input type="text" id="ifscCode" name="ifscCode"></div>
 <div class="sr-field"><label for="accountNumber">Bank Account Number </label><input type="text" id="accountNumber" name="accountNumber"></div>
 <div class="sr-field"><label for="emergencyName">Emergency Contact Name </label><input type="text" id="emergencyName" name="emergencyName"></div>
@@ -117,18 +118,128 @@
 <div class="sr-field"><label for="comments">Comments </label><textarea id="comments" name="comments"></textarea></div>
 <div class="sr-field"><label for="acceptCheck">Declaration <span class="sr-required">*</span></label><input type="checkbox" id="acceptCheck" name="acceptCheck" value="true" required></div>
 </div></section>
-<div class="sr-actions"><button class="sr-btn" type="button" id="sr-prev" onclick="srGo(srIndex-1)" disabled>Previous</button><button class="sr-btn sr-primary" type="button" id="sr-next" onclick="srGo(srIndex+1)">Next</button></div>
-<p class="sr-help">Submission is not enabled yet. The public registration endpoint, server-side validation and secure document storage must be implemented first.</p>
+<div class="sr-actions"><button class="sr-btn" type="button" id="sr-prev" onclick="srGo(srIndex-1)" disabled>Previous</button><button class="sr-btn sr-primary" type="button" id="sr-next" onclick="srGo(srIndex+1)">Next</button><button class="sr-btn sr-primary" type="button" id="sr-submit" onclick="srSubmit()" style="display:none">Submit Registration</button></div>
+<p id="sr-message" class="sr-help" role="status" aria-live="polite"></p>
 </form></main>
 <script>
 let srIndex=0;
 function srGo(next){
  if(next<0||next>4)return;
+ if(next>srIndex){
+  for(let i=srIndex;i<next;i++){
+   const panel=document.getElementById('sr-panel-'+i);
+   const invalid=[...panel.querySelectorAll('input,select,textarea')].find(field=>!field.checkValidity());
+   if(invalid){
+    document.querySelectorAll('.sr-panel').forEach((el,j)=>el.hidden=j!==i);
+    document.querySelectorAll('.sr-tab').forEach((el,j)=>el.setAttribute('aria-selected',String(j===i)));
+    srIndex=i;
+    invalid.reportValidity();
+    return;
+   }
+  }
+ }
  document.querySelectorAll('.sr-panel').forEach((el,i)=>el.hidden=i!==next);
  document.querySelectorAll('.sr-tab').forEach((el,i)=>el.setAttribute('aria-selected',String(i===next)));
  srIndex=next;
  document.getElementById('sr-prev').disabled=next===0;
- document.getElementById('sr-next').disabled=next===4;
+ document.getElementById('sr-next').style.display=next===4?'none':'';
+ document.getElementById('sr-submit').style.display=next===4?'':'none';
  document.getElementById('sr-tab-'+next).scrollIntoView({block:'nearest',inline:'nearest'});
+}
+async function srSubmit() {
+
+    const form = document.getElementById('publicRegistrationForm');
+
+    // Validate required fields across all five tabs
+    for (const field of form.querySelectorAll('[required]')) {
+
+        if (!field.checkValidity()) {
+
+            const panel = field.closest('.sr-panel');
+            const panels = [...document.querySelectorAll('.sr-panel')];
+            const target = panels.indexOf(panel);
+
+            if (target >= 0) {
+                panels.forEach((el, i) => {
+                    el.hidden = i !== target;
+                });
+
+                document.querySelectorAll('.sr-tab').forEach((el, i) => {
+                    el.setAttribute(
+                        'aria-selected',
+                        String(i === target)
+                    );
+                });
+
+                srIndex = target;
+
+                document.getElementById('sr-prev').disabled = target === 0;
+                document.getElementById('sr-next').style.display =
+                    target === 4 ? 'none' : '';
+
+                document.getElementById('sr-submit').style.display =
+                    target === 4 ? '' : 'none';
+            }
+
+            field.reportValidity();
+            return;
+        }
+    }
+
+    const button = document.getElementById('sr-submit');
+    const message = document.getElementById('sr-message');
+
+    button.disabled = true;
+    message.textContent = 'Submitting registration...';
+
+    try {
+
+        const token = document.querySelector(
+            '[name="registrationToken"]'
+        ).value;
+
+        const response = await fetch(
+            '${pageContext.request.contextPath}/register/' +
+            encodeURIComponent(token) + '/submit',
+            {
+                method: 'POST',
+                body: new FormData(form),
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || result.success !== true) {
+            throw new Error(
+                result.message || 'Registration submission failed'
+            );
+        }
+
+        
+        // Registration saved successfully.
+        // Redirect to the success page.
+        //const registrationId = response.registrationId;
+       /*  window.location.replace(
+        		 "${pageContext.request.contextPath}/register/success?ref="
+                + encodeURIComponent(registrationId)
+        ); */
+        
+        window.location.replace(
+       		 "${pageContext.request.contextPath}/register/success"
+       );
+
+    } catch (err) {
+
+        console.error('Registration submission error:', err);
+
+        message.textContent =
+            err.message || 'Unable to submit registration';
+
+        button.disabled = false;
+    }
 }
 </script></body></html>

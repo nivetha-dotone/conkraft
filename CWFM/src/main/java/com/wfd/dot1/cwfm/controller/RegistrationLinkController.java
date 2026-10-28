@@ -14,22 +14,31 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.wfd.dot1.cwfm.dao.WorkmenDao;
+import com.wfd.dot1.cwfm.dto.GatePassListingDto;
+import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.enums.UserRole;
+import com.wfd.dot1.cwfm.pojo.CMSRoleRights;
 import com.wfd.dot1.cwfm.pojo.CmsContractorWC;
 import com.wfd.dot1.cwfm.pojo.Contractor;
 import com.wfd.dot1.cwfm.pojo.DeptMapping;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
 import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
+import com.wfd.dot1.cwfm.pojo.PrincipalEmployer;
 import com.wfd.dot1.cwfm.pojo.RegistrationLink;
 import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.service.CommonService;
+import com.wfd.dot1.cwfm.service.PrincipalEmployerService;
 import com.wfd.dot1.cwfm.service.RegistrationLinkService;
 import com.wfd.dot1.cwfm.service.WorkmenService;
 import com.wfd.dot1.cwfm.util.ApplicationConfig;
+import com.wfd.dot1.cwfm.util.VerhoeffAlgorithm;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -40,10 +49,19 @@ public class RegistrationLinkController {
     private RegistrationLinkService registrationLinkService;
     
     @Autowired
-	CommonService commonService;
-    
-    @Autowired
 	WorkmenService workmenService;
+
+	@Autowired
+	CommonService commonService;
+
+	@Autowired
+	PrincipalEmployerService peService;
+
+	@Autowired
+	WorkmenDao workmenDao;
+
+	@Autowired
+	VerhoeffAlgorithm verhoeff;
 
     @PostMapping("/generate")
     @ResponseBody
@@ -292,4 +310,6 @@ public class RegistrationLinkController {
 
         return "contractWorkmen/generateRegistrationLink";
     }
+    
+   
 }

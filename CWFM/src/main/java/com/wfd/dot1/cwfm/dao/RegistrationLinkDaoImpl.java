@@ -4,10 +4,14 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -20,7 +24,8 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	   @Autowired
 	    private JdbcTemplate jdbcTemplate;
-	   
+	   @Autowired
+		 private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	   public String saveRegistrationLink() {
 		    return QueryFileWatcher.getQuery("SAVE_REGISTRATION_LINK");
 	    }
@@ -167,6 +172,49 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	    );
 
 	    return details.isEmpty() ? null : details.get(0);
+	}
+	
+	public List<Map<String, Object>> getSubmittedRegistrations(
+	        List<String> authorizedUnitIds,
+	        List<String> authorizedContractorIds) {
+
+	    if (authorizedUnitIds == null || authorizedUnitIds.isEmpty()
+	            || authorizedContractorIds == null || authorizedContractorIds.isEmpty()) {
+	        return Collections.emptyList();
+	    }
+
+	    String sql = """
+	        SELECT
+	            sr.RegistrationId,
+	            sr.LinkId,
+	            sr.AadharNumber,
+	            sr.FirstName,
+	            sr.LastName,
+	            sr.MobileNumber,
+	            sr.Status,
+	            sr.CreatedDate,
+	            rl.UnitId,
+	            rl.ContractorId,
+	            cpe.NAME AS PrincipalEmployer,
+	            cc.NAME AS ContractorName
+	        FROM dbo.WORKMAN_SELF_REGISTRATION sr
+	        INNER JOIN dbo.WORKMAN_REGISTRATION_LINK rl
+	            ON rl.LinkId = sr.LinkId
+	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
+	            ON cpe.UNITID = rl.UnitId
+	        INNER JOIN dbo.CMSCONTRACTOR cc
+	            ON cc.CONTRACTORID = rl.ContractorId
+	        WHERE sr.Status = 'SUBMITTED'
+	          AND rl.UnitId IN (:unitIds)
+	          AND rl.ContractorId IN (:contractorIds)
+	        ORDER BY sr.RegistrationId DESC
+	        """;
+
+	    MapSqlParameterSource params = new MapSqlParameterSource()
+	            .addValue("unitIds", authorizedUnitIds)
+	            .addValue("contractorIds", authorizedContractorIds);
+
+	    return namedParameterJdbcTemplate.queryForList(sql, params);
 	}
 
 }
