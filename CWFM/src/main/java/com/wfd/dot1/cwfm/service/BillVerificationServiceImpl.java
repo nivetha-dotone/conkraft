@@ -280,7 +280,7 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 			"Arrear Correction Amount", "Arrear Amount", "Gross", "Night Shift Allowance", "Flexi Benefits",
 			"PF Employer Contribution", "ESIC Employer Contribution", "LWF Contribution Employer", "Monthly Wages",
 			"PF Employee Contribution", "ESIC Employee Contribution", "Professional Tax", "LWF Contribution Employee",
-			"Flexi Deductions", "Contractor Gross", "Service Charge", "Taxes", "Total Amount");
+			"Flexi Deductions", "Contractor Gross","Employee Net", "Service Charge", "Taxes", "Total Amount");
 
 	@Override
 	public WageCostReportResponse validateAndSave(MultipartFile file, List<PersonOrgLevel> contList, String userId,
@@ -854,7 +854,7 @@ private Path findWageCostReportFile(String transactionId) throws IOException {
 			"ArrearAmount", "Gross", "NightShiftAllowance", "FlexiBenefits", "PFEmployerContribution",
 			"ESICEmployerContribution", "LWFContributionEmployer", "MonthlyWages", "PFEmployeeContribution",
 			"ESICEmployeeContribution", "ProfessionalTax", "LWFContributionEmployee", "FlexiDeductions",
-			"ContractorGross", "ServiceCharge", "Taxes", "TotalAmount");
+			"ContractorGross","EmployeeNet", "ServiceCharge", "Taxes", "TotalAmount");
 	private static final Set<String> WAGE_REPORT_TEXT_COLUMNS = Set.of("EntryPassNumber", "WorkmenName", "Department",
 			"SubArea", "Contractor", "WorkOrder", "PFNumber", "UANNumber", "ESICNumber", "Trade", "Skill",
 			"WorkmenCategory");
