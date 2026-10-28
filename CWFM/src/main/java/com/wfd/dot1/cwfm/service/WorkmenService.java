@@ -187,4 +187,6 @@ public interface WorkmenService {
 
 	String getMedicalCheckupRequirement(String principalEmployerId, String tradeId, String skillId);
 
+	String getUserAccountByUserId(String userId);
+
 }

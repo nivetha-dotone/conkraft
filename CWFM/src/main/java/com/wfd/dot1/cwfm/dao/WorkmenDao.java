@@ -305,4 +305,6 @@ public interface WorkmenDao {
 	public Integer getWorkmenTradeSkillCountFromMapping(String principalEmployer, String trade, String skill);
 
 	String getMedicalCheckupRequirement(String principalEmployerId, String tradeId, String skillId);
+
+	String getUserAccountByUserId(String userId);
 }

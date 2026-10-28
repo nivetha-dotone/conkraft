@@ -37,6 +37,7 @@ function generateRegistrationLinkBtn () {
         areaId: $("#subdepartment").val(),
         wcEsicNo: $("#wc").val(),
 		llNo:$("#ll").val(),
+		eicId: $("#eic").val(),
         expiryDate: expiryDate
     };
 

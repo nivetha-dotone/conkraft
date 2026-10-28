@@ -117,6 +117,14 @@ public class RegistrationLink {
 	public void setExpiryDate(String expiryDate) {
 		this.expiryDate = expiryDate;
 	}
+	private String eicId;
 
+	public String getEicId() {
+	    return eicId;
+	}
+
+	public void setEicId(String eicId) {
+	    this.eicId = eicId;
+	}
    
 }

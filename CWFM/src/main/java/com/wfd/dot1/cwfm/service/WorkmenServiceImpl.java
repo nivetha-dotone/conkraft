@@ -2386,4 +2386,8 @@ public class WorkmenServiceImpl implements WorkmenService {
 
 		return workmenDao.getMedicalCheckupRequirement(principalEmployerId, tradeId, skillId);
 	}
+	@Override
+	public String getUserAccountByUserId(String userId) {
+	    return workmenDao.getUserAccountByUserId(userId);
+	}
 }

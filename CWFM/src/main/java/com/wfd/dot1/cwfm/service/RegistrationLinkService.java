@@ -124,4 +124,24 @@ public String generateRegistrationLink(
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
+    
+    public RegistrationLink validateAndGetLink(String token) {
+
+        if (token == null ||
+            !token.matches("^[A-Za-z0-9_-]{43}$")) {
+            throw new IllegalArgumentException("Invalid registration link");
+        }
+
+        String tokenHash = hashToken(token);
+
+        RegistrationLink link =
+                registrationLinkDao.findValidLinkByTokenHash(tokenHash);
+
+        if (link == null) {
+            throw new IllegalArgumentException(
+                    "Registration link is invalid, expired or deactivated");
+        }
+
+        return link;
+    }
 }

@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -12,6 +13,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import com.wfd.dot1.cwfm.pojo.RegistrationLink;
+import com.wfd.dot1.cwfm.pojo.RegistrationLinkDetails;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
 @Repository
 public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
@@ -28,30 +30,32 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 		Timestamp expiryTimestamp =
 		        Timestamp.valueOf(LocalDateTime.parse(link.getExpiryDate()));
 
-	        String sql = saveRegistrationLink();
-//	            INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
-//	            (
-//	                TokenHash,
-//	                UnitId,
-//	                ContractorId,
-//	                WorkorderId,
-//	                DepartmentId,
-//	                AreaId,
-//	                WcEsicNo,
-//	                LlNo,
-//	                CreatedBy,
-//	                ExpiryDate,
-//	                IsActive
-//	            )
-//	            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-	            //""";
+		String sql = """
+			    INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
+			    (
+			        TokenHash,
+			        UnitId,
+			        ContractorId,
+			        WorkorderId,
+			        DepartmentId,
+			        AreaId,
+			        EicId,
+			        WcEsicNo,
+			        LlNo,
+			        CreatedBy,
+			        ExpiryDate
+			    )
+			    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			    """;
 
 	        KeyHolder keyHolder = new GeneratedKeyHolder();
 
 	        int rows = jdbcTemplate.update(connection -> {
 
 	            PreparedStatement ps = connection.prepareStatement(
-	                    sql, Statement.RETURN_GENERATED_KEYS);
+	                    sql,
+	                    Statement.RETURN_GENERATED_KEYS
+	            );
 
 	            ps.setString(1, tokenHash);
 	            ps.setString(2, link.getUnitId());
@@ -59,11 +63,12 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	            ps.setString(4, link.getWorkorderId());
 	            ps.setString(5, link.getDepartmentId());
 	            ps.setString(6, link.getAreaId());
-	            ps.setString(7, link.getWcEsicNo());
-	            ps.setString(8, link.getLlNo());
-	            ps.setString(9, link.getCreatedBy());
-	            ps.setTimestamp(10,
-	            		expiryTimestamp);
+	            ps.setString(7, link.getEicId());
+	            ps.setString(8, link.getWcEsicNo());
+	            ps.setString(9, link.getLlNo());
+	            ps.setString(10, link.getCreatedBy());
+	            ps.setTimestamp(11,
+	                    Timestamp.valueOf(LocalDateTime.parse(link.getExpiryDate())));
 
 	            return ps;
 
@@ -76,6 +81,92 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	        return keyHolder.getKey().longValue();
 	    }
+	@Override
+	public RegistrationLink findValidLinkByTokenHash(String tokenHash) {
+
+	    String sql = """
+	        SELECT LinkId, UnitId, ContractorId, WorkorderId,
+	               DepartmentId, AreaId, WcEsicNo, LlNo,EicId,
+	               CreatedBy, CreatedDate, ExpiryDate, IsActive
+	        FROM dbo.WORKMAN_REGISTRATION_LINK
+	        WHERE TokenHash = ?
+	          AND IsActive = 1
+	          AND ExpiryDate > SYSDATETIME()
+	        """;
+
+	    List<RegistrationLink> links = jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+	        RegistrationLink link = new RegistrationLink();
+
+	        link.setLinkId(rs.getLong("LinkId"));
+	        link.setUnitId(rs.getString("UnitId"));
+	        link.setContractorId(rs.getString("ContractorId"));
+	        link.setWorkorderId(rs.getString("WorkorderId"));
+	        link.setDepartmentId(rs.getString("DepartmentId"));
+	        link.setAreaId(rs.getString("AreaId"));
+	        link.setWcEsicNo(rs.getString("WcEsicNo"));
+	        link.setLlNo(rs.getString("LlNo"));
+	        link.setCreatedBy(rs.getString("CreatedBy"));
+	        link.setActive(rs.getBoolean("IsActive"));
+	        link.setEicId(rs.getString("EicId"));
+	        // Your POJO currently uses String for dates.
+	        Timestamp created = rs.getTimestamp("CreatedDate");
+	        Timestamp expiry = rs.getTimestamp("ExpiryDate");
+
+	        link.setCreatedDate(created != null
+	                ? created.toLocalDateTime().toString() : null);
+
+	        link.setExpiryDate(expiry != null
+	                ? expiry.toLocalDateTime().toString() : null);
+
+	        return link;
+	    }, tokenHash);
+
+	    return links.isEmpty() ? null : links.get(0);
+	}
 	
+	@Override
+	public RegistrationLinkDetails getRegistrationLinkDetails(Long linkId) {
+
+	    String sql = """
+	        SELECT
+	            cpe.NAME AS peName,
+	            cc.NAME AS contractorName,
+	            wo.SAP_WORKORDER_NUM AS woNumber,
+	            wc.LICENSE_NUMBER AS wcEsicNo,
+	            llwc.LICENSE_NUMBER AS llNo
+	        FROM dbo.WORKMAN_REGISTRATION_LINK link
+	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
+	            ON cpe.UNITID = link.UnitId
+	        INNER JOIN dbo.CMSCONTRACTOR cc
+	            ON cc.CONTRACTORID = link.ContractorId
+	        INNER JOIN dbo.CMSWORKORDER wo
+	            ON wo.WORKORDERID = link.WorkorderId
+	        LEFT JOIN dbo.CMSWORKORDER_LLWC wc
+	            ON wc.WOLLID = link.WcEsicNo
+	        LEFT JOIN dbo.CMSWORKORDER_LLWC llwc
+	            ON llwc.WOLLID = link.LlNo
+	        WHERE link.LinkId = ?
+	        """;
+
+	    List<RegistrationLinkDetails> details = jdbcTemplate.query(
+	        sql,
+	        (rs, rowNum) -> {
+
+	            RegistrationLinkDetails dto = new RegistrationLinkDetails();
+
+	            dto.setPeName(rs.getString("peName"));
+	            dto.setContractorName(rs.getString("contractorName"));
+	            dto.setWoNumber(rs.getString("woNumber"));
+	            dto.setWcEsicNo(rs.getString("wcEsicNo"));
+	            dto.setLlNo(rs.getString("llNo"));
+
+	            return dto;
+	        },
+	        linkId
+	    );
+
+	    return details.isEmpty() ? null : details.get(0);
+	}
 
 }

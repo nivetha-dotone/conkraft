@@ -32,6 +32,15 @@ public class SessionTimeoutFilter implements Filter {
             return;
         }
 
+        
+
+        String path = req.getRequestURI()
+                .substring(req.getContextPath().length());
+
+        if (path.startsWith("/register/")) {
+            chain.doFilter(request, response);
+            return;
+        }
         HttpSession session = req.getSession(false);
 
         boolean isAjax = "XMLHttpRequest".equals(req.getHeader("X-Requested-With"));

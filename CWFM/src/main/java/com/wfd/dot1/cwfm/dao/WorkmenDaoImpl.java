@@ -5506,4 +5506,18 @@ public class WorkmenDaoImpl implements WorkmenDao {
 			return null;
 		}
 	}
+	@Override
+	public String getUserAccountByUserId(String userId) {
+
+	    String sql = """
+	        SELECT UserAccount
+	        FROM masteruser
+	        WHERE UserId = ?
+	        """;
+
+	    List<String> accounts = jdbcTemplate.queryForList(
+	            sql, String.class, userId);
+
+	    return accounts.isEmpty() ? null : accounts.get(0);
+	}
 }
