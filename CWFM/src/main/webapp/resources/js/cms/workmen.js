@@ -6661,6 +6661,10 @@ function loadProfilePreview(profileFileName, userId, transactionId) {
 }
 function uploadChallan(reconType) {
     var fileInput = reconType === 'PF' ? $("#pfFile")[0] : $("#esicFile")[0];
+    var contractorId = document.getElementById("contractor").value;
+    var fromDate = document.getElementById("fromDate").value;
+    var toDate = document.getElementById("toDate").value;
+
 
     if (!fileInput.files || fileInput.files.length === 0) {
         showMessage("Please select " + reconType + " challan file.", "danger",reconType);
@@ -6669,6 +6673,9 @@ function uploadChallan(reconType) {
 
     var formData = new FormData();
     formData.append("reconType", reconType);
+    formData.append("contractorId", contractorId);
+    formData.append("fromDate", fromDate);
+    formData.append("toDate", toDate);
     formData.append("file", fileInput.files[0]);
 
     $.ajax({
@@ -6742,36 +6749,42 @@ function bindMismatch(type, list) {
 
 var messageTimers = {};
 
+
 function showMessage(message, type, reconType) {
 
-    var targetDiv = reconType === 'PF' ? "#messageDiv" : "#esicmessageDiv";
+    var targetDiv = reconType === 'PF'
+        ? "#messageDiv"
+        : "#esicmessageDiv";
+
     var $div = $(targetDiv);
 
-    // Clear previous timer
+    // Clear any previously scheduled timer
     if (messageTimers[targetDiv]) {
         clearTimeout(messageTimers[targetDiv]);
+        messageTimers[targetDiv] = null;
     }
 
+    // Display the message without automatically hiding it
     $div
         .stop(true, true)
         .removeClass()
         .addClass("alert alert-" + type)
         .html(message)
-        .fadeIn();
-
-    // Store new timer
-    messageTimers[targetDiv] = setTimeout(function () {
-        $div.fadeOut(500);
-    }, 3000);
+        .show();
 }
+
 
 function nullSafe(val) {
     return (val === null || val === undefined) ? "" : val;
 }
 function getReconciliationData() {
     var contractorId = document.getElementById("contractor").value;
+    var fromDate = document.getElementById("fromDate").value;
+    var toDate = document.getElementById("toDate").value;
 
     if (!contractorId) return;
+    if (!fromDate) return;
+    if (!toDate) return;
 
     var contextPath = "/CWFM";
 
@@ -6780,9 +6793,18 @@ function getReconciliationData() {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: "contractorId=" + contractorId
+        body: new URLSearchParams({
+            contractorId: contractorId,
+            fromDate: fromDate,
+            toDate: toDate
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Failed to fetch reconciliation data");
+        }
+        return response.json();
+    })
     .then(data => {
 
         // 🔥 PF TABLE UPDATE

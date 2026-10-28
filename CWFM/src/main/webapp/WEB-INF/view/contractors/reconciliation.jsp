@@ -388,7 +388,7 @@ function submitForm() {
 
 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractor"/></label></th>
     <td>
-            <select id="contractor" name="contractorId" onchange="getReconciliationData()">
+            <select id="contractor" name="contractorId">
                 <option value="">Please select Contractor</option>
 
                 <c:forEach var="contr" items="${contList}">
@@ -399,6 +399,12 @@ function submitForm() {
                 </c:forEach>
             </select>
     </td>
+				<label for="fromDate" style="color: darkcyan;">From Date:</label> 
+				<input id="fromDate" name="fromDate" class="datetimepickerActiveWorkmenformat" type="text" autocomplete="off" style="color: gray;">
+				<label for="toDate" style="color: darkcyan;">To Date:</label> 
+				<input id="toDate" name="toDate" class="datetimepickerActiveWorkmenformat" type="text" autocomplete="off" style="color: gray;">
+				
+				<button type="button" id="exportBtn" class="btn btn-default process-footer-button-cancel ng-binding" onclick="getReconciliationData()">Search</button>
 </tr>
     <!-- PF TAB -->
     <div id="tab1" class="tab-content active">

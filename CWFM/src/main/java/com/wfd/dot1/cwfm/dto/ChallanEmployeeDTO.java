@@ -8,8 +8,27 @@ public class ChallanEmployeeDTO {
     private String uanNumber;
     private String esicNumber;
     private BigDecimal amount;
+    private String fromDate;
+    private String toDate;
+    
+    
+    public String getFromDate() {
+		return fromDate;
+	}
 
-    public String getWorkmenName() {
+	public void setFromDate(String fromDate) {
+		this.fromDate = fromDate;
+	}
+
+	public String getToDate() {
+		return toDate;
+	}
+
+	public void setToDate(String toDate) {
+		this.toDate = toDate;
+	}
+
+	public String getWorkmenName() {
         return workmenName;
     }
 

@@ -66,15 +66,17 @@ public class ReconciliationController {
     @PostMapping("/getReconciliationData")
     @ResponseBody
     public Map<String, Object> getReconciliationData(
-            @RequestParam("contractorId") Long contractorId) {
+            @RequestParam("contractorId") Long contractorId,
+            @RequestParam("fromDate") String fromDate,
+            @RequestParam("toDate") String toDate) {
 
         Map<String, Object> response = new HashMap<>();
 
         List<WorkmenReconciliationDTO> pfList =
-                reconciliationService.getPfReconciliationList(contractorId);
+                reconciliationService.getPfReconciliationList(contractorId,fromDate,toDate);
 
         List<WorkmenReconciliationDTO> esicList =
-                reconciliationService.getEsicReconciliationList(contractorId);
+                reconciliationService.getEsicReconciliationList(contractorId,fromDate,toDate);
 
         response.put("pfList", pfList);
         response.put("esicList", esicList);
@@ -85,19 +87,21 @@ public class ReconciliationController {
     @PostMapping("/reconciliation/upload")
     @ResponseBody
     public Map<String, Object> uploadReconciliation(@RequestParam("reconType") String reconType,
-                                                    @RequestParam("file") MultipartFile file,
-                                                    HttpSession session) {
+    		@RequestParam("contractorId") Long contractorId,
+    		@RequestParam("fromDate") String fromDate,
+    		@RequestParam("toDate") String toDate,
+            @RequestParam("file") MultipartFile file, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
         	MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
             
             
-            Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
-            String uploadedBy = String.valueOf(contractorId);
+            //Long contractorId = Long.parseLong(String.valueOf(user.getUserId()));
+            String uploadedBy = String.valueOf(user.getUserId());
 
             ReconciliationResultDTO result = reconciliationService.processReconciliation(
-                    contractorId, reconType, file, uploadedBy);
+                    contractorId, reconType,fromDate,toDate, file, uploadedBy);
 
             response.put("status", "success");
             response.put("data", result);

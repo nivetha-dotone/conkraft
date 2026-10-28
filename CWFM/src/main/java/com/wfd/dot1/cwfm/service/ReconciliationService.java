@@ -9,10 +9,10 @@ import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 
 public interface ReconciliationService {
 
-    List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId);
+    List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId, String fromDate, String toDate);
 
-    List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId);
+    List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId, String fromDate, String toDate);
 
     ReconciliationResultDTO processReconciliation(Long contractorId, String reconType,
-                                                  MultipartFile file, String uploadedBy) throws Exception;
+                                                  String fromDate, String toDate, MultipartFile file, String uploadedBy) throws Exception;
 }

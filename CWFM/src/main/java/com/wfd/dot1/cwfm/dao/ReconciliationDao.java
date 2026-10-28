@@ -7,9 +7,9 @@ import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 
 public interface ReconciliationDao {
 
-    List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId);
+    List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId, String fromDate, String toDate);
 
-    List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId);
+    List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId,String fromDate, String toDate);
 
     Long saveUploadMaster(Long contractorId, String reconType, String fileName, String filePath,
                           String overallStatus, int totalCount, int verifiedCount, int unverifiedCount,

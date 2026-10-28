@@ -35,25 +35,25 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     }
     
     @Override
-    public List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId) {
+    public List<WorkmenReconciliationDTO> getPfReconciliationList(Long contractorId,String fromDate, String toDate) {
 
     	 String sql =getPfQuery();
     	            
 
         return jdbcTemplate.query(sql,
                 new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
-                contractorId);
+                contractorId,fromDate,toDate);
     }
 
     @Override
-    public List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId) {
+    public List<WorkmenReconciliationDTO> getEsicReconciliationList(Long contractorId,String fromDate, String toDate) {
 
     	 String sql =getEsicQuery();
     	        
 
         return jdbcTemplate.query(sql,
                 new BeanPropertyRowMapper<>(WorkmenReconciliationDTO.class),
-                contractorId);
+                contractorId,fromDate,toDate);
     }
     public String saveUploadMaster() {
 		return QueryFileWatcher.getQuery("SAVE_RECONCILEIATION_MASTER");
