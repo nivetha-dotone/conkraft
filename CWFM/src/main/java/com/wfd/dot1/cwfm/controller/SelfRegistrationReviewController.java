@@ -49,17 +49,20 @@ import jakarta.servlet.http.HttpSession;
 public class SelfRegistrationReviewController {
 
     private final SelfRegistrationReviewService review;
+    private final com.wfd.dot1.cwfm.service.SelfRegistrationAcceptanceService acceptance;
     private final CommonService common;
     private final WorkmenService workmenService;
     private final JdbcTemplate jdbcTemplate;
 
     public SelfRegistrationReviewController(
             SelfRegistrationReviewService review,
+            com.wfd.dot1.cwfm.service.SelfRegistrationAcceptanceService acceptance,
             CommonService common,
             WorkmenService workmenService,
             JdbcTemplate jdbcTemplate) {
 
         this.review = review;
+        this.acceptance = acceptance;
         this.common = common;
         this.workmenService = workmenService;
         this.jdbcTemplate = jdbcTemplate;
@@ -398,6 +401,18 @@ public class SelfRegistrationReviewController {
         MasterUser user = current(request);
         review.reject(registrationId, reason, String.valueOf(user.getUserId()), authorizedPairs(user));
         return ResponseEntity.ok(Map.of("message", "Registration rejected successfully."));
+    }
+
+    @PostMapping("/accept")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> accept(
+            @RequestParam("registrationId") long registrationId,
+            HttpServletRequest request) {
+        MasterUser user = current(request);
+        String transactionId = acceptance.accept(registrationId,
+                String.valueOf(user.getUserId()), authorizedPairs(user));
+        return ResponseEntity.ok(Map.of("message", "Draft created successfully.",
+                "transactionId", transactionId));
     }
 
 }

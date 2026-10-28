@@ -114,6 +114,8 @@
     <div style="margin:18px 0;padding:15px;border:1px solid #d9e4e4;border-radius:8px">
       <label for="srrRejectReason" style="display:block;font-weight:600;margin-bottom:7px">Rejection Reason (required)</label>
       <textarea id="srrRejectReason" maxlength="1000" rows="3" style="width:100%;padding:10px;color:#222"></textarea>
+      <button type="button" id="srrAcceptButton" onclick="selfRegAccept()"
+        style="margin-right:12px;background:#005151;color:white;border:0;border-radius:5px;padding:10px 20px;cursor:pointer">Accept &amp; Create Draft</button>
       <button type="button" id="srrRejectButton" onclick="selfRegReject()"
         style="margin-top:10px;background:#b42318;color:white;border:0;border-radius:5px;padding:10px 20px;cursor:pointer">Reject Registration</button>
       <span id="srrRejectMessage" role="status" style="margin-left:12px"></span>
@@ -121,6 +123,31 @@
   </c:if>
 </div>
 <script>
+async function selfRegAccept() {
+    if (!confirm('Accept this registration and create a Gate Pass draft?')) return;
+    const btn = document.getElementById('srrAcceptButton');
+    const msg = document.getElementById('srrRejectMessage');
+    btn.disabled = true;
+    msg.textContent = 'Creating draft...';
+    try {
+        const params = new URLSearchParams();
+        params.set('registrationId', '${item.RegistrationId}');
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const headers = {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'};
+        if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+        const response = await fetch('${pageContext.request.contextPath}/self-registration/review/accept', {
+            method:'POST', credentials:'same-origin', headers, body:params.toString()
+        });
+        if (!response.ok) throw new Error('Draft creation failed (HTTP ' + response.status + '): ' + (await response.text()).slice(0,200));
+        const data = await response.json();
+        alert('Draft created successfully. Transaction ID: ' + data.transactionId);
+        selfRegReviewBack();
+    } catch (error) {
+        msg.textContent = error.message;
+        btn.disabled = false;
+    }
+}
 async function selfRegReject() {
     const reason = document.getElementById('srrRejectReason').value.trim();
     const msg = document.getElementById('srrRejectMessage');
