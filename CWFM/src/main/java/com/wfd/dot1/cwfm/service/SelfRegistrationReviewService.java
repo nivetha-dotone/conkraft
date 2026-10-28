@@ -9,6 +9,7 @@ import java.util.NoSuchElementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -54,6 +55,7 @@ public class SelfRegistrationReviewService {
                 ON co.CONTRACTORID = rl.ContractorId
             WHERE rl.UnitId = ?
               AND rl.ContractorId = ?
+              AND sr.Status IN ('SUBMITTED', 'UNDER_REVIEW', 'REJECTED')
             ORDER BY sr.RegistrationId DESC
             """;
 
@@ -81,7 +83,7 @@ public class SelfRegistrationReviewService {
                 rl.WcEsicNo,
                 rl.LlNo,
                 wc.LICENSE_NUMBER AS WcEsicName,
-llwc.LICENSE_NUMBER AS LlName,
+llwc.LICENSE_NUMBER AS LlName,sr.ReviewComments,
                 pe.NAME AS PrincipalEmployer,
                 co.NAME AS ContractorName,
                 wo.SAP_WORKORDER_NUM AS WorkOrderNumber
@@ -197,4 +199,32 @@ LEFT JOIN dbo.CMSWORKORDER_LLWC llwc
         detail(registrationId, authorizedPairs); // checks registration's PE + contractor
         return doc;
     }
+    
+ // Add JdbcTemplate jdbc if not already present. Existing review service already uses it.
+ // Imports: org.springframework.http.HttpStatus;
+//           org.springframework.web.server.ResponseStatusException;
+//           org.springframework.transaction.annotation.Transactional;
+
+ @Transactional
+ public void reject(long registrationId, String reason, String reviewedBy,
+                    List<AuthorizedPair> pairs) {
+     if (reason == null || reason.isBlank() || reason.trim().length() > 1000) {
+         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                 "Rejection reason is required (maximum 1000 characters).");
+     }
+     // detail() enforces registration-level PE/Contractor authorization.
+     detail(registrationId, pairs);
+     int updated = jdbc.update("""
+             UPDATE dbo.WORKMAN_SELF_REGISTRATION
+             SET Status = 'REJECTED', ReviewedBy = ?, ReviewComments = ?
+             WHERE RegistrationId = ?
+               AND Status IN ('SUBMITTED', 'UNDER_REVIEW')
+               AND TransactionId IS NULL
+             """, reviewedBy, reason.trim(), registrationId);
+     if (updated != 1) {
+         throw new ResponseStatusException(HttpStatus.CONFLICT,
+                 "Registration has already been processed or cannot be rejected.");
+     }
+ }
+
 }

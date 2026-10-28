@@ -6,24 +6,27 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Locale;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import com.wfd.dot1.cwfm.util.ApplicationConfig;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -37,7 +40,6 @@ import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.SelfRegistrationReviewService;
 import com.wfd.dot1.cwfm.service.SelfRegistrationReviewService.AuthorizedPair;
 import com.wfd.dot1.cwfm.service.WorkmenService;
-import com.wfd.dot1.cwfm.util.ApplicationConfig;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -49,15 +51,18 @@ public class SelfRegistrationReviewController {
     private final SelfRegistrationReviewService review;
     private final CommonService common;
     private final WorkmenService workmenService;
+    private final JdbcTemplate jdbcTemplate;
 
     public SelfRegistrationReviewController(
             SelfRegistrationReviewService review,
             CommonService common,
-            WorkmenService workmenService) {
+            WorkmenService workmenService,
+            JdbcTemplate jdbcTemplate) {
 
         this.review = review;
         this.common = common;
         this.workmenService = workmenService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     /*
@@ -259,26 +264,9 @@ public class SelfRegistrationReviewController {
             model.addAttribute("item", item);
             model.addAttribute("fields", fields);
             model.addAttribute("documents", documents);
-            String unitId = String.valueOf(item.get("UnitId"));
-            String departmentId = String.valueOf(item.get("DepartmentId"));
-            String selectedEicId = String.valueOf(item.get("EicId"));
-
-            String eicName = selectedEicId;
-
-            List<MasterUser> eicList =
-                    workmenService.getAllEicManager(unitId, departmentId);
-
-            if (eicList != null) {
-                for (MasterUser eic : eicList) {
-                    if (selectedEicId.equals(String.valueOf(eic.getUserId()))) {
-                        eicName = eic.getFullName();
-                        break;
-                    }
-                }
-            }
-
-            model.addAttribute("eicName", eicName);
-            
+            model.addAttribute("eicName", resolveEicName(item));
+            model.addAttribute("wcEsicName", resolveLicence(item.get("WcEsicNo")));
+            model.addAttribute("llName", resolveLicence(item.get("LlNo")));
 
             return "contractWorkmen/selfRegistrationReview";
 
@@ -290,6 +278,34 @@ public class SelfRegistrationReviewController {
     }
     
 
+
+    private String resolveEicName(Map<String, Object> item) {
+        String id = value(item.get("EicId"));
+        if (id.isBlank()) return "";
+        List<MasterUser> managers = workmenService.getAllEicManager(
+                value(item.get("UnitId")), value(item.get("DepartmentId")));
+        if (managers != null) {
+            for (MasterUser manager : managers) {
+                if (id.equals(String.valueOf(manager.getUserId()))) {
+                    return manager.getFullName();
+                }
+            }
+        }
+        return id;
+    }
+
+    private String resolveLicence(Object idObject) {
+        String id = value(idObject);
+        if (id.isBlank()) return "";
+        List<String> numbers = jdbcTemplate.queryForList(
+                "SELECT LICENSE_NUMBER FROM dbo.CMSWORKORDER_LLWC WHERE WOLLID = ?",
+                String.class, id);
+        return numbers.isEmpty() || numbers.get(0) == null ? id : numbers.get(0);
+    }
+
+    private String value(Object object) {
+        return object == null ? "" : String.valueOf(object);
+    }
 
     private Map<String, String> resolvedFields(
             Map<String, String> fields, Map<String, Object> item) {
@@ -373,4 +389,15 @@ public class SelfRegistrationReviewController {
                 .header("X-Content-Type-Options", "nosniff")
                 .body(new FileSystemResource(path));
     }
+    @PostMapping("/reject")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> reject(
+            @RequestParam("registrationId") long registrationId,
+            @RequestParam("reason") String reason,
+            HttpServletRequest request) {
+        MasterUser user = current(request);
+        review.reject(registrationId, reason, String.valueOf(user.getUserId()), authorizedPairs(user));
+        return ResponseEntity.ok(Map.of("message", "Registration rejected successfully."));
+    }
+
 }

@@ -56,8 +56,8 @@
     <div class="srr-field"><label>Department</label><input type="text" readonly value="<c:out value='${fields.departmentName}'/>"/></div>
     <div class="srr-field"><label>Area</label><input type="text" readonly value="<c:out value='${fields.areaName}'/>"/></div>
     <div class="srr-field"><label>Engineering In Charge</label><input type="text" readonly value="<c:out value='${eicName}'/>"/></div>
-    <div class="srr-field"><label>WC / ESIC Reference</label><input type="text" readonly value="<c:out value='${item.WcEsicName}'/>"/></div>
-    <div class="srr-field"><label>Labour Licence Reference</label><input type="text" readonly value="<c:out value='${item.LlName}'/>"/></div>
+    <div class="srr-field"><label>WC / ESIC Reference</label><input type="text" readonly value="<c:out value='${wcEsicName}'/>"/></div>
+    <div class="srr-field"><label>Labour Licence Reference</label><input type="text" readonly value="<c:out value='${llName}'/>"/></div>
     <div class="srr-field"><label>Hazardous Area</label><input type="text" readonly value="<c:out value='${fields.hazardousArea}'/>"/></div>
     <div class="srr-field"><label>Access Area</label><input type="text" readonly value="<c:out value='${fields.accessAreaName}'/>"/></div>
     <div class="srr-field"><label>PF Number</label><input type="text" readonly value="<c:out value='${fields.pfNumber}'/>"/></div>
@@ -103,9 +103,48 @@
       </tr></c:forEach>
       <c:if test="${empty documents}"><tr><td colspan="3">No documents available</td></tr></c:if>
     </tbody></table>
+    <c:if test="${item.Status eq 'REJECTED'}">
+      <div class="srr-field" style="margin-top:20px">
+        <label style="color:#b42318;font-weight:700">Rejection Reason</label>
+        <textarea readonly style="min-height:85px"><c:out value="${item.ReviewComments}"/></textarea>
+      </div>
+    </c:if>
   </section>
+  <c:if test="${item.Status eq 'SUBMITTED' or item.Status eq 'UNDER_REVIEW'}">
+    <div style="margin:18px 0;padding:15px;border:1px solid #d9e4e4;border-radius:8px">
+      <label for="srrRejectReason" style="display:block;font-weight:600;margin-bottom:7px">Rejection Reason (required)</label>
+      <textarea id="srrRejectReason" maxlength="1000" rows="3" style="width:100%;padding:10px;color:#222"></textarea>
+      <button type="button" id="srrRejectButton" onclick="selfRegReject()"
+        style="margin-top:10px;background:#b42318;color:white;border:0;border-radius:5px;padding:10px 20px;cursor:pointer">Reject Registration</button>
+      <span id="srrRejectMessage" role="status" style="margin-left:12px"></span>
+    </div>
+  </c:if>
 </div>
 <script>
+async function selfRegReject() {
+    const reason = document.getElementById('srrRejectReason').value.trim();
+    const msg = document.getElementById('srrRejectMessage');
+    const button = document.getElementById('srrRejectButton');
+    if (!reason) { msg.textContent = 'Please enter a rejection reason.'; return; }
+    if (!confirm('Reject this registration?')) return;
+    button.disabled = true;
+    msg.textContent = 'Submitting...';
+    try {
+        const params = new URLSearchParams();
+        params.set('registrationId', '${item.RegistrationId}');
+        params.set('reason', reason);
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        const headers = {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'};
+        if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+        const response = await fetch('${pageContext.request.contextPath}/self-registration/review/reject', {
+            method:'POST', credentials:'same-origin', headers, body:params.toString()
+        });
+        if (!response.ok) { const data = await response.text(); throw new Error('Request failed (' + response.status + ') ' + data.slice(0,120)); }
+        alert('Registration rejected successfully.');
+        selfRegReviewBack();
+    } catch (error) { msg.textContent = error.message; button.disabled = false; }
+}
 function selfRegReviewTab(index) {
     const root = document.getElementById('selfRegReview');
     if (!root) return;
