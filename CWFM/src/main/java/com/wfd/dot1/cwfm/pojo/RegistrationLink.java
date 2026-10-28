@@ -16,8 +16,8 @@ public class RegistrationLink {
     private String llNo;
 
     private String createdBy;
-    private LocalDateTime createdDate;
-    private LocalDateTime expiryDate;
+    private String  createdDate;
+    private String  expiryDate;
 
     private boolean active = true;
 
@@ -93,28 +93,29 @@ public class RegistrationLink {
 		this.createdBy = createdBy;
 	}
 
-	public LocalDateTime getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(LocalDateTime createdDate) {
-		this.createdDate = createdDate;
-	}
-
-	public LocalDateTime getExpiryDate() {
-		return expiryDate;
-	}
-
-	public void setExpiryDate(LocalDateTime expiryDate) {
-		this.expiryDate = expiryDate;
-	}
-
+	
 	public boolean isActive() {
 		return active;
 	}
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public String getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(String createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getExpiryDate() {
+		return expiryDate;
+	}
+
+	public void setExpiryDate(String expiryDate) {
+		this.expiryDate = expiryDate;
 	}
 
    

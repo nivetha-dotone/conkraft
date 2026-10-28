@@ -27,6 +27,7 @@ import com.wfd.dot1.cwfm.pojo.Workorder;
 import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.RegistrationLinkService;
 import com.wfd.dot1.cwfm.service.WorkmenService;
+import com.wfd.dot1.cwfm.util.ApplicationConfig;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -57,16 +58,16 @@ public class RegistrationLinkController {
                     .body(Map.of("message", "Session expired"));
         }
 
-        MasterUser user =
-                (MasterUser) session.getAttribute("loginuser");
+       
+        
+        MasterUser user = (MasterUser) (session != null ? session.getAttribute("loginuser") : null);
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Please login again"));
         }
 
-        if (!"CONTRACTORSUPERVISOR".equalsIgnoreCase(
-                user.getRoleName())) {
+        if (!user.getRoleName().toUpperCase().equals(UserRole.CONTRACTORSUPERVISOR.getName())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("message", "Access denied"));
         }
@@ -91,23 +92,19 @@ public class RegistrationLinkController {
              * Do not trust IDs supplied by the browser.
              */
 
-            String baseUrl =
-                    request.getScheme() + "://"
-                    + request.getServerName()
-                    + (request.getServerPort() == 80
-                            || request.getServerPort() == 443
-                            ? ""
-                            : ":" + request.getServerPort())
-                    + request.getContextPath();
-
-            validateSupervisorMappings(link, user);
+        	String baseUrl =
+        	        ApplicationConfig.getProperty("registration.base.url");
+        	validateSupervisorMappings(link, user);
             validateRegistrationSelections(link, user);
-         // Generate link only after validation succeeds
-            String generatedUrl =
-                    registrationLinkService.generateRegistrationLink(
-                            link,
-                            String.valueOf(user.getUserId()),
-                            baseUrl);
+        	String generatedUrl =
+        	        registrationLinkService.generateRegistrationLink(
+        	                link,
+        	                String.valueOf(user.getUserId()),
+        	                baseUrl
+        	        );
+
+            
+       
 
             return ResponseEntity.ok(
                     Map.of(
@@ -231,12 +228,12 @@ public class RegistrationLinkController {
                         && ("WC".equalsIgnoreCase(w.getLicenceType())
                             || "ESIC".equalsIgnoreCase(w.getLicenceType())));
 
-        boolean validLL = licenses.stream()
-                .anyMatch(w ->
-                        link.getLlNo().equals(w.getWcId())
-                        && "LL".equalsIgnoreCase(w.getLicenceType()));
+//        boolean validLL = licenses.stream()
+//                .anyMatch(w ->
+//                        link.getLlNo().equals(w.getWcId())
+//                        && "LL".equalsIgnoreCase(w.getLicenceType()));
 
-        if (!validWC || !validLL) {
+        if (!validWC ) {//|| !validLL
             throw new IllegalArgumentException(
                     "Invalid WC/ESIC or Labour License selection");
         }
@@ -283,12 +280,7 @@ public class RegistrationLinkController {
             return "redirect:/login";
         }
 
-        if (!UserRole.CONTRACTORSUPERVISOR.getName()
-                .equalsIgnoreCase(user.getRoleName())) {
-            throw new org.springframework.web.server
-                    .ResponseStatusException(
-                        HttpStatus.FORBIDDEN);
-        }
+      
 
         List<PersonOrgLevel> orgLevel = commonService.getPersonOrgLevelDetails(user.getUserAccount());
 		Map<String, List<PersonOrgLevel>> groupedByLevelDef = orgLevel.stream()

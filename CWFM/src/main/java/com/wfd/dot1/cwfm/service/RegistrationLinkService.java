@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.HexFormat;
 
@@ -21,51 +22,73 @@ public class RegistrationLinkService {
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public String generateRegistrationLink(
-            RegistrationLink link,
-            String supervisorId,
-            String baseUrl) {
 
-        if (link == null || supervisorId == null
-                || supervisorId.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Invalid registration request");
-        }
+public String generateRegistrationLink(
+        RegistrationLink link,
+        String supervisorId,
+        String baseUrl) {
 
-        if (link.getExpiryDate() == null
-                || !link.getExpiryDate()
-                        .isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException(
-                    "Expiry date must be in the future");
-        }
-
-        validateRequiredFields(link);
-
-        // Must validate supervisor authorization and the
-        // selected PE/contractor/workorder/department/area/
-        // license relationships before enabling this endpoint.
-        // We will connect these checks to your existing
-        // Conkraft services in the controller integration step.
-
-        link.setCreatedBy(supervisorId);
-
-        byte[] randomBytes = new byte[32];
-        secureRandom.nextBytes(randomBytes);
-
-        String token = Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(randomBytes);
-
-        String tokenHash = hashToken(token);
-
-        Long linkId = registrationLinkDao
-                .saveRegistrationLink(link, tokenHash);
-
-        link.setLinkId(linkId);
-
-        return baseUrl.replaceAll("/+$", "")
-                + "/register/" + token;
+    // 1. Validate request
+    if (link == null || supervisorId == null
+            || supervisorId.isBlank()) {
+        throw new IllegalArgumentException(
+                "Invalid registration request");
     }
+
+    if (baseUrl == null || baseUrl.isBlank()) {
+        throw new IllegalArgumentException(
+                "Registration base URL is not configured");
+    }
+    // 2. Validate expiry date
+    LocalDateTime expiryDate;
+
+    try {
+        expiryDate = LocalDateTime.parse(link.getExpiryDate());
+    } catch (DateTimeParseException e) {
+        throw new IllegalArgumentException("Invalid expiry date format");
+    }
+
+    if (!expiryDate.isAfter(LocalDateTime.now())) {
+        throw new IllegalArgumentException("Expiry date must be in the future");
+    }
+
+    if (expiryDate.isAfter(LocalDateTime.now().plusDays(30))) {
+        throw new IllegalArgumentException("Expiry date cannot exceed 30 days");
+    }
+  
+    
+
+   
+
+    
+
+    // 3. Validate mandatory fields
+    validateRequiredFields(link);
+
+    // 4. Set logged-in supervisor
+    link.setCreatedBy(supervisorId);
+
+    // 5. Generate secure random token
+    byte[] randomBytes = new byte[32];
+    secureRandom.nextBytes(randomBytes);
+
+    String token = Base64.getUrlEncoder()
+            .withoutPadding()
+            .encodeToString(randomBytes);
+
+    // 6. Store token hash, not raw token
+    String tokenHash = hashToken(token);
+
+    Long linkId = registrationLinkDao
+            .saveRegistrationLink(link, tokenHash);
+
+    link.setLinkId(linkId);
+
+    // 7. Return registration URL
+    return baseUrl.replaceAll("/+$", "")
+            + "/register/" + token;
+}
+
 
     public String hashToken(String token) {
         try {

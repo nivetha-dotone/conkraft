@@ -3,6 +3,7 @@ package com.wfd.dot1.cwfm.dao;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -24,7 +25,8 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	@Override
 	public Long saveRegistrationLink(RegistrationLink link, String tokenHash) {
 		// TODO Auto-generated method stub
-	
+		Timestamp expiryTimestamp =
+		        Timestamp.valueOf(LocalDateTime.parse(link.getExpiryDate()));
 
 	        String sql = saveRegistrationLink();
 //	            INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
@@ -61,7 +63,7 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	            ps.setString(8, link.getLlNo());
 	            ps.setString(9, link.getCreatedBy());
 	            ps.setTimestamp(10,
-	                    Timestamp.valueOf(link.getExpiryDate()));
+	            		expiryTimestamp);
 
 	            return ps;
 

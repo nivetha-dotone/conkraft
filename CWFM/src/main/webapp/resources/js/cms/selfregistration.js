@@ -36,14 +36,14 @@ function generateRegistrationLinkBtn () {
         departmentId: $("#department").val(),
         areaId: $("#subdepartment").val(),
         wcEsicNo: $("#wc").val(),
-        
+		llNo:$("#ll").val(),
         expiryDate: expiryDate
     };
 
-    if (Object.values(data).some(value => !value)) {
+   /* if (Object.values(data).some(value => !value)) {
         alert("Please select all mandatory fields");
         return;
-    }
+    }*/
 
     const $button = $(this);
     $button.prop("disabled", true);

@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="resources/css/cmsstyles.css"> 
     <script src="resources/js/cms/workmen.js"></script>
+    <script src="resources/js/cms/selfregistration.js"></script>
    
     <style>
   body {
@@ -857,7 +858,50 @@ label {
                                    <label id="error-esicNumber" style="color:red;display:none;">Please enter a valid ESIC Number</label>
                                </td>
                 </tr>
+                <tr>
+                <th><label class="custom-label"><spring:message code="label.linkValidity"/></label></th>
+                            <td>
+                            <select class="custom-select" id="linkExpiry" name="linkExpiryId"  required>
+                                <option value="">Select Validity</option>
+        <option value="1">1 Day</option>
+        <option value="3">3 Days</option>
+        <option value="7">7 Days</option>
+        <option value="15">15 Days</option>
+        <option value="30">30 Days</option>
+                                </select>
+                            </td>
+                </tr>
             </tbody></table>
+            
+         
+
+<button type="button"
+        id="generateRegistrationLinkBtn"
+        class="btn btn-primary"
+        onclick="generateRegistrationLinkBtn()">
+    Generate Registration Link
+</button>
+
+<div id="generatedLinkSection"
+     class="mt-3"
+     style="display:none";>
+
+    <label class="form-label">Registration Link</label>
+
+    <div class="input-group">
+        <input type="text"
+               id="generatedRegistrationLink"
+               class="form-control"
+               readonly>
+
+      <button type="button"
+        id="copyRegistrationLinkBtn"
+        class="btn btn-outline-secondary"
+        onclick="copyRegistrationLinkBtn()">
+    Copy Link
+</button>
+    </div>
+</div>
 </div>
    
 </body>
