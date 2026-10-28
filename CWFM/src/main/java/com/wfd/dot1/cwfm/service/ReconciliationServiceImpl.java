@@ -225,14 +225,14 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 		if ("PF".equalsIgnoreCase(reconType)) {
 			return safe(db.getUanNumber());
 		}
-		return safe(db.getEsicNumber());
+		return normalizeEsicNumber(db.getEsicNumber());
 	}
 
 	private String buildDocumentKey(ChallanEmployeeDTO dto, String reconType) {
 		if ("PF".equalsIgnoreCase(reconType)) {
 			return safe(dto.getUanNumber());
 		}
-		return safe(dto.getEsicNumber());
+		return normalizeEsicNumber(dto.getEsicNumber());
 	}
 
 	private List<ChallanEmployeeDTO> parseChallanDocument(File file, String reconType) throws Exception {
@@ -583,73 +583,131 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 	}
 
 	private List<ChallanEmployeeDTO> parseEsicPdf(File file) throws Exception {
-		List<ChallanEmployeeDTO> list = new ArrayList<>();
 
-		try (PDDocument document = PDDocument.load(file)) {
-			PDFTextStripper stripper = new PDFTextStripper();
-			String text = stripper.getText(document);
-			text = text.replace("\uFFFE", " ");
-			String[] lines = text.split("\\r?\\n");
+	    List<ChallanEmployeeDTO> list = new ArrayList<>();
 
-			for (String raw : lines) {
-				String line = raw == null ? "" : raw.replaceAll("\\s+", " ").trim();
-				if (line.isEmpty()) {
-					continue;
-				}
+	    try (PDDocument document = PDDocument.load(file)) {
 
-				if (!line.matches("^\\d+\\s+\\d{8,15}.*")) {
-					continue;
-				}
+	        if (document.isEncrypted()) {
+	            throw new IllegalArgumentException(
+	                    "Password-protected ESIC challan is not supported.");
+	        }
 
-				String[] parts = line.split("\\s+");
-				if (parts.length < 7) {
-					continue;
-				}
+	        PDFTextStripper stripper = new PDFTextStripper();
+	        stripper.setSortByPosition(true);
 
-				String esicNumber = parts[1];
+	        String text = stripper.getText(document);
+	        text = text.replace("\uFFFE", " ").replace("\uFEFF", " ");
 
-				String maybeIpContribution = parts[parts.length - 1];
-				String maybeDash2 = parts[parts.length - 2];
-				String maybeDash1 = parts[parts.length - 3];
-				String maybeMonthlyWages = parts[parts.length - 4];
-				String maybeDaysWorked = parts[parts.length - 5];
+	        String[] lines = text.split("\\r?\\n");
 
-				if (!maybeIpContribution.matches("^\\d+(?:\\.\\d{1,2})?$")) {
-					continue;
-				}
-				if (!"-".equals(maybeDash1) || !"-".equals(maybeDash2)) {
-					continue;
-				}
-				if (!maybeMonthlyWages.matches("^\\d+(?:\\.\\d{1,2})?$")) {
-					continue;
-				}
-				if (!maybeDaysWorked.matches("^\\d+$")) {
-					continue;
-				}
+	        for (String raw : lines) {
 
-				int nameStart = 2;
-				int nameEndExclusive = parts.length - 5;
+	            String line = raw == null
+	                    ? ""
+	                    : raw.replaceAll("\\s+", " ").trim();
 
-				StringBuilder nameBuilder = new StringBuilder();
-				for (int i = nameStart; i < nameEndExclusive; i++) {
-					if (i > nameStart) {
-						nameBuilder.append(" ");
-					}
-					nameBuilder.append(parts[i]);
-				}
+	            if (line.isEmpty()) {
+	                continue;
+	            }
 
-				ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
-				dto.setEsicNumber(cleanString(esicNumber));
-				dto.setWorkmenName(normalizeName(nameBuilder.toString().trim()));
-				dto.setAmount(parseBigDecimal(maybeIpContribution));
+	            // Expected row:
+	            // Serial IPNumber EmployeeName Days Wages IsDisable Reason Contribution
+	            if (!line.matches("^\\d+\\s+\\d{8,15}\\s+.*")) {
+	                continue;
+	            }
 
-				if (dto.getEsicNumber() != null && !dto.getEsicNumber().isEmpty()) {
-					list.add(dto);
-				}
-			}
-		}
+	            String[] parts = line.split("\\s+");
 
-		return list;
+	            // Serial + IP number + name + 5 trailing columns
+	            if (parts.length < 8) {
+	                continue;
+	            }
+
+	            String esicNumber = parts[1];
+
+	            int contributionIndex = parts.length - 1;
+	            int reasonIndex = parts.length - 2;
+	            int disableIndex = parts.length - 3;
+	            int wagesIndex = parts.length - 4;
+	            int daysIndex = parts.length - 5;
+
+	            String daysWorked = parts[daysIndex];
+	            String monthlyWages = parts[wagesIndex];
+	            String isDisable = parts[disableIndex];
+	            String reason = parts[reasonIndex];
+	            String ipContribution = parts[contributionIndex];
+
+	            // Support amounts such as 108.2300 and 202.00.
+	            String amountPattern = "\\d[\\d,]*(?:\\.\\d{1,4})?";
+
+	            if (!daysWorked.matches("\\d+")) {
+	                continue;
+	            }
+
+	            if (!monthlyWages.matches(amountPattern)) {
+	                continue;
+	            }
+
+	            if (!ipContribution.matches(amountPattern)) {
+	                continue;
+	            }
+
+	            // Preserve the existing challan layout validation.
+	            if (!"-".equals(isDisable) || !"-".equals(reason)) {
+	                continue;
+	            }
+
+	            // Employee name can contain multiple words.
+	            StringBuilder nameBuilder = new StringBuilder();
+
+	            for (int i = 2; i < daysIndex; i++) {
+	                if (nameBuilder.length() > 0) {
+	                    nameBuilder.append(" ");
+	                }
+	                nameBuilder.append(parts[i]);
+	            }
+
+	            String employeeName = nameBuilder.toString().trim();
+
+	            if (employeeName.isEmpty()) {
+	                continue;
+	            }
+
+	            ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
+
+	            dto.setEsicNumber(normalizeEsicNumber(esicNumber));
+	            dto.setWorkmenName(normalizeName(employeeName));
+	            dto.setAmount(parseBigDecimal(ipContribution));
+
+	            if (!dto.getEsicNumber().isEmpty()) {
+	                list.add(dto);
+
+	                System.out.println(
+	                        "ESIC PDF Parsed -> IP Number="
+	                        + dto.getEsicNumber()
+	                        + ", Name=" + dto.getWorkmenName()
+	                        + ", IP Contribution=" + dto.getAmount());
+	            }
+	        }
+	    }
+
+	    if (list.isEmpty()) {
+	        throw new IllegalArgumentException(
+	                "No employee rows could be read from the uploaded ESIC challan. "
+	                + "Please verify the PDF text and challan format.");
+	    }
+
+	    System.out.println("ESIC challan parsed successfully. Rows: " + list.size());
+
+	    return list;
+	}
+	private String normalizeEsicNumber(String value) {
+	    if (value == null) {
+	        return "";
+	    }
+
+	    return value.replaceAll("\\D", "");
 	}
 
 	private Map<String, Integer> buildColumnIndexMap(Row headerRow) {
