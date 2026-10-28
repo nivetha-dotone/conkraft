@@ -3203,6 +3203,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 				continue;
 			}
 
+			Integer cancelReasonId = fileUploadDao.getIntrPlantRansferCommentId();
+			
+			
 			String gpDOJ = null;
 			String gpUnitId = null;
 			String gpContId = null;
@@ -3457,7 +3460,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 			gm.setLlId(String.valueOf(llNumber));
 			gm.setEffectiveFromDate(effectiveFromDate);
 			gm.setCreatedBy(createdBy);
-			gm.setReasoning("Intra Plant Transfer");
+			gm.setReasoning(String.valueOf(cancelReasonId));
 			String dot = this.getDOT(gm, String.valueOf(unitId));
 
 			// ================= 6️ License Validation =================

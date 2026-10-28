@@ -270,4 +270,6 @@ public interface FileUploadDao {
 	boolean checkTrainingDetailsExists(Integer unitId, String department, String trainingType, String trainingName);
 
 	void saveTrainingDetails(Integer unitId, String department, String trainingType, String trainingName);
+
+	Integer getIntrPlantRansferCommentId();
 }

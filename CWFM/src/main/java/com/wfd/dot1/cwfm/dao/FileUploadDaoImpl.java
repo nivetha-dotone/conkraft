@@ -4073,4 +4073,15 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		//String sql = "INSERT INTO CMSTRAININGDETAILS (UNIT_ID, DEP_NAME, TRAINING_TYPE, TRAINING_NAME,MANDATORY) VALUES (?, ?, ?, ?,'YES')";
 		jdbcTemplate.update( sql, unitId, department, trainingType,trainingName );
 		}
+	public String getIntrPlantRansferCommentIdFromGM() {
+		return QueryFileWatcher.getQuery("GET_INTRAPLANT_TRANSFER_COMMENT_ID");
+	}
+	 @Override
+	 public Integer getIntrPlantRansferCommentId() {
+		    String sql=getIntrPlantRansferCommentIdFromGM();
+		    //String sql = "SELECT GMID FROM CMSGENERALMASTER WHERE GMNAME like * ";
+		    List<Integer> result = jdbcTemplate.query(sql, new Object[]{},
+		        (rs, rowNum) -> rs.getInt("GMID"));
+		    return result.isEmpty() ? null : result.get(0);
+		}
 }
