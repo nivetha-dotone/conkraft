@@ -328,10 +328,14 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 				int entryPassIndex = EXPECTED_HEADERS.indexOf("Entry Pass Number");
 				int fromDateIndex = EXPECTED_HEADERS.indexOf("From Date");
 				int toDateIndex = EXPECTED_HEADERS.indexOf("To Date");
+				int uanIndex = EXPECTED_HEADERS.indexOf("UAN Number");
 
-				if (entryPassIndex < 0 || fromDateIndex < 0 || toDateIndex < 0) {
-					return response(false, "Required headers Entry Pass Number, From Date "
-							+ "and To Date are missing from the configured template.");
+				if (entryPassIndex < 0 || fromDateIndex < 0
+				        || toDateIndex < 0 || uanIndex < 0) {
+
+				    return response(false,
+				            "Required headers Entry Pass Number, UAN Number, "
+				            + "From Date and To Date are missing in Uploaded Wage Cost Report.");
 				}
 
 				String csvRecord;
@@ -364,15 +368,19 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 					String fromDateText = values.get(fromDateIndex).trim();
 
 					String toDateText = values.get(toDateIndex).trim();
+					
+					String uanNumber = values.get(uanIndex).trim();
 
 					if (entryPassNumber.isEmpty()) {
-						return response(false, "Entry Pass Number is required at CSV row " + rowNumber + ".");
+						return response(false, "Entry Pass Number is required at  row " + rowNumber + "in Uploaded Wage Cost Report.");
 					}
 
 					if (fromDateText.isEmpty() || toDateText.isEmpty()) {
-						return response(false, "From Date and To Date are required at CSV row " + rowNumber + ".");
+						return response(false, "From Date and To Date are required at CSV row " + rowNumber + "in Uploaded Wage Cost Report.");
 					}
-
+					if (uanNumber.isEmpty()) {
+					    return response(false, "UAN Number is required at CSV row " + rowNumber + "in Uploaded Wage Cost Report.");
+					}
 					LocalDate fromDate;
 					LocalDate toDate;
 
@@ -387,7 +395,10 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 					if (fromDate.isAfter(toDate)) {
 						return response(false, "From Date cannot be after To Date at CSV row " + rowNumber + ".");
 					}
-
+					if (!uanNumber.matches("^[0-9]{12}$")) {
+					    return response(false, "Invalid UAN Number in row " + rowNumber
+					            + ". Please enter a valid 12-digit UAN Number in Uploaded Wage Cost Report.");
+					}
 					// Store only the fields required for validation.
 					// No report data is inserted into the database.
 					Map<String, Object> row = new LinkedHashMap<>();
@@ -410,7 +421,7 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 					.map(id -> Long.valueOf(id.toString())).distinct().collect(Collectors.toList());
 
 			if (contractorIds.isEmpty()) {
-				return response(false, "No valid contractor IDs were found for the logged-in user.");
+				return response(false, "No valid contractor IDs were found for the logged-in user in Uploaded Wage Cost Report.");
 			}
 
 			// 4. Collect all uploaded gate pass numbers.
@@ -510,7 +521,7 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 			        || ".".equals(savedFileName)
 			        || "..".equals(savedFileName)
 			        || !savedFileName.toLowerCase(Locale.ROOT).endsWith(".csv")) {
-			    return response(false, "Please upload a valid CSV file.");
+			    return response(false, "Please upload a valid Wage Cost Report file.");
 			}
 
 			Path targetFile = targetDirectory.resolve(savedFileName).normalize();
@@ -894,13 +905,13 @@ private Path findWageCostReportFile(String transactionId) throws IOException {
 				List<String> values = parseCsvLine(line);
 
 				if (values.size() != WAGE_REPORT_DB_COLUMNS.size()) {
-					throw new IllegalArgumentException("Invalid column count in CSV row " + rowNumber + ".");
+					throw new IllegalArgumentException("Invalid column count in CSV row " + rowNumber + "in Uploaded Wage Cost Report.");
 				}
 
 				String entryPassNumber = values.get(0) == null ? "" : values.get(0).trim();
 
 				if (entryPassNumber.isEmpty()) {
-					throw new IllegalArgumentException("Entry Pass Number is required in CSV row " + rowNumber + ".");
+					throw new IllegalArgumentException("Entry Pass Number is required in CSV row " + rowNumber + "in Uploaded Wage Cost Report.");
 				}
 
 				Map<String, Object> row = new LinkedHashMap<>();
@@ -941,7 +952,7 @@ private Path findWageCostReportFile(String transactionId) throws IOException {
 
 				if (fromDate == null || toDate == null) {
 					throw new IllegalArgumentException(
-							"From Date and To Date are required in CSV row " + rowNumber + ".");
+							"From Date and To Date are required in CSV row " + rowNumber + "in Uploaded Wage Cost Report.");
 				}
 
 				if (fromDate.after(toDate)) {
