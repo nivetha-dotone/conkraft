@@ -270,7 +270,7 @@ function downloadErrorCSV(errorData, uploadedFileName) {
                 break;
 
             case "data-principal employer":
-                headers = ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "Is MW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State"];
+                headers = ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "ISMW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State","Sub Business Type","Business Unit","Parent Entity"];
                 break;
 
             case "data-workmen bulk upload":
@@ -548,8 +548,8 @@ const tableBody = document.getElementById("tableBody");
             fieldMap = ["workOrderNumber", "plantCode", "organization", "contractorCode", "contractorId", "contractorName", "contractorAddress", "city", "managerNm", "totalStrength", "maxNoEmp", "licenseNumber", "licenseValidFrom", "licenseValidTo", "coverage", "wcCode", "wcFromDtm", "wcToDtm", "wcTotal", "esiwc", "esiValidFrom", "natureofWork", "pfNum", "pfApplyDt"];
         } 
         else if (templateType === "Data-Principal Employer") {
-            headers = ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "Is MW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State"];
-            fieldMap = ["organization", "code", "name", "address", "managerName", "managerAddrs", "businessType", "maxWorkmen", "maxCntrWorkmen", "bocwApplicability", "isMwApplicability", "licenseNumber", "pfCode", "wcNumber", "factoryLicenseNumber","stateNM"];
+            headers = ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "ISMW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State","Sub Business Type","Business Unit","Parent Entity"];
+            fieldMap = ["organization", "code", "name", "address", "managerName", "managerAddrs", "businessType", "maxWorkmen", "maxCntrWorkmen", "bocwApplicability", "isMwApplicability", "licenseNumber", "pfCode", "wcNumber", "factoryLicenseNumber","stateNM","subBussinessType","bussinessUnit","parentEntity"];
         }
         else if (templateType === "Data-Workmen Bulk Upload Draft") {
             headers = ["First Name", "Last Name", "Father's Name or Husband's Name", "Date of Birth", "Trade", "Skill", "Nature of Work", "Hazardous Area", "Aadhar/Id Proof Number", "Vendor Code", "Gender", "Date of Joining", "Department", "Area", "Work Order Number","PF A/C Number","Marital Status","Technical/Non Technical","Academic","Blood Group","Accommodation","Bank Branch Name","Account Number","Mobile Number","Emergency Contact Number","Police Verification Date","Health Chekup Date","Access Levels","ESIC Number","Unit Code","Organization Name","EIC Number","EC Number","UAN Number","Emergency Contact Person","Is Eligible for PF","SpecializationName","Insurance Type","LL Number","Address","Zone","IdMark"];
@@ -886,7 +886,7 @@ function getHeadersByTemplate(selectedText) {
             return ["Work Order Number", "Plant Code", "Organisation", "Main Contractor Code","Contractor Code", "Contractor Name", "Contractor Address","City", "Contractor Manager Name", "Total Workmen Strength","Maximum Number of Workmen", "Labour License Number", "License Valid From","License Valid To", "License Coverage","WC Number", "WC Valid From", "WC Valid To", "WC Coverage","ESIC Number", "ESIC Valid From", "Nature of Work", "PF Number","PF Apply Date"];
 
         case "data-principal employer":
-            return ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "Is MW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State"];
+            return ["Organization", "Plant Code", "Name", "Address", "Manager Name", "Manager Address", "Business Type", "Max Workmen", "Max Contract Workmen", "BOCW Applicability", "ISMW Applicability", "License Number", "PF Code", "ESWC", "Factory License Number","State","Sub Business Type","Business Unit","Parent Entity"];
         
         case "data-workmen bulk upload":
             return ["First Name*", "Last Name*", "Father's Name or Husband's Name*", "Date of Birth*", "Trade*","Skill*","Nature of Work*", "Hazardous Area*", "Aadhar/Id Proof Number*", "Vendor Code*", "Gender*", "Date of Joining", "Department*", "Area", "Work Order Number*","PF A/C Number","Marital Status*","Technical/Non Technical*","Academic","Blood Group","Accommodation*","Bank Branch Name","Account Number","Mobile Number","Emergency Contact Number*","Police Verification Date","Health Chekup Date","Access Levels*","ESIC Number","Unit Code*","Organization Name","EIC Number*","EC Number*","UAN Number","Emergency Contact Person*","Is Eligible for PF","SpecializationName","Insurance Type","LL Number","Address*","Zone","IdMark*","Employee Code"];

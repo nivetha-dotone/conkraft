@@ -236,7 +236,7 @@ public class FileUploadController {
             fields.add(Map.of("name", "Max Workmen", "type", "Number", "example", "15"));
             fields.add(Map.of("name", "Max Contract Workmen", "type", "Number", "example", "30"));
             fields.add(Map.of("name", "BOCW Applicability", "type", "Number", "example", "0"));
-            fields.add(Map.of("name", "Is MW Applicability", "type", "Number", "example", "0"));
+            fields.add(Map.of("name", "ISMW Applicability", "type", "Number", "example", "0"));
            // fields.add(Map.of("name", "Code", "type", "Text", "example", "CODE001"));
             fields.add(Map.of("name", "License Number", "type", "Number", "example", "LIC001"));
             fields.add(Map.of("name", "PF Code", "type", "Text", "example", "PF001"));
@@ -248,9 +248,9 @@ public class FileUploadController {
            // fields.add(Map.of("name", "RC Number", "type", "Number", "example", "RC001"));
            // fields.add(Map.of("name", "Attachment", "type", "File", "example", "Dot1_2025.pdf"));
             fields.add(Map.of("name", "State", "type", "Text", "example", "Assam"));
-           // fields.add(Map.of("name", "IS Active", "type", "Number", "example", "1"));
-          //  fields.add(Map.of("name", "Update Time", "type", "Date", "example", "12/05/2025"));
-          //  fields.add(Map.of("name", "Updated By", "type", "Date", "example", "12/05/2025"));
+            fields.add(Map.of("name", "Sub Business Type", "type", "Text", "example", "AEL"));
+            fields.add(Map.of("name", "Business Unit", "type", "Text", "example", "ANIL"));
+            fields.add(Map.of("name", "Parent Entity", "type", "Text", "example", "SOLAR MFG"));
             
             templateInfo.put("fields", fields);
         }else if("Data-Workmen Bulk Upload".equals(templateType)){

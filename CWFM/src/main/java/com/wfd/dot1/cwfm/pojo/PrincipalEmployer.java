@@ -55,6 +55,38 @@ public class PrincipalEmployer {
 	private String updatedTM;
 	
 	private String stateNM;
+	
+	private String subBussinessType;
+	
+	private String bussinessUnit;
+	
+	private String parentEntity;
+
+	
+	
+	public String getSubBussinessType() {
+		return subBussinessType;
+	}
+
+	public void setSubBussinessType(String subBussinessType) {
+		this.subBussinessType = subBussinessType;
+	}
+
+	public String getBussinessUnit() {
+		return bussinessUnit;
+	}
+
+	public void setBussinessUnit(String bussinessUnit) {
+		this.bussinessUnit = bussinessUnit;
+	}
+
+	public String getParentEntity() {
+		return parentEntity;
+	}
+
+	public void setParentEntity(String parentEntity) {
+		this.parentEntity = parentEntity;
+	}
 
 	public String getStateNM() {
 		return stateNM;

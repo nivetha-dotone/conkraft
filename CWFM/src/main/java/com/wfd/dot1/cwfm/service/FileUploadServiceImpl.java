@@ -162,7 +162,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 		case "Data-Principal Employer":
 			if (!headerLine.equalsIgnoreCase(
 					"Organization,Plant Code,Name,Address,Manager Name,Manager Address,Business Type,Max Workmen,Max Contract Workmen,BOCW Applicability,"
-							+ "Is MW Applicability,License Number,PF Code,ESWC,Factory License Number,State")) {
+							+ "ISMW Applicability,License Number,PF Code,ESWC,Factory License Number,State,Sub Business Type,Business Unit,Parent Entity")) {
 				throw new Exception("File can not upload due to incorrect format.");
 			}
 			savedData = processPrincipalEmployer(reader, createdBy);
@@ -833,7 +833,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 		List<PrincipalEmployer> peListForOrgEntry = new ArrayList<>();
 		String[] fieldNames = { "organization", "code", "name", "address", "managerName", "managerAddrs",
 				"businessType", "maxWorkmen", "maxCntrWorkmen", "bocwApplicability", "isMwApplicability",
-				"licenseNumber", "pfCode", "wcNumber", "factoryLicenseNumber", "stateNM" };
+				"licenseNumber", "pfCode", "wcNumber", "factoryLicenseNumber", "stateNM","subBussinessType","bussinessUnit","parentEntity" };
 
 		while ((line = reader.readLine()) != null) {
 			rowNum++;
@@ -850,7 +850,7 @@ public class FileUploadServiceImpl implements FileUploadService {
 
 			Map<String, String> fieldErrors = new LinkedHashMap<>();
 
-			if (fields.length < 16) {
+			if (fields.length < 19) {
 				errorData.add(Map.of("row", rowNum, "error", "Insufficient number of fields"));
 				continue;
 			}
@@ -905,6 +905,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 				p.setWcNumber(fields[13]);
 				p.setFactoryLicenseNumber(fields[14]);
 				p.setStateNM(String.valueOf(stateId)); // Save for display/reference
+				p.setSubBussinessType(fields[16]);
+				p.setBussinessUnit(fields[17]);
+				p.setParentEntity(fields[18]);
 				if (unitId == null || unitId == 0) {
 					unitId = fileUploadDao.savePrincipalEmployer(p, createdBy); // Save and get unitId
 					log.info("insert into cmsprincipalemployer" + unitId);
@@ -939,6 +942,9 @@ public class FileUploadServiceImpl implements FileUploadService {
 				success.put("wcNumber", p.getWcNumber());
 				success.put("factoryLicenseNumber", p.getFactoryLicenseNumber());
 				success.put("stateNM", stateName);
+				success.put("subBussinessType", p.getSubBussinessType());
+				success.put("bussinessUnit", p.getBussinessUnit());
+				success.put("parentEntity", p.getParentEntity());
 
 				successData.add(success);
 

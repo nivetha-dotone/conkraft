@@ -310,6 +310,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 	        ps.setString(15,p.getFactoryLicenseNumber());
 	        ps.setString(16, createdBy); 
 	        ps.setString(17, p.getStateNM());
+	        ps.setString(18, p.getSubBussinessType());
+	        ps.setString(19, p.getBussinessUnit());
+	        ps.setString(20, p.getParentEntity());
 	        return ps;
 	    }, keyHolder);
 
@@ -515,7 +518,7 @@ public class FileUploadDaoImpl implements FileUploadDao {
 
             case "Data-Principal Employer":
                 return "Organization,Plant Code,Name,Address,Manager Name,Manager Address,Business Type,Max Workmen,Max Contract Workmen,BOCW Applicability,"
-                		+ "Is MW Applicability,License Number,PF Code,ESWC,Factory License Number,State\n";
+                		+ "ISMW Applicability,License Number,PF Code,ESWC,Factory License Number,State,Sub Business Type,Business Unit,Parent Entity\n";
 
             case "Data-Contractor":
                 return "Work Order Number,Plant Code,Organisation,Main Contractor Code,Contractor Code,Contractor Name,Contractor Address,City,Contractor Manager Name,Total Workmen Strength,Maximum Number of Workmen,Labour License Number,License Valid From,License Valid To,"
@@ -2593,6 +2596,9 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		            p.getFactoryLicenseNumber(),
 		            Long.valueOf(p.getStateNM()),   // stateId
 		            createdBy,
+		            p.getSubBussinessType(),
+		            p.getBussinessUnit(),
+		            p.getParentEntity(),
 		            unitId
 		    );
 		}
