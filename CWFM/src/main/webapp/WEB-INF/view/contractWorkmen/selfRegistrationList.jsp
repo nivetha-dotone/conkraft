@@ -2,15 +2,15 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Workman Self-Registration Requests</title>
 <style>body{font:14px 'Noto Sans',Arial,sans-serif;background:white;color:#333}.page-header{padding:12px;border-bottom:1px solid #ccc;display:flex;gap:12px;align-items:center;flex-wrap:wrap}label{color:darkcyan}select,button,input{padding:7px;border:1px solid #ccc;border-radius:4px}button{background:#005151;color:white;cursor:pointer}table{border-collapse:collapse;width:100%;margin-top:12px}th{background:#DDF3FF;color:#005151;font-size:12px}th,td{padding:9px;border:1px solid #ddd;text-align:left}td{font-size:13px}a{color:#005151}#error{color:#a00}</style></head><body>
-<div class="page-header"><label>Principal Employer </label><select id="unitId">
-<option value="">Select PE</option>
+<div class="page-header"><label>Principal Employer </label><select style="color:gray;padding:3px;" id="unitId">
+<option value="">Select Principal Employer</option>
 <c:forEach var="x" items="${peOptions}">
 <option value="<c:out value='${x.id}'/>"><c:out value="${x.description}"/></option></c:forEach></select>
 
-<label>Contractor</label> <select id="contractorId"><option value="">Select Contractor</option>
+<label>Contractor</label> <select style="color:gray;padding:3px;" id="contractorId"><option value="">Select Contractor</option>
 <c:forEach var="x" items="${contractorOptions}"><option value="<c:out value='${x.id}'/>">
 <c:out value="${x.description}"/></option></c:forEach></select>
-<button type="button" onclick="loadRows()">Search</button>
+<button type="button" class="btn btn-default process-footer-button-cancel ng-binding"  onclick="loadRows()">Search</button>
 <input id="filter" placeholder="Search results" oninput="filterRows()"></div>
 <div id="error" role="alert"></div><div style="overflow-x:auto"><table class="no-dt"><thead><tr><th>Reference</th><th>Workman Name</th><th>Aadhaar</th><th>Mobile</th><th>Principal Employer</th><th>Contractor</th><th>Status</th><th>View</th></tr></thead><tbody id="rows"></tbody></table></div>
 <script>
@@ -53,8 +53,8 @@ function filterRows() {
 
             a.href =   '/CWFM/self-registration/review/view?registrationId=' + r.RegistrationId;
             a.textContent = 'View';
-            a.className = 'btn btn-sm btn-primary';
-
+           /*  a.className = 'btn btn-sm btn-primary'; */
+            a.className ='btn btn-default process-footer-button-cancel ng-binding';
             a.addEventListener('click', function(e) {
                 e.preventDefault();
 

@@ -26,6 +26,7 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	    private JdbcTemplate jdbcTemplate;
 	   @Autowired
 		 private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+	   
 	   public String saveRegistrationLink() {
 		    return QueryFileWatcher.getQuery("SAVE_REGISTRATION_LINK");
 	    }
@@ -35,23 +36,23 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 		Timestamp expiryTimestamp =
 		        Timestamp.valueOf(LocalDateTime.parse(link.getExpiryDate()));
 
-		String sql = """
-			    INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
-			    (
-			        TokenHash,
-			        UnitId,
-			        ContractorId,
-			        WorkorderId,
-			        DepartmentId,
-			        AreaId,
-			        EicId,
-			        WcEsicNo,
-			        LlNo,
-			        CreatedBy,
-			        ExpiryDate
-			    )
-			    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			    """;
+		String sql = saveRegistrationLink();
+//			    INSERT INTO dbo.WORKMAN_REGISTRATION_LINK
+//			    (
+//			        TokenHash,
+//			        UnitId,
+//			        ContractorId,
+//			        WorkorderId,
+//			        DepartmentId,
+//			        AreaId,
+//			        EicId,
+//			        WcEsicNo,
+//			        LlNo,
+//			        CreatedBy,
+//			        ExpiryDate
+//			    )
+//			    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//			    """;
 
 	        KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -86,18 +87,21 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	        return keyHolder.getKey().longValue();
 	    }
+	 public String findValidLinkByTokenHash() {
+		    return QueryFileWatcher.getQuery("FIND_VALID_LINK_BY_TOKEN_HASH");
+	    }
 	@Override
 	public RegistrationLink findValidLinkByTokenHash(String tokenHash) {
 
-	    String sql = """
-	        SELECT LinkId, UnitId, ContractorId, WorkorderId,
-	               DepartmentId, AreaId, WcEsicNo, LlNo,EicId,
-	               CreatedBy, CreatedDate, ExpiryDate, IsActive
-	        FROM dbo.WORKMAN_REGISTRATION_LINK
-	        WHERE TokenHash = ?
-	          AND IsActive = 1
-	          AND ExpiryDate > SYSDATETIME()
-	        """;
+	    String sql = findValidLinkByTokenHash();
+//	        SELECT LinkId, UnitId, ContractorId, WorkorderId,
+//	               DepartmentId, AreaId, WcEsicNo, LlNo,EicId,
+//	               CreatedBy, CreatedDate, ExpiryDate, IsActive
+//	        FROM dbo.WORKMAN_REGISTRATION_LINK
+//	        WHERE TokenHash = ?
+//	          AND IsActive = 1
+//	          AND ExpiryDate > SYSDATETIME()
+//	        """;
 
 	    List<RegistrationLink> links = jdbcTemplate.query(sql, (rs, rowNum) -> {
 
@@ -129,30 +133,32 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	    return links.isEmpty() ? null : links.get(0);
 	}
-	
+	public String getRegistrationLinkDetails() {
+	    return QueryFileWatcher.getQuery("GET_REGISTRATION_LINK_DETAILS");
+    }
 	@Override
 	public RegistrationLinkDetails getRegistrationLinkDetails(Long linkId) {
 
-	    String sql = """
-	        SELECT
-	            cpe.NAME AS peName,
-	            cc.NAME AS contractorName,
-	            wo.SAP_WORKORDER_NUM AS woNumber,
-	            wc.LICENSE_NUMBER AS wcEsicNo,
-	            llwc.LICENSE_NUMBER AS llNo
-	        FROM dbo.WORKMAN_REGISTRATION_LINK link
-	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
-	            ON cpe.UNITID = link.UnitId
-	        INNER JOIN dbo.CMSCONTRACTOR cc
-	            ON cc.CONTRACTORID = link.ContractorId
-	        INNER JOIN dbo.CMSWORKORDER wo
-	            ON wo.WORKORDERID = link.WorkorderId
-	        LEFT JOIN dbo.CMSWORKORDER_LLWC wc
-	            ON wc.WOLLID = link.WcEsicNo
-	        LEFT JOIN dbo.CMSWORKORDER_LLWC llwc
-	            ON llwc.WOLLID = link.LlNo
-	        WHERE link.LinkId = ?
-	        """;
+	    String sql = getRegistrationLinkDetails();
+//	        SELECT
+//	            cpe.NAME AS peName,
+//	            cc.NAME AS contractorName,
+//	            wo.SAP_WORKORDER_NUM AS woNumber,
+//	            wc.LICENSE_NUMBER AS wcEsicNo,
+//	            llwc.LICENSE_NUMBER AS llNo
+//	        FROM dbo.WORKMAN_REGISTRATION_LINK link
+//	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
+//	            ON cpe.UNITID = link.UnitId
+//	        INNER JOIN dbo.CMSCONTRACTOR cc
+//	            ON cc.CONTRACTORID = link.ContractorId
+//	        INNER JOIN dbo.CMSWORKORDER wo
+//	            ON wo.WORKORDERID = link.WorkorderId
+//	        LEFT JOIN dbo.CMSWORKORDER_LLWC wc
+//	            ON wc.WOLLID = link.WcEsicNo
+//	        LEFT JOIN dbo.CMSWORKORDER_LLWC llwc
+//	            ON llwc.WOLLID = link.LlNo
+//	        WHERE link.LinkId = ?
+//	        """;
 
 	    List<RegistrationLinkDetails> details = jdbcTemplate.query(
 	        sql,
@@ -173,7 +179,9 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 
 	    return details.isEmpty() ? null : details.get(0);
 	}
-	
+	public String getSubmittedRegistrations() {
+	    return QueryFileWatcher.getQuery("GET_SUBMITTED_REGISTRATIONS");
+    }
 	public List<Map<String, Object>> getSubmittedRegistrations(
 	        List<String> authorizedUnitIds,
 	        List<String> authorizedContractorIds) {
@@ -183,32 +191,32 @@ public class RegistrationLinkDaoImpl implements RegistrationLinkDao{
 	        return Collections.emptyList();
 	    }
 
-	    String sql = """
-	        SELECT
-	            sr.RegistrationId,
-	            sr.LinkId,
-	            sr.AadharNumber,
-	            sr.FirstName,
-	            sr.LastName,
-	            sr.MobileNumber,
-	            sr.Status,
-	            sr.CreatedDate,
-	            rl.UnitId,
-	            rl.ContractorId,
-	            cpe.NAME AS PrincipalEmployer,
-	            cc.NAME AS ContractorName
-	        FROM dbo.WORKMAN_SELF_REGISTRATION sr
-	        INNER JOIN dbo.WORKMAN_REGISTRATION_LINK rl
-	            ON rl.LinkId = sr.LinkId
-	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
-	            ON cpe.UNITID = rl.UnitId
-	        INNER JOIN dbo.CMSCONTRACTOR cc
-	            ON cc.CONTRACTORID = rl.ContractorId
-	        WHERE sr.Status = 'SUBMITTED'
-	          AND rl.UnitId IN (:unitIds)
-	          AND rl.ContractorId IN (:contractorIds)
-	        ORDER BY sr.RegistrationId DESC
-	        """;
+	    String sql = getSubmittedRegistrations();
+//	        SELECT
+//	            sr.RegistrationId,
+//	            sr.LinkId,
+//	            sr.AadharNumber,
+//	            sr.FirstName,
+//	            sr.LastName,
+//	            sr.MobileNumber,
+//	            sr.Status,
+//	            sr.CreatedDate,
+//	            rl.UnitId,
+//	            rl.ContractorId,
+//	            cpe.NAME AS PrincipalEmployer,
+//	            cc.NAME AS ContractorName
+//	        FROM dbo.WORKMAN_SELF_REGISTRATION sr
+//	        INNER JOIN dbo.WORKMAN_REGISTRATION_LINK rl
+//	            ON rl.LinkId = sr.LinkId
+//	        INNER JOIN dbo.CMSPRINCIPALEMPLOYER cpe
+//	            ON cpe.UNITID = rl.UnitId
+//	        INNER JOIN dbo.CMSCONTRACTOR cc
+//	            ON cc.CONTRACTORID = rl.ContractorId
+//	        WHERE sr.Status = 'SUBMITTED'
+//	          AND rl.UnitId IN (:unitIds)
+//	          AND rl.ContractorId IN (:contractorIds)
+//	        ORDER BY sr.RegistrationId DESC
+//	        """;
 
 	    MapSqlParameterSource params = new MapSqlParameterSource()
 	            .addValue("unitIds", authorizedUnitIds)

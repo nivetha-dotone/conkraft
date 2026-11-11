@@ -96,3 +96,6 @@ function redirectToSelfRegistration() {
     xhr.open("GET", "/CWFM/contractworkmen/selfRegisrtationOB", true);
     xhr.send();
 }
+ function goBackToRegistrationPage() {
+    	 loadCommonList('/contractworkmen/registrationLinks/page', 'Self Registration Link Generation');
+    }
