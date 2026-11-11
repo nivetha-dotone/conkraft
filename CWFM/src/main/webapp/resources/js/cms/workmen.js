@@ -6722,29 +6722,130 @@ function bindSummary(type, data) {
 }
 
 function bindMismatch(type, list) {
-    var bodyId = type === 'PF' ? "#pfMismatchBody" : "#esicMismatchBody";
-    var sectionId = type === 'PF' ? "#pfMismatchSection" : "#esicMismatchSection";
-    var html = "";
 
-    if (list && list.length > 0) {
-        for (var i = 0; i < list.length; i++) {
-            var m = list[i];
-            html += "<tr>"
-                 + "<td>" + nullSafe(m.gatePassId) + "</td>"
-                 + "<td>" + nullSafe(m.workmenName) + "</td>"
-                 + "<td>" + nullSafe(m.dbNumber) + "</td>"
-                 + "<td>" + nullSafe(m.docNumber) + "</td>"
-                 + "<td>" + nullSafe(m.dbAmount) + "</td>"
-                 + "<td>" + nullSafe(m.docAmount) + "</td>"
-                 + "<td>" + nullSafe(m.mismatchReason) + "</td>"
-                 + "</tr>";
-        }
-        $(bodyId).html(html);
-        $(sectionId).show();
+    type = String(type).toUpperCase();
+
+    var bodySelector;
+    var sectionSelector;
+    var tableSelector;
+    var exportSelector;
+    var exportContainerSelector;
+
+    if (type === "PF") {
+
+        bodySelector = "#pfMismatchBody";
+        sectionSelector = "#pfMismatchSection";
+        tableSelector = "#pfMismatchTable";
+        exportSelector = "#pfMismatchExportContainer";
+        exportContainerSelector = "#pfMismatchExportContainer";
+
+    } else if (type === "ESIC") {
+
+        bodySelector = "#esicMismatchBody";
+        sectionSelector = "#esicMismatchSection";
+        tableSelector = "#esicMismatchTable";
+        exportSelector = "#esicMismatchExportContainer";
+        exportContainerSelector = "#esicMismatchExportContainer";
+
     } else {
-        $(bodyId).html("");
-        $(sectionId).hide();
+
+        console.error("Invalid reconciliation type:", type);
+        return;
     }
+
+    var $table = $(tableSelector);
+    var $body = $(bodySelector);
+    var $section = $(sectionSelector);
+    var $export = $(exportSelector);
+
+    if ($table.length === 0 || $body.length === 0) {
+        console.error("Mismatch table elements not found:", type);
+        $export.hide();
+        return;
+    }
+
+    // Destroy previous DataTable before replacing rows.
+    if ($.fn.DataTable.isDataTable($table[0])) {
+        $table.DataTable().clear().destroy();
+    }
+
+    $body.empty();
+
+    // Reset Select All checkbox.
+    $table.find(".select-all-mismatch")
+          .prop("checked", false)
+          .prop("indeterminate", false);
+
+    // Validate mismatch list.
+   var $exportContainer = $(exportContainerSelector);
+
+if (!Array.isArray(list) || list.length === 0) {
+    $section.hide();
+    $exportContainer.hide();
+    return;
+}
+    // Build mismatch rows.
+    $.each(list, function(index, m) {
+
+        var $row = $("<tr></tr>");
+
+        // Checkbox column.
+        $row.append(
+            $("<td></td>").append(
+                $("<input>", {
+                    type: "checkbox",
+                    class: "mismatch-row-checkbox"
+                })
+            )
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.gatePassId))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.workmenName))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.dbNumber))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.docNumber))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.dbAmount))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.docAmount))
+        );
+
+        $row.append(
+            $("<td></td>").text(nullSafe(m.mismatchReason))
+        );
+
+        $body.append($row);
+    });
+
+    console.log(type + " mismatch HTML rows:", $body.find("tr").length);
+
+// Show only the export button for the current reconciliation type.
+$("#pfMismatchExportContainer, #esicMismatchExportContainer").hide();
+
+$section.show();
+$exportContainer.show();
+
+initMismatchTable(tableSelector);
+
+    var dt = $table.DataTable();
+
+    console.log(type + " DataTable records:", dt.rows().count());
+
+    // Adjust columns.
+    dt.columns.adjust().draw(false);
 }
 
 var messageTimers = {};
@@ -8207,4 +8308,377 @@ function validateRenewFiles(
     }
 
     return valid;
+}
+function initMismatchTable(tableId) {
+
+    var $table = $(tableId);
+
+    if ($table.length === 0) {
+        console.error("Mismatch table not found:", tableId);
+        return;
+    }
+
+    if ($.fn.DataTable.isDataTable(tableId)) {
+        $table.DataTable().destroy();
+    }
+
+    $table.DataTable({
+        paging: true,
+        searching: true,
+        ordering: true,
+        info: true,
+        lengthChange: false,
+        pageLength: 5,
+
+        columnDefs: [
+            {
+                targets: 0,
+                orderable: false,
+                searchable: false,
+                width: "40px"
+            }
+        ],
+
+        order: [[1, "asc"]],
+
+        dom: '<"dt-search"f>rt<"dt-footer"ip>',
+
+        language: {
+            search: "Filter:",
+            paginate: {
+                previous: "Previous",
+                next: "Next"
+            },
+            emptyTable: "No mismatch records found"
+        },
+
+        drawCallback: function () {
+            updateMismatchSelectAll(tableId);
+        },
+
+        initComplete: function () {
+            console.log(
+                tableId + " initialized. Records:",
+                this.api().rows().count()
+            );
+        }
+    });
+}
+function exportAllMismatchTables() {
+
+    var tableConfigs = [
+        {
+            tableSelector: "#pfMismatchTable",
+            type: "PF",
+            fileName: "PF_Mismatch_Report.csv"
+        },
+        {
+            tableSelector: "#esicMismatchTable",
+            type: "ESIC",
+            fileName: "ESIC_Mismatch_Report.csv"
+        }
+    ];
+
+    var csvRows = [];
+
+    var headers = [
+        "Reconciliation Type",
+        "GatePass ID",
+        "Workmen Name",
+        "DB Number",
+        "Document Number",
+        "DB Amount",
+        "Document Amount",
+        "Mismatch Reason"
+    ];
+
+    csvRows.push(headers.map(escapeCsvValue).join(","));
+
+    var totalSelected = 0;
+
+    for (var i = 0; i < tableConfigs.length; i++) {
+
+        var config = tableConfigs[i];
+
+        var $table = $(config.tableSelector);
+
+        if ($table.length === 0) {
+            console.warn("Table not found:", config.tableSelector);
+            continue;
+        }
+
+        if (!$.fn.DataTable.isDataTable($table[0])) {
+            console.warn("DataTable not initialized:", config.tableSelector);
+            continue;
+        }
+
+        var table = $table.DataTable();
+
+        // Get all records, including records on other pages.
+        var nodes = table.rows({
+            search: "none",
+            order: "applied"
+        }).nodes();
+
+        $(nodes).each(function () {
+
+            var $row = $(this);
+
+            // Export only selected rows.
+            if (!$row.find(".mismatch-row-checkbox").prop("checked")) {
+                return;
+            }
+
+            var cells = $row.find("td");
+
+            var rowData = [
+                config.type,
+                $(cells[1]).text().trim(),
+                $(cells[2]).text().trim(),
+                $(cells[3]).text().trim(),
+                $(cells[4]).text().trim(),
+                $(cells[5]).text().trim(),
+                $(cells[6]).text().trim(),
+                $(cells[7]).text().trim()
+            ];
+
+            csvRows.push(rowData.map(escapeCsvValue).join(","));
+
+            totalSelected++;
+        });
+    }
+
+    if (totalSelected === 0) {
+        alert("Please select at least one mismatch record to export.");
+        return;
+    }
+
+    var csvContent = "\uFEFF" + csvRows.join("\r\n");
+
+    var blob = new Blob(
+        [csvContent],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    var downloadUrl = window.URL.createObjectURL(blob);
+
+    var link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = "PF_ESIC_Selected_Mismatch_Report.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(downloadUrl);
+
+    console.log("Total selected mismatch records exported:", totalSelected);
+}
+$(document).off("change.mismatchSelectAll")
+    .on("change.mismatchSelectAll", ".select-all-mismatch", function () {
+
+        var tableId = "#" + $(this).data("table");
+        var isChecked = $(this).prop("checked");
+
+        if (!$.fn.DataTable.isDataTable(tableId)) {
+            return;
+        }
+
+        var table = $(tableId).DataTable();
+
+        // Select or deselect all rows, including other pages.
+        $(table.rows().nodes())
+            .find(".mismatch-row-checkbox")
+            .prop("checked", isChecked);
+    });
+
+
+$(document).off("change.mismatchRow")
+    .on("change.mismatchRow", ".mismatch-row-checkbox", function () {
+
+        var tableId = $(this).closest("table").attr("id");
+
+        updateMismatchSelectAll("#" + tableId);
+    });
+
+
+function updateMismatchSelectAll(tableId) {
+
+    if (!$.fn.DataTable.isDataTable(tableId)) {
+        return;
+    }
+
+    var table = $(tableId).DataTable();
+
+    var checkboxes = $(table.rows().nodes())
+        .find(".mismatch-row-checkbox");
+
+    var total = checkboxes.length;
+
+    var selected = checkboxes.filter(":checked").length;
+
+    var selectAll = $(tableId)
+        .find(".select-all-mismatch");
+
+    selectAll.prop(
+        "checked",
+        total > 0 && total === selected
+    );
+
+    selectAll.prop(
+        "indeterminate",
+        selected > 0 && selected < total
+    );
+}
+
+function exportPFMismatches() {
+    exportMismatchTable("pfMismatchTable", "PF",
+        "PF_Mismatch_Report.csv");
+}
+
+function exportESICMismatches() {
+    exportMismatchTable("esicMismatchTable", "ESIC",
+        "ESIC_Mismatch_Report.csv");
+}
+
+
+function exportMismatchTable(tableId, reconType, fileName) {
+
+    var tableElement = document.getElementById(tableId);
+
+    if (!tableElement ||
+        !$.fn.DataTable.isDataTable(tableElement)) {
+
+        console.error(reconType + " mismatch DataTable is not initialized.");
+        return;
+    }
+
+    var dataTable = $(tableElement).DataTable();
+
+    /*
+     * IMPORTANT:
+     * search: "applied" retrieves only records matching
+     * the current DataTables search keyword.
+     *
+     * It includes matching records from ALL pagination pages.
+     */
+    var filteredRows = dataTable.rows({
+        search: "applied",
+        order: "applied"
+    }).nodes();
+
+    if (filteredRows.length === 0) {
+        console.log("No matching " + reconType + " mismatch records found.");
+        return;
+    }
+
+    var selectedRows = [];
+    var allFilteredRows = [];
+
+    $(filteredRows).each(function () {
+
+        var $row = $(this);
+
+        allFilteredRows.push(this);
+
+        if ($row.find(".mismatch-row-checkbox").prop("checked")) {
+            selectedRows.push(this);
+        }
+    });
+
+    /*
+     * Export behavior:
+     * 1. If checkboxes are selected, export only selected rows
+     *    from the current search results.
+     * 2. If no checkbox is selected, export all current
+     *    search results.
+     */
+    var rowsToExport = selectedRows.length > 0
+        ? selectedRows
+        : allFilteredRows;
+
+    var csvRows = [];
+
+    csvRows.push([
+        "GatePass ID",
+        "Workmen Name",
+        "DB Number",
+        "Document Number",
+        "DB Amount",
+        "Document Amount",
+        "Mismatch Reason"
+    ]);
+
+    $(rowsToExport).each(function () {
+
+        var cells = $(this).children("td");
+
+        // First column contains the checkbox.
+        // Remaining seven columns contain mismatch data.
+        if (cells.length < 8) {
+            console.error("Invalid mismatch row structure:", this);
+            return;
+        }
+
+        var rowData = [];
+
+        for (var i = 1; i < 8; i++) {
+
+            var cellValue = $(cells[i]).text().trim();
+
+            rowData.push(escapeCsvValue(cellValue));
+        }
+
+        csvRows.push(rowData);
+    });
+
+    if (csvRows.length <= 1) {
+        console.log("No valid " + reconType + " records available for export.");
+        return;
+    }
+
+    var csvContent = "\uFEFF" + csvRows
+        .map(function (row) {
+            return row.join(",");
+        })
+        .join("\r\n");
+
+    var blob = new Blob(
+        [csvContent],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    var downloadUrl = URL.createObjectURL(blob);
+
+    var link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+
+    URL.revokeObjectURL(downloadUrl);
+
+    console.log(
+        reconType + " mismatch export completed. Exported records:",
+        csvRows.length - 1
+    );
+}
+
+
+function escapeCsvValue(value) {
+
+    if (value === null || value === undefined) {
+        value = "";
+    }
+
+    value = String(value);
+
+    return '"' + value.replace(/"/g, '""') + '"';
 }

@@ -19,6 +19,8 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="resources/js/cms/workmen.js"></script>
 
     <style>
@@ -343,6 +345,100 @@
             display: block;
             clear: both;
         }
+        
+        .dataTables_filter_row {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.dataTables_footer {
+    width: 100%;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: left !important;
+    text-align: left !important;
+    margin-bottom: 10px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    float: left !important;
+    clear: left;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right !important;
+    text-align: right;
+}
+
+.dataTables_wrapper {
+    width: 100%;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+
+
+
+/* Mismatch DataTable search */
+#pfMismatchSection .dataTables_filter,
+#esicMismatchSection .dataTables_filter {
+    display: block !important;
+    float: left !important;
+    width: 100%;
+    text-align: left !important;
+    margin: 10px 0 !important;
+}
+
+#pfMismatchSection .dataTables_filter input,
+#esicMismatchSection .dataTables_filter input {
+    display: inline-block !important;
+    width: 220px;
+    height: 32px;
+    margin-left: 8px;
+    padding: 5px 8px;
+    border: 1px solid #bfbfbf;
+    border-radius: 4px;
+    background: #fff;
+}
+
+/* Mismatch DataTable information */
+#pfMismatchSection .dataTables_info,
+#esicMismatchSection .dataTables_info {
+    display: block !important;
+    float: left !important;
+    clear: both;
+    padding-top: 12px;
+}
+
+/* Mismatch DataTable pagination */
+#pfMismatchSection .dataTables_paginate,
+#esicMismatchSection .dataTables_paginate {
+    display: block !important;
+    float: right !important;
+    padding-top: 8px;
+    text-align: right !important;
+}
+
+/* Keep table wrapper full width */
+#pfMismatchSection .dataTables_wrapper,
+#esicMismatchSection .dataTables_wrapper {
+    width: 100%;
+    overflow: visible;
+}
+
+#pfMismatchSection .table-container,
+#esicMismatchSection .table-container {
+    width: 100%;
+    overflow-x: auto;
+}
     </style>
 
     <%
@@ -460,13 +556,28 @@ function submitForm() {
                 </tbody>
             </table>
         </div>
+<div id="pfMismatchExportContainer"
+     style="display:none; text-align:right; margin-bottom:10px;">
 
+    <button type="button"
+            class="btn btn-default process-footer-button-cancel ng-binding"
+            onclick="exportPFMismatches()">
+        Export PF Mismatches
+    </button>
+
+</div>
         <div id="pfMismatchSection" style="display:none;">
             <h5 class="text-danger mt-3">PF Unverified Data</h5>
             <div class="table-container">
                 <table id="pfMismatchTable" class="display">
                     <thead>
                         <tr>
+                        <th>
+                        <input type="checkbox"
+                               class="select-all-mismatch"
+                               data-table="pfMismatchTable"
+                               title="Select All PF Rows">
+                    </th>
                             <th>GatePass ID</th>
                             <th>Workmen Name</th>
                             <th>DB Number</th>
@@ -534,13 +645,28 @@ function submitForm() {
                 </tbody>
             </table>
         </div>
+<div id="esicMismatchExportContainer"
+     style="display:none; text-align:right; margin-bottom:10px;">
 
+    <button type="button"
+            class="btn btn-default process-footer-button-cancel ng-binding"
+            onclick="exportESICMismatches()">
+        Export ESIC Mismatches
+    </button>
+
+</div>
         <div id="esicMismatchSection" style="display:none;">
             <h5 class="text-danger mt-3">ESIC Unverified Data</h5>
             <div class="table-container">
                 <table id="esicMismatchTable" class="display">
                     <thead>
                         <tr>
+                         <th>
+                        <input type="checkbox"
+                               class="select-all-mismatch"
+                               data-table="esicMismatchTable"
+                               title="Select All ESIC Rows">
+                    </th>
                             <th>GatePass ID</th>
                             <th>Workmen Name</th>
                             <th>DB Number</th>
@@ -561,13 +687,28 @@ function submitForm() {
     var messageTimers = {};
 
     function showTab(tabId, btn) {
+
         $(".tab-content").removeClass("active").hide();
+
         $("#" + tabId).addClass("active").show();
 
         $(".tabs button").removeClass("active");
-        $(btn).addClass("active");
-    }
 
+        $(btn).addClass("active");
+
+        // Adjust tables after switching tabs.
+        $("#" + tabId).find("table").each(function() {
+
+            if ($.fn.DataTable.isDataTable(this)) {
+
+                $(this).DataTable()
+                    .columns.adjust()
+                    .draw(false);
+
+            }
+
+        });
+    }
     function showLoader() {
         $("#loaderOverlay").show();
     }
@@ -600,26 +741,73 @@ function submitForm() {
         });
     }
 
-    function initMismatchTable(tableId) {
-        if ($.fn.DataTable.isDataTable(tableId)) {
-            $(tableId).DataTable().destroy();
+    function initMismatchTable(tableSelector) {
+
+        var $table = $(tableSelector);
+
+        if ($table.length === 0) {
+            console.error("Mismatch table not found:", tableSelector);
+            return;
         }
 
-        $(tableId).DataTable({
+        if (typeof $.fn.DataTable === "undefined") {
+            console.error("DataTables library is not loaded.");
+            return;
+        }
+
+        // Do not initialize an already initialized table.
+        if ($.fn.DataTable.isDataTable($table[0])) {
+            console.error("Table is already initialized:", tableSelector);
+            return;
+        }
+
+        $table.DataTable({
+
             paging: true,
             searching: true,
             ordering: true,
             info: true,
+
             lengthChange: false,
             pageLength: 5,
-            dom: 'rt<"bottom"fi p>',
+            pagingType: "simple_numbers",
+
+            autoWidth: false,
+            processing: false,
+            deferRender: false,
+
+            // f = search, t = table, i = information, p = pagination.
+            dom: '<"dt-search"f>rt<"dt-footer"ip>',
+
             language: {
-                search: "Filter:",
+                search: "Search:",
+                searchPlaceholder: "Search mismatch records...",
+
+                emptyTable: "No mismatch records found",
+                zeroRecords: "No matching mismatch records found",
+
+                info: "Showing _START_ to _END_ of _TOTAL_ records",
+                infoEmpty: "Showing 0 to 0 of 0 records",
+                infoFiltered: "(filtered from _MAX_ total records)",
+
                 paginate: {
                     previous: "Previous",
                     next: "Next"
-                },
-                emptyTable: "No mismatch records found"
+                }
+            },
+
+            initComplete: function () {
+
+                var api = this.api();
+
+                console.log(
+                    tableSelector + " initialized successfully."
+                );
+
+                console.log(
+                    "Registered mismatch records:",
+                    api.rows().count()
+                );
             }
         });
     }
@@ -669,6 +857,10 @@ function submitForm() {
 
                 if (response.status === "success") {
                     var data = response.data;
+                    console.log(
+                            "Mismatch list count:",
+                            data.mismatchList ? data.mismatchList.length : "mismatchList is missing"
+                        );
                     bindSummary(reconType, data);
                     bindMismatch(reconType, data.mismatchList);
 
@@ -705,36 +897,157 @@ function submitForm() {
     }
 
     function bindMismatch(type, list) {
-        var bodyId = type === 'PF' ? "#pfMismatchBody" : "#esicMismatchBody";
-        var sectionId = type === 'PF' ? "#pfMismatchSection" : "#esicMismatchSection";
-        var tableId = type === 'PF' ? "#pfMismatchTable" : "#esicMismatchTable";
-        var html = "";
 
-        if (list && list.length > 0) {
-            for (var i = 0; i < list.length; i++) {
-                var m = list[i];
-                html += "<tr>"
-                    + "<td>" + nullSafe(m.gatePassId) + "</td>"
-                    + "<td>" + nullSafe(m.workmenName) + "</td>"
-                    + "<td>" + nullSafe(m.dbNumber) + "</td>"
-                    + "<td>" + nullSafe(m.docNumber) + "</td>"
-                    + "<td>" + nullSafe(m.dbAmount) + "</td>"
-                    + "<td>" + nullSafe(m.docAmount) + "</td>"
-                    + "<td>" + nullSafe(m.mismatchReason) + "</td>"
-                    + "</tr>";
-            }
+        var bodySelector;
+        var sectionSelector;
+        var tableSelector;
 
-            $(bodyId).html(html);
-            $(sectionId).show();
-            initMismatchTable(tableId);
+        type = String(type).toUpperCase();
+
+        if (type === "PF") {
+
+            bodySelector = "#pfMismatchBody";
+            sectionSelector = "#pfMismatchSection";
+            tableSelector = "#pfMismatchTable";
+
+        } else if (type === "ESIC") {
+
+            bodySelector = "#esicMismatchBody";
+            sectionSelector = "#esicMismatchSection";
+            tableSelector = "#esicMismatchTable";
+
         } else {
-            $(bodyId).html("");
-            $(sectionId).hide();
+
+            console.error("Invalid reconciliation type:", type);
+            return;
+        }
+
+        var $table = $(tableSelector);
+        var $body = $(bodySelector);
+        var $section = $(sectionSelector);
+
+        // Validate actual HTML elements.
+        if ($table.length === 0 || $body.length === 0) {
+
+            console.error("Mismatch HTML elements not found.", {
+                table: tableSelector,
+                tbody: bodySelector
+            });
+
+            return;
+        }
+
+        // STEP 1: Destroy previous DataTable BEFORE modifying tbody.
+        if ($.fn.DataTable.isDataTable($table[0])) {
+
+            $table.DataTable().clear().destroy();
+
+        }
+
+        // STEP 2: Clear previous mismatch rows.
+        $body.empty();
+
+        // STEP 3: Validate backend response.
+        if (!Array.isArray(list)) {
+
+            console.error(
+                type + " mismatchList is not an array:",
+                list
+            );
+
+            $section.hide();
+            return;
+        }
+
+        console.log(
+            type + " mismatch records received from backend:",
+            list.length
+        );
+
+        // STEP 4: Handle empty mismatch records.
+        if (list.length === 0) {
+
+            $section.hide();
+            return;
+        }
+
+        // STEP 5: Append all mismatch records.
+        $.each(list, function(index, m) {
+
+            var $row = $("<tr></tr>");
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.gatePassId))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.workmenName))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.dbNumber))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.docNumber))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.dbAmount))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.docAmount))
+            );
+
+            $row.append(
+                $("<td></td>").text(nullSafe(m.mismatchReason))
+            );
+
+            $body.append($row);
+
+        });
+
+        // STEP 6: Verify rows are actually present in HTML.
+        console.log(
+            type + " HTML rows inserted:",
+            $body.find("tr").length
+        );
+
+        // STEP 7: Show section.
+        $section.show();
+
+        // STEP 8: Initialize DataTable AFTER inserting all rows.
+        initMismatchTable(tableSelector);
+
+        // STEP 9: Verify actual DataTables records.
+        var dt = $table.DataTable();
+
+        console.log(
+            type + " DataTables registered records:",
+            dt.rows().count()
+        );
+
+        console.log(
+            type + " DataTables total pages:",
+            dt.page.info().pages
+        );
+
+        // Adjust columns when visible.
+        if ($table.is(":visible")) {
+            dt.columns.adjust().draw(false);
         }
     }
-
     function nullSafe(val) {
         return (val === null || val === undefined) ? "" : val;
+    }
+    function escapeMismatchHtml(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return $("<div>").text(String(value)).html();
     }
 
     $(document).ready(function () {
@@ -744,6 +1057,7 @@ function submitForm() {
         initReconTable('#pfTable');
         initReconTable('#esicTable');
     });
+    
 </script>
 
 </body>

@@ -86,16 +86,29 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 				? reconciliationDao.getPfReconciliationList(contractorId, fromDate, toDate)
 				: reconciliationDao.getEsicReconciliationList(contractorId, fromDate, toDate);
 
-		List<ChallanEmployeeDTO> documentList = parseChallanDocument(dest, reconType);
+		List<ChallanEmployeeDTO> documentList;
+		try {
+			documentList = parseChallanDocument(dest, reconType);
+			if (documentList == null || documentList.isEmpty()) {
+				result.setStatus("UNVERIFIED");
+				result.setMessage("No employee records could be extracted from the uploaded challan.");
+				return result;
+			}
+		} catch (IllegalArgumentException ex) {
+			result.setStatus("UNVERIFIED");
+			result.setMessage(ex.getMessage() == null ? "Invalid challan file." : ex.getMessage());
+			return result;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			result.setStatus("UNVERIFIED");
+			result.setMessage("Unable to process the uploaded challan. Please verify the file format and contents.");
+			return result;
+		}
 
 		System.out.println("Reconciliation Type = " + reconType);
 		System.out.println("DB rows count = " + dbList.size());
 		System.out.println("Document parsed rows count = " + documentList.size());
 
-		for (ChallanEmployeeDTO dto : documentList) {
-			System.out.println("Parsed Row -> UAN=" + dto.getUanNumber() + ", ESIC=" + dto.getEsicNumber() + ", Name="
-					+ dto.getWorkmenName() + ", Amount=" + dto.getAmount());
-		}
 
 		List<ReconciliationMismatchDTO> mismatchList = compareData(dbList, documentList, reconType);
 
@@ -363,191 +376,225 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 	private List<ChallanEmployeeDTO> parsePfPdf(File file) throws Exception {
 
 		if (file == null || !file.isFile() || file.length() == 0) {
-			throw new IllegalArgumentException("Invalid PF ECR PDF");
+			throw new IllegalArgumentException("Invalid PF ECR PDF. Please upload a non-empty PDF file.");
 		}
 
 		List<ChallanEmployeeDTO> result = new ArrayList<>();
 		Set<String> seenUans = new HashSet<>();
-
 		int expectedMembers;
 		BigDecimal expectedEeTotal;
 
 		try (PDDocument document = PDDocument.load(file)) {
 
 			if (document.isEncrypted()) {
-				throw new IllegalArgumentException("Password-protected ECR is not supported");
+				throw new IllegalArgumentException("Password-protected PF ECR PDFs are not supported.");
+			}
+
+			if (document.getNumberOfPages() == 0) {
+				throw new IllegalArgumentException("The uploaded PF ECR PDF does not contain any pages.");
 			}
 
 			PDFTextStripper headerStripper = new PDFTextStripper();
 			headerStripper.setStartPage(1);
 			headerStripper.setEndPage(1);
-
 			String firstPage = headerStripper.getText(document);
+			String normalizedText = normalizePfPdfText(firstPage);
 
-			expectedMembers = extractPfHeaderInt(firstPage, "Total\\s+Members\\s+(\\d+)");
+			// EPFO summary footer example:
+			// 380 357347 165256 522603 GNGGN2590741000 /
+			Pattern totalsPattern = Pattern.compile(
+					"(?<!\\d)(\\d{1,6})\\s+([\\d,]+)\\s+([\\d,]+)\\s+([\\d,]+)\\s+[A-Z0-9]{8,}\\s*/",
+					Pattern.CASE_INSENSITIVE);
+			Matcher totalsMatcher = totalsPattern.matcher(normalizedText);
+			String membersText = null;
+			String eeTotalText = null;
 
-			expectedEeTotal = new BigDecimal(extractPfHeaderValue(firstPage, "Total\\s+EPF\\s+Contribution\\s+(\\d+)"));
+			while (totalsMatcher.find()) {
+				// Capture while the matcher is on a successful match.
+				membersText = totalsMatcher.group(1);
+				eeTotalText = totalsMatcher.group(4);
+			}
+
+			if (membersText == null || eeTotalText == null) {
+
+			    System.out.println("PF ECR Summary could not be identified.");
+			    System.out.println("Extracted first-page text: " + normalizedText);
+
+			    throw new IllegalArgumentException(
+			            "Unable to verify the PF ECR summary details in the uploaded PDF. "
+			            + "Please upload the original EPFO ECR PDF with the summary details clearly visible. "
+			            + "Scanned PDFs, incomplete PDFs, or PDFs with a different format cannot be processed."
+			    );
+			}
+
+			try {
+				expectedMembers = Integer.parseInt(membersText.replace(",", "").trim());
+				expectedEeTotal = new BigDecimal(eeTotalText.replace(",", "").trim());
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException("Invalid member count or EE contribution in the PF ECR summary.", ex);
+			}
+
+			if (expectedMembers <= 0 || expectedEeTotal.signum() < 0) {
+				throw new IllegalArgumentException("PF ECR summary contains invalid member count or contribution total.");
+			}
 
 			int expectedSerial = 1;
 
 			for (int pageIndex = 0; pageIndex < document.getNumberOfPages(); pageIndex++) {
 
-				// PDFBox document page indexes start from zero.
-				PDPage page = document.getPage(pageIndex);
-
 				int pdfPageNumber = pageIndex + 1;
-
-				float pageWidth = page.getMediaBox().getWidth();
-
-				// This parser is calibrated for the uploaded
-				// 842-point-wide EPFO ECR table.
-				if (Math.abs(pageWidth - 842f) > 3f) {
-					throw new IllegalArgumentException("Unsupported ECR layout on page " + (pdfPageNumber));
-				}
-
 				PfPositionStripper stripper = new PfPositionStripper();
-
 				stripper.setSortByPosition(true);
-				// PDFTextStripper page numbers start from one.
 				stripper.setStartPage(pdfPageNumber);
 				stripper.setEndPage(pdfPageNumber);
 				stripper.getText(document);
 
 				List<PfWord> words = stripper.getWords();
+				if (words == null || words.isEmpty()) {
+					continue;
+				}
 
 				List<PfPdfRow> rows = new ArrayList<>();
 
-				// Find employee rows using the UAN column.
+				// STEP 1: Identify UAN rows before assigning names and amounts.
+				// Do not validate MediaBox width: valid EPFO PDFs can have
+				// different page dimensions or page rotation settings.
 				for (PfWord word : words) {
+					if (word == null || word.value == null) {
+						continue;
+					}
 
-					if (word.x >= 40 && word.x < 120 && word.value.matches("\\d{12}")) {
-
+					String value = word.value.trim();
+					if (word.x >= 20f && word.x < 150f && value.matches("\\d{12}")) {
 						PfPdfRow row = new PfPdfRow();
-						row.uan = word.value;
+						row.uan = value;
 						row.y = word.y;
-
 						rows.add(row);
 					}
 				}
 
-				rows.sort(Comparator.comparingDouble(r -> r.y));
+				rows.sort(Comparator.comparingDouble(row -> row.y));
 
-// Skip pages containing only notes, headers, or footers.
-// Continue validating employee rows on all other pages.
+				// Notes/header/footer pages are ignored. The final summary
+				// member-count check prevents missing employee pages being accepted.
 				if (rows.isEmpty()) {
-					System.out.println("Skipping page " + (pdfPageNumber) + " because it contains no employee rows.");
+					System.out.println("No PF employee UAN rows found on page " + pdfPageNumber);
 					continue;
 				}
 
-				// Assign each word to its nearest employee row.
-				// This handles name text above and below UAN.
+				// STEP 2: Assign name and EE contribution words to detected rows.
 				for (PfWord word : words) {
-
-					if (word.x < 20 || word.x > 805) {
+					if (word == null || word.value == null || word.value.trim().isEmpty()) {
+						continue;
+					}
+					if (word.x < 20f || word.x > 805f) {
 						continue;
 					}
 
 					PfPdfRow nearest = null;
 					float minDistance = Float.MAX_VALUE;
-
 					for (PfPdfRow row : rows) {
-
 						float distance = Math.abs(word.y - row.y);
-
 						if (distance < minDistance) {
 							minDistance = distance;
 							nearest = row;
 						}
 					}
 
-					if (nearest == null || minDistance > 18f) {
+					if (nearest == null || minDistance > 35f) {
 						continue;
 					}
 
-					if (word.x >= 125 && word.x < 225) {
+					if (word.x >= 125f && word.x < 225f) {
 						nearest.returnNameWords.add(word);
-
-					} else if (word.x >= 225 && word.x < 345) {
+					} else if (word.x >= 225f && word.x < 345f) {
 						nearest.repositoryNameWords.add(word);
-
-					} else if (word.x >= 575 && word.x < 630 && Math.abs(word.y - nearest.y) < 4f) {
-
+					} else if (word.x >= 575f && word.x < 630f
+							&& Math.abs(word.y - nearest.y) < 4f) {
 						nearest.eeWords.add(word);
 					}
 				}
 
+				// STEP 3: Validate each employee row and build the existing DTO.
 				for (PfPdfRow row : rows) {
 
 					if (!seenUans.add(row.uan)) {
-						throw new IllegalArgumentException("Duplicate UAN: " + row.uan);
+						throw new IllegalArgumentException("Duplicate UAN found in PF ECR: " + row.uan);
 					}
 
 					String returnName = joinPfWords(row.returnNameWords);
-
 					if (returnName.isEmpty()) {
-						throw new IllegalArgumentException("Return Name missing for UAN " + row.uan);
+						throw new IllegalArgumentException("Return Name is missing for UAN " + row.uan
+								+ " on page " + pdfPageNumber + ".");
 					}
 
 					if (row.eeWords.size() != 1) {
-						throw new IllegalArgumentException("Invalid EE contribution for UAN " + row.uan);
+						throw new IllegalArgumentException("EE contribution is missing or ambiguous for UAN "
+								+ row.uan + " on page " + pdfPageNumber + ".");
 					}
 
-					String amountText = row.eeWords.get(0).value;
-
+					String amountText = row.eeWords.get(0).value.trim();
 					if (!amountText.matches("\\d+(?:\\.\\d{1,2})?")) {
-						throw new IllegalArgumentException("Invalid PF amount for UAN " + row.uan + ": " + amountText);
+						throw new IllegalArgumentException("Invalid EE contribution for UAN " + row.uan + ": " + amountText);
 					}
 
-					// Find serial number on the same baseline.
 					List<PfWord> serialWords = new ArrayList<>();
-
 					for (PfWord word : words) {
-						if (word.x >= 20 && word.x < 45 && Math.abs(word.y - row.y) < 4f
+						if (word != null && word.value != null
+								&& word.x >= 20f && word.x < 45f
+								&& Math.abs(word.y - row.y) < 4f
 								&& word.value.matches("\\d{1,4}")) {
 							serialWords.add(word);
 						}
 					}
 
 					if (serialWords.size() != 1) {
-						throw new IllegalArgumentException("Missing serial number for UAN " + row.uan);
+						throw new IllegalArgumentException("Serial number is missing or ambiguous for UAN " + row.uan
+								+ " on page " + pdfPageNumber + ".");
 					}
 
-					int serial = Integer.parseInt(serialWords.get(0).value);
+					int serial;
+				try {
+						serial = Integer.parseInt(serialWords.get(0).value);
+					} catch (NumberFormatException ex) {
+						throw new IllegalArgumentException("Invalid serial number for UAN " + row.uan + ".", ex);
+					}
 
 					if (serial != expectedSerial) {
-						throw new IllegalArgumentException(
-								"Unexpected serial number. Expected " + expectedSerial + ", found " + serial);
+						throw new IllegalArgumentException("Unexpected serial number on page " + pdfPageNumber
+								+ ". Expected " + expectedSerial + ", found " + serial + ".");
 					}
-
 					expectedSerial++;
 
 					ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
 					dto.setUanNumber(row.uan);
 					dto.setWorkmenName(normalizeName(returnName));
 					dto.setAmount(new BigDecimal(amountText));
-
 					result.add(dto);
 				}
 			}
+		} catch (org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException ex) {
+			throw new IllegalArgumentException("Password-protected PF ECR PDFs are not supported.", ex);
+		} catch (IOException ex) {
+			throw new IllegalArgumentException("Unable to read the PF ECR PDF. The file may be damaged or unreadable.", ex);
 		}
 
 		if (result.size() != expectedMembers) {
-			throw new IllegalArgumentException(
-					"PF ECR member count mismatch. Expected " + expectedMembers + ", extracted " + result.size());
+			throw new IllegalArgumentException("PF ECR member count mismatch. Expected " + expectedMembers
+					+ ", extracted " + result.size() + ". Please verify that all employee pages were read.");
 		}
 
-		BigDecimal actualEeTotal = result.stream().map(ChallanEmployeeDTO::getAmount).reduce(BigDecimal.ZERO,
-				BigDecimal::add);
+		BigDecimal actualEeTotal = result.stream()
+				.map(ChallanEmployeeDTO::getAmount)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
 
 		if (actualEeTotal.compareTo(expectedEeTotal) != 0) {
-			throw new IllegalArgumentException(
-					"PF EE total mismatch. ECR header = " + expectedEeTotal + ", extracted = " + actualEeTotal);
+			throw new IllegalArgumentException("PF EE total mismatch. ECR summary = " + expectedEeTotal
+					+ ", extracted = " + actualEeTotal + ".");
 		}
 
-		System.out.println("PF ECR parsed successfully");
-		System.out.println("Members: " + result.size());
-		System.out.println("EE Total: " + actualEeTotal);
-
+		System.out.println("PF ECR parsed successfully. Members=" + result.size()
+				+ ", EE total=" + actualEeTotal);
 		return result;
 	}
 
@@ -557,15 +604,43 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
 	private String extractPfHeaderValue(String text, String regex) {
 
-		Matcher matcher = Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(text);
+	    if (text == null || text.trim().isEmpty()) {
+	        throw new IllegalArgumentException(
+	                "PF ECR header could not be read. Please upload a readable PDF."
+	        );
+	    }
 
-		if (!matcher.find()) {
-			throw new IllegalArgumentException("Required PF ECR header field missing: " + regex);
-		}
+	    // Normalize special spaces and line breaks returned by PDFBox.
+	    String normalizedText = text
+	            .replace('\u00A0', ' ')
+	            .replace('\u2007', ' ')
+	            .replace('\u202F', ' ')
+	            .replace('\uFEFF', ' ')
+	            .replaceAll("[\\r\\n\\t]+", " ")
+	            .replaceAll("\\s+", " ")
+	            .trim();
 
-		return matcher.group(1);
+	    Pattern pattern = Pattern.compile(
+	            regex,
+	            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+	    );
+
+	    Matcher matcher = pattern.matcher(normalizedText);
+
+	    if (matcher.find()) {
+	        return matcher.group(1).replace(",", "").trim();
+	    }
+
+	    // Print only the header extraction diagnostic while testing.
+	    System.out.println("PF ECR header extraction failed.");
+	    System.out.println("Expected pattern: " + regex);
+	    System.out.println("Normalized header text: " + normalizedText);
+
+	    throw new IllegalArgumentException(
+	            "Required PF ECR header field could not be extracted. "
+	            + "Please verify the Total Members and Total EPF Contribution values in the PDF."
+	    );
 	}
-
 	private String joinPfWords(List<PfWord> words) {
 
 		words.sort(Comparator.comparingDouble((PfWord w) -> w.y).thenComparingDouble(w -> w.x));
@@ -584,130 +659,124 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
 	private List<ChallanEmployeeDTO> parseEsicPdf(File file) throws Exception {
 
-	    List<ChallanEmployeeDTO> list = new ArrayList<>();
+		List<ChallanEmployeeDTO> list = new ArrayList<>();
 
-	    try (PDDocument document = PDDocument.load(file)) {
+		try (PDDocument document = PDDocument.load(file)) {
 
-	        if (document.isEncrypted()) {
-	            throw new IllegalArgumentException(
-	                    "Password-protected ESIC challan is not supported.");
-	        }
+			if (document.isEncrypted()) {
+				throw new IllegalArgumentException("Password-protected ESIC challan is not supported.");
+			}
 
-	        PDFTextStripper stripper = new PDFTextStripper();
-	        stripper.setSortByPosition(true);
+			PDFTextStripper stripper = new PDFTextStripper();
+			stripper.setSortByPosition(true);
 
-	        String text = stripper.getText(document);
-	        text = text.replace("\uFFFE", " ").replace("\uFEFF", " ");
+			String text = stripper.getText(document);
+			text = text.replace("\uFFFE", " ").replace("\uFEFF", " ");
 
-	        String[] lines = text.split("\\r?\\n");
+			String[] lines = text.split("\\r?\\n");
 
-	        for (String raw : lines) {
+			for (String raw : lines) {
 
-	            String line = raw == null
-	                    ? ""
-	                    : raw.replaceAll("\\s+", " ").trim();
+				String line = raw == null ? "" : raw.replaceAll("\\s+", " ").trim();
 
-	            if (line.isEmpty()) {
-	                continue;
-	            }
+				if (line.isEmpty()) {
+					continue;
+				}
 
-	            // Expected row:
-	            // Serial IPNumber EmployeeName Days Wages IsDisable Reason Contribution
-	            if (!line.matches("^\\d+\\s+\\d{8,15}\\s+.*")) {
-	                continue;
-	            }
+				// Expected row:
+				// Serial IPNumber EmployeeName Days Wages IsDisable Reason Contribution
+				if (!line.matches("^\\d+\\s+\\d{8,15}\\s+.*")) {
+					continue;
+				}
 
-	            String[] parts = line.split("\\s+");
+				String[] parts = line.split("\\s+");
 
-	            // Serial + IP number + name + 5 trailing columns
-	            if (parts.length < 8) {
-	                continue;
-	            }
+				// Serial + IP number + name + 5 trailing columns
+				if (parts.length < 8) {
+					continue;
+				}
 
-	            String esicNumber = parts[1];
+				String esicNumber = parts[1];
 
-	            int contributionIndex = parts.length - 1;
-	            int reasonIndex = parts.length - 2;
-	            int disableIndex = parts.length - 3;
-	            int wagesIndex = parts.length - 4;
-	            int daysIndex = parts.length - 5;
+				int contributionIndex = parts.length - 1;
+				int reasonIndex = parts.length - 2;
+				int disableIndex = parts.length - 3;
+				int wagesIndex = parts.length - 4;
+				int daysIndex = parts.length - 5;
 
-	            String daysWorked = parts[daysIndex];
-	            String monthlyWages = parts[wagesIndex];
-	            String isDisable = parts[disableIndex];
-	            String reason = parts[reasonIndex];
-	            String ipContribution = parts[contributionIndex];
+				String daysWorked = parts[daysIndex];
+				String monthlyWages = parts[wagesIndex];
+				String isDisable = parts[disableIndex];
+				String reason = parts[reasonIndex];
+				String ipContribution = parts[contributionIndex];
 
-	            // Support amounts such as 108.2300 and 202.00.
-	            String amountPattern = "\\d[\\d,]*(?:\\.\\d{1,4})?";
+				// Support amounts such as 108.2300 and 202.00.
+				String amountPattern = "\\d[\\d,]*(?:\\.\\d{1,4})?";
 
-	            if (!daysWorked.matches("\\d+")) {
-	                continue;
-	            }
+				if (!daysWorked.matches("\\d+")) {
+					continue;
+				}
 
-	            if (!monthlyWages.matches(amountPattern)) {
-	                continue;
-	            }
+				if (!monthlyWages.matches(amountPattern)) {
+					continue;
+				}
 
-	            if (!ipContribution.matches(amountPattern)) {
-	                continue;
-	            }
+				if (!ipContribution.matches(amountPattern)) {
+					continue;
+				}
 
-	            // Preserve the existing challan layout validation.
-	            if (!"-".equals(isDisable) || !"-".equals(reason)) {
-	                continue;
-	            }
+				// Preserve the existing challan layout validation.
+				if (!"-".equals(isDisable) || !"-".equals(reason)) {
+					continue;
+				}
 
-	            // Employee name can contain multiple words.
-	            StringBuilder nameBuilder = new StringBuilder();
+				// Employee name can contain multiple words.
+				StringBuilder nameBuilder = new StringBuilder();
 
-	            for (int i = 2; i < daysIndex; i++) {
-	                if (nameBuilder.length() > 0) {
-	                    nameBuilder.append(" ");
-	                }
-	                nameBuilder.append(parts[i]);
-	            }
+				for (int i = 2; i < daysIndex; i++) {
+					if (nameBuilder.length() > 0) {
+						nameBuilder.append(" ");
+					}
+					nameBuilder.append(parts[i]);
+				}
 
-	            String employeeName = nameBuilder.toString().trim();
+				String employeeName = nameBuilder.toString().trim();
 
-	            if (employeeName.isEmpty()) {
-	                continue;
-	            }
+				if (employeeName.isEmpty()) {
+					continue;
+				}
 
-	            ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
+				ChallanEmployeeDTO dto = new ChallanEmployeeDTO();
 
-	            dto.setEsicNumber(normalizeEsicNumber(esicNumber));
-	            dto.setWorkmenName(normalizeName(employeeName));
-	            dto.setAmount(parseBigDecimal(ipContribution));
+				dto.setEsicNumber(normalizeEsicNumber(esicNumber));
+				dto.setWorkmenName(normalizeName(employeeName));
+				dto.setAmount(parseBigDecimal(ipContribution));
 
-	            if (!dto.getEsicNumber().isEmpty()) {
-	                list.add(dto);
+				if (!dto.getEsicNumber().isEmpty()) {
+					list.add(dto);
 
-	                System.out.println(
-	                        "ESIC PDF Parsed -> IP Number="
-	                        + dto.getEsicNumber()
-	                        + ", Name=" + dto.getWorkmenName()
-	                        + ", IP Contribution=" + dto.getAmount());
-	            }
-	        }
-	    }
+					System.out.println("ESIC PDF Parsed -> IP Number=" + dto.getEsicNumber() + ", Name="
+							+ dto.getWorkmenName() + ", IP Contribution=" + dto.getAmount());
+				}
+			}
+		}
 
-	    if (list.isEmpty()) {
-	        throw new IllegalArgumentException(
-	                "No employee rows could be read from the uploaded ESIC challan. "
-	                + "Please verify the PDF text and challan format.");
-	    }
+		if (list.isEmpty()) {
+			throw new IllegalArgumentException("No employee rows could be read from the uploaded ESIC challan. "
+					+ "Please verify the PDF text and challan format.");
+		}
 
-	    System.out.println("ESIC challan parsed successfully. Rows: " + list.size());
+		System.out.println("ESIC challan parsed successfully. Rows: " + list.size());
 
-	    return list;
+		return list;
 	}
-	private String normalizeEsicNumber(String value) {
-	    if (value == null) {
-	        return "";
-	    }
 
-	    return value.replaceAll("\\D", "");
+	private String normalizeEsicNumber(String value) {
+		if (value == null) {
+			return "";
+		}
+
+		return value.replaceAll("\\D", "");
 	}
 
 	private Map<String, Integer> buildColumnIndexMap(Row headerRow) {
@@ -857,7 +926,6 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 			}
 
 			StringBuilder currentWord = new StringBuilder();
-
 			float startX = 0;
 			float startY = 0;
 			float previousEndX = -1;
@@ -865,33 +933,32 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 			for (TextPosition position : textPositions) {
 
 				String character = position.getUnicode();
-
 				if (character == null || character.isEmpty()) {
 					continue;
 				}
 
 				float x = position.getXDirAdj();
 				float y = position.getYDirAdj();
-
 				boolean whitespace = character.trim().isEmpty();
 
-				boolean newWord = whitespace || (previousEndX >= 0 && x - previousEndX > 2.5f)
+				boolean uanBoundary = currentWord.length() == 12
+						&& currentWord.toString().matches("\\d{12}")
+						&& Character.isLetter(character.charAt(0));
+
+				boolean newWord = whitespace || uanBoundary
+						|| (previousEndX >= 0 && x - previousEndX > 2.5f)
 						|| (currentWord.length() > 0 && Math.abs(y - startY) > 2f);
 
 				if (newWord && currentWord.length() > 0) {
-
 					words.add(new PfWord(currentWord.toString(), startX, startY));
-
 					currentWord.setLength(0);
 				}
 
 				if (!whitespace) {
-
 					if (currentWord.length() == 0) {
 						startX = x;
 						startY = y;
 					}
-
 					currentWord.append(character);
 				}
 
@@ -919,5 +986,20 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 			this.x = x;
 			this.y = y;
 		}
+	}
+	private String normalizePfPdfText(String text) {
+
+	    if (text == null) {
+	        return "";
+	    }
+
+	    return text
+	            .replace('\u00A0', ' ')
+	            .replace('\u2007', ' ')
+	            .replace('\u202F', ' ')
+	            .replace('\uFEFF', ' ')
+	            .replaceAll("[\\r\\n\\t]+", " ")
+	            .replaceAll("\\s+", " ")
+	            .trim();
 	}
 }
