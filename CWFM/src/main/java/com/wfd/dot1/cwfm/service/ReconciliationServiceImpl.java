@@ -501,7 +501,7 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 						}
 					}
 
-					if (nearest == null || minDistance > 35f) {
+					if (nearest == null || minDistance > 8.0f) {
 						continue;
 					}
 
@@ -698,20 +698,37 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
 				String esicNumber = parts[1];
 
+
+				// Contribution is always the last column.
 				int contributionIndex = parts.length - 1;
-				int reasonIndex = parts.length - 2;
-				int disableIndex = parts.length - 3;
-				int wagesIndex = parts.length - 4;
-				int daysIndex = parts.length - 5;
+				String ipContribution = parts[contributionIndex];
+
+				// Support amounts such as 108.2300, 202.00 and 0.00.
+				String amountPattern = "\\d[\\d,]*(?:\\.\\d{1,4})?";
+
+				// Find Days and Wages without depending on the Reason column.
+				// Days = integer, Wages = numeric amount.
+				int daysIndex = -1;
+
+				for (int i = 2; i < contributionIndex - 2; i++) {
+
+				    if (parts[i].matches("\\d+")
+				            && parts[i + 1].matches(amountPattern)) {
+
+				        daysIndex = i;
+				        break;
+				    }
+				}
+
+				if (daysIndex == -1) {
+				    continue;
+				}
+
+				int wagesIndex = daysIndex + 1;
 
 				String daysWorked = parts[daysIndex];
 				String monthlyWages = parts[wagesIndex];
-				String isDisable = parts[disableIndex];
-				String reason = parts[reasonIndex];
-				String ipContribution = parts[contributionIndex];
 
-				// Support amounts such as 108.2300 and 202.00.
-				String amountPattern = "\\d[\\d,]*(?:\\.\\d{1,4})?";
 
 				if (!daysWorked.matches("\\d+")) {
 					continue;
@@ -726,9 +743,9 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 				}
 
 				// Preserve the existing challan layout validation.
-				if (!"-".equals(isDisable) || !"-".equals(reason)) {
-					continue;
-				}
+//				if (!"-".equals(isDisable) || !"-".equals(reason)) {
+//					continue;
+//				}
 
 				// Employee name can contain multiple words.
 				StringBuilder nameBuilder = new StringBuilder();
