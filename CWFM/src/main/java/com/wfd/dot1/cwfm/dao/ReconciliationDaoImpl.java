@@ -61,6 +61,7 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
     @Override
     public Long saveUploadMaster(Long contractorId, String reconType, String fileName, String filePath,
                                  String overallStatus, int totalCount, int verifiedCount, int unverifiedCount,
+                                 String fromDate,String toDate,
                                  String uploadedBy) {
     	String sql =saveUploadMaster();
 //        String sql = "INSERT INTO RECONCILIATION_UPLOAD " +
@@ -79,7 +80,9 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
             ps.setInt(6, totalCount);
             ps.setInt(7, verifiedCount);
             ps.setInt(8, unverifiedCount);
-            ps.setString(9, uploadedBy);
+            ps.setString(9, fromDate);
+            ps.setString(10, toDate);
+            ps.setString(11, uploadedBy);
             return ps;
         }, keyHolder);
 

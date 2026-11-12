@@ -118,7 +118,7 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 		String overallStatus = unverifiedCount == 0 ? "VERIFIED" : "UNVERIFIED";
 
 		Long uploadId = reconciliationDao.saveUploadMaster(contractorId, reconType, originalFileName, savedFilePath,
-				overallStatus, totalCount, verifiedCount, unverifiedCount, uploadedBy);
+				overallStatus, totalCount, verifiedCount, unverifiedCount,fromDate,toDate, uploadedBy);
 
 		if (!mismatchList.isEmpty()) {
 			reconciliationDao.saveMismatchList(uploadId, mismatchList);
