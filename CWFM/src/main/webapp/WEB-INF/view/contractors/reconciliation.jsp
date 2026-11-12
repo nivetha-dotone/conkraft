@@ -51,7 +51,7 @@
             border-bottom: 2px solid #005151;
             margin-bottom: 0;
             width: 100%;
-            max-width: 520px;
+            max-width: 680px;
         }
 
         .tabs button {
@@ -250,7 +250,7 @@
             vertical-align: middle;
         }
 
-        #messageDiv, #esicmessageDiv {
+        #messageDiv, #esicmessageDiv, #bankMessageDiv {
             display: none;
             margin-bottom: 15px;
         }
@@ -389,7 +389,8 @@
 
 /* Mismatch DataTable search */
 #pfMismatchSection .dataTables_filter,
-#esicMismatchSection .dataTables_filter {
+#esicMismatchSection .dataTables_filter,
+#bankDetailsSection .dataTables_filter {
     display: block !important;
     float: left !important;
     width: 100%;
@@ -439,6 +440,18 @@
     width: 100%;
     overflow-x: auto;
 }
+
+        /* Bank tab follows the existing PF / ESIC filter and table appearance. */
+        .bank-filter-row { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+        .bank-filter-row label { color:darkcyan; font-weight:600; margin:0; }
+        .bank-filter-row select, .bank-filter-row input { color:gray; min-height:28px; }
+        .bank-filter-row select { max-width:320px; }
+        .bank-filter-row .datetimepickerActiveWorkmenformat { width:185px; }
+        #bankExpectedSection, #bankMismatchSection { margin-top:16px; }
+        #bankExpectedSection h5, #bankDetailsSection h5 { color:#005151; }
+        #bankMismatchSection h5 { color:#c62828; }
+        .bank-filter-row .bank-month { width:170px; }
+        .bank-date-note { color:#666; font-size:12px; }
     </style>
 
     <%
@@ -463,6 +476,7 @@ function submitForm() {
         <div class="tabs">
             <button type="button" class="active" data-target="tab1" onclick="showTab('tab1', this)">PF Reconciliation</button>
             <button type="button" data-target="tab2" onclick="showTab('tab2', this)">ESIC Reconciliation</button>
+            <button type="button" data-target="tab3" onclick="showTab('tab3', this)">Bank Wage Reconciliation</button>
         </div>
         <div>
             <button type="button"
@@ -480,6 +494,7 @@ function submitForm() {
         <div class="loader-text">please wait...</div>
     </div>
     
+<div id="pfEsicFilters">
 <tr>
 
 <th><label class="custom-label"><span class="required-field">*</span><spring:message code="label.contractor"/></label></th>
@@ -502,6 +517,7 @@ function submitForm() {
 				
 				<button type="button" id="exportBtn" class="btn btn-default process-footer-button-cancel ng-binding" onclick="getReconciliationData()">Search</button>
 </tr>
+</div>
     <!-- PF TAB -->
     <div id="tab1" class="tab-content active">
 
@@ -681,20 +697,132 @@ function submitForm() {
             </div>
         </div>
     </div>
+
+    <!-- BANK WAGE TAB: same controls and tables as existing PF / ESIC -->
+    <div id="tab3" class="tab-content">
+        <div id="bankMessageDiv" role="alert" aria-live="polite"></div>
+
+        <div class="bank-filter-row">
+            <label for="bankPrincipalEmployer">Principal Employer <span class="required-field">*</span></label>
+            <select id="bankPrincipalEmployer" name="principalEmployerId">
+                <option value="">Please select Principal Employer</option>
+                <c:forEach var="pe" items="${peList}">
+                    <option value="${pe.id}"><c:out value="${pe.description}" /></option>
+                </c:forEach>
+            </select>
+            <label for="bankContractor">Contractor <span class="required-field">*</span></label>
+            <select id="bankContractor" name="bankContractorId">
+                <option value="">Please select Contractor</option>
+                <c:forEach var="contr" items="${contList}">
+                    <option value="${contr.id}"><c:out value="${contr.description}" /></option>
+                </c:forEach>
+            </select>
+        </div>
+
+        <div class="bank-filter-row">
+            <label for="bankFromDate">From Date:</label>
+            <input id="bankFromDate" name="bankFromDate" type="text"
+                   class="datetimepickerActiveWorkmenformat" autocomplete="off" />
+            <label for="bankToDate">To Date:</label>
+            <input id="bankToDate" name="bankToDate" type="text"
+                   class="datetimepickerActiveWorkmenformat" autocomplete="off" />
+            <button type="button" id="bankSearchBtn"
+                    class="btn btn-default process-footer-button-cancel ng-binding"
+                    onclick="searchBankExpectedWages()">Search</button>
+        </div>
+
+<div class="bank-filter-row" style="margin-top:18px;">
+            <label for="bankWageMonth">Wage Month <span class="required-field">*</span></label>
+            <input id="bankWageMonth" class="bank-month" type="month" />
+            <span class="bank-date-note">Bank payment deadline: 7th of following month</span>
+        </div>
+
+        <div class="upload-inline-wrap">
+            <label for="bankFile"><b>Upload Bank CSV</b></label>
+            <input type="file" id="bankFile" class="form-control" accept=".csv,text/csv" />
+            <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"
+                    onclick="uploadBankWages()">Upload Bank CSV</button>
+        </div>
+
+        <div class="row summary-box" id="bankSummary" style="display:none;">
+            <div class="col-md-3"><div class="alert alert-success">Status: <span id="bankStatus"></span></div></div>
+            <div class="col-md-3"><div class="alert alert-secondary">Upload ID: <span id="bankUploadId"></span></div></div>
+            <div class="col-md-3"><div class="alert alert-info">Wage Month: <span id="bankSummaryMonth"></span></div></div>
+            <div class="col-md-3"><div class="alert alert-info">Payment Due: <span id="bankDueDate"></span></div></div>
+        </div>
+        <div id="bankExpectedSection" style="display:none;">
+            <h5>Wage Cost Report Data</h5>
+            <div class="table-container">
+                <table id="bankExpectedTable" class="display">
+                    <thead><tr>
+                        <th>GatePass ID</th><th>Workmen Name</th>
+                        <th>Account Number</th><th>IFSC Code</th>
+                        <th>Expected Net Wage</th>
+                    </tr></thead>
+                    <tbody id="bankExpectedBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        
+
+        <div id="bankDetailsSection" style="display:none;">
+            <h5>Bank Wage Workmen Scoreboard</h5>
+            <div class="table-container">
+                <table id="bankDetailsTable" class="display">
+                    <thead><tr>
+                        <th>GatePass ID</th><th>Workmen Name</th><th>Expected Amount</th>
+                        <th>Paid Amount</th><th>Difference</th><th>Variance %</th>
+                        <th>Rating</th><th>Rating Description</th><th>Account Number</th>
+                        <th>IFSC Code</th><th>UTR Number</th><th>Amount Status</th>
+                        <th>Payment Date</th><th>Due Date</th><th>Timeliness</th>
+                    </tr></thead>
+                    <tbody id="bankDetailsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="bankMismatchSection" style="display:none;">
+            <h5>Bank Unverified Data / Mismatch Reasons</h5>
+            <div class="table-container">
+                <table id="bankMismatchTable" class="display">
+                    <thead><tr>
+                        <th>GatePass ID</th><th>Workmen Name</th>
+                        <th>Expected Amount</th><th>Paid Amount</th>
+                        <th>Mismatch Reason</th>
+                    </tr></thead>
+                    <tbody id="bankMismatchBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     var messageTimers = {};
+
+    function activateBankTab() {
+        // Explicitly target the Bank pane. This also handles stale tab state
+        // after asynchronous uploads in the dynamically loaded Conkraft page.
+        showTab('tab3', $('.tabs button[data-target="tab3"]')[0]);
+        $('#tab1, #tab2').removeClass('active').hide();
+        $('#tab3').addClass('active').show();
+        $('.tabs button').removeClass('active');
+        $('.tabs button[data-target="tab3"]').addClass('active');
+        $('#pfEsicFilters').hide();
+    }
 
     function showTab(tabId, btn) {
 
         $(".tab-content").removeClass("active").hide();
 
         $("#" + tabId).addClass("active").show();
+        $("#pfEsicFilters").toggle(tabId !== "tab3");
 
         $(".tabs button").removeClass("active");
 
         $(btn).addClass("active");
+        // Messages stay inside their own tab.
 
         // Adjust tables after switching tabs.
         $("#" + tabId).find("table").each(function() {
@@ -812,24 +940,272 @@ function submitForm() {
         });
     }
 
-    function showMessage(message, type, reconType) {
-        var targetDiv = reconType === 'PF' ? "#messageDiv" : "#esicmessageDiv";
-        var $div = $(targetDiv);
+    // BANK messages have a dedicated function and never use showMessage().
+    // Keep all selectors scoped to the current reconciliation screen.
+    function showBankMessage(message, type) {
+        var $screen = $('#principalEmployerContent');
+        var $bankPane = $screen.find('#tab3');
+        var $bankMessage = $bankPane.find('#bankMessageDiv');
 
-        if (messageTimers[targetDiv]) {
-            clearTimeout(messageTimers[targetDiv]);
+        if (!$bankPane.length || !$bankMessage.length) {
+            console.error('Bank reconciliation message container not found.');
+            return;
         }
 
-        $div
-            .stop(true, true)
-            .removeClass()
-            .addClass("alert alert-" + type)
-            .html(message)
-            .fadeIn();
+        // Select BANK without changing the PF/ESIC result containers.
+        $screen.find('.tab-content').removeClass('active').hide();
+        $bankPane.addClass('active').show();
+        $screen.find('.tabs button').removeClass('active');
+        $screen.find('.tabs button[data-target="tab3"]').addClass('active');
+        $screen.find('#pfEsicFilters').hide();
 
+        // Only write into the Bank pane, never into ESIC/PF.
+        $bankMessage.stop(true, true)
+            .removeClass('alert alert-success alert-danger alert-warning alert-info')
+            .addClass('alert alert-' + (type || 'info'))
+            .attr('role', 'alert')
+            .text(message || '')
+            .show();
+
+        // Recalculate widths when the Bank pane becomes visible.
+        $bankPane.find('table').each(function () {
+            if ($.fn.DataTable.isDataTable(this)) {
+                $(this).DataTable().columns.adjust().draw(false);
+            }
+        });
+    }
+
+    function showMessage(message, type, reconType) {
+        // Existing PF/ESIC message behavior is retained.
+        var normalizedType = String(reconType || '').toUpperCase();
+        var targetDiv = normalizedType === 'PF' ? '#messageDiv' :
+                        normalizedType === 'ESIC' ? '#esicmessageDiv' : null;
+        if (!targetDiv) return;
+        var $div = $('#principalEmployerContent').find(targetDiv);
+        if (messageTimers[targetDiv]) clearTimeout(messageTimers[targetDiv]);
+        $div.stop(true, true).removeClass()
+            .addClass('alert alert-' + (type || 'info'))
+            .attr('role', 'alert').text(message || '').show();
         messageTimers[targetDiv] = setTimeout(function () {
             $div.fadeOut(500);
-        }, 3000);
+        }, 8000);
+    }
+
+    function getReconFilters() {
+        var contractorId = $.trim($("#contractor").val() || "");
+        var fromDate = $.trim($("#fromDate").val() || "");
+        var toDate = $.trim($("#toDate").val() || "");
+        if (!contractorId || !fromDate || !toDate) {
+            alert("Please select Contractor, From Date and To Date.");
+            return null;
+        }
+        return { contractorId: contractorId, fromDate: fromDate, toDate: toDate };
+    }
+
+    // Converts both yyyy-MM-dd and dd/MM/yyyy (existing datepicker) to yyyy-MM-dd.
+    function bankIsoDate(value) {
+        value = $.trim(value || '');
+        var m;
+        if ((m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value))) return value;
+        if ((m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)))
+            return m[3] + '-' + m[2] + '-' + m[1];
+        return null;
+    }
+
+    function bankFilters() {
+        var peId = $.trim($('#bankPrincipalEmployer').val() || '');
+        var contractorId = $.trim($('#bankContractor').val() || '');
+        var fromDate = bankIsoDate($('#bankFromDate').val());
+        var toDate = bankIsoDate($('#bankToDate').val());
+        if (!peId || !contractorId) {
+            showBankMessage('Please select Principal Employer and Contractor.', 'danger');
+            return null;
+        }
+        if (!fromDate || !toDate) {
+            showBankMessage('Please enter valid From Date and To Date.', 'danger');
+            return null;
+        }
+        if (fromDate > toDate) {
+            showBankMessage('From Date cannot be after To Date.', 'danger');
+            return null;
+        }
+        return { principalEmployerId:peId, contractorId:contractorId,
+                 fromDate:fromDate, toDate:toDate };
+    }
+
+    var bankSearchKey = null;
+    function bankKey(f) {
+        return [f.principalEmployerId, f.contractorId, f.fromDate, f.toDate].join('|');
+    }
+
+    function bankReplaceTable(tableId, bodyId, rows, fields) {
+        var $table = $(tableId), $body = $(bodyId);
+        if ($.fn.DataTable.isDataTable($table[0])) $table.DataTable().clear().destroy();
+        $body.empty();
+        $.each(rows || [], function (_, row) {
+            var $tr = $('<tr>');
+            $.each(fields, function (_, field) {
+                $('<td>').text(nullSafe(row[field])).appendTo($tr);
+            });
+            $body.append($tr);
+        });
+        initReconTable(tableId);
+    }
+
+    function bankMismatchRows(errors) {
+        return (errors || []).map(function (item) {
+            if (typeof item === 'string') return { mismatchReason:item };
+            return {
+                gatePassId:item.gatePassId,
+                workmenName:item.workmenName,
+                expectedAmount:item.expectedAmount,
+                paidAmount:item.paidAmount,
+                mismatchReason:item.mismatchReason || item.reason || item.message
+            };
+        });
+    }
+
+    function showBankMismatches(errors) {
+        var rows = bankMismatchRows(errors);
+        if (!rows.length) { $('#bankMismatchSection').hide(); return; }
+        bankReplaceTable('#bankMismatchTable', '#bankMismatchBody', rows,
+            ['gatePassId','workmenName','expectedAmount','paidAmount','mismatchReason']);
+        $('#bankMismatchSection').show();
+    }
+
+    function showBankScoreboard(details) {
+        if (!Array.isArray(details) || !details.length) {
+            $('#bankDetailsSection').hide(); return;
+        }
+        bankReplaceTable('#bankDetailsTable', '#bankDetailsBody', details,
+            ['gatePassId','workmenName','expectedAmount','paidAmount','differenceAmount',
+             'variancePercentage','rating','ratingDescription','accountNumber',
+             'ifscCode','utrNumber','amountStatus','transactionDate',
+             'dueDate','timelinessStatus']);
+        $('#bankDetailsSection').show();
+    }
+
+    function searchBankExpectedWages() {
+        var filters = bankFilters();
+        if (!filters) return;
+        bankSearchKey = null;
+        $('#bankExpectedSection, #bankDetailsSection, #bankMismatchSection, #bankSummary').hide();
+        showLoader();
+        $.ajax({
+            // Requires the Bank expected-wages read endpoint in the controller.
+            url:'${pageContext.request.contextPath}/contractor/reconciliation/bank/expected',
+            type:'GET', data:filters, dataType:'json',
+            success:function(response) {
+                hideLoader();
+                var rows = Array.isArray(response) ? response :
+                    (Array.isArray(response.data) ? response.data : response.expectedList);
+                if (response.status === 'error') {
+                    showBankMessage(response.message || 'Unable to fetch expected wages.', 'danger');
+                    return;
+                }
+                if (!Array.isArray(rows) || !rows.length) {
+                    showBankMessage('No Wage Cost Report data found for the selected filters.', 'warning');
+                    return;
+                }
+                bankReplaceTable('#bankExpectedTable', '#bankExpectedBody', rows,
+                    ['gatePassId','workmenName','accountNumber','ifscCode','expectedAmount']);
+                bankSearchKey = bankKey(filters);
+                $('#bankExpectedSection').show();
+            },
+            error:function(xhr) {
+                hideLoader();
+                showBankMessage(xhr.status === 404 ?
+                    'Bank expected-wages search API is not implemented yet.' :
+                    'Unable to load Wage Cost Report data. Check the server log.', 'danger');
+            }
+        });
+    }
+
+    function loadSavedBankDetails(uploadId) {
+        if (!uploadId) {
+            showBankMessage('Upload succeeded, but the server did not return an Upload ID.', 'warning');
+            return;
+        }
+        $.ajax({
+            url: '${pageContext.request.contextPath}/contractor/reconciliation/bank/details',
+            type: 'GET',
+            dataType: 'json',
+            data: { uploadId: uploadId },
+            success: function(response) {
+                activateBankTab();
+                if (response && response.status === 'success') {
+                    showBankScoreboard(response.data);
+                    if (!response.data || !response.data.length) {
+                        showBankMessage('Bank upload saved, but no detail records were returned.', 'warning');
+                    }
+                } else {
+                    showBankMessage((response && response.message) ||
+                        'Upload saved, but Bank details could not be loaded.', 'warning');
+                }
+            },
+            error: function(xhr) {
+                activateBankTab();
+                showBankMessage('Bank upload saved, but unable to fetch BANK_WAGE_RECON_DETAIL. ' +
+                    'Check the bank/details endpoint.', 'warning');
+            }
+        });
+    }
+
+    function uploadBankWages() {
+        var filters = bankFilters();
+        if (!filters) return;
+        var wageMonth = $.trim($('#bankWageMonth').val() || '');
+        var fileInput = $('#bankFile')[0];
+        if (!/^\d{4}-\d{2}$/.test(wageMonth)) {
+            showBankMessage('Please select Wage Month.', 'danger'); return;
+        }
+        if (!fileInput.files || !fileInput.files.length || !/\.csv$/i.test(fileInput.files[0].name)) {
+            showBankMessage('Please select a bank CSV file.', 'danger'); return;
+        }
+        if (bankSearchKey !== bankKey(filters)) {
+            showBankMessage('Please click Search and review the Wage Cost Report before uploading.', 'danger');
+            return;
+        }
+        var formData = new FormData();
+        formData.append('reconType', 'BANK');
+        formData.append('principalEmployerId', filters.principalEmployerId);
+        formData.append('contractorId', filters.contractorId);
+        formData.append('wageMonth', wageMonth);
+        formData.append('fromDate', filters.fromDate);
+        formData.append('toDate', filters.toDate);
+        formData.append('file', fileInput.files[0]);
+        $('#bankSummary, #bankDetailsSection, #bankMismatchSection').hide();
+        showLoader();
+        $.ajax({
+            url:'${pageContext.request.contextPath}/contractor/reconciliation/upload',
+            type:'POST', data:formData, processData:false, contentType:false,
+            success:function(response) {
+                hideLoader();
+                if (response && response.status === 'success') {
+                    $('#bankStatus').text('ACCEPTED');
+                    $('#bankUploadId').text(nullSafe(response.uploadId));
+                    $('#bankSummaryMonth').text(wageMonth);
+                    var p = wageMonth.split('-');
+                    var due = new Date(Date.UTC(Number(p[0]), Number(p[1]), 7));
+                    $('#bankDueDate').text(String(due.getUTCDate()).padStart(2,'0') + '/' +
+                        String(due.getUTCMonth()+1).padStart(2,'0') + '/' + due.getUTCFullYear());
+                    $('#bankSummary').show();
+                    showBankMessage(response.message || 'Bank wage reconciliation completed.', 'success');
+                    // Displays actual records only if the controller supplies them.
+                    loadSavedBankDetails(response.uploadId);
+                    showBankMismatches(response.mismatchList || (response.data && response.data.mismatchList));
+                } else {
+                    showBankMessage(response && response.message || 'Bank reconciliation failed.', 'danger');
+                    showBankMismatches(response && (response.errors || response.mismatchList));
+                }
+            },
+            error:function(xhr) {
+                hideLoader();
+                var response = xhr.responseJSON;
+                showBankMessage(response && response.message || 'Bank CSV upload failed. Check server logs.', 'danger');
+                showBankMismatches(response && (response.errors || response.mismatchList));
+            }
+        });
     }
 
     function uploadChallan(reconType) {
@@ -843,6 +1219,11 @@ function submitForm() {
         var formData = new FormData();
         formData.append("reconType", reconType);
         formData.append("file", fileInput.files[0]);
+        var filters = getReconFilters();
+        if (!filters) return;
+        formData.append("contractorId", filters.contractorId);
+        formData.append("fromDate", filters.fromDate);
+        formData.append("toDate", filters.toDate);
 
         showLoader();
 
@@ -1053,6 +1434,7 @@ function submitForm() {
     $(document).ready(function () {
         $("#tab1").show();
         $("#tab2").hide();
+        $("#tab3").hide();
 
         initReconTable('#pfTable');
         initReconTable('#esicTable');

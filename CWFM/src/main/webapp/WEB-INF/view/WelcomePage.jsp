@@ -75,6 +75,7 @@
  <script src="resources/js/cms/complianceAudit.js"></script>
 
   <script src="resources/js/cms/selfregistration.js"></script>
+  
 
  <script>
     window.applicationContextPath =

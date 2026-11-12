@@ -201,10 +201,10 @@ public class PublicRegistrationController {
     
     @GetMapping("/success")
     public String registrationSuccess(
-           // @RequestParam("ref") Long registrationId,
+         //   @RequestParam("ref") Long registrationId,
             Model model) {
 
-        //model.addAttribute("registrationId", registrationId);
+       // model.addAttribute("registrationId", registrationId);
 
         return "contractWorkmen/registrationSuccess";
     }

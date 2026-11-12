@@ -5,18 +5,34 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -27,22 +43,35 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.dao.ReconciliationDao;
+import com.wfd.dot1.cwfm.dto.BankWageDetailDTO;
+import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
+import com.wfd.dot1.cwfm.dto.BankWagePaymentDTO;
+import com.wfd.dot1.cwfm.dto.BankWageUploadDTO;
 import com.wfd.dot1.cwfm.dto.ChallanEmployeeDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationResultDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
-import com.wfd.dot1.cwfm.service.ReconciliationService;
+import com.wfd.dot1.cwfm.util.ApplicationConfig;
+import com.wfd.dot1.cwfm.util.BankWageRatingCalculator;
 
 import jakarta.servlet.ServletContext;
 
 @Service
 public class ReconciliationServiceImpl implements ReconciliationService {
 
+	private static final Logger logger =
+	        LoggerFactory.getLogger(ReconciliationServiceImpl.class);
 	@Autowired
 	private ReconciliationDao reconciliationDao;
 
@@ -1019,4 +1048,730 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 	            .replaceAll("\\s+", " ")
 	            .trim();
 	}
+	
+@Override
+public List<BankWagePaymentDTO> parseBankWageCsv(
+        MultipartFile file) throws Exception {
+
+    if (file == null || file.isEmpty()) {
+        throw new IllegalArgumentException(
+                "Please upload a bank wage CSV file.");
+    }
+
+    String fileName = file.getOriginalFilename();
+
+    if (fileName == null ||
+            !fileName.toLowerCase(Locale.ROOT).endsWith(".csv")) {
+        throw new IllegalArgumentException(
+                "Only CSV files are allowed.");
+    }
+
+    List<String> expectedHeaders = Arrays.asList(
+            "GatePassId",
+            "AccountNumber",
+            "IFSCCode",
+            "BeneficiaryName",
+            "Amount",
+            "TransactionDate",
+            "UTRNumber"
+    );
+
+    List<BankWagePaymentDTO> payments = new ArrayList<>();
+
+    Set<String> gatePassIds = new HashSet<>();
+    Set<String> utrNumbers = new HashSet<>();
+
+    DateTimeFormatter dateFormatter =
+            DateTimeFormatter.ofPattern(
+                    "dd/MM/uuuu", Locale.ENGLISH)
+                    .withResolverStyle(ResolverStyle.STRICT);
+
+    try (Reader reader = new InputStreamReader(
+            file.getInputStream(), StandardCharsets.UTF_8);
+         CSVParser parser = CSVFormat.DEFAULT.parse(reader)) {
+
+        List<CSVRecord> records = parser.getRecords();
+
+        if (records.size() < 2) {
+            throw new IllegalArgumentException(
+                    "CSV must contain headers and payment records.");
+        }
+
+        CSVRecord headerRecord = records.get(0);
+
+        if (headerRecord.size() != expectedHeaders.size()) {
+            throw new IllegalArgumentException(
+                    "Invalid CSV header count.");
+        }
+
+        for (int i = 0; i < expectedHeaders.size(); i++) {
+
+            String actualHeader = headerRecord.get(i)
+                    .replace("\uFEFF", "").trim();
+
+            if (!expectedHeaders.get(i).equals(actualHeader)) {
+                throw new IllegalArgumentException(
+                        "Invalid CSV header at column " + (i + 1)
+                        + ". Expected: " + expectedHeaders.get(i));
+            }
+        }
+
+        for (int i = 1; i < records.size(); i++) {
+
+            CSVRecord record = records.get(i);
+            long rowNumber = record.getRecordNumber();
+
+            if (record.size() != expectedHeaders.size()) {
+                throw new IllegalArgumentException(
+                        "Invalid column count at row " + rowNumber);
+            }
+
+            String gatePassId = record.get(0).trim();
+            String accountNumber = record.get(1).trim();
+            String ifscCode = record.get(2).trim()
+                    .toUpperCase(Locale.ROOT);
+            String beneficiaryName = record.get(3).trim();
+            String amountText = record.get(4).trim();
+            String dateText = record.get(5).trim();
+            String utrNumber = record.get(6).trim()
+                    .toUpperCase(Locale.ROOT);
+
+            if (gatePassId.isEmpty()
+                    || accountNumber.isEmpty()
+                    || ifscCode.isEmpty()
+                    || beneficiaryName.isEmpty()
+                    || amountText.isEmpty()
+                    || dateText.isEmpty()
+                    || utrNumber.isEmpty()) {
+
+                throw new IllegalArgumentException(
+                        "Mandatory field missing at row " + rowNumber);
+            }
+
+            if (!ifscCode.matches(
+                    "^[A-Z]{4}0[A-Z0-9]{6}$")) {
+
+                throw new IllegalArgumentException(
+                        "Invalid IFSC at row " + rowNumber);
+            }
+
+            if (!gatePassIds.add(gatePassId)) {
+                throw new IllegalArgumentException(
+                        "Duplicate GatePassId at row " + rowNumber);
+            }
+
+            if (!utrNumbers.add(utrNumber)) {
+                throw new IllegalArgumentException(
+                        "Duplicate UTR at row " + rowNumber);
+            }
+
+            BigDecimal amount;
+            LocalDate transactionDate;
+
+            try {
+                amount = new BigDecimal(amountText);
+
+                if (amount.compareTo(BigDecimal.ZERO) <= 0
+                        || amount.scale() > 2) {
+                    throw new IllegalArgumentException();
+                }
+
+            } catch (Exception ex) {
+                throw new IllegalArgumentException(
+                        "Invalid amount at row " + rowNumber);
+            }
+
+            try {
+                transactionDate = LocalDate.parse(
+                        dateText, dateFormatter);
+
+            } catch (Exception ex) {
+                throw new IllegalArgumentException(
+                        "Invalid transaction date at row "
+                        + rowNumber + ". Use DD/MM/YYYY.");
+            }
+
+            BankWagePaymentDTO dto =
+                    new BankWagePaymentDTO();
+
+            dto.setGatePassId(gatePassId);
+            dto.setAccountNumber(accountNumber);
+            dto.setIfscCode(ifscCode);
+            dto.setBeneficiaryName(beneficiaryName);
+            dto.setAmount(amount);
+            dto.setTransactionDate(transactionDate);
+            dto.setUtrNumber(utrNumber);
+
+            payments.add(dto);
+        }
+    }
+
+    if (payments.isEmpty()) {
+        throw new IllegalArgumentException(
+                "No payment records found in CSV.");
+    }
+
+    return payments;
+}
+
+@Override
+public List<BankWageDetailDTO> reconcileBankWages(
+        List<BankWageExpectedDTO> expectedList,
+        List<BankWagePaymentDTO> paymentList,
+        YearMonth wageMonth) {
+
+    if (expectedList == null || expectedList.isEmpty()) {
+        throw new IllegalArgumentException(
+                "No Wage Cost Report data found.");
+    }
+
+    if (paymentList == null || paymentList.isEmpty()) {
+        throw new IllegalArgumentException(
+                "No bank payment records found.");
+    }
+
+    Map<String, BankWageExpectedDTO> expectedMap =
+            new HashMap<>();
+
+    for (BankWageExpectedDTO expected : expectedList) {
+
+        String gatePassId = required(
+                expected.getGatePassId(), "Expected GatePassId");
+
+        if (expectedMap.putIfAbsent(
+                gatePassId, expected) != null) {
+            throw new IllegalArgumentException(
+                    "Duplicate GatePassId in Wage Cost Report: "
+                    + gatePassId);
+        }
+
+        if (expected.getExpectedAmount() == null
+                || expected.getExpectedAmount()
+                    .compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Invalid EmployeeNet for GatePassId: "
+                    + gatePassId);
+        }
+
+        required(expected.getAccountNumber(),
+                "Account number for " + gatePassId);
+        required(expected.getIfscCode(),
+                "IFSC for " + gatePassId);
+    }
+
+    Map<String, BankWagePaymentDTO> paymentMap =
+            new HashMap<>();
+
+    Set<String> utrNumbers = new HashSet<>();
+
+    for (BankWagePaymentDTO payment : paymentList) {
+
+        String gatePassId = required(
+                payment.getGatePassId(), "CSV GatePassId");
+
+        if (paymentMap.putIfAbsent(
+                gatePassId, payment) != null) {
+            throw new IllegalArgumentException(
+                    "Duplicate GatePassId in CSV: "
+                    + gatePassId);
+        }
+
+        String utr = required(
+                payment.getUtrNumber(), "UTR")
+                .toUpperCase(Locale.ROOT);
+
+        if (!utrNumbers.add(utr)) {
+            throw new IllegalArgumentException(
+                    "Duplicate UTR in CSV: " + utr);
+        }
+    }
+
+    if (!expectedMap.keySet().equals(paymentMap.keySet())) {
+
+        Set<String> missing =
+                new HashSet<>(expectedMap.keySet());
+        missing.removeAll(paymentMap.keySet());
+
+        Set<String> unexpected =
+                new HashSet<>(paymentMap.keySet());
+        unexpected.removeAll(expectedMap.keySet());
+
+        throw new IllegalArgumentException(
+                "Workmen mismatch. Missing: " + missing
+                + ", Unexpected: " + unexpected);
+    }
+
+    List<String> existingUtrs =
+            reconciliationDao.findExistingBankUtrs(
+                    new ArrayList<>(utrNumbers));
+
+    if (!existingUtrs.isEmpty()) {
+        throw new IllegalArgumentException(
+                "UTR already exists in database: "
+                + existingUtrs);
+    }
+
+    LocalDate dueDate = getBankPaymentDueDate(wageMonth);
+
+    List<BankWageDetailDTO> results =
+            new ArrayList<>();
+
+    for (BankWageExpectedDTO expected : expectedList) {
+
+        String gatePassId =
+                expected.getGatePassId().trim();
+
+        BankWagePaymentDTO payment =
+                paymentMap.get(gatePassId);
+
+        if (!normalizeAccount(expected.getAccountNumber())
+                .equals(normalizeAccount(
+                        payment.getAccountNumber()))) {
+            throw new IllegalArgumentException(
+                    "Bank account mismatch for GatePassId: "
+                    + gatePassId);
+        }
+
+        if (!required(expected.getIfscCode(), "IFSC")
+                .equalsIgnoreCase(
+                        required(payment.getIfscCode(), "IFSC"))) {
+            throw new IllegalArgumentException(
+                    "IFSC mismatch for GatePassId: "
+                    + gatePassId);
+        }
+
+        BigDecimal expectedAmount =
+                expected.getExpectedAmount();
+
+        BigDecimal paidAmount = payment.getAmount();
+
+        if (paidAmount == null
+                || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "Invalid paid amount for GatePassId: "
+                    + gatePassId);
+        }
+
+        BigDecimal difference =
+                expectedAmount.subtract(paidAmount);
+
+        BigDecimal variance = difference
+                .multiply(new BigDecimal("100"))
+                .divide(expectedAmount, 4,
+                        RoundingMode.HALF_UP);
+
+        BigDecimal paymentPercentage = paidAmount
+                .multiply(new BigDecimal("100"))
+                .divide(expectedAmount, 4,
+                        RoundingMode.HALF_UP);
+
+        String amountStatus =
+                difference.compareTo(BigDecimal.ZERO) > 0
+                        ? "SHORT_PAYMENT"
+                        : "MATCHED";
+
+        String timelinessStatus =
+                payment.getTransactionDate()
+                        .isAfter(dueDate)
+                        ? "LATE"
+                        : "ON_TIME";
+
+        BankWageDetailDTO detail =
+                new BankWageDetailDTO();
+
+        detail.setGatePassId(gatePassId);
+        detail.setWorkmenName(expected.getWorkmenName());
+        detail.setAccountNumber(payment.getAccountNumber());
+        detail.setIfscCode(payment.getIfscCode());
+        detail.setExpectedAmount(expectedAmount);
+        detail.setPaidAmount(paidAmount);
+        detail.setDifferenceAmount(difference);
+        detail.setVariancePercentage(variance);
+        detail.setPaymentPercentage(paymentPercentage);
+        detail.setTransactionDate(
+                payment.getTransactionDate());
+        detail.setDueDate(dueDate);
+        detail.setUtrNumber(
+                payment.getUtrNumber()
+                        .trim().toUpperCase(Locale.ROOT));
+        detail.setAmountStatus(amountStatus);
+        detail.setTimelinessStatus(timelinessStatus);
+
+      
+
+int rating = BankWageRatingCalculator.calculateRating(
+        expectedAmount, paidAmount);
+
+detail.setRating(rating);
+detail.setRatingDescription(
+        BankWageRatingCalculator.getRatingDescription(rating));
+
+
+        results.add(detail);
+    }
+
+    return results;
+}
+
+private String required(String value, String field) {
+
+    if (value == null || value.trim().isEmpty()) {
+        throw new IllegalArgumentException(
+                field + " is missing.");
+    }
+
+    return value.trim();
+}
+
+private String normalizeAccount(String accountNumber) {
+
+    return required(accountNumber, "Account number")
+            .replaceAll("\\s+", "");
+}
+
+@Override
+public void calculateBankUploadSummary(
+        BankWageUploadDTO upload,
+        List<BankWageDetailDTO> details) {
+
+    if (details == null || details.isEmpty()) {
+        throw new IllegalArgumentException(
+                "No reconciliation details found.");
+    }
+
+    BigDecimal totalExpected = BigDecimal.ZERO;
+    BigDecimal totalPaid = BigDecimal.ZERO;
+    BigDecimal totalShortfall = BigDecimal.ZERO;
+    BigDecimal totalRating = BigDecimal.ZERO;
+
+    for (BankWageDetailDTO detail : details) {
+
+        totalExpected = totalExpected.add(
+                detail.getExpectedAmount());
+
+        totalPaid = totalPaid.add(
+                detail.getPaidAmount());
+
+        BigDecimal difference =
+                detail.getDifferenceAmount();
+
+        if (difference.compareTo(BigDecimal.ZERO) > 0) {
+            totalShortfall = totalShortfall.add(difference);
+        }
+
+        totalRating = totalRating.add(
+                BigDecimal.valueOf(detail.getRating()));
+    }
+
+    BigDecimal averageRating = totalRating.divide(
+            BigDecimal.valueOf(details.size()),
+            2,
+            RoundingMode.HALF_UP);
+
+    upload.setTotalWorkmen(details.size());
+    upload.setTotalExpectedAmount(totalExpected);
+    upload.setTotalPaidAmount(totalPaid);
+    upload.setTotalShortfall(totalShortfall);
+    upload.setContractorRating(averageRating);
+    upload.setStatus("ACCEPTED");
+}
+
+
+
+@Transactional(rollbackFor = Exception.class)
+public Long saveBankReconciliation(
+        BankWageUploadDTO upload,
+        List<BankWageDetailDTO> details) {
+
+    if (upload == null || details == null
+            || details.isEmpty()) {
+        throw new IllegalArgumentException(
+                "Invalid bank reconciliation data.");
+    }
+
+    calculateBankUploadSummary(upload, details);
+
+    Long uploadId =
+            reconciliationDao.saveBankUpload(upload);
+
+    reconciliationDao.saveBankDetails(uploadId, details);
+
+    return uploadId;
+}
+
+
+
+
+private LocalDate getBankPaymentDueDate(YearMonth wageMonth) {
+
+    if (wageMonth == null) {
+        throw new IllegalArgumentException(
+                "Wage month is mandatory.");
+    }
+
+    return wageMonth.plusMonths(1).atDay(7);
+}
+
+//@Value("${bank.wage.upload.directory}")
+//private String bankWageUploadDirectory;
+
+private String bankWageUploadDirectory = ApplicationConfig.getProperty("bank.wage.upload.directory");
+private Path storeBankWageCsv(
+        MultipartFile file,
+        Long contractorId,
+        YearMonth wageMonth) throws IOException {
+
+    if (file == null || file.isEmpty()) {
+        throw new IllegalArgumentException(
+                "Bank wage CSV file is empty.");
+    }
+
+    if (contractorId == null || wageMonth == null) {
+        throw new IllegalArgumentException(
+                "Contractor and wage month are mandatory.");
+    }
+
+    Path baseDirectory = Paths.get(
+            bankWageUploadDirectory)
+            .toAbsolutePath()
+            .normalize();
+
+    Path targetDirectory = baseDirectory
+            .resolve(String.valueOf(contractorId))
+            .resolve(wageMonth.toString())
+            .normalize();
+
+    if (!targetDirectory.startsWith(baseDirectory)) {
+        throw new SecurityException(
+                "Invalid bank wage upload directory.");
+    }
+
+    Files.createDirectories(targetDirectory);
+
+    String generatedFileName =
+            UUID.randomUUID().toString() + ".csv";
+
+    Path targetFile =
+            targetDirectory.resolve(generatedFileName);
+
+    try (java.io.InputStream input =
+            file.getInputStream()) {
+
+        Files.copy(
+                input,
+                targetFile,
+                StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    return targetFile;
+}
+
+
+@Override
+@Transactional(rollbackFor = Exception.class)
+public Long processBankWageReconciliation(
+        Long principalEmployerId,
+        Long contractorId,
+        String wageMonth,
+        String fromDate,
+        String toDate,
+        MultipartFile file,
+        String uploadedBy) throws Exception {
+
+    // 1. Validate mandatory inputs
+    if (principalEmployerId == null || contractorId == null) {
+        throw new IllegalArgumentException(
+                "Principal Employer and Contractor are mandatory.");
+    }
+
+    if (file == null || file.isEmpty()) {
+        throw new IllegalArgumentException(
+                "Please upload a bank wage CSV file.");
+    }
+
+    if (uploadedBy == null || uploadedBy.trim().isEmpty()) {
+        throw new IllegalArgumentException(
+                "Uploaded by is mandatory.");
+    }
+
+    if (fromDate == null || fromDate.trim().isEmpty()
+            || toDate == null || toDate.trim().isEmpty()) {
+        throw new IllegalArgumentException(
+                "Wage Cost Report date range is mandatory.");
+    }
+
+    // 2. Parse wage month
+    YearMonth selectedMonth;
+
+    try {
+        selectedMonth = YearMonth.parse(wageMonth);
+    } catch (Exception ex) {
+        throw new IllegalArgumentException(
+                "Invalid wage month. Expected YYYY-MM.", ex);
+    }
+
+    // 3. Validate Principal Employer and Contractor mapping
+    if (!reconciliationDao.isValidBankWagePeContractor(
+            principalEmployerId, contractorId)) {
+
+        throw new IllegalArgumentException(
+                "The selected Contractor is not mapped "
+                + "to the selected Principal Employer "
+                + "through any Work Order.");
+    }
+
+    // 4. Prevent duplicate reconciliation
+    if (reconciliationDao.existsBankWageReconciliation(
+            contractorId, selectedMonth)) {
+
+        throw new IllegalArgumentException(
+                "Bank wage reconciliation is already completed "
+                + "for contractor " + contractorId
+                + " for wage month " + selectedMonth
+                + ". Re-upload is not allowed.");
+    }
+
+    // 5. Parse and validate the uploaded bank CSV
+    List<BankWagePaymentDTO> payments =
+            parseBankWageCsv(file);
+
+    // 6. Validate Wage Cost Report mappings
+    List<Map<String, Object>> invalidRecords =
+            reconciliationDao.findInvalidBankWageRecords(
+                    principalEmployerId,
+                    contractorId,
+                    fromDate,
+                    toDate);
+
+    if (invalidRecords != null && !invalidRecords.isEmpty()) {
+        throw new IllegalArgumentException(
+                "Wage Cost Report contains "
+                + invalidRecords.size()
+                + " invalid records. Please verify "
+                + "GatePass, Principal Employer, Contractor, "
+                + "Work Order and EmployeeNet mappings.");
+    }
+
+    // 7. Fetch expected wages for selected PE and contractor
+    List<BankWageExpectedDTO> expected =
+            reconciliationDao.getExpectedBankWages(
+                    principalEmployerId,
+                    contractorId,
+                    fromDate,
+                    toDate);
+
+    if (expected == null || expected.isEmpty()) {
+        throw new IllegalArgumentException(
+                "No Wage Cost Report records found "
+                + "for the selected Principal Employer, "
+                + "Contractor and date range.");
+    }
+
+    // 8. Validate all workmen and calculate reconciliation
+    // Includes:
+    // - GatePass matching
+    // - Account / IFSC matching
+    // - UTR uniqueness
+    // - Short payment
+    // - Variance and rating
+    // - Timeliness (7th of following month)
+    List<BankWageDetailDTO> details =
+            reconcileBankWages(
+                    expected, payments, selectedMonth);
+
+    // 9. Prepare upload master
+    BankWageUploadDTO upload = new BankWageUploadDTO();
+
+    upload.setPrincipalEmployerId(principalEmployerId);
+    upload.setContractorId(contractorId);
+    upload.setWageMonth(selectedMonth.atDay(1));
+    upload.setFileName(file.getOriginalFilename());
+    upload.setUploadedBy(uploadedBy);
+
+    // 10. Calculate summary and contractor rating
+    calculateBankUploadSummary(upload, details);
+
+    // 11. Verify transaction before writing the CSV
+    if (!TransactionSynchronizationManager
+            .isActualTransactionActive()
+            || !TransactionSynchronizationManager
+                    .isSynchronizationActive()) {
+
+        throw new IllegalStateException(
+                "An active Spring transaction is required "
+                + "for bank wage reconciliation.");
+    }
+
+    // 12. Save original CSV securely
+    Path storedFile = storeBankWageCsv(
+            file, contractorId, selectedMonth);
+
+    upload.setFilePath(storedFile.toString());
+
+    boolean cleanupRegistered = false;
+
+    try {
+
+        // 13. Delete CSV if SQL transaction rolls back
+        TransactionSynchronizationManager
+                .registerSynchronization(
+                    new TransactionSynchronization() {
+
+            @Override
+            public void afterCompletion(int status) {
+
+                if (status != TransactionSynchronization
+                        .STATUS_COMMITTED) {
+
+                    try {
+                        Files.deleteIfExists(storedFile);
+
+                    } catch (IOException cleanupEx) {
+                    	logger.error(
+                                "Failed to clean up bank wage CSV: {}",
+                                storedFile,
+                                cleanupEx);
+                    }
+                }
+            }
+        });
+
+        cleanupRegistered = true;
+
+        // 14. Save upload master and all detail records
+        // Both inserts participate in the same transaction
+        return saveBankReconciliation(upload, details);
+
+    } catch (Exception ex) {
+
+        // If registration failed, clean up immediately.
+        // Otherwise afterCompletion handles rollback.
+        if (!cleanupRegistered) {
+
+            try {
+                Files.deleteIfExists(storedFile);
+
+            } catch (IOException cleanupEx) {
+                ex.addSuppressed(cleanupEx);
+            }
+        }
+
+        throw ex;
+    }
+}
+
+@Override
+public List<BankWageExpectedDTO> getExpectedBankWages(Long principalEmployerId, Long contractorId, String fromDate,
+		String toDate) {
+	// TODO Auto-generated method stub
+	return reconciliationDao.getExpectedBankWages(principalEmployerId, contractorId, fromDate, toDate);
+}
+
+@Override
+public List<BankWageDetailDTO> getBankWageDetails(Long uploadId) {
+	// TODO Auto-generated method stub
+	return reconciliationDao.getBankWageDetails(uploadId);
+}
+
+
 }
