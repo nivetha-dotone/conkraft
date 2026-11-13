@@ -1271,6 +1271,24 @@ display: flex;
  <div class="section quick-actions">
   <div class="sec-header">QUICK ACTIONS</div>
   <div class="action-grid">
+      <!-- Wage & Compliance Reconciliation -->
+      <c:choose>
+        <c:when test="${fn:contains(allowedPages, '/contractor/reconciliation/list')}">
+          <button type="button" class="action-btn teal"
+                  onclick="loadCommonList('/contractor/reconciliation/list', 'Wage & Compliance Reconciliation');">
+            <i class="fa-solid fa-scale-balanced icon teal"></i>
+            <span>Wage &amp; Compliance Reconciliation</span>
+          </button>
+        </c:when>
+        <c:otherwise>
+          <button type="button" class="action-btn teal"
+                  onclick="alert('You are not an authorized person to access this page');">
+            <i class="fa-solid fa-scale-balanced icon teal"></i>
+            <span>Wage &amp; Compliance Reconciliation</span>
+          </button>
+        </c:otherwise>
+      </c:choose>
+
 
   <!-- <div class="action-box"> -->
       <button class="action-btn green" onclick="redirectToWorkmenProjectAdd()"><i class="fa-solid fa-user-plus icon green"></i><span>Add Project Workmen</span></button>

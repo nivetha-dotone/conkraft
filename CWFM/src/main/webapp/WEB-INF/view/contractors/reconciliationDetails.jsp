@@ -23,6 +23,15 @@
 .recon-view .recon-message { padding:10px 6px; font-size:13px; color:#a22; }
 .recon-view .recon-loading { padding:10px 6px; color:#005151; }
 @media(max-width:800px) { .recon-view .recon-meta { grid-template-columns:repeat(2,minmax(130px,1fr)); } }
+
+/* Bank-only wage payment timeliness summary */
+.recon-view .timeliness-grid { display:grid; grid-template-columns:repeat(4,minmax(130px,1fr)); gap:12px; margin:8px 6px 12px; }
+.recon-view .timeliness-card { border:1px solid #e1e1e1; padding:12px; background:#fff; }
+.recon-view .timeliness-label { font-size:12px; color:darkcyan; margin-bottom:5px; }
+.recon-view .timeliness-value { font-size:20px; font-weight:600; color:#005151; }
+.recon-view .timeliness-alert { margin:10px 6px; padding:10px 12px; border:1px solid #e5b6b6; color:#9a2424; background:#fff5f5; font-size:13px; }
+.recon-view .timeliness-note { margin:8px 6px; font-size:12px; color:#777; }
+@media(max-width:800px) { .recon-view .timeliness-grid { grid-template-columns:repeat(2,minmax(130px,1fr)); } }
 </style>
 <div class="recon-view" id="reconDetailsRoot" data-upload-id="${uploadId}" data-recon-type="${reconType}">
   <div class="page-header">
@@ -37,6 +46,17 @@
       <div class="recon-meta-item"><div class="recon-meta-label">Type</div><div class="recon-meta-value" id="detailReconType"></div></div>
       <div class="recon-meta-item"><div class="recon-meta-label">Contractor</div><div class="recon-meta-value" id="detailContractor"></div></div>
       <div class="recon-meta-item"><div class="recon-meta-label">Status</div><div class="recon-meta-value" id="detailStatus"></div></div>
+    </div>
+    <div id="bankTimelinessSummary" style="display:none;">
+      <h5 class="section-title">Wage Payment Timeliness</h5>
+      <div class="timeliness-grid">
+        <div class="timeliness-card"><div class="timeliness-label">Total Workmen</div><div class="timeliness-value" id="timelinessTotal">0</div></div>
+        <div class="timeliness-card"><div class="timeliness-label">Paid On Time</div><div class="timeliness-value" id="timelinessOnTime">0</div></div>
+        <div class="timeliness-card"><div class="timeliness-label">Late Payments</div><div class="timeliness-value" id="timelinessLate">0</div></div>
+        <div class="timeliness-card"><div class="timeliness-label">Late Payment %</div><div class="timeliness-value" id="timelinessLatePercent">0.00%</div></div>
+      </div>
+      <div id="timelinessBreachAlert" class="timeliness-alert" style="display:none;" role="alert"></div>
+      <div id="timelinessUnknownNote" class="timeliness-note" style="display:none;"></div>
     </div>
     <h5 class="section-title">Workmen Compliance Scoreboard</h5>
     <div class="table-container">
@@ -92,6 +112,41 @@ window.initReconciliationDetailsPage = function(selectedUploadId, selectedReconT
             },
             language:{emptyTable:emptyText}
         });
+    }
+    function updateBankTimelinessSummary(rows) {
+        var summary = root.find('#bankTimelinessSummary');
+        if (reconType !== 'BANK') {
+            summary.hide();
+            return;
+        }
+        rows = Array.isArray(rows) ? rows : [];
+        var total = rows.length;
+        var onTime = rows.filter(function(row) {
+            return String(row.timelinessStatus || '').trim().toUpperCase() === 'ON_TIME';
+        }).length;
+        var late = rows.filter(function(row) {
+            return String(row.timelinessStatus || '').trim().toUpperCase() === 'LATE';
+        }).length;
+        var unknown = total - onTime - late;
+        var percent = total ? (late * 100 / total).toFixed(2) : '0.00';
+
+        summary.find('#timelinessTotal').text(total);
+        summary.find('#timelinessOnTime').text(onTime);
+        summary.find('#timelinessLate').text(late);
+        summary.find('#timelinessLatePercent').text(percent + '%');
+        var alert = summary.find('#timelinessBreachAlert');
+        if (late > 0) {
+            alert.text('Payment deadline breached: ' + late + ' workmen received late payments.').show();
+        } else {
+            alert.hide().empty();
+        }
+        var note = summary.find('#timelinessUnknownNote');
+        if (unknown > 0) {
+            note.text('Timeliness status is unavailable for ' + unknown + ' workmen.').show();
+        } else {
+            note.hide().empty();
+        }
+        summary.show();
     }
     function renderDetails(rows) {
         var bank = reconType === 'BANK';
@@ -169,6 +224,7 @@ window.initReconciliationDetailsPage = function(selectedUploadId, selectedReconT
                 }
             });
             root.find('#reconDetailsContent').show();
+            updateBankTimelinessSummary(response.details || []);
             renderDetails(response.details || []);
             renderMismatches(response.mismatches || []);
             requestAnimationFrame(function() {
