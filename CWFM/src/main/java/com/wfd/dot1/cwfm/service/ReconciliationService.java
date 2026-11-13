@@ -9,6 +9,9 @@ import com.wfd.dot1.cwfm.dto.BankWageDetailDTO;
 import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
 import com.wfd.dot1.cwfm.dto.BankWagePaymentDTO;
 import com.wfd.dot1.cwfm.dto.BankWageUploadDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationComplianceDetailDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationHistoryDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationResultDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 
@@ -43,5 +46,18 @@ List<BankWageExpectedDTO> getExpectedBankWages(Long principalEmployerId, Long co
 		String toDate);
 
 List<BankWageDetailDTO> getBankWageDetails(Long uploadId);
+List<ReconciliationHistoryDTO> getReconciliationHistory(
+        List<Long> contractorIds);
+
+boolean hasReconciliationUploadAccess(
+        Long uploadId,
+        String reconType,
+        List<Long> contractorIds);
+
+List<ReconciliationComplianceDetailDTO> getSavedComplianceDetails(
+        Long uploadId);
+
+List<ReconciliationMismatchDTO> getSavedMismatchDetails(
+        Long uploadId);
 
 }

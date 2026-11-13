@@ -7,6 +7,8 @@ import java.util.Map;
 import com.wfd.dot1.cwfm.dto.BankWageDetailDTO;
 import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
 import com.wfd.dot1.cwfm.dto.BankWageUploadDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationComplianceDetailDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationHistoryDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 
@@ -53,6 +55,20 @@ boolean isValidBankWagePeContractor(
 
 List<BankWageDetailDTO> getBankWageDetails(Long uploadId);
 
+void saveComplianceDetails(
+        Long uploadId,
+        List<ReconciliationComplianceDetailDTO> details);
 
+List<ReconciliationHistoryDTO> getReconciliationHistory(
+        List<Long> contractorIds);
+List<ReconciliationComplianceDetailDTO> getSavedComplianceDetails(
+        Long uploadId);
 
+List<ReconciliationMismatchDTO> getSavedMismatchDetails(
+        Long uploadId);
+
+boolean hasReconciliationUploadAccess(
+        Long uploadId,
+        String reconType,
+        List<Long> contractorIds);
 }

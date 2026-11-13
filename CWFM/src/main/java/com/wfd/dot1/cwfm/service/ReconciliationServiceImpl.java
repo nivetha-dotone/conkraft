@@ -34,7 +34,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.pdfbox.text.TextPosition;
 import org.apache.poi.ss.usermodel.Cell;
@@ -46,7 +45,6 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -59,6 +57,8 @@ import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
 import com.wfd.dot1.cwfm.dto.BankWagePaymentDTO;
 import com.wfd.dot1.cwfm.dto.BankWageUploadDTO;
 import com.wfd.dot1.cwfm.dto.ChallanEmployeeDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationComplianceDetailDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationHistoryDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationResultDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
@@ -88,6 +88,7 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 		return reconciliationDao.getEsicReconciliationList(contractorId, fromDate, toDate);
 	}
 
+	@Transactional
 	@Override
 	public ReconciliationResultDTO processReconciliation(Long contractorId, String reconType, String fromDate,
 			String toDate, MultipartFile file, String uploadedBy) throws Exception {
@@ -140,7 +141,13 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 
 
 		List<ReconciliationMismatchDTO> mismatchList = compareData(dbList, documentList, reconType);
-
+		List<ReconciliationComplianceDetailDTO> complianceDetails =
+		        buildComplianceDetails(
+		                dbList,
+		                documentList,
+		                mismatchList,
+		                reconType
+		        );
 		int totalCount = dbList.size();
 		int unverifiedCount = mismatchList.size();
 		int verifiedCount = Math.max(0, totalCount - unverifiedCount);
@@ -152,6 +159,8 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 		if (!mismatchList.isEmpty()) {
 			reconciliationDao.saveMismatchList(uploadId, mismatchList);
 		}
+		reconciliationDao.saveComplianceDetails(
+		        uploadId, complianceDetails);
 
 		result.setUploadId(uploadId);
 		result.setStatus(overallStatus);
@@ -1773,5 +1782,194 @@ public List<BankWageDetailDTO> getBankWageDetails(Long uploadId) {
 	return reconciliationDao.getBankWageDetails(uploadId);
 }
 
+
+private ReconciliationComplianceDetailDTO calculateComplianceScore(
+        String gatePassId,
+        String workmenName,
+        String reconType,
+        BigDecimal expectedAmount,
+        BigDecimal challanAmount,
+        String mismatchReason) {
+
+    ReconciliationComplianceDetailDTO detail =
+            new ReconciliationComplianceDetailDTO();
+
+    BigDecimal expected = expectedAmount == null
+            ? BigDecimal.ZERO : expectedAmount;
+
+    BigDecimal paid = challanAmount == null
+            ? BigDecimal.ZERO : challanAmount;
+
+    BigDecimal difference = expected.subtract(paid);
+
+    BigDecimal variance = BigDecimal.ZERO;
+    BigDecimal paymentPercentage = BigDecimal.ZERO;
+
+    if (expected.compareTo(BigDecimal.ZERO) > 0) {
+
+        variance = difference
+                .multiply(BigDecimal.valueOf(100))
+                .divide(expected, 4, RoundingMode.HALF_UP);
+
+        paymentPercentage = paid
+                .multiply(BigDecimal.valueOf(100))
+                .divide(expected, 4, RoundingMode.HALF_UP);
+    }
+
+    int rating;
+    String ratingDescription;
+
+    if (expected.compareTo(BigDecimal.ZERO) <= 0) {
+        rating = 1;
+        ratingDescription = "Poor";
+    } else if (paymentPercentage.compareTo(
+            BigDecimal.valueOf(75)) < 0) {
+        rating = 1;
+        ratingDescription = "Poor";
+    } else if (paymentPercentage.compareTo(
+            BigDecimal.valueOf(85)) < 0) {
+        rating = 2;
+        ratingDescription = "Average";
+    } else if (paymentPercentage.compareTo(
+            BigDecimal.valueOf(95)) < 0) {
+        rating = 3;
+        ratingDescription = "Good";
+    } else if (paymentPercentage.compareTo(
+            BigDecimal.valueOf(99.5)) < 0) {
+        rating = 4;
+        ratingDescription = "Very Good";
+    } else {
+        rating = 5;
+        ratingDescription = "Excellent";
+    }
+
+    String complianceStatus;
+
+    if (expected.compareTo(BigDecimal.ZERO) <= 0) {
+        complianceStatus = "INVALID_EXPECTED";
+    } else if (paid.compareTo(BigDecimal.ZERO) == 0
+            && challanAmount == null) {
+        complianceStatus = "NOT_FOUND";
+    } else if (difference.compareTo(BigDecimal.ZERO) > 0) {
+        complianceStatus = "SHORT_PAYMENT";
+    } else if (difference.compareTo(BigDecimal.ZERO) < 0) {
+        complianceStatus = "EXCESS_PAYMENT";
+    } else {
+        complianceStatus = "MATCHED";
+    }
+
+    detail.setGatePassId(gatePassId);
+    detail.setWorkmenName(workmenName);
+    detail.setReconType(reconType);
+
+    detail.setExpectedAmount(expected);
+    detail.setChallanAmount(challanAmount);
+    detail.setDifferenceAmount(difference);
+    detail.setVariancePercentage(variance);
+    detail.setPaymentPercentage(paymentPercentage);
+
+    detail.setRating(rating);
+    detail.setRatingDescription(ratingDescription);
+    detail.setComplianceStatus(complianceStatus);
+    detail.setMismatchReason(mismatchReason);
+
+    return detail;
+}
+
+private List<ReconciliationComplianceDetailDTO> buildComplianceDetails(
+        List<WorkmenReconciliationDTO> dbList,
+        List<ChallanEmployeeDTO> documentList,
+        List<ReconciliationMismatchDTO> mismatchList,
+        String reconType) {
+
+    List<ReconciliationComplianceDetailDTO> details = new ArrayList<>();
+
+    // Build lookup of uploaded challan records.
+    Map<String, ChallanEmployeeDTO> documentMap = new HashMap<>();
+
+    for (ChallanEmployeeDTO doc : documentList) {
+        String key = buildDocumentKey(doc, reconType);
+
+        if (!key.isEmpty()) {
+            documentMap.put(key, doc);
+        }
+    }
+
+    // Build lookup of existing reconciliation mismatches.
+    Map<String, ReconciliationMismatchDTO> mismatchMap = new HashMap<>();
+
+    for (ReconciliationMismatchDTO mismatch : mismatchList) {
+        mismatchMap.put(mismatch.getGatePassId(), mismatch);
+    }
+
+    // Generate a compliance record for every expected workman.
+    for (WorkmenReconciliationDTO db : dbList) {
+
+        String key = buildDbKey(db, reconType);
+
+        BigDecimal expectedAmount =
+                "PF".equalsIgnoreCase(reconType)
+                        ? safeAmount(db.getPfAmount())
+                        : safeAmount(db.getEsicAmount());
+
+        ChallanEmployeeDTO doc = documentMap.get(key);
+
+        BigDecimal challanAmount =
+                doc == null ? null : doc.getAmount();
+
+        ReconciliationMismatchDTO mismatch =
+                mismatchMap.get(db.getGatePassId());
+
+        String mismatchReason =
+                mismatch == null ? null : mismatch.getMismatchReason();
+
+        ReconciliationComplianceDetailDTO detail =
+                calculateComplianceScore(
+                        db.getGatePassId(),
+                        db.getWorkmenName(),
+                        reconType,
+                        expectedAmount,
+                        challanAmount,
+                        mismatchReason
+                );
+
+        details.add(detail);
+    }
+
+    return details;
+}
+
+@Override
+public List<ReconciliationHistoryDTO> getReconciliationHistory(
+        List<Long> contractorIds) {
+
+    return reconciliationDao.getReconciliationHistory(
+            contractorIds);
+}
+
+@Override
+public boolean hasReconciliationUploadAccess(
+        Long uploadId,
+        String reconType,
+        List<Long> contractorIds) {
+
+    return reconciliationDao.hasReconciliationUploadAccess(
+            uploadId, reconType, contractorIds);
+}
+
+
+@Override
+public List<ReconciliationComplianceDetailDTO>
+        getSavedComplianceDetails(Long uploadId) {
+
+    return reconciliationDao.getSavedComplianceDetails(uploadId);
+}
+
+@Override
+public List<ReconciliationMismatchDTO>
+        getSavedMismatchDetails(Long uploadId) {
+
+    return reconciliationDao.getSavedMismatchDetails(uploadId);
+}
 
 }

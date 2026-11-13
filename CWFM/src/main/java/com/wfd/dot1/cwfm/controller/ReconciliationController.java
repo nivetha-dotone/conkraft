@@ -1,12 +1,20 @@
 package com.wfd.dot1.cwfm.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +26,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.wfd.dot1.cwfm.dto.BankWageDetailDTO;
 import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationComplianceDetailDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationHistoryDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationResultDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 import com.wfd.dot1.cwfm.pojo.MasterUser;
@@ -25,11 +36,14 @@ import com.wfd.dot1.cwfm.pojo.PersonOrgLevel;
 import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.ReconciliationService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/contractor")
 public class ReconciliationController {
+	private static final Logger logger =
+	        LoggerFactory.getLogger(ReconciliationController.class);
 
     @Autowired
     private ReconciliationService reconciliationService;
@@ -289,6 +303,221 @@ public Map<String, Object> getBankWageDetails(
     }
 
     return response;
+}
+
+
+private List<Long> getAuthorizedContractorIds(
+        HttpSession session) {
+
+    MasterUser user = session == null
+            ? null
+            : (MasterUser) session.getAttribute("loginuser");
+
+    if (user == null) {
+        throw new IllegalStateException(
+                "Session expired. Please login again.");
+    }
+
+    List<PersonOrgLevel> orgLevels =
+            commonService.getPersonOrgLevelDetails(
+                    user.getUserAccount());
+
+    if (orgLevels == null) {
+        return Collections.emptyList();
+    }
+
+    return orgLevels.stream()
+            .filter(level ->
+                    "Contractor".equalsIgnoreCase(
+                            level.getLevelDef()))
+            .map(PersonOrgLevel::getId)
+            .filter(Objects::nonNull)
+            .map(id -> Long.valueOf(String.valueOf(id)))
+            .distinct()
+            .collect(Collectors.toList());
+}
+
+
+
+@GetMapping("/reconciliation/history")
+@ResponseBody
+public Map<String, Object> getReconciliationHistory(
+        HttpSession session) {
+
+    Map<String, Object> response = new HashMap<>();
+
+    try {
+        MasterUser user = session == null
+                ? null
+                : (MasterUser) session.getAttribute("loginuser");
+
+        if (user == null) {
+            response.put("status", "ERROR");
+            response.put("message",
+                    "Session expired. Please login again.");
+            return response;
+        }
+
+        List<Long> contractorIds =
+                getAuthorizedContractorIds(session);
+
+        if (contractorIds.isEmpty()) {
+            response.put("status", "SUCCESS");
+            response.put("data", Collections.emptyList());
+            return response;
+        }
+
+        List<ReconciliationHistoryDTO> history =
+                reconciliationService.getReconciliationHistory(
+                        contractorIds);
+
+        response.put("status", "SUCCESS");
+        response.put("data", history);
+
+    } catch (Exception ex) {
+        logger.error(
+                "Error fetching reconciliation history", ex);
+
+        response.put("status", "ERROR");
+        response.put("message",
+                "Unable to fetch reconciliation history.");
+    }
+
+    return response;
+}
+
+
+@GetMapping("/reconciliation/list")
+public String getReconciliationHistoryPage(
+        HttpServletRequest request) {
+
+    HttpSession session = request.getSession(false);
+
+    MasterUser user = (MasterUser) (
+            session != null
+                    ? session.getAttribute("loginuser")
+                    : null);
+
+    if (user == null) {
+        return "redirect:/userlogin";
+    }
+
+    request.setAttribute("userId", user.getUserId());
+    request.setAttribute("roleId", user.getRoleId());
+    request.setAttribute("roleName", user.getRoleName());
+
+    List<PersonOrgLevel> orgLevel =
+            commonService.getPersonOrgLevelDetails(
+                    user.getUserAccount());
+
+    Map<String, List<PersonOrgLevel>> groupedByLevelDef =
+            orgLevel.stream().collect(
+                    Collectors.groupingBy(
+                            PersonOrgLevel::getLevelDef));
+
+    List<PersonOrgLevel> contList =
+            groupedByLevelDef.getOrDefault(
+                    "Contractor", new ArrayList<>());
+
+    List<PersonOrgLevel> peList =
+            groupedByLevelDef.getOrDefault(
+                    "Principal Employer", new ArrayList<>());
+
+    request.setAttribute("contList", contList);
+    request.setAttribute("principalEmployers", peList);
+
+    return "contractors/reconciliationHistory";
+}
+
+@GetMapping("/reconciliation/history/details")
+@ResponseBody
+public ResponseEntity<Map<String, Object>> getReconciliationHistoryDetails(
+        @RequestParam("uploadId") Long uploadId,
+        @RequestParam("reconType") String reconType,
+        HttpSession session) {
+
+    Map<String, Object> response = new HashMap<>();
+
+    MasterUser user = session == null
+            ? null
+            : (MasterUser) session.getAttribute("loginuser");
+
+    if (user == null) {
+        response.put("status", "ERROR");
+        response.put("message", "Session expired. Please login again.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(response);
+    }
+
+    try {
+        String type = reconType == null
+                ? ""
+                : reconType.trim().toUpperCase(Locale.ROOT);
+
+        if (!Arrays.asList("BANK", "PF", "ESIC")
+                .contains(type)) {
+            response.put("status", "ERROR");
+            response.put("message", "Invalid reconciliation type.");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        List<Long> contractorIds =
+                getAuthorizedContractorIds(session);
+
+        boolean hasAccess =
+                reconciliationService.hasReconciliationUploadAccess(
+                        uploadId, type, contractorIds);
+
+        if (!hasAccess) {
+            response.put("status", "ERROR");
+            response.put("message",
+                    "Reconciliation record not found or access denied.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(response);
+        }
+
+        response.put("status", "SUCCESS");
+        response.put("uploadId", uploadId);
+        response.put("reconType", type);
+
+        if ("BANK".equals(type)) {
+
+            // Use your existing saved Bank details service method.
+            // Replace this method name if yours differs.
+            List<BankWageDetailDTO> details =
+                    reconciliationService.getBankWageDetails(uploadId);
+
+            response.put("details", details);
+            response.put("mismatches", Collections.emptyList());
+
+        } else {
+
+            List<ReconciliationComplianceDetailDTO> details =
+                    reconciliationService.getSavedComplianceDetails(uploadId);
+
+            List<ReconciliationMismatchDTO> mismatches =
+                    reconciliationService.getSavedMismatchDetails(uploadId);
+
+            response.put("details", details);
+            response.put("mismatches", mismatches);
+        }
+
+        return ResponseEntity.ok(response);
+
+    } catch (Exception ex) {
+
+        logger.error(
+                "Error fetching reconciliation history details for uploadId="
+                        + uploadId,
+                ex);
+
+        response.put("status", "ERROR");
+        response.put("message",
+                "Unable to retrieve reconciliation details.");
+
+        return ResponseEntity.status(
+                HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 }
 
 

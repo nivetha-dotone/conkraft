@@ -4,14 +4,18 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.YearMonth;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -19,6 +23,8 @@ import org.springframework.stereotype.Repository;
 import com.wfd.dot1.cwfm.dto.BankWageDetailDTO;
 import com.wfd.dot1.cwfm.dto.BankWageExpectedDTO;
 import com.wfd.dot1.cwfm.dto.BankWageUploadDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationComplianceDetailDTO;
+import com.wfd.dot1.cwfm.dto.ReconciliationHistoryDTO;
 import com.wfd.dot1.cwfm.dto.ReconciliationMismatchDTO;
 import com.wfd.dot1.cwfm.dto.WorkmenReconciliationDTO;
 import com.wfd.dot1.cwfm.util.QueryFileWatcher;
@@ -28,6 +34,9 @@ public class ReconciliationDaoImpl implements ReconciliationDao {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     
     private String getPfQuery() {
@@ -348,6 +357,159 @@ public List<BankWageDetailDTO> getBankWageDetails(Long uploadId) {
         new BeanPropertyRowMapper<>(BankWageDetailDTO.class),
         uploadId
     );
+}
+
+
+
+@Override
+public void saveComplianceDetails(
+        Long uploadId,
+        List<ReconciliationComplianceDetailDTO> details) {
+
+    if (details == null || details.isEmpty()) {
+        return;
+    }
+
+    String sql = """
+        INSERT INTO RECONCILIATION_COMPLIANCE_DETAIL
+        (
+            UploadId,
+            GatePassId,
+            WorkmenName,
+            ReconType,
+            ExpectedAmount,
+            ChallanAmount,
+            DifferenceAmount,
+            VariancePercentage,
+            PaymentPercentage,
+            Rating,
+            RatingDescription,
+            ComplianceStatus,
+            MismatchReason
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
+
+    jdbcTemplate.batchUpdate(sql,
+            new BatchPreparedStatementSetter() {
+
+        @Override
+        public void setValues(
+                PreparedStatement ps, int i)
+                throws SQLException {
+
+            ReconciliationComplianceDetailDTO dto =
+                    details.get(i);
+
+            ps.setLong(1, uploadId);
+            ps.setString(2, dto.getGatePassId());
+            ps.setString(3, dto.getWorkmenName());
+            ps.setString(4, dto.getReconType());
+
+            ps.setBigDecimal(5, dto.getExpectedAmount());
+            ps.setBigDecimal(6, dto.getChallanAmount());
+            ps.setBigDecimal(7, dto.getDifferenceAmount());
+            ps.setBigDecimal(8, dto.getVariancePercentage());
+            ps.setBigDecimal(9, dto.getPaymentPercentage());
+
+            ps.setInt(10, dto.getRating());
+            ps.setString(11, dto.getRatingDescription());
+            ps.setString(12, dto.getComplianceStatus());
+            ps.setString(13, dto.getMismatchReason());
+        }
+
+        @Override
+        public int getBatchSize() {
+            return details.size();
+        }
+    });
+}
+
+@Override
+public List<ReconciliationHistoryDTO> getReconciliationHistory(
+        List<Long> contractorIds) {
+
+    if (contractorIds == null || contractorIds.isEmpty()) {
+        return Collections.emptyList();
+    }
+
+    String sql = QueryFileWatcher.getQuery(
+            "RECONCILIATION_HISTORY_LIST");
+
+    MapSqlParameterSource params =
+            new MapSqlParameterSource()
+                    .addValue("contractorIds", contractorIds);
+
+    return namedParameterJdbcTemplate.query(
+            sql,
+            params,
+            new BeanPropertyRowMapper<>(
+                    ReconciliationHistoryDTO.class));
+}
+
+@Override
+public List<ReconciliationComplianceDetailDTO>
+        getSavedComplianceDetails(Long uploadId) {
+
+    String sql = QueryFileWatcher.getQuery(
+            "RECONCILIATION_SAVED_COMPLIANCE_DETAILS");
+
+    return jdbcTemplate.query(
+            sql,
+            new BeanPropertyRowMapper<>(
+                    ReconciliationComplianceDetailDTO.class),
+            uploadId);
+}
+
+@Override
+public List<ReconciliationMismatchDTO>
+        getSavedMismatchDetails(Long uploadId) {
+
+    String sql = QueryFileWatcher.getQuery(
+            "RECONCILIATION_SAVED_MISMATCH_DETAILS");
+
+    return jdbcTemplate.query(
+            sql,
+            new BeanPropertyRowMapper<>(
+                    ReconciliationMismatchDTO.class),
+            uploadId);
+}
+
+
+
+@Override
+public boolean hasReconciliationUploadAccess(
+        Long uploadId,
+        String reconType,
+        List<Long> contractorIds) {
+
+    if (uploadId == null || reconType == null
+            || contractorIds == null
+            || contractorIds.isEmpty()) {
+        return false;
+    }
+
+    String type = reconType.trim()
+            .toUpperCase(Locale.ROOT);
+
+    if (!Arrays.asList("BANK", "PF", "ESIC")
+            .contains(type)) {
+        return false;
+    }
+
+    String sql = QueryFileWatcher.getQuery(
+            "RECONCILIATION_VALIDATE_UPLOAD_ACCESS");
+
+    MapSqlParameterSource params =
+            new MapSqlParameterSource()
+                    .addValue("uploadId", uploadId)
+                    .addValue("reconType", type)
+                    .addValue("contractorIds", contractorIds);
+
+    Integer count = namedParameterJdbcTemplate
+            .queryForObject(sql, params, Integer.class);
+
+    return count != null && count > 0;
 }
 
 
