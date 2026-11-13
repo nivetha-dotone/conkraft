@@ -467,7 +467,25 @@ public class CreateEmpFetchByGatePassAPICALL {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error while sending LL expiry emails: " + e.getMessage());
         }
     }
+    @GetMapping("/checkReconFailExMAil")
+    public ResponseEntity<String> checkReconFailExMAil() {
 
+        try {
+
+            this.employeeMapper.setupReconMail();
+
+            return ResponseEntity.ok(
+                "Reconciliation alert emails triggered successfully."
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while sending reconciliation alert email: "
+                            + e.getMessage());
+        }
+    }
     @PostMapping("/FetchTotalFromUKGDB")
     public ResponseEntity<FetchTotalResponseDto> fetchTotalFromUKG( @RequestBody FetchTotalRequestDto request) {
         try {

@@ -69,6 +69,10 @@ public class GatePassToOnBoardService {
         return QueryFileWatcher.getQuery("getALLWorkmenTerminated");
     }
 
+    public String getQueryReconEmailAlertBank() {
+        return QueryFileWatcher.getQuery("getQueryReconEmailAlert");
+    }
+
     public String getListOfTrEmpStatusTrace() {
         return QueryFileWatcher.getQuery("getALLWorkmenTerminatedTrace");
     }
@@ -1225,6 +1229,49 @@ public class GatePassToOnBoardService {
         }
     }
 
+    public ReconExpriryMail getExpiringRecon() {
+
+        try {
+
+            log.info("Fetching reconciliation mismatch record");
+
+            String sql = this.getQueryReconEmailAlertBank();
+
+            SqlRowSet rs = this.jdbcTemplate.queryForRowSet(sql);
+
+            if (rs.next()) {
+
+                ReconExpriryMail dto = new ReconExpriryMail();
+
+                dto.setGatepassID(rs.getString("GATEPASS_ID"));
+                dto.setWorkmenName(rs.getString("WORKMEN_NAME"));
+                dto.setWageNumber(rs.getString("DB_NUMBER"));
+                dto.setDocumentNumber(rs.getString("DOC_NUMBER"));
+                dto.setWageCostAmount(rs.getString("DB_AMOUNT"));
+                dto.setDocumentAmount(rs.getString("DOC_AMOUNT"));
+                dto.setErrorMsg(rs.getString("MISMATCH_REASON"));
+                dto.setReconType(rs.getString("RECON_TYPE"));
+                dto.setEmailId(rs.getString("Email"));
+
+                log.info("Reconciliation record found for GatePass: {}",
+                        dto.getGatepassID());
+
+                return dto;
+            }
+
+            log.info("No reconciliation mismatch record found");
+
+            return null;
+
+        } catch (Exception e) {
+
+            log.error("Error fetching reconciliation record", e);
+
+            throw new RuntimeException(
+                    "Unable to fetch reconciliation mismatch record", e);
+        }
+    }
+    
     public Set<String> getHrMailByunitName(String unitName) {
         try {
             log.info("Work Order Expriry record fetch");

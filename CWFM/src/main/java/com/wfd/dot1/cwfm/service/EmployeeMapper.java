@@ -2787,4 +2787,152 @@ public class EmployeeMapper {
         html.append("</body></html>");
         return html.toString();
     }
+    
+    
+    
+    
+    public void setupReconMail() {
+
+        try {
+
+            String issandorpoc = getIsMailPOC();
+
+            if (issandorpoc != null) {
+                issandorpoc = issandorpoc.trim();
+            }
+
+            if (!"yes".equalsIgnoreCase(issandorpoc)) {
+
+                log.info("Reconciliation email disabled in POC configuration");
+
+                return;
+            }
+
+            log.info("Reconciliation Email Service Started");
+
+            // Fetch one reconciliation record
+            ReconExpriryMail dto =
+                    this.gatePassToOnBoardService.getExpiringRecon();
+
+            if (dto == null) {
+
+                log.info("No reconciliation record available for email");
+
+                return;
+            }
+
+            // Fetch recipient email
+            Set<String> emailIds = new HashSet<>();
+
+            if (dto.getEmailId() != null &&
+                    !dto.getEmailId().trim().isEmpty()) {
+
+                emailIds.add(dto.getEmailId().trim());
+            }
+
+            if (emailIds.isEmpty()) {
+
+                log.warn("Recipient email ID not found");
+
+                return;
+            }
+
+            // Build HTML email
+            String htmlContent = buildReconMailTemplate(dto);
+
+            // Dynamic subject
+            String subject = dto.getReconType()
+                    + " Reconciliation Mismatch Alert - "
+                    + dto.getGatepassID();
+
+            // Send email
+            emailService.sendHtmlMail(emailIds, subject, htmlContent);
+
+            log.info("Reconciliation email sent successfully for GatePass: {}",
+                    dto.getGatepassID());
+
+        } catch (Exception e) {
+
+            log.error("Error while sending reconciliation email", e);
+
+            throw new RuntimeException(
+                    "Error while sending reconciliation alert email", e);
+        }
+    }
+    
+    public String buildReconMailTemplate(ReconExpriryMail dto) {
+
+        StringBuilder html = new StringBuilder();
+
+        html.append("<html>");
+        html.append("<body style='font-family:Arial,sans-serif;background:#f4f6f9;padding:20px;'>");
+
+        html.append("<div style='max-width:850px;margin:auto;background:#ffffff;padding:25px;border:1px solid #ddd;border-radius:8px;'>");
+
+        html.append("<h2 style='color:#243b64;'>Reconciliation Mismatch Alert</h2>");
+
+        html.append("<p>Dear Team,</p>");
+
+        html.append("<p>A reconciliation mismatch has been identified. Please find the details below.</p>");
+
+        html.append("<table style='width:100%;border-collapse:collapse;font-size:14px;'>");
+
+        String[][] details = {
+
+            {"Reconciliation Type", dto.getReconType()},
+            {"GatePass ID", dto.getGatepassID()},
+            {"Workmen Name", dto.getWorkmenName()},
+            {"DB / Account Number", dto.getWageNumber()},
+            {"Document / UTR Number", dto.getDocumentNumber()},
+            {"Expected / DB Amount", dto.getWageCostAmount()},
+            {"Paid / Document Amount", dto.getDocumentAmount()},
+            {"Mismatch Reason", dto.getErrorMsg()}
+        };
+
+        for (String[] detail : details) {
+
+            html.append("<tr>");
+
+            html.append("<td style='padding:10px;border:1px solid #ddd;background:#f2f4f7;font-weight:bold;width:35%;'>")
+                .append(escapeHtml(detail[0]))
+                .append("</td>");
+
+            html.append("<td style='padding:10px;border:1px solid #ddd;'>")
+                .append(escapeHtml(detail[1]))
+                .append("</td>");
+
+            html.append("</tr>");
+        }
+
+        html.append("</table>");
+
+        html.append("<p style='margin-top:25px;'>")
+            .append("Kindly review the above reconciliation mismatch and take the necessary corrective action.")
+            .append("</p>");
+
+        html.append("<p>Regards,<br/><b>DOT1 CWFM Team</b></p>");
+
+        html.append("<hr style='border:0;border-top:1px solid #ddd;'/>");
+
+        html.append("<p style='font-size:11px;color:#888;'>")
+            .append("This is an automatically generated reconciliation alert. Please do not reply to this email.")
+            .append("</p>");
+
+        html.append("</div>");
+
+        html.append("</body></html>");
+
+        return html.toString();
+    }private String escapeHtml(String value) {
+
+        if (value == null) {
+            return "";
+        }
+
+        return value.replace("&", "&amp;")
+                    .replace("<", "&lt;")
+                    .replace(">", "&gt;")
+                    .replace("\"", "&quot;")
+                    .replace("'", "&#39;");
+    }
 }
