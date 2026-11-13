@@ -21,6 +21,25 @@ public class ReconciliationHistoryDTO {
     private String fileName;
     private String uploadedBy;
     private LocalDateTime uploadedDate;
+    
+    private String contractorName;
+    private String principalEmployerName;
+    
+    public String getPrincipalEmployerName() {
+		return principalEmployerName;
+	}
+
+	public void setPrincipalEmployerName(String principalEmployerName) {
+		this.principalEmployerName = principalEmployerName;
+	}
+
+	public String getContractorName() {
+        return contractorName;
+    }
+
+    public void setContractorName(String contractorName) {
+        this.contractorName = contractorName;
+    }
 
     public Long getUploadId() {
         return uploadId;

@@ -37,6 +37,7 @@ import com.wfd.dot1.cwfm.service.CommonService;
 import com.wfd.dot1.cwfm.service.ReconciliationService;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -518,6 +519,54 @@ public ResponseEntity<Map<String, Object>> getReconciliationHistoryDetails(
         return ResponseEntity.status(
                 HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+}
+
+
+@GetMapping("/reconciliation/history/view")
+public String viewReconciliationDetails(
+        @RequestParam("uploadId") Long uploadId,
+        @RequestParam("reconType") String reconType,
+        HttpServletRequest request,
+        HttpServletResponse response) {
+
+    HttpSession session = request.getSession(false);
+
+    MasterUser user = session == null
+            ? null
+            : (MasterUser) session.getAttribute("loginuser");
+
+    if (user == null) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        return null;
+    }
+
+    String type = reconType == null
+            ? ""
+            : reconType.trim().toUpperCase(Locale.ROOT);
+
+    if (!Arrays.asList("BANK", "PF", "ESIC").contains(type)
+            || uploadId == null || uploadId <= 0) {
+
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        return null;
+    }
+
+    List<Long> contractorIds =
+            getAuthorizedContractorIds(session);
+
+    boolean hasAccess =
+            reconciliationService.hasReconciliationUploadAccess(
+                    uploadId, type, contractorIds);
+
+    if (!hasAccess) {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        return null;
+    }
+
+    request.setAttribute("uploadId", uploadId);
+    request.setAttribute("reconType", type);
+
+    return "contractors/reconciliationDetails";
 }
 
 
