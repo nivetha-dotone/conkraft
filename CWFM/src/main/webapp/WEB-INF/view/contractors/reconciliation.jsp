@@ -742,6 +742,8 @@ function submitForm() {
             <input type="file" id="bankFile" class="form-control" accept=".csv,text/csv" />
             <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"
                     onclick="uploadBankWages()">Upload Bank CSV</button>
+                    <button type="button" class="btn btn-default process-footer-button-cancel ng-binding"
+                    onclick="downloadBankTemplate()">Download Bank CSV</button>
         </div>
 
         <div class="row summary-box" id="bankSummary" style="display:none;">

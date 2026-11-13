@@ -8682,3 +8682,41 @@ function escapeCsvValue(value) {
 
     return '"' + value.replace(/"/g, '""') + '"';
 }
+
+function downloadBankTemplate() {
+
+    // CSV template headers
+    var headers = [
+        "GatePassId",
+        "AccountNumber",
+        "IFSCCode",
+        "BeneficiaryName",
+        "Amount",
+        "TransactionDate",
+        "UTRNumber"
+    ];
+
+    // Create CSV content with headers only
+    var csvContent = headers.join(",") + "\r\n";
+
+    // Create CSV file
+    var blob = new Blob(
+        ["\uFEFF" + csvContent],
+        { type: "text/csv;charset=utf-8;" }
+    );
+
+    // Generate download URL
+    var url = window.URL.createObjectURL(blob);
+
+    // Create temporary download link
+    var link = document.createElement("a");
+    link.href = url;
+    link.download = "Bank_CSV_Template.csv";
+
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+}
