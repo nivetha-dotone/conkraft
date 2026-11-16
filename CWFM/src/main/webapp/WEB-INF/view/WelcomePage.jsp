@@ -4198,6 +4198,46 @@ background:white;
   100% { transform: rotate(360deg); }
 }
 
+
+/* Responsive dashboard shell: applies to dynamically injected role dashboards */
+#mainContent { min-width:0; max-width:100%; box-sizing:border-box; }
+#mainContent img, #mainContent svg { max-width:100%; }
+@media (max-width: 991.98px) {
+  .form-content, .main-menu.expanded + .form-content,
+  .main-menu:not(.expanded) + .form-content {
+    float:none; width:100%; max-width:100%; margin-left:0;
+    box-sizing:border-box; min-width:0;
+  }
+  #mainContent { width:100%; min-width:0; }
+}
+@media (max-width: 767.98px) {
+  .form-content { overflow-x:clip; }
+  #mainContent { padding-left:0; padding-right:0; }
+}
+
+
+/* Mobile header correction: prevent title/role/avatar overlap */
+@media (max-width: 767.98px) {
+  .top-nav { height:64px; min-height:64px; padding:0 10px; gap:8px; flex-wrap:nowrap; overflow:visible; }
+  .top-nav .left-icons { flex:0 0 auto; gap:8px; min-width:0; }
+  .top-nav .conkraftlogo.conkraft, .top-nav .logo.dot1 { display:none; }
+  .top-nav .center-heading { flex:1 1 auto; min-width:0; max-width:none; margin:0; align-items:flex-start; text-align:left; overflow:hidden; }
+  .top-nav .heading-main { font-size:14px; line-height:18px; white-space:nowrap; }
+  .top-nav .heading-sub { display:none; }
+  .top-nav .role-container { flex:0 1 100px; min-width:0; max-width:100px; margin:0; display:block; overflow:hidden; }
+  .top-nav .role-container .role-label { display:none; }
+  .top-nav .role-value { display:block; font-size:12px; line-height:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .top-nav .role-dropdown { flex:0 1 100px; min-width:0; max-width:100px; }
+  .top-nav .role-select { width:100%; max-width:100%; }
+  .top-nav .dropdown { flex:0 0 auto; min-width:30px; }
+  .top-nav .dropdown .initials-icon { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; line-height:1; }
+}
+@media (max-width: 390px) {
+  .top-nav { gap:5px; padding:0 6px; }
+  .top-nav .left-icons { gap:4px; }
+  .top-nav .role-container, .top-nav .role-dropdown { max-width:76px; }
+  .top-nav .heading-main { font-size:12px; }
+}
 </style>
 </head>
 <body >

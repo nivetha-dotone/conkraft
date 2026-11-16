@@ -1222,6 +1222,61 @@
 
 
 
+
+/* Responsive dashboard overrides - keep this block LAST in the style section */
+.db, .lastdashboard { width:100%; max-width:100%; margin-left:0; padding:0 20px; box-sizing:border-box; min-width:0; }
+.db *, .lastdashboard * { box-sizing:border-box; }
+.kpi-row, .quick-actions-row, .chart-row { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; align-items:stretch; }
+.kpi-row > *, .quick-actions-row > *, .chart-row > * { min-width:0; max-width:100%; }
+.kpi-card, #kpi-ai { width:auto; min-width:0; max-width:100%; height:auto; min-height:130px; }
+.kpi-content, .kpi-text { min-width:0; }
+.kpi-text, .kpi-title-alt, .lbl, .banner-text { overflow-wrap:anywhere; }
+.section.contractor-workmen, .card.warn, .card.highlight-card, .db > .card,
+.lastdashboard > .card { margin-left:0; margin-right:0; max-width:100%; }
+.card-grid { margin-left:0; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); }
+.action-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr)); }
+.chart-box, .chart-container, .ccs-chart-wrap { max-width:100%; min-width:0; }
+.chart-container canvas, .chart-box canvas { max-width:100%; }
+.table-wrapper, .expiry-table-container, .ccs-table-wrap { max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.modal-box { width:min(92vw,900px); max-width:92vw; max-height:85dvh; overflow:auto; }
+.ccs-kpis { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media (max-width:1199.98px) {
+  .kpi-row, .quick-actions-row, .chart-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .ccs-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .db, .lastdashboard { padding:0 14px; }
+  .kpi-row4.row4 { margin-left:0; }
+}
+@media (max-width:767.98px) {
+  .db, .lastdashboard { padding:0 10px; }
+  .kpi-row, .quick-actions-row, .chart-row { gap:12px; margin-bottom:16px; }
+  .kpi-card, #kpi-ai { padding:12px; min-height:110px; }
+  .section.contractor-workmen, .card.warn, .card.highlight-card, .db > .card,
+  .lastdashboard > .card { padding:15px; }
+  .sec-header { margin-left:0; margin-right:0; }
+  .banner-content { gap:10px; }
+  .banner-left { min-width:0; }
+  .banner-text { white-space:normal; text-overflow:clip; }
+  .banner-right img { width:64px; height:auto; }
+  .chart-container { height:auto; min-height:240px; }
+  .ccs-chart-wrap { height:260px; }
+  .bill-chart-container { gap:15px; }
+  .bill-summary { margin-left:0; }
+  .compliance-row { gap:12px; }
+  .compliance-item { width:calc(50% - 8px); min-width:0; }
+  .modal-box { padding:12px; }
+  .modal-body { padding:12px; }
+}
+@media (max-width:479.98px) {
+  .kpi-row, .quick-actions-row, .chart-row { grid-template-columns:minmax(0,1fr); }
+  .ccs-kpis { grid-template-columns:minmax(0,1fr); }
+  .kpi-card, #kpi-ai { min-height:100px; }
+  .action-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .action-btn { padding:12px 6px; }
+  .alert-item { gap:8px; flex-wrap:wrap; }
+  .alert-left { min-width:0; }
+  .modal-box { width:96vw; max-width:96vw; }
+}
+
 </style>
 
 
