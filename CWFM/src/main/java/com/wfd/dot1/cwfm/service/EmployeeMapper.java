@@ -479,6 +479,212 @@ public class EmployeeMapper {
             e.printStackTrace();
         }
     }
+
+    @Scheduled(cron = "0 */2 * * * *")
+    @Transactional
+    public synchronized void gateSchedularPunchDBReg() {
+        try {
+
+
+            List<FaceLogFetchDtoReg> listOfFaceLogFetchDto = this.gatePassToOnBoardService.getListOfNotPostPunchReg();
+            if (listOfFaceLogFetchDto == null || listOfFaceLogFetchDto.isEmpty()) {
+                return;
+            }
+
+            for (FaceLogFetchDtoReg gpTransactionId : listOfFaceLogFetchDto) {
+                System.out.println("Processing punch : person num" + gpTransactionId.getPersonNum());
+                PunchRequestCommentDTO punchRequestDTO = new PunchRequestCommentDTO();
+                String response;
+
+                if (gpTransactionId != null) {
+
+
+                    LocalDateTime punchDateTime =
+                            LocalDateTime.parse(
+                                    gpTransactionId.getPunchDtm().trim(),
+                                    FLEXIBLE_DATE_TIME
+                            );
+
+                    String formattedPunchDtm =
+                            punchDateTime.format(
+                                    DateTimeFormatter.ofPattern(
+                                            "yyyy-MM-dd'T'HH:mm:ss"
+                                    )
+                            );
+
+                    String formattedDate =
+                            punchDateTime.toLocalDate().toString();
+
+                    PunchRequestCommentDTO.DoDTO doDTO = new PunchRequestCommentDTO.DoDTO();
+                    PunchRequestCommentDTO.PunchesDTO punchesDTO = new PunchRequestCommentDTO.PunchesDTO();
+                    PunchRequestCommentDTO.AddedPunchDTO addedPunchDTO = new PunchRequestCommentDTO.AddedPunchDTO();
+                    PunchRequestCommentDTO.CommentsNoteDTO commentsNoteDTO=new PunchRequestCommentDTO.CommentsNoteDTO();
+
+                    List<PunchRequestCommentDTO.AddedPunchDTO> addedPunchDTOList = new ArrayList();
+                    List<PunchRequestCommentDTO.CommentsNoteDTO> commentsNoteList = new ArrayList();
+
+                    addedPunchDTO.setPunchDtm(formattedPunchDtm);
+                    PunchRequestCommentDTO.EmployeeDTO employeeDTO = new PunchRequestCommentDTO.EmployeeDTO();
+                    employeeDTO.setQualifier(gpTransactionId.getPersonNum());
+                    addedPunchDTO.setEmployee(employeeDTO);
+                    PunchRequestCommentDTO.TypeOverrideDTO typeOverrideDTO = new PunchRequestCommentDTO.TypeOverrideDTO();
+                    typeOverrideDTO.setQualifier(gpTransactionId.getPunchType());
+                    addedPunchDTO.setTypeOverride(typeOverrideDTO);
+
+                    PunchRequestCommentDTO.CommentDTO commentDTO = new PunchRequestCommentDTO.CommentDTO();
+                    List<PunchRequestCommentDTO.CategoryDTO> categoryDTOList = new ArrayList();
+
+                    PunchRequestCommentDTO.CategoryDTO categoryDTO=new PunchRequestCommentDTO.CategoryDTO();
+                    categoryDTO.setQualifier(gpTransactionId.getLocation());
+                    categoryDTOList.add(categoryDTO);
+                    commentDTO.setCategories(categoryDTOList);
+                    commentDTO.setName(getCommentCat());
+
+                    List<PunchRequestCommentDTO.NoteDTO> noteDTOList = new ArrayList();
+                    PunchRequestCommentDTO.NoteDTO noteDTO = new PunchRequestCommentDTO.NoteDTO();
+                    noteDTO.setText(gpTransactionId.getLocation());
+                    noteDTOList.add(noteDTO);
+                    commentsNoteDTO.setComment(commentDTO);
+                    commentsNoteDTO.setNotes(noteDTOList);
+                    commentsNoteList.add(commentsNoteDTO);
+                    addedPunchDTO.setCommentsNotes(commentsNoteList);
+                    addedPunchDTOList.add(addedPunchDTO);
+                    punchesDTO.setAdded(addedPunchDTOList);
+                    doDTO.setPunches(punchesDTO);
+                    PunchRequestCommentDTO.WhereDTO whereDTO = new PunchRequestCommentDTO.WhereDTO();
+                    PunchRequestCommentDTO.DateRangeDTO dateRangeDTO = new PunchRequestCommentDTO.DateRangeDTO();
+
+                    dateRangeDTO.setStartDate(formattedDate);
+                    dateRangeDTO.setEndDate(formattedDate);
+                    whereDTO.setEmployee(employeeDTO);
+                    whereDTO.setDateRange(dateRangeDTO);
+                    punchRequestDTO.setDoObj(doDTO);
+                    punchRequestDTO.setWhere(whereDTO);
+                    response  = this.wfdEmployeeService.addEmployeePunchFaceSchedulr(punchRequestDTO);
+                    processResponseReg(gpTransactionId.getPunchId(), response,gpTransactionId.getPunchType());
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    private void processResponseReg(Integer punchId, String response,String punchType) {
+
+        try {
+
+            if ((response == null || response.trim().isEmpty()) && "In Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateInReg(
+                        punchId,
+                        "Empty Response"
+                );
+                return;
+            } if ((response == null || response.trim().isEmpty()) && "Out Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateOutReg(
+                        punchId,
+                        "Empty Response"
+                );
+                return;
+            }
+
+            if (!response.startsWith("STATUS:") && "In Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateInReg(
+                        punchId,
+                        response
+                );
+                return;
+            }if (!response.startsWith("STATUS:") && "Out Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateOutReg(
+                        punchId,
+                        response
+                );
+                return;
+            }
+
+            String[] parts = response.split("BODY:", 2);
+
+            int statusCode = Integer.parseInt(
+                    parts[0].replace("STATUS:", "").trim()
+            );
+
+            String body = parts.length > 1
+                    ? parts[1].trim()
+                    : "";
+
+            // SUCCESS
+            if (statusCode == 200 && "In Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunchInReg(
+                        punchId,
+                        "Posted"
+                );
+                return;
+            }
+            // SUCCESS
+            if (statusCode == 200 && "Out Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunchOutReg(
+                        punchId,
+                        "Posted"
+                );
+                return;
+            }
+
+            // DUPLICATE PUNCH
+            if ((statusCode == 400
+                    && body.contains("WTK-120127")) && "In Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunchInReg(
+                        punchId,
+                        body
+                );
+                return;
+            }
+            // DUPLICATE PUNCH
+            if ((statusCode == 400
+                    && body.contains("WTK-120127")) && "Out Punch".equalsIgnoreCase(punchType)) {
+
+                gatePassToOnBoardService.saveSuccessTracePostPunchOutReg(
+                        punchId,
+                        body
+                );
+                return;
+            }
+
+            // ALL OTHER ERRORS
+            if("Out Punch".equalsIgnoreCase(punchType)){
+            gatePassToOnBoardService.saveErrorTracePunchNOTUpdateInReg(
+                    punchId,
+                    body
+            );}
+            if("In Punch".equalsIgnoreCase(punchType)){
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateOutReg(
+                        punchId,
+                        body
+                );
+            }
+
+        } catch (Exception e) {
+            if("In Punch".equalsIgnoreCase(punchType)) {
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateOutReg(
+                        punchId,
+                        "Response Parse Error : " + e.getMessage()
+                );
+            }
+            if("In Punch".equalsIgnoreCase(punchType)){
+                gatePassToOnBoardService.saveErrorTracePunchNOTUpdateInReg(
+                        punchId,
+                        "Response Parse Error : " + e.getMessage()
+                );
+            }
+
+        }
+
+    }
+
     private void processResponse(Integer punchId, String response) {
 
         try {
@@ -1811,6 +2017,31 @@ public class EmployeeMapper {
                     addCustomeList.add(permanentAddress);
                 }
 
+                if (individualOnBoardDetailsByTrnId.getLL_No() != null && !individualOnBoardDetailsByTrnId.getLL_No().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO LL_NO = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("LL No");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getLL_No());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getEIC_No() != null && !individualOnBoardDetailsByTrnId.getEIC_No().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO LL_NO = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("EIC Number");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getEIC_No());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getWcEsicNo() != null && !individualOnBoardDetailsByTrnId.getWcEsicNo().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO LL_NO = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("WC or ESIC Number");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getWcEsicNo());
+                    addCustomeList.add(LL_NO);
+                }
+                if (individualOnBoardDetailsByTrnId.getISMW() != null && !individualOnBoardDetailsByTrnId.getISMW().isEmpty()) {
+                    UpdateEmployeeRequestDTO.CustomDataDTO LL_NO = new UpdateEmployeeRequestDTO.CustomDataDTO();
+                    LL_NO.setCustomDataTypeName("ISMW");
+                    LL_NO.setText(individualOnBoardDetailsByTrnId.getISMW());
+                    addCustomeList.add(LL_NO);
+                }
+
 //                if (individualOnBoardDetailsByTrnId.getPermanentDistrict() != null && !individualOnBoardDetailsByTrnId.getPermanentDistrict().isEmpty()) {
 //                    UpdateEmployeeRequestDTO.CustomDataDTO permanentDistrict = new UpdateEmployeeRequestDTO.CustomDataDTO();
 //                    permanentDistrict.setCustomDataTypeName("Permanent District");
@@ -2050,7 +2281,7 @@ public class EmployeeMapper {
                 boolean checkJob1 = wfdEmployeeService.verifyJobInWFD(skill,"1900-01-01");
                 System.out.println("job check again found or not -"+checkJob);
 
-                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/" +individualOnBoardDetailsByTrnId.getCompany() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;                
+                String  orgPath= individualOnBoardDetailsByTrnId.getPARENTENTITY() + "/" + individualOnBoardDetailsByTrnId.getBUSINESSUNIT()+ "/" + individualOnBoardDetailsByTrnId.getBUSINESSTYPE() + "/" + individualOnBoardDetailsByTrnId.getSUBBUSINESSTYPE() + "/"+individualOnBoardDetailsByTrnId.getCompany()+"/" + individualOnBoardDetailsByTrnId.getLocation()+"/" + individualOnBoardDetailsByTrnId.getDepartment()+ "/" + individualOnBoardDetailsByTrnId.getSection() + "/" +individualOnBoardDetailsByTrnId.getContractorCode()+ "/"+skill ;
                 System.out.println(orgPath);
 
 

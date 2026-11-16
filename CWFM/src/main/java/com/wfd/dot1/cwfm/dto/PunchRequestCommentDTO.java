@@ -35,6 +35,7 @@ public class PunchRequestCommentDTO {
     public static class AddedPunchDTO {
 
         private EmployeeDTO employee;
+        private TypeOverrideDTO typeOverride;
 
         private List<CommentsNoteDTO> commentsNotes;
 
@@ -85,6 +86,12 @@ public class PunchRequestCommentDTO {
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EmployeeDTO {
+
+        private String qualifier;
+    }
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class TypeOverrideDTO {
 
         private String qualifier;
     }

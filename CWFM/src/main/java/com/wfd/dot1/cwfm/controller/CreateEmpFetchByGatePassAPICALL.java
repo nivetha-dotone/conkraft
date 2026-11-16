@@ -127,6 +127,13 @@ public class CreateEmpFetchByGatePassAPICALL {
         } catch (Exception var2) {
         }
     }
+    @GetMapping({"/schedularPunchDBReg"})
+    public void schedularPunchDBReg() {
+        try {
+            this.employeeMapper.gateSchedularPunchDBReg();
+        } catch (Exception var2) {
+        }
+    }
 
     @PostMapping("/encryptUserId")
     @ResponseBody

@@ -96,6 +96,9 @@ public class GatePassToOnBoardService {
     public String getQuerytoFetchListNOTPOSTPunch() {
         return QueryFileWatcher.getQuery("getQueryListPOSTPunch");
     }
+    public String getQuerytoFetchListNOTPOSTPunchReg() {
+        return QueryFileWatcher.getQuery("getQueryListPOSTPunchReg");
+    }
 
     public String getQueryInsertSuccessEnty() {
         return QueryFileWatcher.getQuery("getWFDLogOK");
@@ -119,6 +122,10 @@ public class GatePassToOnBoardService {
     }
     public String getInsertSuccessEntyPunch() {
         return QueryFileWatcher.getQuery("getInsertSuccessEntyPunch");
+    }public String getInsertSuccessEntyPunchInReg() {
+        return QueryFileWatcher.getQuery("getInsertSuccessEntyPunchInReg");
+    }public String getInsertSuccessEntyPunchOutReg() {
+        return QueryFileWatcher.getQuery("getInsertSuccessEntyPunchOutReg");
     }
 
     public String getQueryInsertSuccessEntyTr() {
@@ -163,6 +170,12 @@ public class GatePassToOnBoardService {
 
     public String saveErrorPunchNOTUpdate() {
         return QueryFileWatcher.getQuery("saveErrorTracePunchNOTUpdate");
+    }
+    public String saveErrorPunchNOTUpdateInReg() {
+        return QueryFileWatcher.getQuery("saveErrorTracePunchNOTInUpdate");
+    }
+    public String saveErrorPunchNOTUpdateOutReg() {
+        return QueryFileWatcher.getQuery("saveErrorTracePunchNOTOutUpdate");
     }
 
     public String getQueryInsertNotSuccesstrNotTr() {
@@ -498,8 +511,26 @@ public class GatePassToOnBoardService {
         String sql = this.getInsertSuccessEntyPunch();
         this.jdbcTemplate.update(sql, new Object[]{status, gpTransactionId});
     }
+    public void saveSuccessTracePostPunchInReg(Integer gpTransactionId, String status) {
+        String sql = this.getInsertSuccessEntyPunchInReg();
+        this.jdbcTemplate.update(sql, new Object[]{status, gpTransactionId});
+    }
+    public void saveSuccessTracePostPunchOutReg(Integer gpTransactionId, String status) {
+        String sql = this.getInsertSuccessEntyPunchOutReg();
+        this.jdbcTemplate.update(sql, new Object[]{status, gpTransactionId});
+    }
     public void saveErrorTracePunchNOTUpdate(Integer punchId, String issue) {
         String sql = this.saveErrorPunchNOTUpdate();
+        this.jdbcTemplate.update(sql, new Object[]{issue, punchId});
+    }
+
+    public void saveErrorTracePunchNOTUpdateInReg(Integer punchId, String issue) {
+        String sql = this.saveErrorPunchNOTUpdateInReg();
+        this.jdbcTemplate.update(sql, new Object[]{issue, punchId});
+    }
+
+    public void saveErrorTracePunchNOTUpdateOutReg(Integer punchId, String issue) {
+        String sql = this.saveErrorPunchNOTUpdateOutReg();
         this.jdbcTemplate.update(sql, new Object[]{issue, punchId});
     }
 
@@ -616,6 +647,32 @@ public class GatePassToOnBoardService {
                 passDto.setPunchId(sqlRowSet.getInt("PUNCH_ID"));
                 passDto.setPersonNum(sqlRowSet.getString("PERSON_NUM"));
                 passDto.setPunchDtm(sqlRowSet.getString("PUNCH_DATETIME"));
+                passDto.setLocation(sqlRowSet.getString("LOCATION"));
+                dtoTrList.add(passDto);
+
+            }
+
+
+            log.info("Exit from getListOfNotPostPunch method");
+            return dtoTrList;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public List<FaceLogFetchDtoReg> getListOfNotPostPunchReg() {
+        try {
+            log.info("Fetching TranscationId list for reschedule to post ");
+            List<FaceLogFetchDtoReg> dtoTrList = new LinkedList();
+            String queryGetOnBdByTranId = this.getQuerytoFetchListNOTPOSTPunchReg();
+            log.info("query to get onboardDetails " + queryGetOnBdByTranId);
+            SqlRowSet sqlRowSet = this.jdbcTemplate.queryForRowSet(queryGetOnBdByTranId);
+            FaceLogFetchDtoReg passDto =null;
+            while(sqlRowSet.next()) {
+                passDto=new FaceLogFetchDtoReg();
+                passDto.setPunchId(sqlRowSet.getInt("PUNCH_ID"));
+                passDto.setPersonNum(sqlRowSet.getString("PERSON_NUM"));
+                passDto.setPunchDtm(sqlRowSet.getString("PUNCH_DATETIME"));
+                passDto.setPunchType(sqlRowSet.getString("PunchType"));
                 passDto.setLocation(sqlRowSet.getString("LOCATION"));
                 dtoTrList.add(passDto);
 
