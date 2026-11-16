@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.wfd.dot1.cwfm.dto.ContractorComplianceScoreDTO;
 import com.wfd.dot1.cwfm.dto.DashboardDTO;
 import com.wfd.dot1.cwfm.dto.PlantWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.WorkOrderDTO;
@@ -108,5 +111,34 @@ public class DashboardController {
     public List<WorkOrderDTO> getWorkmenByWO(@RequestParam("woId") long woId,
                                              @RequestParam("contractorId") String contractorId) {
         return service.getWorkmenByWO(woId, contractorId);
+    }
+    
+    @GetMapping("/contractorComplianceScoreboard")
+    @ResponseBody
+    public ResponseEntity<?> getContractorComplianceScoreboard(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month,
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession(false);
+
+        MasterUser user = session != null
+                ? (MasterUser) session.getAttribute("loginuser")
+                : null;
+
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Session expired. Please login again.");
+        }
+
+        if (year < 2000 || year > 2100 || month < 1 || month > 12) {
+            return ResponseEntity.badRequest()
+                    .body("Invalid year or month.");
+        }
+
+        List<ContractorComplianceScoreDTO> scores =
+                service.getContractorComplianceScores(user, year, month);
+
+        return ResponseEntity.ok(scores);
     }
 }

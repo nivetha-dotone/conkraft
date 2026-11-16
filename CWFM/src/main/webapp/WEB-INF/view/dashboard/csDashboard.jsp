@@ -757,6 +757,23 @@ display: flex;
   color: grey;         /* darker green on hover */
 }
 
+
+.ccs-panel{background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);padding:22px;margin:22px 0;font-family:inherit}
+.ccs-head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.ccs-head h3{margin:0;font-size:17px;font-weight:700;color:#253248}
+.ccs-filters{display:flex;flex-wrap:wrap;gap:10px}
+.ccs-filters label{font-size:12px;color:#64748b;display:flex;flex-direction:column;gap:4px}
+.ccs-filters select,.ccs-filters input{border:1px solid #dbe1e8;border-radius:6px;padding:8px;background:#fff;min-width:140px}
+.ccs-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.ccs-kpi{padding:17px;border:1px solid #e5eaf1;border-radius:9px;border-left:4px solid #378add}
+.ccs-kpi:nth-child(2){border-left-color:#f59e0b}.ccs-kpi:nth-child(3){border-left-color:#16a085}
+.ccs-kpi .ccs-value{font-size:27px;font-weight:700;margin-top:5px}.ccs-kpi small{color:#64748b}
+.ccs-chart-wrap{position:relative;height:320px;max-width:100%;margin-bottom:22px}
+.ccs-table-wrap{overflow-x:auto}.ccs-table{width:100%;border-collapse:collapse;font-size:13px}
+.ccs-table th,.ccs-table td{padding:11px;border-bottom:1px solid #e5eaf1;text-align:left}
+.ccs-table th{background:#f8fafc}.ccs-status{font-size:12px;color:#64748b;margin:8px 0}
+@media(max-width:700px){.ccs-kpis{grid-template-columns:1fr}.ccs-chart-wrap{height:260px}}
+
 </style>
 
 
@@ -822,35 +839,69 @@ display: flex;
     </div>
   </div>
  <div class="security-banner" id="kpi-security-banner">
-  <div class="banner-content">
-    <div class="banner-left">
-      <div class="banner-icon">
-        
-      </div>
-      <div class="banner-text">
-        <!-- <div class="title">Securing <span class="highlight">Workforce.</span></div> -->
-        <div class="title"> 
-        <!-- <a href="javascript:void(0);" onclick="loadCommonList('/showChatBot', 'AI Assistance');"><span>AI ASSISTANCE</span></a> -->
-       <a href="javascript:void(0);"
-   class="dashboard-tile"
-   onclick="openChatBotModal();">
-
-    <div class="tile-content">
-        <i class="fa fa-comments"></i>
-        <span>Conkraft Assistant</span>
-    </div>
-
+   <div class="banner-content">
+     <div class="banner-left">
+       <div class="banner-text">
+         <a href="javascript:void(0);" class="dashboard-tile" onclick="openChatBotModal();">
+           <span class="tile-content"><i class="fa fa-comments"></i> Conkraft Assistant</span>
+         </a>
+       </div>
+     </div>
+     <div class="banner-right">
+       <img src="resources/img/ai-image.png" alt="Conkraft Assistant" />
+     </div>
    </div>
-      </div></a>
-    </div>
-    <div class="banner-right">
-      <img src='resources/img/ai-image.png' alt="Workforce Security" />
+ </div>
+</div>
+
+<!-- Contractor Compliance Scoreboard: isolated from existing dashboard charts -->
+<section id="contractorComplianceScoreboard" class="ccs-panel" data-api="${pageContext.request.contextPath}/dashboard/contractorComplianceScoreboard">
+  <div class="ccs-head">
+    <h3>CONTRACTOR COMPLIANCE SCOREBOARD</h3>
+    <div class="ccs-filters">
+      <label>Reporting Month
+        <input type="month" id="ccsMonth" value="<%= java.time.LocalDate.now().minusMonths(1).toString().substring(0,7) %>" />
+      </label>
+      <label>Principal Employer
+        <select id="ccsUnit"><option value="">All Principal Employers</option></select>
+      </label>
+      <label>Contractor
+        <select id="ccsContractor"><option value="">All Contractors</option></select>
+      </label>
     </div>
   </div>
-</div> 
+  <div class="ccs-kpis">
+    <div class="ccs-kpi"><small>PF AVERAGE RATING</small><div class="ccs-value" id="ccsPf">N/A</div><small>Out of 5</small></div>
+    <div class="ccs-kpi"><small>ESIC AVERAGE RATING</small><div class="ccs-value" id="ccsEsic">N/A</div><small>Out of 5</small></div>
+    <div class="ccs-kpi"><small>BANK WAGE AVERAGE RATING</small><div class="ccs-value" id="ccsBank">N/A</div><small>Out of 5</small></div>
+  </div>
+  <div class="ccs-chart-wrap"><canvas id="ccsChart"></canvas></div>
+  <div class="ccs-table-wrap"><table class="ccs-table">
+    <thead><tr>
+    <th>Principal Employer</th>
+<th>Contractor</th>
+<th>PF</th>
+<th>ESIC</th>
+<th>Bank Wage</th>
+    </tr></thead>
+    <tbody id="ccsTableBody"></tbody>
+  </table></div>
+  <div id="ccsStatus" class="ccs-status" aria-live="polite"></div>
+  <%-- Initial scoreboard records rendered from DashboardDTO, not hardcoded --%>
+  <div id="ccsInitialData" hidden>
+    <c:forEach var="score" items="${dashboard.complianceScores}">
+        <span class="ccs-record"
+              data-unit="${score.unitId}"
+              data-unit-name="${fn:escapeXml(score.unitName)}"
+              data-contractor="${score.contractorId}"
+              data-contractor-name="${fn:escapeXml(score.contractorName)}"
+              data-type="${fn:escapeXml(score.complianceType)}"
+              data-rating="${score.averageRating}"
+              data-count="${score.workmenCount}">
+        </span>
+    </c:forEach>
 </div>
-</div>
-
+</section>
 
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->

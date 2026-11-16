@@ -1,5 +1,6 @@
 package com.wfd.dot1.cwfm.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DashboardDTO {
@@ -290,5 +291,17 @@ public class DashboardDTO {
 	}
 
 	private List<WorkmensReachedRetiredAgeDTO> WorkmensReachedRetiredAgeList;
+	
+	private List<ContractorComplianceScoreDTO> complianceScores =
+	        new ArrayList<>();
+
+	public List<ContractorComplianceScoreDTO> getComplianceScores() {
+	    return complianceScores;
+	}
+
+	public void setComplianceScores(
+	        List<ContractorComplianceScoreDTO> complianceScores) {
+	    this.complianceScores = complianceScores;
+	}
 	
 }

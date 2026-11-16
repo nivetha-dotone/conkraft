@@ -1,6 +1,8 @@
 package com.wfd.dot1.cwfm.dao;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +15,7 @@ import com.wfd.dot1.cwfm.dto.AckExpiryDTO;
 import com.wfd.dot1.cwfm.dto.BillStatusDTO;
 import com.wfd.dot1.cwfm.dto.BlackliestedGPDTO;
 import com.wfd.dot1.cwfm.dto.BusinessTypePEDTO;
+import com.wfd.dot1.cwfm.dto.ContractorComplianceScoreDTO;
 import com.wfd.dot1.cwfm.dto.ContractorWorkmenDTO;
 import com.wfd.dot1.cwfm.dto.DashboardDTO;
 import com.wfd.dot1.cwfm.dto.DepartmentWorkmenDTO;
@@ -525,6 +528,213 @@ public class DashboardDaoImpl implements DashboardDao {
         return jdbcTemplate.query(sql, new Object[]{roleId}, (rs, rowNum) -> rs.getString("PageUrl"));
     }
 
+    @Override
+    public List<ContractorComplianceScoreDTO> getContractorComplianceScores(
+            String unitIds,
+            String contractorIds,
+            LocalDate monthStart,
+            LocalDate nextMonthStart) {
 
+        if (unitIds == null || unitIds.isBlank()
+                || contractorIds == null || contractorIds.isBlank()) {
+            return Collections.emptyList();
+        }
+
+        //String sql = QueryFileWatcher.getQuery(
+               // "DASHBOARD_CONTRACTOR_COMPLIANCE_SCOREBOARD");
+        String sql="WITH AuthorizedUnits AS (\r\n"
+        		+ "    SELECT DISTINCT\r\n"
+        		+ "        TRY_CAST(value AS BIGINT) AS UnitId\r\n"
+        		+ "    FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    WHERE TRY_CAST(value AS BIGINT) IS NOT NULL\r\n"
+        		+ "),\r\n"
+        		+ "AuthorizedContractors AS (\r\n"
+        		+ "    SELECT DISTINCT\r\n"
+        		+ "        TRY_CAST(value AS BIGINT) AS ContractorId\r\n"
+        		+ "    FROM STRING_SPLIT(?, ',')\r\n"
+        		+ "    WHERE TRY_CAST(value AS BIGINT) IS NOT NULL\r\n"
+        		+ "),\r\n"
+        		+ "PFESICUploadsByUnit AS (\r\n"
+        		+ "    SELECT DISTINCT\r\n"
+        		+ "        g.UnitId,\r\n"
+        		+ "        r.CONTRACTOR_ID AS ContractorId,\r\n"
+        		+ "        r.RECON_TYPE AS ComplianceType,\r\n"
+        		+ "        r.ID AS UploadId,\r\n"
+        		+ "        r.UPLOADED_DATE AS UploadedDate\r\n"
+        		+ "    FROM RECONCILIATION_UPLOAD r\r\n"
+        		+ "    INNER JOIN RECONCILIATION_COMPLIANCE_DETAIL d\r\n"
+        		+ "        ON d.UploadId = r.ID\r\n"
+        		+ "    INNER JOIN GATEPASSMAIN g\r\n"
+        		+ "        ON g.GatePassId = d.GatePassId\r\n"
+        		+ "       AND g.ContractorId = r.CONTRACTOR_ID\r\n"
+        		+ "    INNER JOIN AuthorizedUnits au\r\n"
+        		+ "        ON au.UnitId = g.UnitId\r\n"
+        		+ "    INNER JOIN AuthorizedContractors ac\r\n"
+        		+ "        ON ac.ContractorId = r.CONTRACTOR_ID\r\n"
+        		+ "    WHERE r.RECON_TYPE IN ('PF', 'ESIC')\r\n"
+        		+ "      AND r.FromDate >= ?\r\n"
+        		+ "      AND r.FromDate < ?\r\n"
+        		+ "),\r\n"
+        		+ "LatestPFESIC AS (\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        UnitId,\r\n"
+        		+ "        ContractorId,\r\n"
+        		+ "        ComplianceType,\r\n"
+        		+ "        UploadId,\r\n"
+        		+ "        ROW_NUMBER() OVER (\r\n"
+        		+ "            PARTITION BY\r\n"
+        		+ "                UnitId,\r\n"
+        		+ "                ContractorId,\r\n"
+        		+ "                ComplianceType\r\n"
+        		+ "            ORDER BY\r\n"
+        		+ "                UploadedDate DESC,\r\n"
+        		+ "                UploadId DESC\r\n"
+        		+ "        ) AS RowNum\r\n"
+        		+ "    FROM PFESICUploadsByUnit\r\n"
+        		+ "),\r\n"
+        		+ "PFESICScores AS (\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        l.UnitId,\r\n"
+        		+ "        l.ContractorId,\r\n"
+        		+ "        l.ComplianceType,\r\n"
+        		+ "        COUNT(DISTINCT d.DetailId) AS WorkmenCount,\r\n"
+        		+ "        CAST(\r\n"
+        		+ "            AVG(CAST(d.Rating AS DECIMAL(10,2)))\r\n"
+        		+ "            AS DECIMAL(10,2)\r\n"
+        		+ "        ) AS AverageRating\r\n"
+        		+ "    FROM LatestPFESIC l\r\n"
+        		+ "    INNER JOIN RECONCILIATION_COMPLIANCE_DETAIL d\r\n"
+        		+ "        ON d.UploadId = l.UploadId\r\n"
+        		+ "    WHERE l.RowNum = 1\r\n"
+        		+ "      AND EXISTS (\r\n"
+        		+ "          SELECT 1\r\n"
+        		+ "          FROM GATEPASSMAIN g\r\n"
+        		+ "          WHERE g.GatePassId = d.GatePassId\r\n"
+        		+ "            AND g.ContractorId = l.ContractorId\r\n"
+        		+ "            AND g.UnitId = l.UnitId\r\n"
+        		+ "      )\r\n"
+        		+ "    GROUP BY\r\n"
+        		+ "        l.UnitId,\r\n"
+        		+ "        l.ContractorId,\r\n"
+        		+ "        l.ComplianceType\r\n"
+        		+ "),\r\n"
+        		+ "LatestBankWage AS (\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        b.UploadId,\r\n"
+        		+ "        b.PrincipalEmployerId AS UnitId,\r\n"
+        		+ "        b.ContractorId,\r\n"
+        		+ "        ROW_NUMBER() OVER (\r\n"
+        		+ "            PARTITION BY\r\n"
+        		+ "                b.PrincipalEmployerId,\r\n"
+        		+ "                b.ContractorId\r\n"
+        		+ "            ORDER BY\r\n"
+        		+ "                b.UploadedDate DESC,\r\n"
+        		+ "                b.UploadId DESC\r\n"
+        		+ "        ) AS RowNum\r\n"
+        		+ "    FROM BANK_WAGE_RECON_UPLOAD b\r\n"
+        		+ "    INNER JOIN AuthorizedUnits au\r\n"
+        		+ "        ON au.UnitId = b.PrincipalEmployerId\r\n"
+        		+ "    INNER JOIN AuthorizedContractors ac\r\n"
+        		+ "        ON ac.ContractorId = b.ContractorId\r\n"
+        		+ "    WHERE b.WageMonth >= ?\r\n"
+        		+ "      AND b.WageMonth < ?\r\n"
+        		+ "),\r\n"
+        		+ "BankWageScores AS (\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        b.UnitId,\r\n"
+        		+ "        b.ContractorId,\r\n"
+        		+ "        'BANK_WAGE' AS ComplianceType,\r\n"
+        		+ "        COUNT(d.DetailId) AS WorkmenCount,\r\n"
+        		+ "        CAST(\r\n"
+        		+ "            AVG(CAST(d.Rating AS DECIMAL(10,2)))\r\n"
+        		+ "            AS DECIMAL(10,2)\r\n"
+        		+ "        ) AS AverageRating\r\n"
+        		+ "    FROM LatestBankWage b\r\n"
+        		+ "    LEFT JOIN BANK_WAGE_RECON_DETAIL d\r\n"
+        		+ "        ON d.UploadId = b.UploadId\r\n"
+        		+ "    WHERE b.RowNum = 1\r\n"
+        		+ "    GROUP BY\r\n"
+        		+ "        b.UnitId,\r\n"
+        		+ "        b.ContractorId\r\n"
+        		+ "),\r\n"
+        		+ " AllScores AS (\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        UnitId,\r\n"
+        		+ "        ContractorId,\r\n"
+        		+ "        ComplianceType,\r\n"
+        		+ "        WorkmenCount,\r\n"
+        		+ "        AverageRating\r\n"
+        		+ "    FROM PFESICScores\r\n"
+        		+ "\r\n"
+        		+ "    UNION ALL\r\n"
+        		+ "\r\n"
+        		+ "    SELECT\r\n"
+        		+ "        UnitId,\r\n"
+        		+ "        ContractorId,\r\n"
+        		+ "        ComplianceType,\r\n"
+        		+ "        WorkmenCount,\r\n"
+        		+ "        AverageRating\r\n"
+        		+ "    FROM BankWageScores\r\n"
+        		+ ")\r\n"
+        		+ "SELECT\r\n"
+        		+ "    s.UnitId,\r\n"
+        		+ "    pe.NAME AS UnitName,\r\n"
+        		+ "    s.ContractorId,\r\n"
+        		+ "    c.NAME AS ContractorName,\r\n"
+        		+ "    s.ComplianceType,\r\n"
+        		+ "    s.WorkmenCount,\r\n"
+        		+ "    s.AverageRating\r\n"
+        		+ "FROM AllScores s\r\n"
+        		+ "LEFT JOIN CMSPRINCIPALEMPLOYER pe\r\n"
+        		+ "    ON pe.UNITID = s.UnitId\r\n"
+        		+ "LEFT JOIN CMSCONTRACTOR c\r\n"
+        		+ "    ON c.ContractorId = s.ContractorId\r\n"
+        		+ "ORDER BY\r\n"
+        		+ "    s.UnitId,\r\n"
+        		+ "    s.ContractorId,\r\n"
+        		+ "    s.ComplianceType;\r\n"
+        		+ "SELECT\r\n"
+        		+ "    s.UnitId,\r\n"
+        		+ "    pe.NAME AS UnitName,\r\n"
+        		+ "    s.ContractorId,\r\n"
+        		+ "    c.NAME AS ContractorName,\r\n"
+        		+ "    s.ComplianceType,\r\n"
+        		+ "    s.WorkmenCount,\r\n"
+        		+ "    s.AverageRating\r\n"
+        		+ "FROM AllScores s\r\n"
+        		+ "LEFT JOIN CMSPRINCIPALEMPLOYER pe\r\n"
+        		+ "    ON pe.UNITID = s.UnitId\r\n"
+        		+ "LEFT JOIN CMSCONTRACTOR c\r\n"
+        		+ "    ON c.ContractorId = s.ContractorId\r\n"
+        		+ "ORDER BY\r\n"
+        		+ "    s.UnitId,\r\n"
+        		+ "    s.ContractorId,\r\n"
+        		+ "    s.ComplianceType;\r\n"
+        		+ "";
+
+        return jdbcTemplate.query(
+        	    sql,
+        	    (rs, rowNum) -> {
+        	        ContractorComplianceScoreDTO dto =
+        	                new ContractorComplianceScoreDTO();
+
+        	        dto.setUnitId(rs.getLong("UnitId"));
+        	        dto.setContractorId(rs.getLong("ContractorId"));
+        	        dto.setComplianceType(rs.getString("ComplianceType"));
+        	        dto.setWorkmenCount(rs.getInt("WorkmenCount"));
+        	        dto.setAverageRating(rs.getBigDecimal("AverageRating"));
+        	        dto.setUnitName(rs.getString("UnitName"));
+        	        dto.setContractorName(rs.getString("ContractorName"));
+
+        	        return dto;
+        	    },
+        	    unitIds,
+        	    contractorIds,
+        	    java.sql.Date.valueOf(monthStart),
+        	    java.sql.Date.valueOf(nextMonthStart),
+        	    java.sql.Date.valueOf(monthStart),
+        	    java.sql.Date.valueOf(nextMonthStart)
+        	);
+    }
 
 }

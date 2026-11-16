@@ -75,7 +75,7 @@
  <script src="resources/js/cms/complianceAudit.js"></script>
 
   <script src="resources/js/cms/selfregistration.js"></script>
-  
+  <script src="resources/js/cms/contractorComplianceScoreboard.js?v=2026111607"></script>
 
  <script>
     window.applicationContextPath =
@@ -2239,6 +2239,12 @@ console.log(selectedRoleName);//role name (eic)
 	      // ✅ Wait for DOM update before initializing charts
 	      setTimeout(() => {
 	        console.log("✅ Dashboard HTML injected, initializing charts...");
+	        if (typeof window.initContractorComplianceScoreboard === "function") {
+	            window.initContractorComplianceScoreboard();
+	        }
+	        if (typeof window.initContractorComplianceScoreboard === "function") {
+	            window.initContractorComplianceScoreboard();
+	        }
 
 	        if (typeof initDashboardCharts === "function") initDashboardCharts();
 	        if (typeof renderComplianceCharts === "function") {
@@ -6250,6 +6256,9 @@ function loadDashboardFromHome() {
 	  }) */
     setTimeout(() => {
         console.log("✅ Dashboard HTML injected, initializing charts...");
+        if (typeof window.initContractorComplianceScoreboard === "function") {
+            window.initContractorComplianceScoreboard();
+        }
 
         if (typeof initDashboardCharts === "function") initDashboardCharts();
         if (typeof renderComplianceCharts === "function") {
