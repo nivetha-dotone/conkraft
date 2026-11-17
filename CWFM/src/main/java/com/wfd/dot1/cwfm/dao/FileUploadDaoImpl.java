@@ -10,9 +10,9 @@ import java.sql.Types;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,12 +40,10 @@ import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
 import com.wfd.dot1.cwfm.dto.CMSPerson;
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.dto.PersonStatusIds;
-import com.wfd.dot1.cwfm.enums.DotType;
 import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
-import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSVendor;
@@ -554,7 +552,8 @@ public class FileUploadDaoImpl implements FileUploadDao {
             	return "GatepassId,Plant Code,Contractor Code,Department,Area,EIC Number,Workorder,WC/ESIC,LL Number,ESIC,Effective From Date";
             case "Data-Safety Training":
             	return "Plant Code,Department,Training Type,Training Name";
-            
+            case "Data-In And Out Punch":
+            	return "Gatepass Number,Punch Date,In Punch Time,Out Punch Time";
             default:
                 // fallback/default template
                 return "Template is Not Found to Download";
@@ -4090,4 +4089,76 @@ public class FileUploadDaoImpl implements FileUploadDao {
 		        (rs, rowNum) -> rs.getInt("GMID"));
 		    return result.isEmpty() ? null : result.get(0);
 		}
+	 
+
+@Override
+public String getPunchGatepassContractorId(String gatepassNumber) {
+
+    String sql = """
+        SELECT TOP 1 CAST(ContractorId AS VARCHAR(50))
+        FROM GATEPASSMAIN
+        WHERE GatePassId = ?
+        """;
+
+    List<String> result = jdbcTemplate.query(
+            sql,
+            (rs, rowNum) -> rs.getString(1),
+            gatepassNumber);
+
+    return result.isEmpty() ? null : result.get(0);
+}
+
+
+@Override
+public int saveInAndOutPunchData(
+        String employeeCode,
+        LocalDate punchDate,
+        LocalTime inPunchTime,
+        LocalTime outPunchTime,
+        String uploadedBy) {
+
+    String sql = """
+        INSERT INTO PUNCH_REGULARISE
+        (
+            EmployeeCode,
+            PunchDate,
+            InPunchTime,
+            OutPunchTime,
+            UploadedBy
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """;
+
+    return jdbcTemplate.update(connection -> {
+
+        PreparedStatement ps = connection.prepareStatement(sql);
+
+        // EmployeeCode = GatePassId
+        ps.setString(1, employeeCode);
+
+        // Punch Date
+        ps.setDate(2, java.sql.Date.valueOf(punchDate));
+
+        // In Punch Time
+        if (inPunchTime != null) {
+            ps.setTime(3, java.sql.Time.valueOf(inPunchTime));
+        } else {
+            ps.setNull(3, java.sql.Types.TIME);
+        }
+
+        // Out Punch Time
+        if (outPunchTime != null) {
+            ps.setTime(4, java.sql.Time.valueOf(outPunchTime));
+        } else {
+            ps.setNull(4, java.sql.Types.TIME);
+        }
+
+        // Logged-in user
+        ps.setString(5, uploadedBy);
+
+        return ps;
+    });
+}
+
+
 }

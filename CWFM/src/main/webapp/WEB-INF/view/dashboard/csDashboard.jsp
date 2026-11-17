@@ -775,6 +775,8 @@ display: flex;
 @media(max-width:700px){.ccs-kpis{grid-template-columns:1fr}.ccs-chart-wrap{height:260px}}
 
 
+/* Responsive rules intentionally disabled on laptop/desktop widths. */
+@media screen and (max-width: 1199.98px) {
 /* Responsive dashboard overrides - keep this block LAST in the style section */
 .db, .lastdashboard { width:100%; max-width:100%; margin-left:0; padding:0 20px; box-sizing:border-box; min-width:0; }
 .db *, .lastdashboard * { box-sizing:border-box; }
@@ -876,6 +878,8 @@ display: flex;
   .dashboard > .kpi-row > .kpi-card .lbl { line-height:1.3; }
   .dashboard > .kpi-row > .kpi-card .num { text-align:center; margin-top:8px; }
   .dashboard > .kpi-row > .kpi-card.green { border-top:5px solid #2ecc71; }
+}
+
 }
 </style>
 

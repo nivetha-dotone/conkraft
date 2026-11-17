@@ -1,7 +1,7 @@
 package com.wfd.dot1.cwfm.dao;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,6 @@ import java.util.Set;
 
 import com.wfd.dot1.cwfm.dto.MinimumWageDTO;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
-import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSVendor;
@@ -272,4 +271,13 @@ public interface FileUploadDao {
 	void saveTrainingDetails(Integer unitId, String department, String trainingType, String trainingName);
 
 	Integer getIntrPlantRansferCommentId();
+	
+	String getPunchGatepassContractorId(String gatepassNumber);
+
+	int saveInAndOutPunchData(
+	        String employeeCode,
+	        LocalDate punchDate,
+	        LocalTime inPunchTime,
+	        LocalTime outPunchTime,
+	        String uploadedBy);
 }

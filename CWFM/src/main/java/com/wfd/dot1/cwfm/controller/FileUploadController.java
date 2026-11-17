@@ -442,6 +442,17 @@ public class FileUploadController {
             fields.add(Map.of("name", "Training Name", "type", "Text", "example", "HSE TRAINING"));
             
             templateInfo.put("fields", fields);
+        }else if("Data-In And Out Punch".equals(templateType)) {
+        	templateInfo.put("title", "Data-In And Out Punch");
+            templateInfo.put("description", "Imports Workmen In and Punch with date.");
+            	//headers = ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
+            List<Map<String, String>> fields = new ArrayList<>();
+            fields.add(Map.of("name", "Gatepass Number", "type", "Text", "example", "GP7000021"));
+            fields.add(Map.of("name", "Punch Date", "type", "Date", "example", "2025-04-09"));
+            fields.add(Map.of("name", "In Punch Time", "type", "Time", "example", "09:05"));
+            fields.add(Map.of("name", "Out Punch Time", "type", "Time", "example", "18:30"));
+            
+            templateInfo.put("fields", fields);
         }
         else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

@@ -5,15 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.time.DateTimeException;
 import java.time.LocalDate;
-import java.time.Period;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,14 +24,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wfd.dot1.cwfm.controller.CreateEmpFetchByGatePassAPICALL;
@@ -47,7 +43,6 @@ import com.wfd.dot1.cwfm.enums.EmployeeStatusType;
 import com.wfd.dot1.cwfm.enums.GatePassStatus;
 import com.wfd.dot1.cwfm.enums.GatePassType;
 import com.wfd.dot1.cwfm.pojo.BulkCancel;
-import com.wfd.dot1.cwfm.pojo.BulkRenew;
 import com.wfd.dot1.cwfm.pojo.CMSContrPemm;
 import com.wfd.dot1.cwfm.pojo.CMSSubContractor;
 import com.wfd.dot1.cwfm.pojo.CMSVendor;
@@ -220,6 +215,12 @@ public class FileUploadServiceImpl implements FileUploadService {
 				throw new Exception("File can not upload due to incorrect format.");
 			}
 			savedData = processSafetyTraining(reader, userAccount, createdBy);
+			break;
+		case "Data-In And Out Punch":
+			if (!headerLine.equalsIgnoreCase("Gatepass Number,Punch Date,In Punch Time,Out Punch Time")) {
+				throw new Exception("File can not upload due to incorrect format.");
+			}
+			savedData = processInAndOutPunchData(reader, userAccount, createdBy);
 			break;
 		default:
 			throw new Exception("Unsupported template type: " + templateType);
@@ -3694,4 +3695,179 @@ public class FileUploadServiceImpl implements FileUploadService {
 		result.put("errorData", errorData);
 		return result;
 	}
+	
+
+private Map<String, Object> processInAndOutPunchData(
+        BufferedReader reader, String userAccount, String createdBy)
+        throws IOException {
+
+    List<Map<String, Object>> successData = new ArrayList<>();
+    List<Map<String, Object>> errorData = new ArrayList<>();
+
+    DateTimeFormatter dateFormatter = DateTimeFormatter
+            .ofPattern("uuuu-MM-dd")
+            .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+
+    DateTimeFormatter timeFormatter = DateTimeFormatter
+            .ofPattern("HH:mm[:ss]")
+            .withResolverStyle(java.time.format.ResolverStyle.STRICT);
+
+    // Fetch contractor access for logged-in user
+    List<PersonOrgLevel> orgLevels =
+            commonService.getPersonOrgLevelDetails(userAccount);
+
+    Set<String> userContIds = orgLevels.stream()
+            .filter(p -> "Contractor".equalsIgnoreCase(p.getLevelDef()))
+            .map(PersonOrgLevel::getId)
+            .collect(Collectors.toSet());
+
+    String line;
+    int rowNum = 1;
+
+    while ((line = reader.readLine()) != null) {
+        rowNum++;
+
+        if (line.trim().isEmpty()) {
+            continue;
+        }
+
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+
+        String[] fields = line.split(",", -1);
+
+        if (fields.length != 4) {
+            errorData.add(Map.of(
+                    "row", rowNum,
+                    "error", "Expected exactly 4 columns"));
+            continue;
+        }
+
+        for (int i = 0; i < fields.length; i++) {
+            fields[i] = fields[i].trim()
+                    .replaceAll("^\"|\"$", "").trim();
+        }
+
+        String gatepassNumber = fields[0];
+        String punchDateValue = fields[1];
+        String inTimeValue = fields[2];
+        String outTimeValue = fields[3];
+
+        LocalDate punchDate = null;
+        LocalTime inTime = null;
+        LocalTime outTime = null;
+
+        // Gatepass mandatory validation
+        if (gatepassNumber.isBlank()) {
+            fieldErrors.put("gatepassNumber",
+                    "Gatepass Number is mandatory");
+        } else if (gatepassNumber.length() > 50) {
+            fieldErrors.put("gatepassNumber",
+                    "Gatepass Number cannot exceed 50 characters");
+        }
+
+        // Punch Date validation
+        if (punchDateValue.isBlank()) {
+            fieldErrors.put("punchDate",
+                    "Punch Date is mandatory");
+        } else {
+            try {
+                punchDate = LocalDate.parse(
+                        punchDateValue, dateFormatter);
+            } catch (DateTimeParseException e) {
+                fieldErrors.put("punchDate",
+                        "Invalid date format. Expected yyyy-MM-dd");
+            }
+        }
+
+        // At least one time is mandatory
+        if (inTimeValue.isBlank() && outTimeValue.isBlank()) {
+            fieldErrors.put("punchTime",
+                    "In Punch Time or Out Punch Time is required");
+        }
+
+        if (!inTimeValue.isBlank()) {
+            try {
+                inTime = LocalTime.parse(inTimeValue, timeFormatter);
+            } catch (DateTimeParseException e) {
+                fieldErrors.put("inPunchTime",
+                        "Invalid time. Expected HH:mm or HH:mm:ss");
+            }
+        }
+
+        if (!outTimeValue.isBlank()) {
+            try {
+                outTime = LocalTime.parse(outTimeValue, timeFormatter);
+            } catch (DateTimeParseException e) {
+                fieldErrors.put("outPunchTime",
+                        "Invalid time. Expected HH:mm or HH:mm:ss");
+            }
+        }
+
+        if (!fieldErrors.isEmpty()) {
+            errorData.add(Map.of(
+                    "row", rowNum,
+                    "fieldErrors", fieldErrors));
+            continue;
+        }
+
+        try {
+            // Check Gatepass existence and contractor ownership
+            String gpContractorId =
+                    fileUploadDao.getPunchGatepassContractorId(
+                            gatepassNumber);
+
+            if (gpContractorId == null) {
+                fieldErrors.put("gatepassNumber",
+                        "Gatepass Number not found");
+            } else if (!userContIds.contains(gpContractorId)) {
+                fieldErrors.put("access",
+                        "Logged-in contractor does not have access to this gatepass");
+            }
+
+            if (!fieldErrors.isEmpty()) {
+                errorData.add(Map.of(
+                        "row", rowNum,
+                        "fieldErrors", fieldErrors));
+                continue;
+            }
+
+            // No duplicate check: save every valid row
+            int inserted = fileUploadDao.saveInAndOutPunchData(
+                    gatepassNumber,
+                    punchDate,
+                    inTime,
+                    outTime,
+                    createdBy);
+
+            if (inserted > 0) {
+                Map<String, Object> success = new LinkedHashMap<>();
+                success.put("row", rowNum);
+                success.put("gatepassNumber", gatepassNumber);
+                success.put("punchDate", punchDate.toString());
+                success.put("inPunchTime",
+                        inTime != null ? inTime.toString() : "");
+                success.put("outPunchTime",
+                        outTime != null ? outTime.toString() : "");
+
+                successData.add(success);
+            } else {
+                errorData.add(Map.of(
+                        "row", rowNum,
+                        "error", "Failed to save punch data"));
+            }
+
+        } catch (Exception e) {
+            log.error("Error processing punch row {}", rowNum, e);
+            errorData.add(Map.of(
+                    "row", rowNum,
+                    "error", "Unable to save punch data: " + e.getMessage()));
+        }
+    }
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("successData", successData);
+    result.put("errorData", errorData);
+    return result;
+}
+
 }

@@ -303,6 +303,9 @@ function downloadErrorCSV(errorData, uploadedFileName) {
            case "data-safety training":
                 headers =  ["Plant Code","Department","Training Type","Training Name"];
                 break;
+			case "data-in and out punch":
+				headers = ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
+				break;
             default:
                 alert("Template configuration not found for: " + selectedText);
                 return;
@@ -586,7 +589,11 @@ const tableBody = document.getElementById("tableBody");
          else if (templateType === "Data-Safety Training") {
             headers = ["Plant Code","Department","Training Type","Training Name"];
             fieldMap = ["plantCode","department","trainingType","trainingName"];
-        }
+        }else if(templateType === "Data-In And Out Punch"){
+			headers = ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
+			fieldMap = ["gatepassNumber","punchDate","inPunchTime","outPunchTime"];
+		}
+		
        // const checkTh = document.createElement("th");
        // checkTh.style.border = "1px solid #ddd";
        // checkTh.innerHTML = `<input type="checkbox" id="selectAll">`;
@@ -914,6 +921,10 @@ function getHeadersByTemplate(selectedText) {
         
         case "data-safety training":
             return  ["Plant Code","Department","Training Type","Training Name"];
+			
+		case "data-in and out punch":
+							headers = ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
+							break;
         
         default:
             return [];
