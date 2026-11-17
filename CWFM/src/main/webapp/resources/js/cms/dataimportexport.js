@@ -923,8 +923,8 @@ function getHeadersByTemplate(selectedText) {
             return  ["Plant Code","Department","Training Type","Training Name"];
 			
 		case "data-in and out punch":
-							headers = ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
-							break;
+			
+			return  ["Gatepass Number","Punch Date","In Punch Time","Out Punch Time"];
         
         default:
             return [];

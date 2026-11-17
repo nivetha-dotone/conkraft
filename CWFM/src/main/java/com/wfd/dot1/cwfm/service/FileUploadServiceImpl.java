@@ -3722,7 +3722,7 @@ private Map<String, Object> processInAndOutPunchData(
             .collect(Collectors.toSet());
 
     String line;
-    int rowNum = 1;
+    int rowNum = 0;
 
     while ((line = reader.readLine()) != null) {
         rowNum++;
