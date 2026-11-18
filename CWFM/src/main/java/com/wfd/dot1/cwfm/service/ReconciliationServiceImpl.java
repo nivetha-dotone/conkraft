@@ -253,9 +253,9 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 				mm.setDocAmount(safeAmount(doc.getAmount()));
 
 				StringBuilder reason = new StringBuilder();
-				if (nameMismatch) {
-					reason.append("Name mismatch");
-				}
+//				if (nameMismatch) {
+//					reason.append("Name mismatch");
+//				}
 				if (amountMismatch) {
 					if (reason.length() > 0) {
 						reason.append(", ");
