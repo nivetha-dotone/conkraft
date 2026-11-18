@@ -240,10 +240,10 @@ public class ReconciliationServiceImpl implements ReconciliationService {
 			}
 
 			boolean amountMismatch = dbAmount.compareTo(safeAmount(doc.getAmount())) != 0;
-			boolean nameMismatch = !normalizeName(db.getWorkmenName()).replaceAll(" ", "")
-					.equalsIgnoreCase(normalizeName(doc.getWorkmenName()).replaceAll(" ", ""));
+//			boolean nameMismatch = !normalizeName(db.getWorkmenName()).replaceAll(" ", "")
+//					.equalsIgnoreCase(normalizeName(doc.getWorkmenName()).replaceAll(" ", ""));
 
-			if (amountMismatch || nameMismatch) {
+			if (amountMismatch) {
 				ReconciliationMismatchDTO mm = new ReconciliationMismatchDTO();
 				mm.setGatePassId(db.getGatePassId());
 				mm.setWorkmenName(db.getWorkmenName());
