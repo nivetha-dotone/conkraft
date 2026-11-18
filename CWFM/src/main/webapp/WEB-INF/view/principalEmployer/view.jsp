@@ -399,7 +399,7 @@ table.ControlLayout td {
                                                <a href="#" onclick="downloadFile('${doc.encodedId}')">${doc.fileName}</a>
 
                                             </td>
-                                            <td style="color:gray;">v${doc.version}</td>
+                                            <td style="color:gray;border:white;">v${doc.version}</td>
                                         </tr>
                                     </c:forEach>
                                 </tbody>

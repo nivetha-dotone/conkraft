@@ -12,7 +12,7 @@
 .recon-history #reconciliationHistoryTable th, .recon-history #reconciliationHistoryTable td { box-sizing:border-box; }
 .recon-history table { width:100%; border-collapse:collapse; }
 .recon-history table th { border:1px solid #ddd; background:#DDF3FF; color:#005151; font-family:'Noto Sans',sans-serif; font-size:.75rem; font-weight:bold; text-align:center; padding:6px; white-space:nowrap; }
-.recon-history table td { border:1px solid #ddd; color:#898989; font-family:'Noto Sans',sans-serif; font-size:12px; padding:6px; white-space:nowrap; }
+.recon-history table td { border:1px solid #ddd; color:#898989; font-family:'Noto Sans',sans-serif; font-size: 85%;; padding:6px; white-space:nowrap; font-weight: 700; }
 .recon-history .transaction-link { color:#007b9a; text-decoration:underline; cursor:pointer; }
 .recon-history .history-message { padding:8px; font-size:13px; }
 .recon-history .recon-detail-label { color:#005151; font-weight:600; }

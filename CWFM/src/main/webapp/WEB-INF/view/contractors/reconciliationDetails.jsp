@@ -19,7 +19,7 @@
 .recon-view .table-container table.dataTable tbody td { box-sizing:border-box; }
 .recon-view table { width:100%; border-collapse:collapse; }
 .recon-view table th { background:#DDF3FF; color:#005151; border:1px solid #ddd; text-align:center; font-size:.75rem; font-weight:bold; padding:6px; white-space:nowrap; }
-.recon-view table td { border:1px solid #ddd; color:#777; font-size:12px; padding:6px; white-space:nowrap; }
+.recon-view table td { border:1px solid #ddd; color:#777; font-size:12px; padding:6px; white-space:nowrap; font-size: 85%; font-weight: 700;}
 .recon-view .recon-message { padding:10px 6px; font-size:13px; color:#a22; }
 .recon-view .recon-loading { padding:10px 6px; color:#005151; }
 @media(max-width:800px) { .recon-view .recon-meta { grid-template-columns:repeat(2,minmax(130px,1fr)); } }
