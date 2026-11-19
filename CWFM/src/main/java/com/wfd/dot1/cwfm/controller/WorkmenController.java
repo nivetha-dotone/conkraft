@@ -19,6 +19,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -2812,7 +2813,17 @@ public class WorkmenController {
 				gatePassMainObj.getContractor());
 		request.setAttribute("Workorders", workorders);
 		List<Trade> trades = workmenService.getAllTradesBasedOnPE(gatePassMainObj.getUnitId());
-		request.setAttribute("Trades", trades);
+		//request.setAttribute("Trades", trades);
+		// Remove duplicate trades using Trade ID.
+		// Preserve the existing Trade objects and sort by trade name.
+		Map<String, Trade> uniqueTrades = new LinkedHashMap<>();
+
+		if (trades != null) {
+		    trades.stream().filter(Objects::nonNull).sorted(Comparator.comparing(
+		                    Trade::getTradeName,Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
+		            .forEach(trade -> uniqueTrades.putIfAbsent(trade.getTradeId(),trade));
+		}
+		request.setAttribute("Trades", new ArrayList<>(uniqueTrades.values()));
 		List<MasterUser> eicList = workmenService.getAllEicManager(gatePassMainObj.getUnitId(),
 				gatePassMainObj.getDepartment());
 		request.setAttribute("Eic", eicList);
