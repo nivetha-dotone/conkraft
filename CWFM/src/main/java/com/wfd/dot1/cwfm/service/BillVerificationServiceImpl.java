@@ -279,7 +279,7 @@ public class BillVerificationServiceImpl implements BillVerificationService {
 			"Technical Allowance", "Driver Allowance", "QRT Allowance", "Extra Hours Amount",
 			"Arrear Correction Amount", "Arrear Amount", "Gross", "Night Shift Allowance", "Flexi Benefits",
 			"PF Employer Contribution", "ESIC Employer Contribution", "LWF Contribution Employer", "Monthly Wages",
-			"PF Employee Contribution", "ESIC Employee Contribution", "Professional Tax", "LWF Contribution Employee",
+			"PF Employee Contribution", "ESIC Employee Contribution", "Professional Tax", "Meal Deduction","LWF Contribution Employee",
 			"Flexi Deductions", "Contractor Gross","Employee Net", "Service Charge", "Taxes", "Total Amount");
 
 	@Override
@@ -864,7 +864,7 @@ private Path findWageCostReportFile(String transactionId) throws IOException {
 			"TechnicalAllowance", "DriverAllowance", "QRTAllowance", "ExtraHoursAmount", "ArrearCorrectionAmount",
 			"ArrearAmount", "Gross", "NightShiftAllowance", "FlexiBenefits", "PFEmployerContribution",
 			"ESICEmployerContribution", "LWFContributionEmployer", "MonthlyWages", "PFEmployeeContribution",
-			"ESICEmployeeContribution", "ProfessionalTax", "LWFContributionEmployee", "FlexiDeductions",
+			"ESICEmployeeContribution", "ProfessionalTax","MealDeduction", "LWFContributionEmployee", "FlexiDeductions",
 			"ContractorGross","EmployeeNet", "ServiceCharge", "Taxes", "TotalAmount");
 	private static final Set<String> WAGE_REPORT_TEXT_COLUMNS = Set.of("EntryPassNumber", "WorkmenName", "Department",
 			"SubArea", "Contractor", "WorkOrder", "PFNumber", "UANNumber", "ESICNumber", "Trade", "Skill",

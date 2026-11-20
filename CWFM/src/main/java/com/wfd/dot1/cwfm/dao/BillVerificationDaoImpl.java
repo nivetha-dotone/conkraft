@@ -1004,7 +1004,7 @@ public int saveWageCostReport(
 	            "PFEmployerContribution", "ESICEmployerContribution",
 	            "LWFContributionEmployer", "MonthlyWages",
 	            "PFEmployeeContribution", "ESICEmployeeContribution",
-	            "ProfessionalTax", "LWFContributionEmployee",
+	            "ProfessionalTax","MealDeduction", "LWFContributionEmployee",
 	            "FlexiDeductions", "ContractorGross", "EmployeeNet","ServiceCharge",
 	            "Taxes", "TotalAmount"
 	        );
