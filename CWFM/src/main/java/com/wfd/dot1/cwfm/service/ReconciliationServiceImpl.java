@@ -1157,11 +1157,11 @@ public List<BankWagePaymentDTO> parseBankWageCsv(
                         "Mandatory field missing at row " + rowNumber);
             }
 
-            if (!ifscCode.matches(
-                    "^[A-Z]{4}0[A-Z0-9]{6}$")) {
-
+            if (!ifscCode.matches("^[A-Z]{4}0[A-Z0-9]{6}$")) {
                 throw new IllegalArgumentException(
-                        "Invalid IFSC at row " + rowNumber);
+                        "Invalid IFSC Code '" + ifscCode
+                        + "' at row " + rowNumber
+                        + ". The 5th character must be 0 (zero).");
             }
 
             if (!gatePassIds.add(gatePassId)) {
@@ -1349,10 +1349,16 @@ public List<BankWageDetailDTO> reconcileBankWages(
                     + gatePassId);
         }
 
-        BigDecimal expectedAmount =
-                expected.getExpectedAmount();
+//        BigDecimal expectedAmount =
+//                expected.getExpectedAmount();
+//
+//        BigDecimal paidAmount = payment.getAmount();
+        
+        BigDecimal expectedAmount = expected.getExpectedAmount()
+                .setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal paidAmount = payment.getAmount();
+        BigDecimal paidAmount = payment.getAmount()
+                .setScale(2, RoundingMode.HALF_UP);
 
         if (paidAmount == null
                 || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -1843,20 +1849,36 @@ private ReconciliationComplianceDetailDTO calculateComplianceScore(
         ratingDescription = "Excellent";
     }
 
-    String complianceStatus;
 
-    if (expected.compareTo(BigDecimal.ZERO) <= 0) {
-        complianceStatus = "INVALID_EXPECTED";
-    } else if (paid.compareTo(BigDecimal.ZERO) == 0
-            && challanAmount == null) {
-        complianceStatus = "NOT_FOUND";
-    } else if (difference.compareTo(BigDecimal.ZERO) > 0) {
-        complianceStatus = "SHORT_PAYMENT";
-    } else if (difference.compareTo(BigDecimal.ZERO) < 0) {
-        complianceStatus = "EXCESS_PAYMENT";
-    } else {
-        complianceStatus = "MATCHED";
-    }
+String complianceStatus;
+
+if (expected.compareTo(BigDecimal.ZERO) == 0
+        && paid.compareTo(BigDecimal.ZERO) > 0) {
+
+    complianceStatus = "EXCESS_PAYMENT";
+
+} else if (expected.compareTo(BigDecimal.ZERO) <= 0) {
+
+    complianceStatus = "INVALID_EXPECTED";
+
+} else if (paid.compareTo(BigDecimal.ZERO) == 0
+        && challanAmount == null) {
+
+    complianceStatus = "NOT_FOUND";
+
+} else if (difference.compareTo(BigDecimal.ZERO) > 0) {
+
+    complianceStatus = "SHORT_PAYMENT";
+
+} else if (difference.compareTo(BigDecimal.ZERO) < 0) {
+
+    complianceStatus = "EXCESS_PAYMENT";
+
+} else {
+
+    complianceStatus = "MATCHED";
+}
+
 
     detail.setGatePassId(gatePassId);
     detail.setWorkmenName(workmenName);
