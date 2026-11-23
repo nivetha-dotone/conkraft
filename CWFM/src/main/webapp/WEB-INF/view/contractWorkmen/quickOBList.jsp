@@ -6,7 +6,7 @@
 <head>
  <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aadhar based Workmen on-boarding List</title>
+    <title>Quick Workmen Onboarding</title>
       <script src="resources/js/jquery.min.js"></script>
     <link rel="stylesheet" type="text/css" href="resources/css/styles.css"> 
     <script src="resources/js/cms/principalEmployer.js"></script>

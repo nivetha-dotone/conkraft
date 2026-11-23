@@ -17,6 +17,7 @@
     <script src="resources/js/cms/workmen.js"></script>
     <script src="resources/js/cms/report.js"></script>
     <script src="resources/js/jquery.min.js"></script>
+    <title>Cancel</title>
     <style>
   body {
     margin: 0;

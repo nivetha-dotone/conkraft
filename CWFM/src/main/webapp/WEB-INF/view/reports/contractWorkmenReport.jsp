@@ -7,7 +7,7 @@
 <html lang="en">
 
 <head>
-<title>Export</title>
+<title>Reports</title>
    <script src="resources/js/cms/export.js"></script>
   
     <style>

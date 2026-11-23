@@ -1349,16 +1349,9 @@ public List<BankWageDetailDTO> reconcileBankWages(
                     + gatePassId);
         }
 
-//        BigDecimal expectedAmount =
-//                expected.getExpectedAmount();
-//
-//        BigDecimal paidAmount = payment.getAmount();
-        
-        BigDecimal expectedAmount = expected.getExpectedAmount()
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal expectedAmount =  expected.getExpectedAmount().setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal paidAmount = payment.getAmount()
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal paidAmount = payment.getAmount().setScale(2, RoundingMode.HALF_UP);
 
         if (paidAmount == null
                 || paidAmount.compareTo(BigDecimal.ZERO) <= 0) {

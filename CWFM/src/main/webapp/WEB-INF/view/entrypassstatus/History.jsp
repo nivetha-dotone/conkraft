@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workmen Onboarding List</title>
+    <title>Aadhar History</title>
     <script src="resources/js/cms/history.js"></script>
 
 

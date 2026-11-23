@@ -19,7 +19,9 @@
 <!-- jQuery first -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
+ <link rel="icon"
+          type="image/png"
+          href="resources/img/conkraftLogo.jpeg">
 
 <!-- jQuery UI after jQuery -->
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">

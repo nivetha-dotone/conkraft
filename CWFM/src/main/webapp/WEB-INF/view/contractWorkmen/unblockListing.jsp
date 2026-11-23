@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block List</title>
+    <title>Unblock List</title>
     <script src="resources/js/cms/workmen.js"></script>
 
 

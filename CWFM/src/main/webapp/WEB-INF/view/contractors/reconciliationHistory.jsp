@@ -1,5 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<head>
+<title>Reconciliation</title>
+</head>
 <style>
 .recon-history { background:#fff; font-family:'Noto Sans',sans-serif; }
 .recon-history .page-header { display:flex; align-items:center; justify-content:space-between; padding:8px; background:#fff; border-bottom:1px solid #ccc; gap:10px; flex-wrap:wrap; }

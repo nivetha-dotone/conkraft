@@ -17,6 +17,7 @@
     <script src="resources/js/cms/workorder.js"></script>
     <script src="resources/js/cms/workmen.js"></script>
     <script src="resources/js/cms/report.js"></script>
+    <title>Workmen Onboarding</title>
     <style>
   body {
     margin: 0;
