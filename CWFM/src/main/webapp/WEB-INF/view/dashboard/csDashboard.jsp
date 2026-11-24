@@ -962,54 +962,7 @@ display: flex;
  </div>
 </div>
 
-<!-- Contractor Compliance Scoreboard: isolated from existing dashboard charts -->
-<section id="contractorComplianceScoreboard" class="ccs-panel" data-api="${pageContext.request.contextPath}/dashboard/contractorComplianceScoreboard">
-  <div class="ccs-head">
-    <h3>CONTRACTOR COMPLIANCE SCOREBOARD</h3>
-    <div class="ccs-filters">
-      <label>Reporting Month
-        <input type="month" id="ccsMonth" value="<%= java.time.LocalDate.now().minusMonths(1).toString().substring(0,7) %>" />
-      </label>
-      <label>Principal Employer
-        <select id="ccsUnit"><option value="">All Principal Employers</option></select>
-      </label>
-      <label>Contractor
-        <select id="ccsContractor"><option value="">All Contractors</option></select>
-      </label>
-    </div>
-  </div>
-  <div class="ccs-kpis">
-    <div class="ccs-kpi"><small>PF AVERAGE RATING</small><div class="ccs-value" id="ccsPf">N/A</div><small>Out of 5</small></div>
-    <div class="ccs-kpi"><small>ESIC AVERAGE RATING</small><div class="ccs-value" id="ccsEsic">N/A</div><small>Out of 5</small></div>
-    <div class="ccs-kpi"><small>BANK WAGE AVERAGE RATING</small><div class="ccs-value" id="ccsBank">N/A</div><small>Out of 5</small></div>
-  </div>
-  <div class="ccs-chart-wrap"><canvas id="ccsChart"></canvas></div>
-  <div class="ccs-table-wrap"><table class="ccs-table">
-    <thead><tr>
-    <th>Principal Employer</th>
-<th>Contractor</th>
-<th>PF</th>
-<th>ESIC</th>
-<th>Bank Wage</th>
-    </tr></thead>
-    <tbody id="ccsTableBody"></tbody>
-  </table></div>
-  <div id="ccsStatus" class="ccs-status" aria-live="polite"></div>
-  <%-- Initial scoreboard records rendered from DashboardDTO, not hardcoded --%>
-  <div id="ccsInitialData" hidden>
-    <c:forEach var="score" items="${dashboard.complianceScores}">
-        <span class="ccs-record"
-              data-unit="${score.unitId}"
-              data-unit-name="${fn:escapeXml(score.unitName)}"
-              data-contractor="${score.contractorId}"
-              data-contractor-name="${fn:escapeXml(score.contractorName)}"
-              data-type="${fn:escapeXml(score.complianceType)}"
-              data-rating="${score.averageRating}"
-              data-count="${score.workmenCount}">
-        </span>
-    </c:forEach>
-</div>
-</section>
+
 
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
 <!-- ROW 2: Workforce Distribution + Supervisor Coverage + Alerts -->
@@ -1507,6 +1460,54 @@ display: flex;
   </div>
 </div>
 </div>
+<!-- Contractor Compliance Scoreboard: isolated from existing dashboard charts -->
+<section id="contractorComplianceScoreboard" class="ccs-panel" data-api="${pageContext.request.contextPath}/dashboard/contractorComplianceScoreboard">
+  <div class="ccs-head">
+    <h3>CONTRACTOR COMPLIANCE SCOREBOARD</h3>
+    <div class="ccs-filters">
+      <label>Reporting Month
+        <input type="month" id="ccsMonth" value="<%= java.time.LocalDate.now().minusMonths(1).toString().substring(0,7) %>" />
+      </label>
+      <label>Principal Employer
+        <select id="ccsUnit"><option value="">All Principal Employers</option></select>
+      </label>
+      <label>Contractor
+        <select id="ccsContractor"><option value="">All Contractors</option></select>
+      </label>
+    </div>
+  </div>
+  <div class="ccs-kpis">
+    <div class="ccs-kpi"><small>PF AVERAGE RATING</small><div class="ccs-value" id="ccsPf">N/A</div><small>Out of 5</small></div>
+    <div class="ccs-kpi"><small>ESIC AVERAGE RATING</small><div class="ccs-value" id="ccsEsic">N/A</div><small>Out of 5</small></div>
+    <div class="ccs-kpi"><small>BANK WAGE AVERAGE RATING</small><div class="ccs-value" id="ccsBank">N/A</div><small>Out of 5</small></div>
+  </div>
+  <div class="ccs-chart-wrap"><canvas id="ccsChart"></canvas></div>
+  <div class="ccs-table-wrap"><table class="ccs-table">
+    <thead><tr>
+    <th>Principal Employer</th>
+<th>Contractor</th>
+<th>PF</th>
+<th>ESIC</th>
+<th>Bank Wage</th>
+    </tr></thead>
+    <tbody id="ccsTableBody"></tbody>
+  </table></div>
+  <div id="ccsStatus" class="ccs-status" aria-live="polite"></div>
+  <%-- Initial scoreboard records rendered from DashboardDTO, not hardcoded --%>
+  <div id="ccsInitialData" hidden>
+    <c:forEach var="score" items="${dashboard.complianceScores}">
+        <span class="ccs-record"
+              data-unit="${score.unitId}"
+              data-unit-name="${fn:escapeXml(score.unitName)}"
+              data-contractor="${score.contractorId}"
+              data-contractor-name="${fn:escapeXml(score.contractorName)}"
+              data-type="${fn:escapeXml(score.complianceType)}"
+              data-rating="${score.averageRating}"
+              data-count="${score.workmenCount}">
+        </span>
+    </c:forEach>
+</div>
+</section>
 
 <div id="blacklistedGPModal" class="modal-overlay">
   <div class="modal-box">

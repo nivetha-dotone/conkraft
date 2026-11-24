@@ -67,7 +67,7 @@ public class DashboardServiceImpl implements DashboardService {
                         nextMonthStart);
 
         dto.setComplianceScores(complianceScores);
-        dto.setRoleName(roleName);
+        dto.setRoleName(roleName.toUpperCase());
 
         return dto;
     }

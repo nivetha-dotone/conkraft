@@ -8,7 +8,7 @@
 <head>
     <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+ <title>Conkraft</title>
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -77,7 +77,7 @@
  <script src="resources/js/cms/complianceAudit.js"></script>
 
   <script src="resources/js/cms/selfregistration.js"></script>
-  <script src="resources/js/cms/contractorComplianceScoreboard.js?v=2026111607"></script>
+  <script src="resources/js/cms/contractorComplianceScoreboard.js?v=2026112302"></script>
 
  <script>
     window.applicationContextPath =
@@ -6397,7 +6397,7 @@ function loadCharts() {
     });
 }
 
- function renderPlantChart(data) {
+/*  function renderPlantChart(data) {
 
     const ctx = document.getElementById('plantChart');
     if (!ctx) return;
@@ -6435,7 +6435,57 @@ function loadCharts() {
             }
         }
     });
-} 
+}  MANISH LAST MINUTE CHANGE DUE TO LESS DATA*/
+
+
+function renderPlantChart(data) {
+    const ctx = document.getElementById('plantChart');
+    if (!ctx) return;
+
+    if (plantChartInstance) {
+        plantChartInstance.destroy();
+    }
+
+    plantChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: data.plantLabels,
+            datasets: [{
+                data: data.plantData,
+                backgroundColor: [
+                    '#1D9E75',
+                    '#378ADD',
+                    '#EF9F27',
+                    '#D85A30',
+                    '#7F77DD',
+                    '#D4537E'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' +
+                                   context.parsed + ' Workmen';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+
 
 /* DONUT CHART */
 function renderStatusChart(data) {
